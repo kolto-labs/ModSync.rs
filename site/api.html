@@ -35,7 +35,7 @@
       <a data-repo="" href="https://github.com/kolto-labs/ModSync.rs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg>Source on GitHub</a>
       <a data-repo="/issues" href="https://github.com/kolto-labs/ModSync.rs/issues"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg>Report a problem</a>
     </div>
-    <h2>For players</h2><a href="getting-started.html">Getting started</a><a href="walkthrough-install.html">Walkthrough: your first build</a><a href="safety.html">Safety and recovery</a><a href="troubleshooting.html">Troubleshooting</a><a href="faq.html">FAQ</a><h2>For guide authors</h2><a href="instruction-files.html">Instruction files</a><a href="walkthrough-authoring.html">Walkthrough: writing a guide</a><a href="format-reference.html">Format reference</a><a href="cli.html">Command line</a><a href="cli-reference.html">CLI reference</a><h2>For developers</h2><a href="api.html" aria-current="page">Library API</a><h2>Project</h2><a href="status.html">Features and roadmap</a>
+    <h2>For players</h2><a href="getting-started.html">Getting started</a><a href="desktop.html">Desktop app</a><a href="walkthrough-install.html">Walkthrough: your first build</a><a href="safety.html">Safety and recovery</a><a href="troubleshooting.html">Troubleshooting</a><a href="faq.html">FAQ</a><h2>For guide authors</h2><a href="instruction-files.html">Instruction files</a><a href="walkthrough-authoring.html">Walkthrough: writing a guide</a><a href="format-reference.html">Format reference</a><a href="cli.html">Command line</a><a href="cli-reference.html">CLI reference</a><h2>For developers</h2><a href="api.html" aria-current="page">Library API</a><h2>Project</h2><a href="status.html">Features and roadmap</a>
   </nav>
 </aside>
 <div class="docs-main">
@@ -73,6 +73,20 @@ modsync = { git = "https://github.com/kolto-labs/ModSync.rs", default-features =
 <tr><td><code>game</code></td><td>Detects the game in a folder and resolves the install root.</td></tr>
 <tr><td><code>download_plan</code></td><td>Works out which offered filename a component would use from a download page.</td></tr>
 <tr><td><code>phase</code></td><td>Prepares a guide for one install phase, as the <code>--phase</code> option does.</td></tr>
+</tbody></table></div>
+<p>These modules serve players' apps such as the desktop app:</p>
+<div class="table"><table>
+<thead><tr><th>Module</th><th>What it is for</th></tr></thead>
+<tbody>
+<tr><td><code>builds</code></td><td>The mod build <code>Catalog</code>: the KOTOR Community builds (<code>builds::community()</code>) plus links players add, each fetched over HTTPS and kept in a local cache with <code>Catalog::fetch</code>.</td></tr>
+<tr><td><code>import</code></td><td>Turns a loose mod archive into a one-mod guide: <code>import::prepare</code> places it in the mod folder, inspects it read-only, and returns a <code>Prepared</code> guide. <code>archives_in</code> lists the archives in a folder.</td></tr>
+<tr><td><code>pause</code></td><td>Pausing a download, check or install at its next safe point, with a shared <code>Arc&lt;AtomicBool&gt;</code> flag like the cancel flag. <code>follow_file</code> makes a flag that follows whether a file exists.</td></tr>
+<tr><td><code>mod_info</code></td><td>A mod page's title, description, author and screenshots, from DeadlyStream or the Nexus Mods API. <code>image_data_url</code> fetches a screenshot as a <code>data:</code> URL.</td></tr>
+<tr><td><code>app_update</code></td><td>Checks a GitHub repository's releases for a newer version, downloads this platform's build, and reads one version's notes from a changelog.</td></tr>
+<tr><td><code>deadlystream_account</code></td><td>Signs in to DeadlyStream and returns a <code>Session</code> to keep in place of the password; <code>check_session</code> tells whether a kept session still works.</td></tr>
+<tr><td><code>game_locator</code></td><td><code>find_installs</code> lists KOTOR installs in Steam, GOG and Origin/EA folders. Read-only.</td></tr>
+<tr><td><code>deployment</code></td><td>Besides deploying, <code>Service::duplicates</code> lists deployed mods that share a name, and <code>Service::remove_from_library</code> deletes a staged mod that is not deployed.</td></tr>
+<tr><td><code>download_orchestrator</code></td><td>Downloads a whole guide. <code>RunSettings::paused</code> holds downloads between reads, <code>RunSettings::deadlystream_session</code> reads DeadlyStream pages signed in, and <code>nxm_target</code> turns a Nexus <code>nxm://</code> link into a download for the matching mod.</td></tr>
 </tbody></table></div>
 <p>Checkpoints, managed deployment, peer sharing and torrents also live in the crate (<code>checkpoint</code>, <code>deployment</code>, <code>p2p</code>, <code>peer_sharing</code>). They are advanced features and are not covered on this page.</p>
 </section>
@@ -188,6 +202,48 @@ recovery::restore(&amp;settings.roots)?;
 }</code></pre>
 </section>
 
+<section id="pause">
+<h2>Pausing and resuming</h2>
+<p><code>Settings::paused</code> is a shared flag, like <code>Settings::cancelled</code>. While it is set, checks and installs hold at the next boundary between components, never inside one. Clearing it carries on from there in the same process. Cancelling still stops a held run, and then recovery works as usual.</p>
+<pre class="code" data-lang="Rust" tabindex="0"><code>use std::sync::atomic::Ordering;
+use modsync::{Engine, Settings};
+
+let settings = Settings::new(mods, game_dir)?;
+let paused = settings.paused.clone();
+let engine = Engine::new(settings)?;
+// From another thread:
+//   paused.store(true, Ordering::Release);   // hold at the next component boundary
+//   paused.store(false, Ordering::Release);  // carry on
+engine.install(&amp;guide, |event| println!("{}: {}", event.component, event.message))?;</code></pre>
+<p>For a command-line tool, <code>modsync::pause::follow_file(path)</code> returns a flag that is set while the file exists, which is how <code>install --pause-file</code> works. Downloads take the same kind of flag in <code>download_orchestrator::RunSettings::paused</code>. Your own long-running work can wait on a flag with <code>pause::hold(&amp;paused, &amp;cancelled)</code>.</p>
+</section>
+
+<section id="import">
+<h2>Importing a loose archive</h2>
+<p><code>import::prepare</code> copies an archive into the mod folder (never replacing a different file with the same name), inspects it without changing anything, and returns a one-mod guide that installs it. It returns <code>Ok(None)</code> for an archive with no game files or TSLPatcher data. Validate and install the guide like any other.</p>
+<pre class="code" data-lang="Rust" tabindex="0"><code>use std::path::Path;
+use std::sync::atomic::AtomicBool;
+use modsync::{archive, import, Engine, Settings};
+
+let cancelled = AtomicBool::new(false);
+let Some(prepared) = import::prepare(
+    Path::new("/downloads/SomeMod.7z"),
+    mods,
+    Some("Some Mod"),
+    &amp;archive::Options::default(),
+    &amp;cancelled,
+)? else {
+    anyhow::bail!("Install this archive by hand");
+};
+println!("{} ({:?})", prepared.archive.display(), prepared.method);
+
+// validate and install each take the engine by value, so make one per call.
+Engine::new(Settings::new(mods, game_dir)?)?.validate(&amp;prepared.guide, |_| {})?;
+Engine::new(Settings::new(mods, game_dir)?)?
+    .install(&amp;prepared.guide, |event| println!("{}", event.message))?;</code></pre>
+<p>To import a folder, call <code>import::archives_in(folder, &amp;cancelled)</code> and prepare each archive on its own.</p>
+</section>
+
 <section id="convert">
 <h2>Converting between formats</h2>
 <p>Load a guide in one format and <code>render</code> it as another. The format names are <code>toml</code>, <code>json</code>, <code>yaml</code>, <code>xml</code> and <code>md</code>, plus common aliases such as <code>yml</code>. <code>save</code> writes the file atomically and picks the format from the file extension, using TOML when there is none. The command line's <code>convert</code> command also orders components by their dependencies first, and can draft instructions from prose with <code>draft::generate</code>.</p>
@@ -280,7 +336,7 @@ let settings = Settings::new(&amp;mods, &amp;game)?;</code></pre>
 </section>
 <nav class="pager" aria-label="Previous and next page"><a class="prev" href="cli-reference.html"><small>Previous</small>CLI reference</a><a class="next" href="status.html"><small>Next</small>Features and roadmap</a></nav>
 </main>
-<nav class="docs-outline" aria-label="On this page"><h2>On this page</h2><a href="#build">Adding the dependency</a><a href="#layout">Crate layout</a><a href="#load">Loading a guide</a><a href="#choose">Choosing components and options</a><a href="#validate">Validating without touching files</a><a href="#install">Installing with progress and cancellation</a><a href="#restore">Restoring after a failure</a><a href="#convert">Converting between formats</a><a href="#download">Downloading archives</a><a href="#errors">Errors</a><a href="#safety">Safety rules every caller must keep</a></nav>
+<nav class="docs-outline" aria-label="On this page"><h2>On this page</h2><a href="#build">Adding the dependency</a><a href="#layout">Crate layout</a><a href="#load">Loading a guide</a><a href="#choose">Choosing components and options</a><a href="#validate">Validating without touching files</a><a href="#install">Installing with progress and cancellation</a><a href="#restore">Restoring after a failure</a><a href="#pause">Pausing and resuming</a><a href="#import">Importing a loose archive</a><a href="#convert">Converting between formats</a><a href="#download">Downloading archives</a><a href="#errors">Errors</a><a href="#safety">Safety rules every caller must keep</a></nav>
 <footer class="docs-foot"><span>ModSync. Made for the KOTOR modding community.</span><span><a data-repo="/issues" href="https://github.com/kolto-labs/ModSync.rs/issues">Report a problem</a></span></footer>
 </div>
 </div>

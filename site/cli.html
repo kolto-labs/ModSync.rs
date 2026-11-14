@@ -35,7 +35,7 @@
       <a data-repo="" href="https://github.com/kolto-labs/ModSync.rs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg>Source on GitHub</a>
       <a data-repo="/issues" href="https://github.com/kolto-labs/ModSync.rs/issues"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg>Report a problem</a>
     </div>
-    <h2>For players</h2><a href="getting-started.html">Getting started</a><a href="walkthrough-install.html">Walkthrough: your first build</a><a href="safety.html">Safety and recovery</a><a href="troubleshooting.html">Troubleshooting</a><a href="faq.html">FAQ</a><h2>For guide authors</h2><a href="instruction-files.html">Instruction files</a><a href="walkthrough-authoring.html">Walkthrough: writing a guide</a><a href="format-reference.html">Format reference</a><a href="cli.html" aria-current="page">Command line</a><a href="cli-reference.html">CLI reference</a><h2>For developers</h2><a href="api.html">Library API</a><h2>Project</h2><a href="status.html">Features and roadmap</a>
+    <h2>For players</h2><a href="getting-started.html">Getting started</a><a href="desktop.html">Desktop app</a><a href="walkthrough-install.html">Walkthrough: your first build</a><a href="safety.html">Safety and recovery</a><a href="troubleshooting.html">Troubleshooting</a><a href="faq.html">FAQ</a><h2>For guide authors</h2><a href="instruction-files.html">Instruction files</a><a href="walkthrough-authoring.html">Walkthrough: writing a guide</a><a href="format-reference.html">Format reference</a><a href="cli.html" aria-current="page">Command line</a><a href="cli-reference.html">CLI reference</a><h2>For developers</h2><a href="api.html">Library API</a><h2>Project</h2><a href="status.html">Features and roadmap</a>
   </nav>
 </aside>
 <div class="docs-main">
@@ -56,7 +56,7 @@
 <div class="table"><table>
 <thead><tr><th>Command</th><th>What it does</th></tr></thead>
 <tbody>
-<tr><td><code>gui</code></td><td>Opens the desktop app, optionally with a guide and folders filled in.</td></tr>
+<tr><td><code>gui</code></td><td>Opens the built-in ModSync window, optionally with a guide and folders filled in.</td></tr>
 <tr><td><code>list</code></td><td>Lists the components in a guide.</td></tr>
 <tr><td><code>validate</code></td><td>Checks a guide against your folders without changing anything.</td></tr>
 <tr><td><code>install</code></td><td>Validates, snapshots, then installs.</td></tr>
@@ -70,6 +70,11 @@
 <tr><td><code>fetch-downloads</code></td><td>Fetches the downloads for the selected components of a guide.</td></tr>
 <tr><td><code>torrent-seed</code>, <code>torrent-download</code></td><td>Share or fetch one exact archive by BitTorrent.</td></tr>
 <tr><td><code>profile</code></td><td>Creates, lists, captures, applies and activates saved profiles.</td></tr>
+<tr><td><code>builds</code></td><td>Lists, adds, removes and fetches mod builds, including the KOTOR Community builds.</td></tr>
+<tr><td><code>import-archive</code></td><td>Turns a loose mod archive into a one-mod guide you can install.</td></tr>
+<tr><td><code>detect-games</code></td><td>Finds KOTOR installs on this computer.</td></tr>
+<tr><td><code>mod-info</code></td><td>Shows a DeadlyStream or Nexus Mods page's description and screenshots.</td></tr>
+<tr><td><code>deadlystream-sign-in</code>, <code>deadlystream-status</code>, <code>deadlystream-sign-out</code></td><td>Keep a DeadlyStream sign-in for downloads, check it, or forget it.</td></tr>
 </tbody></table></div>
 </section>
 
@@ -91,6 +96,8 @@ modsync install  --input KOTOR1_Full.toml --game-dir /path/to/game --source-dir 
 <dl>
 <dt><code>--scratch-dir &lt;folder&gt;</code>, <code>--max-expanded-bytes &lt;bytes&gt;</code></dt>
 <dd>Choose an existing folder outside both install folders for temporary archive storage, and set an optional size budget per archive.</dd>
+<dt><code>--pause-file &lt;file&gt;</code></dt>
+<dd>While the file exists, the run holds at the next safe point, between downloads or between components. Delete it to carry on.</dd>
 <dt><code>--install-progress-json</code></dt>
 <dd>Writes one JSON progress object per line to standard output. Only <code>install</code> accepts it, and it cannot be combined with <code>--json</code>.</dd>
 <dt><code>--direct-markdown</code></dt>
@@ -138,6 +145,13 @@ modsync convert --stdin --format yaml &lt; guide.json</code></pre>
   --url https://example.com/mod --source-dir /path/to/mods \
   --filename first.zip --filename alternative.zip</code></pre>
 <p><code>download-plan</code> reports which of the offered filenames the component would use. It downloads nothing and is not a readiness check.</p>
+<h3>Builds and sign-in</h3>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync builds list
+guide=$(modsync builds fetch --key KEY_FROM_LIST)
+modsync fetch-downloads --input "$guide" --source-dir /path/to/mods --game-dir /path/to/game</code></pre>
+<p><code>builds</code> keeps the community builds and any links you add, with a saved copy of each. To download DeadlyStream files that need an account, sign in once with the password in <code>MODSYNC_DEADLYSTREAM_PASSWORD</code> and <code>--save</code>; only the signed-in session is kept. See <a href="cli-reference.html#builds-accounts">Builds and accounts</a>.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync deadlystream-sign-in --username YOUR_NAME --save
+modsync import-archive ~/Downloads/SomeMod.7z --source-dir /path/to/mods --output somemod.toml</code></pre>
 </section>
 
 <section id="torrent">

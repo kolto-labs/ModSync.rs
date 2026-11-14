@@ -703,7 +703,7 @@ pre.code .copy:hover {
   list-style: none;
   counter-reset: step;
 }
-.steps li {
+.mp-body .steps li {
   margin: 0;
   padding: 14px;
   border: 1px solid var(--line);
@@ -711,7 +711,7 @@ pre.code .copy:hover {
   background: var(--surface);
   counter-increment: step;
 }
-.steps li::before {
+.mp-body .steps li::before {
   content: counter(step);
   display: grid;
   place-items: center;
@@ -724,13 +724,13 @@ pre.code .copy:hover {
   font-size: 13px;
   font-weight: 600;
 }
-.steps b {
+.mp-body .steps b {
   display: block;
   color: var(--ink);
   font-size: 15px;
   font-weight: 600;
 }
-.steps span {
+.mp-body .steps span {
   display: block;
   margin-top: 4px;
   color: var(--muted);
@@ -1256,3 +1256,8 @@ details.faq > div {
     }
   }
 }
+
+/* Screenshots inside docs pages */
+.docs-article figure.shot { margin: 1.25rem 0 1.5rem; }
+.docs-article figure.shot img { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: var(--radius-panel); }
+.docs-article figure.shot figcaption { margin-top: .5rem; font-size: .875rem; color: var(--muted); }

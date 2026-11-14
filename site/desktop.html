@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Desktop app - ModSync</title>
+<meta name="description" content="A tour of the ModSync desktop app: choosing a build, checking and installing it, downloads, installed mods, conflicts and settings." />
+<meta name="theme-color" content="#14110d" />
+<link rel="icon" href="assets/modsync.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<script src="assets/theme-init.js"></script>
+<link rel="stylesheet" href="assets/site.css" />
+<script src="assets/site.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<div class="docs">
+<aside class="docs-side">
+  <div class="docs-side-top">
+    <a class="docs-brand" href="./" aria-label="ModSync home"><img class="logo" src="assets/modsync.svg" alt="" width="22" height="22" />ModSync <span>docs</span></a>
+    <button class="icon-btn" type="button" data-theme-toggle aria-pressed="false" aria-label="Switch appearance">
+      <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z"/></svg>
+      <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    </button>
+    <button id="docs-menu" class="icon-btn docs-menu" type="button" aria-label="Show the list of pages" aria-expanded="false" aria-controls="docs-nav">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+  </div>
+  <nav id="docs-nav" class="docs-nav" aria-label="Documentation">
+    <div class="docs-quick">
+      <a href="./"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/></svg>Home</a>
+      <a data-repo="/releases" href="https://github.com/kolto-labs/ModSync.rs/releases"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M6 11l6 6 6-6M4 20h16"/></svg>Download</a>
+      <a data-repo="" href="https://github.com/kolto-labs/ModSync.rs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg>Source on GitHub</a>
+      <a data-repo="/issues" href="https://github.com/kolto-labs/ModSync.rs/issues"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg>Report a problem</a>
+    </div>
+    <h2>For players</h2><a href="getting-started.html">Getting started</a><a href="desktop.html" aria-current="page">Desktop app</a><a href="walkthrough-install.html">Walkthrough: your first build</a><a href="safety.html">Safety and recovery</a><a href="troubleshooting.html">Troubleshooting</a><a href="faq.html">FAQ</a><h2>For guide authors</h2><a href="instruction-files.html">Instruction files</a><a href="walkthrough-authoring.html">Walkthrough: writing a guide</a><a href="format-reference.html">Format reference</a><a href="cli.html">Command line</a><a href="cli-reference.html">CLI reference</a><h2>For developers</h2><a href="api.html">Library API</a><h2>Project</h2><a href="status.html">Features and roadmap</a>
+  </nav>
+</aside>
+<div class="docs-main">
+<main class="docs-article" id="content">
+<p class="crumb"><a href="./">ModSync</a><span>/</span>For players<span>/</span><strong>Desktop app</strong></p>
+<h1>The desktop <span class="serif">app</span></h1>
+<p class="lead">Pick a community mod build, let the app download the mods, check the install without touching your game, then install. This page walks through every screen.</p>
+
+<section id="setup">
+<h2>First-time setup</h2>
+<p>The first time you open the app, <strong>Welcome to KOTOR Mods</strong> walks you through three quick steps:</p>
+<ol>
+<li><strong>Your game.</strong> The app looks for KOTOR and KOTOR 2 in Steam, GOG and Origin/EA folders. When it finds one, click <strong>Use this</strong>. If it finds nothing, it asks for the game folder the first time you install, or you can add it later in <strong>Settings</strong>.</li>
+<li><strong>DeadlyStream account.</strong> Most KOTOR mods are hosted on DeadlyStream. Signing in is optional: the app checks and installs without it, but some DeadlyStream files only download for signed-in members.</li>
+<li><strong>Nexus Mods key.</strong> Paste your personal Nexus API key so the app can fetch the mods hosted on Nexus. <strong>Get your API key</strong> opens the right page.</li>
+</ol>
+<p>Every step has <strong>Skip for now</strong>, and <strong>Skip setup</strong> skips the lot. You can run the steps again later from <strong>Settings</strong> &gt; <strong>General</strong> &gt; <strong>Run setup again</strong>.</p>
+</section>
+
+<section id="layout">
+<h2>Finding your way around</h2>
+<p>The sidebar on the left has five screens:</p>
+<dl>
+<dt>Builds</dt><dd>Choose a mod build, pick its mods, then check and install.</dd>
+<dt>Installed mods</dt><dd>Everything installed in the selected game, with switches to turn mods on and off.</dd>
+<dt>Conflicts</dt><dd>Mods that should not be combined, and mods that change the same game files.</dd>
+<dt>Activity log</dt><dd>A running record of what the app did, to copy or export when you ask for help.</dd>
+<dt>Settings</dt><dd>Game folders, downloads, accounts, the patcher and updates.</dd>
+</dl>
+<p>The sun and moon button at the bottom of the sidebar switches between light and dark.</p>
+</section>
+
+<section id="builds">
+<h2>Builds</h2>
+<figure class="shot"><img src="assets/media/01-builds.png" alt="The Builds screen with a build chosen and its list of mods" width="1360" height="880" loading="lazy" /><figcaption>The Builds screen.</figcaption></figure>
+<h3>Choose a build</h3>
+<p>Pick a build from the list at the top. The community builds for KOTOR 1 and KOTOR 2 are already there. <strong>Refresh list</strong> fetches the latest mod list from the build's guide.</p>
+<ul>
+<li><strong>Add build</strong> adds a build of your own from a build guide's web address.</li>
+<li><strong>Open file</strong> opens an instruction file from your computer (TOML, JSON, YAML, XML or Markdown) as a build.</li>
+<li>A build you added can be removed again with <strong>Delete this build</strong>. That only removes it from the app, not from your game.</li>
+</ul>
+<h3>Pick your mods and their options</h3>
+<p>Tick the mods you want, or use <strong>Select all</strong> and <strong>Select none</strong>. The count of selected mods is shown above the list. Click a mod, or <strong>View details</strong>, to see its page description and screenshots, the build's notes and guide instructions, the steps the installer will take, and:</p>
+<ul>
+<li><strong>Options</strong>, the extra choices a mod offers. They start at the build's defaults.</li>
+<li><strong>Needs these mods</strong> and <strong>Cannot be combined with</strong>, taken from the build.</li>
+<li><strong>Compatibility notes</strong> from the guide.</li>
+</ul>
+<p>Mods marked <strong>Aspyr only</strong> only work with the KOTOR 2 Aspyr update and are skipped for other versions of the game.</p>
+<h3>Check</h3>
+<p>Click <strong>Check</strong>. The app downloads the mod files, works out the install steps, then tests the whole install without changing your game. <strong>Check results</strong> lists what it found, grouped as:</p>
+<ul>
+<li>Folders and settings</li>
+<li>Mods that cannot be combined</li>
+<li>Install order</li>
+<li>Mod files and steps</li>
+<li>Installer choices</li>
+<li>Practice install</li>
+</ul>
+<p>When it says <em>Everything looks good. You can install.</em>, you are ready. Otherwise <strong>Go to first problem</strong> takes you to what needs fixing, and <strong>Copy report</strong> copies the whole report for a bug report or a forum post. Install stays locked until a check passes.</p>
+<h3>Install</h3>
+<p>Click <strong>Install</strong> (it shows how many mods, for example <strong>Install 40 mods</strong>). The app runs the check again, then installs the mods in the build's order and stops at the first failure.</p>
+<ul>
+<li><strong>Pause</strong> holds the install at the next safe point: between downloads, or between mods, never halfway through one. <strong>Resume</strong> carries on from there.</li>
+<li><strong>Stop</strong> ends the run at the next safe point.</li>
+<li><strong>Retry failed</strong> runs the mods that failed again, for example after you downloaded a file by hand.</li>
+<li>If a mod needs a step the app cannot do for you, it is marked <em>Manual install required</em>. <strong>Open folder</strong> and <strong>Show readme</strong> help you finish it, then click <strong>Mark as installed</strong>.</li>
+</ul>
+<p>If an install did not finish, the Builds screen shows a banner with <strong>Restore</strong>. Restore puts your game folder back to how it was before that install started. See <a href="safety.html">Safety and recovery</a>.</p>
+<h3>Import your own archives</h3>
+<p><strong>Import folder</strong> installs mod archives from a folder on your computer, even if they are not in a build. You can also drop a ZIP, 7z or RAR archive, or a folder, onto the window. Load a build first so the app knows which game the mods are for.</p>
+</section>
+
+<section id="downloads">
+<h2>Downloads from DeadlyStream and Nexus Mods</h2>
+<p>The app downloads into the <strong>Download folder</strong> set in <strong>Settings</strong>. <strong>Open download folder</strong> on a mod opens that mod's files.</p>
+<ul>
+<li><strong>DeadlyStream:</strong> downloads work without an account where the site allows it. Sign in under <strong>Settings</strong> &gt; <strong>Account</strong> for files that need one. The app keeps the signed-in session in your system's credential store, never your password.</li>
+<li><strong>Nexus Mods:</strong> needs your API key. Premium accounts download automatically. Free accounts need one click on the Nexus page per mod: when the app asks, click <strong>Mod Manager Download</strong> on the mod's Nexus page and the app catches the link and downloads the file into the right place. It only takes over nxm:// links while it is waiting for one, and never replaces another mod manager's link handling.</li>
+<li>Nexus limits how much each account can download per hour and per day. If it stops the downloads, the app pauses the Nexus mods and carries on with everything else. Press <strong>Install</strong> again a few hours later to finish the rest.</li>
+</ul>
+<p>A mod the app cannot download for you tells you where to get it: download it from the linked page, place the archive in the mod's download folder, then retry.</p>
+</section>
+
+<section id="installed">
+<h2>Installed mods</h2>
+<figure class="shot"><img src="assets/media/02-library.png" alt="The Installed mods screen listing mods with on and off switches" width="1360" height="880" loading="lazy" /><figcaption>Installed mods, with search and filters.</figcaption></figure>
+<p>Pick a game install at the top to see what is installed in it. Search by name, filter by install type or category, or show <strong>Enabled only</strong>.</p>
+<ul>
+<li>Each mod's switch turns it on (<strong>Enable</strong>) or off (<strong>Disable</strong>) without deleting it.</li>
+<li><strong>Delete mod</strong> removes the mod's files from your game. A mod that patched shared game files cannot be cleanly removed on its own. The app says so and offers to remove only the library entry, leaving the patched files in place. Use <strong>Restore</strong> to undo those.</li>
+<li><strong>Remove duplicates</strong> merges mods that are listed more than once. Nothing is removed from your game. Entries that share a name but installed different files are left alone and marked with an orange badge, so you can check both.</li>
+<li>A mod's details show its <strong>Installed files</strong>, marked <em>new</em> or <em>overwrote</em>.</li>
+</ul>
+</section>
+
+<section id="conflicts">
+<h2>Conflicts</h2>
+<figure class="shot"><img src="assets/media/03-conflicts.png" alt="The Conflicts screen after a check found no conflicts" width="1360" height="880" loading="lazy" /><figcaption>The Conflicts screen after a check with no conflicts.</figcaption></figure>
+<p>Conflicts come from the same install test that <strong>Check</strong> runs, so run a check first. They come in two kinds:</p>
+<dl>
+<dt>Potential incompatibilities</dt>
+<dd>Mods the build says not to combine. Check the build guide before you change anything. <strong>Disable</strong> followed by a mod's name turns off the mod you want to drop, if it is installed. If it is not installed yet, untick it on the Builds screen.</dd>
+<dt>Load-order notes</dt>
+<dd>Mods that change the same game files. The last installed version takes priority, which is the mod installed last in the build's order. These are marked <em>No action needed</em>. If one causes trouble in game, disable the mod that causes it.</dd>
+</dl>
+</section>
+
+<section id="activity">
+<h2>Activity log</h2>
+<figure class="shot"><img src="assets/media/06-activity.png" alt="The Activity log screen listing recent actions" width="1360" height="880" loading="lazy" /><figcaption>The Activity log.</figcaption></figure>
+<p>Everything the app does is written here: downloads, checks, installs, errors and what you changed. <strong>Copy</strong> and <strong>Export</strong> save it for a bug report.</p>
+</section>
+
+<section id="settings">
+<h2>Settings</h2>
+<figure class="shot"><img src="assets/media/04-settings.png" alt="The Settings screen with the General section open" width="1360" height="880" loading="lazy" /><figcaption>Settings.</figcaption></figure>
+<dl>
+<dt>General</dt>
+<dd>Language, appearance and menu click sounds. <strong>Download folder</strong> is where mod archives are kept. <strong>Folder for unpacking mods</strong> is where archives are unpacked while checking and installing; pick a drive with plenty of free space. <strong>Largest unpacked size per mod (GB)</strong> stops an archive that would unpack to more than that. <strong>Spoiler-free mode</strong> hides mod names and descriptions that could give away the story, where the build provides other text. <strong>Only download widescreen files for my screen</strong> uses the size of the monitor the app is on to pick the matching widescreen files; turned off, it downloads every size.</dd>
+<dt>Game Installs</dt>
+<dd>The game folders the app installs into. Installs found on this computer are listed with <strong>Use this install</strong>, or click <strong>Add install</strong> and choose a folder. Each one shows which game was found in it. <strong>Set active</strong> picks the one the other screens use.</dd>
+<dt>Account</dt>
+<dd>Sign in to or out of DeadlyStream, and add your Nexus Mods API key. A valid key shows the account it belongs to and how much Nexus allowance is left today and this hour.</dd>
+<dt>Patcher</dt>
+<dd><strong>Patcher for TSLPatcher mods</strong> chooses the program that applies TSLPatcher and HoloPatcher mods: OdyPatcher, HoloPatcher or KPatcher. <strong>Patcher executable</strong> points to your own copy instead. <strong>Let mods run their patcher or installer</strong> is on by default because most builds need it. Turn it off to stop any program from a mod running; mods that need one then fail with a clear message.</dd>
+<dt>Updates</dt>
+<dd><strong>Check for updates</strong> looks for a newer version, shows its release notes and offers <strong>Download &amp; install</strong>. A copy that cannot update itself says so and links to the new version on Nexus Mods or GitHub instead.</dd>
+</dl>
+</section>
+<nav class="pager" aria-label="Previous and next page"><a class="prev" href="getting-started.html"><small>Previous</small>Getting started</a><a class="next" href="walkthrough-install.html"><small>Next</small>Walkthrough: your first build</a></nav>
+</main>
+<nav class="docs-outline" aria-label="On this page"><h2>On this page</h2><a href="#setup">First-time setup</a><a href="#layout">Finding your way around</a><a href="#builds">Builds</a><a href="#downloads">Downloads from DeadlyStream and Nexus Mods</a><a href="#installed">Installed mods</a><a href="#conflicts">Conflicts</a><a href="#activity">Activity log</a><a href="#settings">Settings</a></nav>
+<footer class="docs-foot"><span>ModSync. Made for the KOTOR modding community.</span><span><a data-repo="/issues" href="https://github.com/kolto-labs/ModSync.rs/issues">Report a problem</a></span></footer>
+</div>
+</div>
+</body>
+</html>

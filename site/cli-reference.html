@@ -35,7 +35,7 @@
       <a data-repo="" href="https://github.com/kolto-labs/ModSync.rs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg>Source on GitHub</a>
       <a data-repo="/issues" href="https://github.com/kolto-labs/ModSync.rs/issues"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg>Report a problem</a>
     </div>
-    <h2>For players</h2><a href="getting-started.html">Getting started</a><a href="walkthrough-install.html">Walkthrough: your first build</a><a href="safety.html">Safety and recovery</a><a href="troubleshooting.html">Troubleshooting</a><a href="faq.html">FAQ</a><h2>For guide authors</h2><a href="instruction-files.html">Instruction files</a><a href="walkthrough-authoring.html">Walkthrough: writing a guide</a><a href="format-reference.html">Format reference</a><a href="cli.html">Command line</a><a href="cli-reference.html" aria-current="page">CLI reference</a><h2>For developers</h2><a href="api.html">Library API</a><h2>Project</h2><a href="status.html">Features and roadmap</a>
+    <h2>For players</h2><a href="getting-started.html">Getting started</a><a href="desktop.html">Desktop app</a><a href="walkthrough-install.html">Walkthrough: your first build</a><a href="safety.html">Safety and recovery</a><a href="troubleshooting.html">Troubleshooting</a><a href="faq.html">FAQ</a><h2>For guide authors</h2><a href="instruction-files.html">Instruction files</a><a href="walkthrough-authoring.html">Walkthrough: writing a guide</a><a href="format-reference.html">Format reference</a><a href="cli.html">Command line</a><a href="cli-reference.html" aria-current="page">CLI reference</a><h2>For developers</h2><a href="api.html">Library API</a><h2>Project</h2><a href="status.html">Features and roadmap</a>
   </nav>
 </aside>
 <div class="docs-main">
@@ -139,6 +139,7 @@ modsync conflicts --input &lt;guide&gt; --game-dir &lt;folder&gt; --source-dir &
 <tr><td><code>--option</code></td><td>GUID</td><td>Turns on an option. Existing option selections are kept.</td><td>None</td></tr>
 <tr><td><code>--deselect</code>, <code>--deselect-option</code>, <code>--select-through-tier</code>, <code>--add-category</code>, <code>--select-visible-search</code>, <code>--spoiler-free</code></td><td>as for <code>selection</code></td><td>Same selection changes as the <code>selection</code> command. They are applied after <code>--select</code>.</td><td>None</td></tr>
 <tr><td><code>--fomod-choices</code></td><td>file</td><td>A saved FOMOD choices file (version 1) for this run. It is not saved back to disk.</td><td>None</td></tr>
+<tr><td><code>--pause-file</code></td><td>file</td><td>While this file exists, the run holds at the next safe point: between downloads or reads, or between components, never inside one. Delete the file to carry on. Stopping still works while held.</td><td>None</td></tr>
 <tr><td><code>--fomod-skip</code></td><td>none</td><td>Skips the FOMOD setup step. Installers that are still unresolved stop the run.</td><td>Off</td></tr>
 <tr><td><code>--interactive</code></td><td>none</td><td>Asks you to set up FOMOD installers in the terminal.</td><td>Off</td></tr>
 <tr><td><code>--non-interactive</code></td><td>none</td><td>Turns off the terminal FOMOD prompts. Cannot be used with <code>--interactive</code>.</td><td>Off</td></tr>
@@ -168,6 +169,10 @@ modsync conflicts --input &lt;guide&gt; --game-dir &lt;folder&gt; --source-dir &
 <pre class="code" data-lang="Terminal" tabindex="0"><code>modsync validate --input guide.toml --game-dir /path/to/game --source-dir /path/to/mods --output json
 modsync install  --input guide.toml --game-dir /path/to/game --source-dir /path/to/mods --select "Some Mod" --select "Another Mod"
 modsync conflicts --input guide.toml --game-dir /path/to/game --source-dir /path/to/mods</code></pre>
+<p>To pause a long install from another terminal, start it with <code>--pause-file</code>, then create the file to pause and delete it to resume:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync install --input guide.toml --game-dir /path/to/game --source-dir /path/to/mods --pause-file /tmp/modsync.pause
+touch /tmp/modsync.pause   # holds at the next safe point
+rm /tmp/modsync.pause      # carries on</code></pre>
 
 <h3 id="restore"><code>restore</code></h3>
 <p>Puts both folders back to the snapshot taken before an unfinished install. It checks the snapshot before and after restoring. It only works on an unfinished install.</p>
@@ -557,6 +562,7 @@ modsync convert guide.md draft.json --parse-directions</code></pre>
 <tr><td><code>--interactive</code>, <code>--non-interactive</code></td><td>none</td><td>Asks you to configure downloaded FOMOD installers in the terminal, or turns the prompts off. Cannot be used together.</td><td>See description</td></tr>
 </tbody></table></div>
 <p>Example:</p>
+<p>If you saved a DeadlyStream sign-in with <a href="#deadlystream-sign-in"><code>deadlystream-sign-in --save</code></a>, DeadlyStream downloads are made signed in.</p>
 <pre class="code" data-lang="Terminal" tabindex="0"><code>modsync fetch-downloads --input guide.toml --source-dir /path/to/mods --game-dir /path/to/game --select "Some Mod" --dry-run</code></pre>
 
 <h3 id="nxm-download"><code>nxm-download</code></h3>
@@ -688,6 +694,130 @@ modsync settings --action get --key nexusModsApiKey</code></pre>
 </tbody></table></div>
 <p>Example:</p>
 <pre class="code" data-lang="Terminal" tabindex="0"><code>modsync set-nexus-api-key YOUR_API_KEY</code></pre>
+</section>
+
+<section id="builds-accounts">
+<h2>Builds and accounts</h2>
+<p>These commands keep a list of mod builds, look up mod pages, find game installs, import loose archives and manage a DeadlyStream sign-in. The desktop app uses the same features. Commands that print JSON are meant for scripts as well as people.</p>
+
+<h3 id="builds"><code>builds</code></h3>
+<p>Lists, adds, removes and fetches mod builds: the KOTOR Community builds plus build links you add. Each build is an instruction file fetched over HTTPS and kept in <code>builds/</code> inside the settings folder, so it opens again without a connection. Run as <code>modsync builds &lt;action&gt;</code>.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync builds list
+modsync builds add --label &lt;name&gt; --game &lt;KOTOR1|KOTOR2&gt; --url &lt;link&gt;
+modsync builds remove --key &lt;key&gt;
+modsync builds fetch --key &lt;key&gt; [--refresh]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Action or option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>list</code></td><td>none</td><td>Prints every build as JSON, with its key, name, game and link.</td><td>None</td></tr>
+<tr><td><code>add</code></td><td><code>--label</code>, <code>--game</code>, <code>--url</code></td><td>Adds a build link: an instruction file, or a community portal build page. <code>--game</code> is <code>KOTOR1</code> or <code>KOTOR2</code>. Prints the new build as JSON.</td><td>None</td></tr>
+<tr><td><code>remove</code></td><td><code>--key</code></td><td>Removes a build you added and its saved copy. The community builds cannot be removed.</td><td>None</td></tr>
+<tr><td><code>fetch</code></td><td><code>--key</code>, <code>--refresh</code></td><td>Prints the path of the build's instruction file, downloading it if there is no saved copy. <code>--refresh</code> downloads the latest version even when a saved copy exists. If the download fails, the saved copy is used and a warning is printed.</td><td>None</td></tr>
+<tr><td><code>--settings-dir</code></td><td>folder</td><td>The folder that holds settings.</td><td>The ModSync settings folder for your platform</td></tr>
+</tbody></table></div>
+<p><code>--settings-dir</code> can go before or after the action. Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>guide=$(modsync builds fetch --key KEY_FROM_LIST)
+modsync validate --input "$guide" --game-dir /path/to/game --source-dir /path/to/mods</code></pre>
+
+<h3 id="import-archive"><code>import-archive</code></h3>
+<p>Imports a mod archive that is not part of a build. The archive is copied into the mod folder (an existing different file with the same name is never replaced), its contents are inspected without changing anything, and a one-mod guide that installs it is written. Install that guide with <code>install</code>. Archives with no game files or TSLPatcher data are refused, because they need installing by hand.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync import-archive &lt;archive&gt; --source-dir &lt;folder&gt; --output &lt;guide&gt; [--name &lt;name&gt;]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument or option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;archive&gt;</code></td><td>file</td><td>A ZIP, 7z or RAR mod archive. Required.</td><td>None</td></tr>
+<tr><td><code>--source-dir</code></td><td>folder</td><td>The mod folder the archive is placed in. Required.</td><td>None</td></tr>
+<tr><td><code>--output</code></td><td>file</td><td>Where to write the guide. Required.</td><td>None</td></tr>
+<tr><td><code>--name</code></td><td>text</td><td>The mod's name.</td><td>The archive name</td></tr>
+</tbody></table></div>
+<p>It prints JSON with the archive path, whether it was copied, its SHA-256, the install method it found, and the new guide's component name and GUID.</p>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync import-archive ~/Downloads/SomeMod.7z --source-dir /path/to/mods --output somemod.toml
+modsync install --input somemod.toml --game-dir /path/to/game --source-dir /path/to/mods</code></pre>
+
+<h3 id="mod-info"><code>mod-info</code></h3>
+<p>Shows the title, description, author and screenshots of a DeadlyStream or Nexus Mods page as JSON. Nexus pages need a saved Nexus API key. Nothing is written to disk.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync mod-info &lt;url&gt; [--settings-dir &lt;folder&gt;]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Argument or option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>&lt;url&gt;</code></td><td>link</td><td>A DeadlyStream or Nexus Mods mod page. Required.</td><td>None</td></tr>
+<tr><td><code>--settings-dir</code></td><td>folder</td><td>The folder that holds the Nexus API key.</td><td>The ModSync settings folder for your platform</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync mod-info https://deadlystream.com/files/file/EXAMPLE-mod/</code></pre>
+
+<h3 id="detect-games"><code>detect-games</code></h3>
+<p>Lists the KOTOR installs found on this computer: Steam (every library), and on Windows the GOG and Origin/EA folders. It only reads; nothing is created or changed.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync detect-games [--json]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>--json</code></td><td>none</td><td>Prints the installs as JSON, including whether a KOTOR 2 install has the Aspyr update.</td><td>Off. One line per install.</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync detect-games</code></pre>
+
+<h3 id="deadlystream-sign-in"><code>deadlystream-sign-in</code></h3>
+<p>Checks a DeadlyStream account by signing in the way a browser does. The password is read from the <code>MODSYNC_DEADLYSTREAM_PASSWORD</code> environment variable, sent once over HTTPS to deadlystream.com only, and never stored. With <code>--save</code>, the signed-in session (not the password) is kept in settings so DeadlyStream downloads are made signed in.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>MODSYNC_DEADLYSTREAM_PASSWORD=&lt;password&gt; modsync deadlystream-sign-in --username &lt;name&gt; [--save] [--settings-dir &lt;folder&gt;]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>--username</code></td><td>text</td><td>Your DeadlyStream user name. Required.</td><td>None</td></tr>
+<tr><td><code>--save</code></td><td>none</td><td>Keeps the signed-in session for later downloads.</td><td>Off</td></tr>
+<tr><td><code>--settings-dir</code></td><td>folder</td><td>The folder that holds settings.</td><td>The ModSync settings folder for your platform</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>read -rs MODSYNC_DEADLYSTREAM_PASSWORD &amp;&amp; export MODSYNC_DEADLYSTREAM_PASSWORD
+modsync deadlystream-sign-in --username YOUR_NAME --save</code></pre>
+
+<h3 id="deadlystream-status"><code>deadlystream-status</code></h3>
+<p>Checks whether the session saved by <code>deadlystream-sign-in --save</code> is still signed in, and prints the user name and <code>signedIn</code> as JSON. An expired session is forgotten; a renewed one is saved.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync deadlystream-status [--settings-dir &lt;folder&gt;]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>--settings-dir</code></td><td>folder</td><td>The folder that holds settings.</td><td>The ModSync settings folder for your platform</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync deadlystream-status</code></pre>
+
+<h3 id="deadlystream-sign-out"><code>deadlystream-sign-out</code></h3>
+<p>Forgets the DeadlyStream session saved by <code>deadlystream-sign-in --save</code>.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync deadlystream-sign-out [--settings-dir &lt;folder&gt;]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>--settings-dir</code></td><td>folder</td><td>The folder that holds settings.</td><td>The ModSync settings folder for your platform</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync deadlystream-sign-out</code></pre>
+
+<h3 id="app-update"><code>app-update</code></h3>
+<p>Checks a GitHub repository's latest release against the version you have, and can download the build for this system. Prints the check, and the downloaded file if any, as JSON. Replacing the running program is left to you.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync app-update --repo &lt;owner/name&gt; --current &lt;version&gt; [--download &lt;folder&gt;]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>--repo</code></td><td><code>owner/name</code></td><td>The repository to check. Required.</td><td>None</td></tr>
+<tr><td><code>--current</code></td><td>version</td><td>The version installed now. Required.</td><td>None</td></tr>
+<tr><td><code>--download</code></td><td>folder</td><td>Downloads the new build into this folder when one is available.</td><td>None</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync app-update --repo kolto-labs/ModSync.rs --current 0.1.0</code></pre>
+
+<h3 id="changelog-section"><code>changelog-section</code></h3>
+<p>Prints the notes for one version from a changelog file. Fails if the changelog has no section for that version.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync changelog-section --changelog &lt;file&gt; --version &lt;version&gt;</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>--changelog</code></td><td>file</td><td>The changelog to read. Required.</td><td>None</td></tr>
+<tr><td><code>--version</code></td><td>version</td><td>The version whose notes to print. Required.</td><td>None</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync changelog-section --changelog CHANGELOG.md --version 0.1.0</code></pre>
 </section>
 
 <section id="checkpoints">
@@ -929,6 +1059,29 @@ modsync settings --action get --key nexusModsApiKey</code></pre>
 </tbody></table></div>
 <p>Example:</p>
 <pre class="code" data-lang="Terminal" tabindex="0"><code>modsync deployment purge --game-dir /path/to/game --profile "Full Build"</code></pre>
+
+<h3 id="deployment-remove"><code>deployment remove</code></h3>
+<p>Deletes the staged copy of a component that is not deployed, so it leaves the library. A deployed component must be uninstalled first. The game folder is never touched. Prints whether anything was removed.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync deployment remove --game-dir &lt;folder&gt; --component &lt;name&gt; [folder options]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td><code>--component</code></td><td>component name</td><td>The staged component to delete. Required.</td><td>None</td></tr>
+<tr><td>Folder options</td><td>see above</td><td>Which folders to use.</td><td>See above</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync deployment remove --game-dir /path/to/game --profile "Full Build" --component "Some Mod"</code></pre>
+
+<h3 id="deployment-duplicates"><code>deployment duplicates</code></h3>
+<p>Lists deployed components that share a name, such as older copies of the same mod, as JSON. For each name it shows the newest copy, which is kept, and the older ones. It only reads.</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync deployment duplicates --game-dir &lt;folder&gt; [folder options]</code></pre>
+<div class="table"><table>
+<thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td>Folder options</td><td>see above</td><td>Which folders to read.</td><td>See above</td></tr>
+</tbody></table></div>
+<p>Example:</p>
+<pre class="code" data-lang="Terminal" tabindex="0"><code>modsync deployment duplicates --game-dir /path/to/game --profile "Full Build"</code></pre>
 
 <h3 id="deployment-snapshot"><code>deployment snapshot</code></h3>
 <p>Saves a list of hashes for every file in the game folder. Run it before you run a patcher, so you can later see what the patcher changed.</p>
@@ -1220,7 +1373,7 @@ modsync settings --action get --key nexusModsApiKey</code></pre>
 <p>These commands open the desktop app, handle <code>nxm://</code> and <code>modsync://</code> links, and register those links with your system.</p>
 
 <h3 id="gui"><code>gui</code></h3>
-<p>Opens the desktop app. You can open it with a guide and folders already filled in, or reopen an easy-mode session. Running <code>modsync</code> with no command does the same thing.</p>
+<p>Opens the built-in ModSync window. You can open it with a guide and folders already filled in, or reopen an easy-mode session. Running <code>modsync</code> with no command does the same thing. The KOTOR desktop app described on the <a href="desktop.html">Desktop app</a> page is a separate program, built from <code>desktop/tauri</code>.</p>
 <pre class="code" data-lang="Terminal" tabindex="0"><code>modsync gui [options]</code></pre>
 <div class="table"><table>
 <thead><tr><th>Option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
@@ -1320,7 +1473,7 @@ modsync protocol register --scheme modsync</code></pre>
 
 <h3 id="recipe-json">Validate in a script and read the result</h3>
 <p>Use this when another program needs to decide whether a guide is ready. Validation prints a JSON report. The command exits with <code>1</code> when the report does not pass.</p>
-<ol class="steps">
+<ol>
 <li><p>Run validation with JSON output, and save the report to a file.</p>
 <pre class="code" data-lang="Terminal" tabindex="0"><code>modsync validate --input guide.toml --game-dir /path/to/game --source-dir /path/to/mods --output json > report.json</code></pre></li>
 <li><p>Check the exit code. <code>0</code> means the report passed, and <code>1</code> means it did not.</p>
@@ -1334,7 +1487,7 @@ fi</code></pre></li>
 
 <h3 id="recipe-subset">Install only some components</h3>
 <p>Repeat <code>--select</code> for each component you want, and <code>--option</code> for each option. Repeating the flag is safer than listing many values after one flag, because the list ends at the next flag.</p>
-<ol class="steps">
+<ol>
 <li><p>Check the names and GUIDs first with <code>list</code> or <code>selection</code>.</p>
 <pre class="code" data-lang="Terminal" tabindex="0"><code>modsync selection --input guide.toml --game-dir /path/to/game --source-dir /path/to/mods --select "Some Mod" --select "Another Mod" --json</code></pre></li>
 <li><p>Validate the same selection.</p>
@@ -1345,7 +1498,7 @@ fi</code></pre></li>
 
 <h3 id="recipe-restore">Recover after a failed install</h3>
 <p>When an install stops, the folders are not left half-changed. Restore them first, then fix the cause and run again.</p>
-<ol class="steps">
+<ol>
 <li><p>Put both folders back to the snapshot from before the install.</p>
 <pre class="code" data-lang="Terminal" tabindex="0"><code>modsync restore --game-dir /path/to/game --source-dir /path/to/mods</code></pre></li>
 <li><p>Fix the cause that the error message named, such as a missing archive.</p></li>
@@ -1372,7 +1525,7 @@ modsync install --active-profile</code></pre>
 
 <nav class="pager" aria-label="Previous and next page"><a class="prev" href="cli.html"><small>Previous</small>Command line</a><a class="next" href="api.html"><small>Next</small>Library API</a></nav>
 </main>
-<nav class="docs-outline" aria-label="On this page"><h2>On this page</h2><a href="#global">Global options and conventions</a><a href="#installing">Installing</a><a href="#patchers">Patchers</a><a href="#guides">Guides: convert, merge and drafting</a><a href="#downloads">Downloads and sharing</a><a href="#profiles">Profiles and settings</a><a href="#checkpoints">Checkpoints</a><a href="#deployment">Deployments</a><a href="#maintenance">Maintenance</a><a href="#easy">Authoring history (easy)</a><a href="#links">Desktop app and links</a><a href="#recipes">Common recipes</a></nav>
+<nav class="docs-outline" aria-label="On this page"><h2>On this page</h2><a href="#global">Global options and conventions</a><a href="#installing">Installing</a><a href="#patchers">Patchers</a><a href="#guides">Guides: convert, merge and drafting</a><a href="#downloads">Downloads and sharing</a><a href="#profiles">Profiles and settings</a><a href="#builds-accounts">Builds and accounts</a><a href="#checkpoints">Checkpoints</a><a href="#deployment">Deployments</a><a href="#maintenance">Maintenance</a><a href="#easy">Authoring history (easy)</a><a href="#links">Desktop app and links</a><a href="#recipes">Common recipes</a></nav>
 <footer class="docs-foot"><span>ModSync. Made for the KOTOR modding community.</span><span><a data-repo="/issues" href="https://github.com/kolto-labs/ModSync.rs/issues">Report a problem</a></span></footer>
 </div>
 </div>
