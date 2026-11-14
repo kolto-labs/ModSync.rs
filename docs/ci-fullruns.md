@@ -137,3 +137,5 @@ Admission first proves original source/converted heading coverage, then checks t
 Archive preparation and install/seed runtimes include the distribution `unrar` reader. Existing integrity validation prefers it for RAR inputs; the exact Extended Enclave and Quarterstaff RARs pass its full CRC checks. The hosted Ubuntu 24.04 7-Zip reader crashes on those inputs and libarchive lacks their VM/solid features, so those readers alone do not cover the pinned guide. No integrity checks are skipped.
 
 One-time migration publishes a cumulative owning-repository index after verifying all payload transfers. It preserves prior object associations and records prior index provenance, so the consumer’s bounded three-index lookup cannot forget older imports when another reviewed seed is added. The merge uses only the owning repository’s built-in read token.
+
+Complete-guide CLI lanes build the production library and CLI with `--no-default-features`; GUI lanes retain desktop features. Both use two compiler jobs. The shared installer engine and all coverage requirements remain the same.

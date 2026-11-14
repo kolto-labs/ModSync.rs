@@ -3311,8 +3311,12 @@ def execute(args, report):
     if args.implementation == "rust":
         if not (source / "Cargo.toml").is_file():
             raise Blocked("rust_source_manifest_missing")
-        run(["cargo", "build", "--locked", "--bin", "modsync"],
-            source, private, "build", report, env)
+        build = ["cargo", "build", "--locked", "--bin", "modsync"]
+        if getattr(args, "complete_guide", False):
+            build += ["--lib", "-j2"]
+            if args.mode == "cli":
+                build.append("--no-default-features")
+        run(build, source, private, "build", report, env)
         command = [str(private / "target/debug/modsync")]
         archive_map = []
         if args.archive_map:
