@@ -1,9 +1,15 @@
 """Validate actual owned workflow graph and pins, not copies of YAML strings."""
 import json
+import contextlib
+import io
+import os
 from pathlib import Path
 import re
+import tempfile
 import unittest
+from unittest import mock
 import yaml
+import fullrun_contract
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -46,11 +52,52 @@ class WorkflowGraph(unittest.TestCase):
         config = json.loads((ROOT / ".github/fullrun.json").read_text())
         self.assertRegex(config["counterpart_sha"], r"^[0-9a-f]{40}$")
         self.assertIn(config["role"], ("engine", "guides"))
-    def test_automatic_plan_has_no_licensed_data_keys(self):
+    def test_actual_event_expressions_admit_full_pushes_and_keep_prs_credential_free(self):
         main = yaml.load((ROOT / ".github/workflows/fullrun.yml").read_text(), Loader=yaml.BaseLoader)
         step = next(s for s in main["jobs"]["plan"]["steps"] if s.get("id") == "request")
-        for key in ("CACHE_ENCRYPTION_KEY", "DIAGNOSTICS_ENCRYPTION_KEY"):
-            self.assertIn("github.event_name == 'workflow_dispatch' &&", step["env"][key])
+        for event, operation, write, expected, writer in (
+                ("push", "", False, "full", True),
+                ("pull_request", "full", True, "check", False),
+                ("pull_request_target", "full", True, "check", False),
+                ("workflow_run", "full", True, "check", False),
+                ("workflow_dispatch", "full", False, "full", False),
+                ("workflow_dispatch", "games", True, "games", True),
+                ("workflow_dispatch", "install", True, "install", False),
+                ("workflow_dispatch", "check", True, "check", False)):
+            context = {"github.event_name": event, "inputs.operation": operation,
+                       "inputs.write_cache": write, "inputs.counterpart_sha": "",
+                       "inputs.game": "", "inputs.mode": "",
+                       "secrets.CACHE_ENCRYPTION_KEY": "test-cache-key",
+                       "secrets.DIAGNOSTICS_ENCRYPTION_KEY": "test-evidence-key"}
+            env = {}
+            for key, expression in step["env"].items():
+                value = re.sub(r"\b(?:github|inputs|secrets)\.[A-Za-z_]+",
+                               lambda match: repr(context[match[0]]), expression[3:-2])
+                value = re.sub(r"\bfalse\b", "False", value).replace("&&", " and ").replace("||", " or ")
+                result = eval(value, {"__builtins__": {}})
+                env[key] = str(result).lower() if type(result) is bool else result
+            with self.subTest(event=event, operation=operation, write=write), tempfile.TemporaryDirectory() as root:
+                env.update(GITHUB_REPOSITORY="kolto-labs/ModSync.rs", GITHUB_SHA="a" * 40,
+                           GITHUB_EVENT_NAME=event, GITHUB_OUTPUT=str(Path(root) / "outputs"))
+                output = Path(root) / "plan.json"
+                with mock.patch.dict(os.environ, env), contextlib.redirect_stdout(io.StringIO()):
+                    self.assertEqual(fullrun_contract.main(["plan", "--config", str(ROOT / ".github/fullrun.json"),
+                                                           "--output", str(output)]), 0)
+                plan = json.loads(output.read_text())
+                self.assertEqual((plan["operation"], plan["cache_writer"]), (expected, writer))
+                for key in ("CACHE_ENCRYPTION_KEY", "DIAGNOSTICS_ENCRYPTION_KEY"):
+                    self.assertEqual(bool(env[key]), event in ("push", "workflow_dispatch"))
+                if event == "push":
+                    for key in ("CACHE_ENCRYPTION_KEY", "DIAGNOSTICS_ENCRYPTION_KEY"):
+                        missing = dict(env, **{key: ""})
+                        rejected = Path(root) / (key + ".json")
+                        with mock.patch.dict(os.environ, missing), contextlib.redirect_stderr(io.StringIO()):
+                            self.assertEqual(fullrun_contract.main(["plan", "--config", str(ROOT / ".github/fullrun.json"),
+                                                                   "--output", str(rejected)]), 1)
+                        self.assertFalse(rejected.exists(), "missing keys must not downgrade full to check")
+    def test_synthetic_cli_and_gui_workflows_are_removed(self):
+        for path in (ROOT / ".github/workflows").glob("synthetic-*.yml"):
+            self.assertFalse(path.name.startswith(("synthetic-full-cli-", "synthetic-gui-")), path.name)
     def test_evidence_upload_requires_a_successful_new_seal(self):
         action = yaml.load((ROOT / ".github/actions/retain-fullrun-evidence/action.yml").read_text(), Loader=yaml.BaseLoader)
         seal, upload = action["runs"]["steps"]

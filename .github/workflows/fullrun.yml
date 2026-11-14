@@ -1,5 +1,5 @@
-# Complete repository-owned workflow graph. Push/PR run credential-free contracts.
-# Licensed acquisition/install runs require explicit workflow_dispatch; no foreign workflow calls.
+# Complete repository-owned workflow graph. Owned pushes run full; PRs run credential-free checks.
+# Manual dispatch can select individual stages; no foreign workflow calls.
 # Eligible independent jobs continue after failure; result reconciles all required producer/lane states.
 name: Engine full-run CI
 on:
@@ -76,13 +76,13 @@ jobs:
       - name: Freeze repository-specific source and guide identities
         id: request
         env:
-          REQUEST_OPERATION: ${{ github.event_name == 'workflow_dispatch' && inputs.operation || 'check' }}
+          REQUEST_OPERATION: ${{ github.event_name == 'workflow_dispatch' && inputs.operation || github.event_name == 'push' && 'full' || 'check' }}
           REQUEST_COUNTERPART_SHA: ${{ inputs.counterpart_sha }}
           REQUEST_GAME: ${{ inputs.game || 'both' }}
           REQUEST_MODE: ${{ inputs.mode || 'both' }}
-          REQUEST_WRITE_CACHE: ${{ github.event_name == 'workflow_dispatch' && inputs.write_cache || false }}
-          CACHE_ENCRYPTION_KEY: ${{ github.event_name == 'workflow_dispatch' && secrets.CACHE_ENCRYPTION_KEY || '' }}
-          DIAGNOSTICS_ENCRYPTION_KEY: ${{ github.event_name == 'workflow_dispatch' && secrets.DIAGNOSTICS_ENCRYPTION_KEY || '' }}
+          REQUEST_WRITE_CACHE: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' && inputs.write_cache || false }}
+          CACHE_ENCRYPTION_KEY: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && secrets.CACHE_ENCRYPTION_KEY || '' }}
+          DIAGNOSTICS_ENCRYPTION_KEY: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && secrets.DIAGNOSTICS_ENCRYPTION_KEY || '' }}
         run: python tools/modsync-ci/fullrun_contract.py plan --output "$RUNNER_TEMP/fullrun-plan.json"
       - name: Retain public plan
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

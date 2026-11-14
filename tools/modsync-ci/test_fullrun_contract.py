@@ -49,11 +49,22 @@ class Plans(unittest.TestCase):
     def test_owner_role_cannot_substitute_another_repository(self):
         c = config("engine"); c["engine_repository"] = "other/engine"
         with self.assertRaises(ValueError): ci.plan(c, c["repository"], OWN)
-    def test_pr_and_push_cannot_admit_secret_bearing_operations(self):
-        c = config("guides")
-        for event in ("pull_request", "push", "workflow_run"):
-            with self.subTest(event=event), self.assertRaises(ValueError):
-                ci.plan(c, c["repository"], OWN, operation="full", event=event)
+    def test_owned_engine_push_admits_full_run_and_producer_writes(self):
+        c = config("engine")
+        p = ci.plan(c, c["repository"], OWN, operation="full", write_cache=True, event="push")
+        self.assertEqual(p["operation"], "full")
+        self.assertTrue(p["cache_writer"])
+        self.assertEqual((p["engine_sha"], p["guide_sha"]), (OWN, OTHER))
+    def test_untrusted_events_and_guide_push_cannot_admit_private_operations(self):
+        for role, event in (("engine", "pull_request"), ("engine", "pull_request_target"),
+                            ("engine", "workflow_run"), ("guides", "push")):
+            c = config(role)
+            for operation in ci.OPERATIONS:
+                if operation == "check":
+                    ci.plan(c, c["repository"], OWN, operation=operation, event=event)
+                else:
+                    with self.subTest(role=role, event=event, operation=operation), self.assertRaises(ValueError):
+                        ci.plan(c, c["repository"], OWN, operation=operation, event=event)
     def test_invalid_modes_and_writer_types_fail_closed(self):
         c = config("engine")
         for kw in ({"game":"k3"}, {"mode":"manual"}, {"operation":"renew"}, {"write_cache":"false"}):
@@ -101,6 +112,15 @@ class Aggregate(unittest.TestCase):
     def test_requested_scope_is_explicit(self):
         self.assertEqual(ci.aggregate("check", {"plan":{"result":"success"}, "toolkit":{"result":"success"}})["operation"], "check")
         with self.assertRaises(ValueError): ci.aggregate("full", {"plan":{"result":"success"}, "toolkit":{"result":"success"}})
+    def test_full_requires_every_runtime_stage_but_never_implicit_seed(self):
+        results = {name: {"result": "success"} for name in ("plan", "toolkit", "games", "archives", "install", "p2p")}
+        results["seed"] = {"result": "skipped"}
+        self.assertEqual(ci.aggregate("full", results)["status"], "passed")
+        for name in ("games", "archives", "install", "p2p"):
+            changed = copy.deepcopy(results)
+            changed[name]["result"] = "skipped"
+            with self.subTest(stage=name), self.assertRaises(ValueError):
+                ci.aggregate("full", changed)
 
 if __name__ == "__main__":
     unittest.main()

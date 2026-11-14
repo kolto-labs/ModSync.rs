@@ -13,7 +13,7 @@ This repository owns its entire CI variant: workflow entry points, local reusabl
 | Push paths | CI/tooling plus Rust production inputs | CI/tooling plus guide/user-script inputs |
 | Local stages/tools | Owned by ModSync.rs | Owned by mod-builds |
 | Actions caches and new artifacts | Owned by the execution repository/ref | Owned by the execution repository/ref |
-| Existing domain CI | Production gates, native synthetic proofs, manual packages | Target-owned engine-check, native synthetic proof and manual package variants; metadata/release stay separate |
+| Existing domain CI | Production gates and manual packages; synthetic CLI/GUI workflows removed | Target-owned engine-check, native synthetic proof and manual package variants; metadata/release stay separate |
 
 The small role configuration selects the data boundary; it does not fetch shared CI code. Local `./.github/workflows/...` calls and `github.repository`/`github.sha` checkouts are deliberate: every caller is local. The plan rejects execution under a foreign repository.
 
@@ -21,7 +21,7 @@ All counterpart revisions must be 40 lowercase hexadecimal characters. Update th
 
 ## Entry points and composition
 
-`Full-run CI` is the operator entry point. Pushes and PRs execute `check`: local Python/tooling/workflow checks, with no game-decryption, diagnostics, Steam or provider credentials passed to that path. Manual dispatch selects:
+`Engine full-run CI` is the operator entry point. Matching pushes in the owning engine repository execute `full`, including both games and both CLI/GUI install routes, with producer cache writes enabled. PRs execute `check`: local Python/tooling/workflow checks, with no game-decryption, diagnostics, Steam or provider credentials passed to that path. The owning-repository identity is checked before admission. Manual dispatch selects:
 
 | operation | Required stages | Side effects |
 | --- | --- | --- |
@@ -35,7 +35,7 @@ All counterpart revisions must be 40 lowercase hexadecimal characters. Update th
 
 Select K1/TSL/both and CLI/GUI/both. Install matrices use `fail-fast: false`; valid lanes still attempt recovery when another producer/lane fails. The final collector requires every job in the requested scope to succeed and preserves a failed verdict. Skipped, cancelled, absent and incomplete required work fails that scope. Nonproducer operations ignore the shared producer-write checkbox.
 
-The stage workflows are reusable **inside this repository**. The operator entry point can run each stage separately without duplicating its implementation. Full runs stay manual; this change does not enable periodic downloads, mutate repository settings, or publish a release.
+The stage workflows are reusable **inside this repository**. The operator entry point can run each stage separately without duplicating its implementation. Source pushes run the full graph automatically; a manual `check` remains available. `seed` is intentionally skipped during `full`: staged import is an explicit separate operation. There are no periodic downloads or release publication. The mod-builds variant retains its own event policy independently.
 
 ## Configuration and credentials
 
@@ -54,9 +54,9 @@ The stage workflows are reusable **inside this repository**. The operator entry 
 | `FULLRUN_ALLOW_STEAM` (optional variable) | Explicitly enable fallback acquisition in the designated account-owning variant |
 | `STEAM_*` | Only the opted-in producer fallback uses these; single-use code consumption remains opt-in |
 
-Manual game materialization requires the cache key; private archive/seed/install evidence requires the diagnostics key. Missing required configuration fails admission rather than yielding a green install. Configure existing secrets through the repository's normal authorized process; this implementation does not read/change their values.
+Game materialization requires the cache key; private archive/seed/install evidence requires the diagnostics key. These keys are admitted for owned pushes and manual dispatch only. Missing required configuration fails admission rather than downgrading a full push to a green contract-only check. Configure existing secrets through the repository's normal authorized process; this implementation does not read/change their values.
 
-Use separate Steam accounts or designate a single acquisition writer for an account shared across repositories; other variants restore verified seeds/backups. GitHub concurrency groups serialize within a repository, not across repositories. A public PR cannot receive these private input keys simply by changing CI code. Native/synthetic/package workflows remain manual where already intended.
+Use separate Steam accounts or designate a single acquisition writer for an account shared across repositories; other variants restore verified seeds/backups. GitHub concurrency groups serialize within a repository, not across repositories. A public PR cannot receive these private input keys simply by changing CI code. Repository writers control push-triggered CI and must review source before pushing. Manual package workflows remain available; the six synthetic CLI/GUI workflow entry points have been removed from this repository.
 
 Private source tokens are scoped to checkout/dependency prefetch and never written to persistent global Git configuration. The installer receives a scrubbed environment without cache keys, provider keys or runtime tokens. This environment boundary is not a sandbox for malicious approved source; execute only reviewed engine/guide revisions.
 
@@ -76,7 +76,7 @@ A complete install requires an installed Rust report, matching requested mode an
 
 The inherited runner still does its existing conversions, reviewed omissions, quarantine and GUI receipt checks. This integration does not claim independent app-selection parity, independent creator journeys, cross-lane per-mod barriers or native-platform full-guide parity. Those product/harness capabilities remain separate work. `cross_lane_parity: unverified` is explicit in plans/verdicts.
 
-Synthetic CLI/native-GUI proofs use fabricated payloads and independent expected bytes. They do not acquire real mods or install licensed game data. P2P loopback is not external reachability/seeding proof. Manual package artifacts are not releases.
+Removing the synthetic CLI/native-GUI workflow entry points does not establish any new product proof. The real install matrix still covers both CLI and GUI routes. P2P loopback is not external reachability/seeding proof. Manual package artifacts are not releases.
 
 Rust tests and custom Rust harnesses remain frozen. Production builds use only lib/bin targets; no `--all-targets` or Rust test execution is introduced.
 
@@ -94,4 +94,4 @@ The tools/format readers and immutable fixture corpus originate at Odyssey commi
 
 Keep behavior in the Python adapters and reusable local stages; keep event admission, runner choice and explicit secret mapping in YAML. Update this repository's tests/docs with its own changes. Cross-repository synchronization is a reviewable maintenance choice, not an execution dependency.
 
-Workflow dispatch files generally must first exist on the default branch to appear in the normal Run workflow UI. Until these feature branches are integrated, push-triggered checks can validate the graph; no full-game run is claimed merely because a branch or workflow file exists.
+Workflow dispatch files generally must first exist on the default branch to appear in the normal Run workflow UI. The push trigger can run the full graph directly on this feature branch. Runtime success still requires successful producer, installation and P2P jobs; the existence of a branch or workflow file is not full-game evidence.

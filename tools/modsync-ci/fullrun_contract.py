@@ -45,8 +45,9 @@ def plan(config, execution_repository, own_sha, counterpart_sha="", operation="c
         raise ValueError("unsupported operation, game or mode")
     if type(write_cache) is not bool:
         raise ValueError("write_cache must be boolean")
-    if event != "workflow_dispatch" and operation != "check":
-        raise ValueError("licensed/full-run operations require explicit manual dispatch")
+    if (event != "workflow_dispatch" and operation != "check"
+            and not (event == "push" and config["role"] == "engine")):
+        raise ValueError("licensed/full-run operations require an owned engine push or manual dispatch")
     # The dispatch form shares this checkbox across operations. Non-producer
     # operations are always read-only, regardless of the form's default value.
     write_cache = write_cache and operation in ("full", "games", "archives")
