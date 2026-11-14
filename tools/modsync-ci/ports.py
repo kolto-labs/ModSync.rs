@@ -3312,12 +3312,18 @@ def execute(args, report):
         if not (source / "Cargo.toml").is_file():
             raise Blocked("rust_source_manifest_missing")
         build = ["cargo", "build", "--locked", "--bin", "modsync"]
+        profile = "debug"
         if getattr(args, "complete_guide", False):
-            build += ["--lib", "-j2"]
+            build += ["--lib", "-j2", "--release"]
+            profile = "release"
+            # Repeated full archive validation needs optimized decoders. Keep
+            # the dev build's arithmetic/assertion guards in this CI profile.
+            env["CARGO_PROFILE_RELEASE_OVERFLOW_CHECKS"] = "true"
+            env["CARGO_PROFILE_RELEASE_DEBUG_ASSERTIONS"] = "true"
             if args.mode == "cli":
                 build.append("--no-default-features")
         run(build, source, private, "build", report, env)
-        command = [str(private / "target/debug/modsync")]
+        command = [str(private / "target" / profile / "modsync")]
         archive_map = []
         if args.archive_map:
             archive_map = ["--archive-map", str(args.archive_map.resolve(strict=True))]

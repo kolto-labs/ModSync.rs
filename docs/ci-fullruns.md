@@ -142,6 +142,6 @@ Archive preparation and install/seed runtimes include the distribution `unrar` r
 
 One-time migration publishes a cumulative owning-repository index after verifying all payload transfers. It preserves prior object associations and records prior index provenance, so the consumer’s bounded three-index lookup cannot forget older imports when another reviewed seed is added. The merge uses only the owning repository’s built-in read token.
 
-Complete-guide CLI lanes build the production library and CLI with `--no-default-features`; GUI lanes retain desktop features. Both use two compiler jobs. The shared installer engine and all coverage requirements remain the same.
+Complete-guide lanes build optimized production binaries because archive inspection, validation, simulation and extraction consume full decoded streams. Checked arithmetic and debug assertions remain enabled in this CI release profile. CLI uses `--no-default-features`; GUI retains desktop features. Both use two compiler jobs, and every subsequent command and GUI driver uses the selected binary. Legacy adapter invocations retain their debug builds. The shared installer engine and all coverage requirements remain the same; no full-stream integrity pass is removed.
 
 Seed callers select destination credentials through the publication/dry-run choice. The receiving `mod-cache-seed` job resolves the bucket and endpoint in its own environment, so an environment-only bucket can use repository or organization credentials. Dry-runs still omit destination credentials at both boundaries.
