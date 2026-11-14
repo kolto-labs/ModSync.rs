@@ -428,7 +428,7 @@ fn snapshot_method_archive(
             && filename.len() <= 255
             && !filename.contains(['/', '\\', '*', '?'])
             && !filename.chars().any(char::is_control)
-            && crate::paths::relative(filename, false)?
+            && crate::paths::literal_relative(filename)?
                 .components()
                 .count()
                 == 1
@@ -845,7 +845,7 @@ pub(crate) fn replay_archive_derivation(
             && filename.len() <= 255
             && !filename.contains(['/', '\\'])
             && !filename.chars().any(char::is_control)
-            && crate::paths::relative(filename, false)?
+            && crate::paths::literal_relative(filename)?
                 .components()
                 .count()
                 == 1
@@ -1010,7 +1010,7 @@ pub fn generate(
                 "Resolved filename is not a safe basename"
             );
             ensure!(
-                crate::paths::relative(filename, false)?
+                crate::paths::literal_relative(filename)?
                     .components()
                     .count()
                     == 1

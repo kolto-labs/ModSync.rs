@@ -1464,9 +1464,9 @@ fn load_resolved_archives(
             ensure!(
                 !filename.is_empty()
                     && filename.len() <= 255
-                    && !filename.contains(['/', '\\', '*', '?', '[', ']'])
+                    && !filename.contains(['/', '\\', '*', '?'])
                     && !filename.chars().any(char::is_control)
-                    && modsync::paths::relative(filename, false)?
+                    && modsync::paths::literal_relative(filename)?
                         .components()
                         .count()
                         == 1,
