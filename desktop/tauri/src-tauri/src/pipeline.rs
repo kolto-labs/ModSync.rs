@@ -500,6 +500,15 @@ pub(crate) fn check_and_install(
     let report = Engine::new_with_case_insensitive_pathing(settings.clone(), case_insensitive)?
         .validate_report_with_options_observed(&prepared, |_| {}, true, true, false, |_| {});
     tally.report = serde_json::to_value(&report).ok();
+    if check_only {
+        // The Conflicts screen shows what this check found: the build's own
+        // incompatibilities right away, and file conflicts once it passes.
+        crate::library::set_analysis(Some(crate::library::Analysis {
+            guide: prepared.clone(),
+            report: None,
+        }));
+        emit(app, json!({"type": "library", "event": "changed"}));
+    }
     if !report.success {
         for stage in report.stages.iter().filter(|s| !s.passed) {
             for message in &stage.messages {
@@ -542,6 +551,7 @@ pub(crate) fn check_and_install(
         anyhow::bail!("The check found problems, so nothing was installed.");
     }
     if check_only {
+        conflicts(app, &settings, case_insensitive, &prepared);
         log(app, "The check passed. You can install now.", "success");
         return Ok(());
     }
@@ -616,6 +626,46 @@ pub(crate) fn check_and_install(
     }
     log(app, "Install finished.", "success");
     Ok(())
+}
+
+/// Find the game files more than one selected mod writes, with the engine's
+/// install simulation (`Engine::analyze_conflicts`), for the Conflicts screen.
+fn conflicts(app: &AppHandle, settings: &Settings, case_insensitive: bool, prepared: &Guide) {
+    log(
+        app,
+        "Looking for game files that more than one selected mod changes.",
+        "info",
+    );
+    let report = Engine::new_with_case_insensitive_pathing(settings.clone(), case_insensitive)
+        .and_then(|engine| engine.analyze_conflicts(prepared));
+    let report = match report {
+        Ok(report) => {
+            if !report.conflicts.is_empty() {
+                log(
+                    app,
+                    format!(
+                        "{} game file(s) are changed by more than one selected mod; the build's install order decides which copy is used. See Conflicts.",
+                        report.conflicts.len()
+                    ),
+                    "info",
+                );
+            }
+            Some(report)
+        }
+        Err(error) => {
+            log(
+                app,
+                format!("Could not look for conflicts between the selected mods: {error:#}"),
+                "warning",
+            );
+            None
+        }
+    };
+    crate::library::set_analysis(Some(crate::library::Analysis {
+        guide: prepared.clone(),
+        report,
+    }));
+    emit(app, json!({"type": "library", "event": "changed"}));
 }
 
 /// Shown on a mod the engine will not install because its steps are missing

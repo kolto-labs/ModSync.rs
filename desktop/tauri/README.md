@@ -42,7 +42,12 @@ ModSync engine. It is a separate crate with its own `Cargo.toml` and
   `manage`, `remove_from_library`, `duplicates`).
 - Conflicts: the selected mods' `Restrictions` (mods the build says not to
   combine) and `conflicts::Presentation` of the engine's conflict analysis, as
-  kept by `library::set_analysis`.
+  kept by `library::set_analysis`: Check stores the selection and, when it
+  passes, `Engine::analyze_conflicts` of it (the shared install simulation;
+  the mod installed last in the build's order is the copy the game uses).
+  Resolve dismisses a conflict (kept in the app's settings) or turns off the
+  losing mods that are installed; a losing mod that is not installed is left
+  for the player to leave out of the selection.
 - Settings: game installs are ModSync profiles (`profiles::Store`, found ones
   from `game_locator::find_installs`); DeadlyStream sign-in uses
   `deadlystream_account::sign_in` (the signed-in session, never the password, is

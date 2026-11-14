@@ -128,7 +128,7 @@ fn mod_json(
     })
 }
 
-/// What the last passing Check of a build looked at: the selected mods (with
+/// What the last Check of a build looked at: the selected mods (with
 /// what they need) and the engine's conflict analysis of installing them
 /// (`Engine::analyze_conflicts`). Conflicts are shown for this, never guessed
 /// from the files of mods already installed.
@@ -139,8 +139,7 @@ pub(crate) struct Analysis {
 
 static ANALYSIS: std::sync::Mutex<Option<std::sync::Arc<Analysis>>> = std::sync::Mutex::new(None);
 
-/// Keep (or forget) what the last passing Check found.
-#[allow(dead_code)]
+/// Keep (or forget) what the last Check found.
 pub(crate) fn set_analysis(analysis: Option<Analysis>) {
     *ANALYSIS.lock().unwrap_or_else(|p| p.into_inner()) = analysis.map(std::sync::Arc::new);
 }
