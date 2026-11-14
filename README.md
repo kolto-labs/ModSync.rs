@@ -178,7 +178,7 @@ modsync profile --settings-dir /path/to/settings --action apply --name "Full Bui
 modsync profile --settings-dir /path/to/settings --action activate --name "Full Build"
 ```
 
-`show` and `delete` use `--name`; `clone` and `rename` use `--from` and `--to`. Commands output JSON. Capture updates an existing profile while retaining its creation time. Apply changes selections in the output guide; components absent from the profile retain their current selections. Activate saves `activeProfileName` in settings while preserving unrelated settings. Desktop activation and platform-default settings discovery remain unfinished; these commands require an explicit settings directory. Applying a profile does not itself install anything. The guide loader's existing all-unselected fallback still applies when an exported guide is subsequently reloaded.
+`show` and `delete` use `--name`; `clone` and `rename` use `--from` and `--to`. Commands print a readable summary; add `--json` for JSON output. Capture updates an existing profile while retaining its creation time. Apply changes selections in the output guide; components absent from the profile retain their current selections. Activate saves `activeProfileName` in settings while preserving unrelated settings. Desktop activation and platform-default settings discovery remain unfinished; these commands require an explicit settings directory. Applying a profile does not itself install anything. The guide loader's existing all-unselected fallback still applies when an exported guide is subsequently reloaded.
 
 Use a stored profile directly for validation or installation:
 
