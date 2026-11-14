@@ -275,10 +275,63 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
           name: bootstrap-legacy-plan-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/bootstrap-plan
+      - name: Preserve the current repository index in this cumulative publication
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PYTHONDONTWRITEBYTECODE: '1'
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python - <<'PY'
+          import json, os, sys, time
+          from pathlib import Path
+          sys.path.insert(0, 'tools/modsync-ci')
+          import artstore, artstore_core as core, artstore_client
+          repository = os.environ['GITHUB_REPOSITORY']
+          if repository != 'kolto-labs/ModSync.rs':
+              raise SystemExit('Index publication must remain in the owning repository')
+          client = artstore_client.ArtifactsClient(repository, os.environ['GITHUB_TOKEN'])
+          listing = client.list_artifacts(include_expired=True)
+          now = time.time()
+          base = Path(os.environ['RUNNER_TEMP']) / 'bootstrap-plan'
+          imported = core.load_index(base / 'index/index.json')
+          previous = artstore._index_from_listing(
+              client, listing, artstore.INDEX_FETCH_LIMIT, now, strict=True)
+          merged = core.merge_indexes([previous, imported], now)
+          packs = artstore._packs_by_name(listing, now)
+          artstore._reconcile(merged, packs, now)
+          if not set(previous['blobs']) <= set(merged['blobs']):
+              raise SystemExit('Cumulative publication lost a prior object association')
+          for digest, blob in imported['blobs'].items():
+              if digest not in merged['blobs'] or merged['blobs'][digest]['size'] != blob['size']:
+                  raise SystemExit('Cumulative publication lost an imported object')
+              if any(not merged['packs'].get(part['pack'], {}).get('artifact_id')
+                     for part in merged['blobs'][digest]['parts']):
+                  raise SystemExit('Imported object is not covered by live owning-repository packs')
+          core.dump_index(merged, base / 'index/index.json')
+          receipt = {'schema_version': 1, 'repository': repository,
+                     'sha': os.environ['GITHUB_SHA'], 'run_id': os.environ['GITHUB_RUN_ID'],
+                     'run_attempt': os.environ['GITHUB_RUN_ATTEMPT'],
+                     'prior_object_count': len(previous['blobs']),
+                     'imported_object_count': len(imported['blobs']),
+                     'published_object_count': len(merged['blobs']),
+                     'prior_indexes': [{key: item.get(key) for key in
+                         ('id', 'name', 'digest', 'workflow_run', 'expires_at')}
+                         for item in listing if str(item.get('name', '')).startswith(core.INDEX_PREFIX)
+                         and not artstore._is_dead(item, now)]}
+          (base / 'index/index-merge-provenance.json').write_text(json.dumps(receipt, sort_keys=True, indent=2))
+          print('Cumulative index preserves %d prior and %d imported objects (%d total)'
+                % (len(previous['blobs']), len(imported['blobs']), len(merged['blobs'])))
+          PY
       # Consumers reconcile the original pack names to their new target artifact IDs.
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
