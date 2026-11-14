@@ -113,6 +113,21 @@ pub fn literal_relative(raw: &str) -> Result<PathBuf> {
     checked_relative(raw, &['*', '?'], is_reserved_name)
 }
 
+/// The stored, platform-independent spelling of a relative path: its names joined
+/// with `/`. Checkpoint trees, receipts and journals always record this form;
+/// `PathBuf::to_str` uses a backslash on Windows and must not be compared with them.
+/// `None` for a non-UTF8 name or any component other than a plain name.
+pub(crate) fn portable_text(path: &Path) -> Option<String> {
+    let mut parts = Vec::new();
+    for component in path.components() {
+        match component {
+            std::path::Component::Normal(name) => parts.push(name.to_str()?),
+            _ => return None,
+        }
+    }
+    Some(parts.join("/"))
+}
+
 /// Reads a path from state Rust wrote earlier (checkpoint stores and history,
 /// maintenance journals and fences) with the device-name rule those writers used
 /// (`legacy_reserved_name`), so state recorded before the wider rule stays readable.

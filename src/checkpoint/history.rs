@@ -319,7 +319,9 @@ impl Store {
         self.pending_operations()?;
         let relative = crate::paths::stored_relative(path, true)?;
         ensure!(
-            !path.is_empty() && !path.contains('\\') && relative.to_str() == Some(path),
+            !path.is_empty()
+                && !path.contains('\\')
+                && crate::paths::portable_text(&relative).as_deref() == Some(path),
             "Provenance needs a portable relative path"
         );
         let (_, head, history) = self.checked_history(session_id)?;
