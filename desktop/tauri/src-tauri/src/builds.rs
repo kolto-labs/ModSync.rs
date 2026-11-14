@@ -281,7 +281,14 @@ pub fn mod_json(
         "KnownBugs",
     ]
     .iter()
-    .map(|k| text(c, k))
+    // The engine's draft-review marker is for guide authors; Check already confirms
+    // or blocks drafted steps, so players do not see it as a compatibility note.
+    .map(|k| {
+        text(c, k)
+            .replace(modsync::draft::REVIEW_FLAG, "")
+            .trim()
+            .to_owned()
+    })
     .filter(|t| !t.is_empty())
     .collect::<Vec<_>>()
     .join("\n\n");
