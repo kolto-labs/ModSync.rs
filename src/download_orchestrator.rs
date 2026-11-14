@@ -2827,9 +2827,6 @@ fn mega_resolve(
     )
 }
 
-/// The archives behind a DeadlyStream page: signed in with the run's saved session when
-/// there is one (and no fixture base), falling back to an anonymous read, as the
-/// kotor-mod-manager downloader did.
 /// The archives a DeadlyStream page offers. Every page listing goes through here, the
 /// parallel discovery pass included, so how pages are read is decided in one place: with
 /// a saved sign-in the page is read signed in first, and read again anonymously if that
