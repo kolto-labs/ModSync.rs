@@ -45,6 +45,8 @@ enum Action {
     Easy(easy_cli::EasyArgs),
     /// Manage non-destructive staged deployments and their manifests.
     Deployment(DeploymentArgs),
+    /// List, add, remove and fetch mod builds (community builds and added links).
+    Builds(BuildsArgs),
     /// Manage stored install profiles.
     Profile(profile_cli::ProfileArgs),
     /// Get, set or list settings.json values.
@@ -199,6 +201,22 @@ enum Action {
         #[arg(long)]
         settings_dir: Option<PathBuf>,
     },
+    /// Import a mod archive that is not in a build: put it in the mod folder and write a
+    /// one-mod guide that installs it (install that guide with `install`).
+    ImportArchive {
+        /// A ZIP, 7z or RAR mod archive.
+        archive: PathBuf,
+        /// The mod folder the archive is placed in; an existing different file of the
+        /// same name is never replaced.
+        #[arg(long)]
+        source_dir: PathBuf,
+        /// Where to write the guide.
+        #[arg(long)]
+        output: PathBuf,
+        /// The mod's name; defaults to the archive name.
+        #[arg(long)]
+        name: Option<String>,
+    },
     /// Parse an nxm:// or modsync:// handoff URL without fetching it.
     ProtocolParse { url: String },
     /// Download an HTTP(S) instruction file with the protocol fetcher's SSRF and size guards.
@@ -322,6 +340,40 @@ enum Action {
         #[arg(long)]
         source_dir: PathBuf,
     },
+    /// Show the title, description, author and screenshots of a DeadlyStream or
+    /// Nexus Mods page as JSON (Nexus needs a saved API key).
+    ModInfo {
+        url: String,
+        /// Settings directory holding the Nexus API key.
+        #[arg(long)]
+        settings_dir: Option<PathBuf>,
+    },
+    /// Check a GitHub repository's latest release against a version, and
+    /// optionally download the build for this system.
+    AppUpdate {
+        /// The repository, as owner/name.
+        #[arg(long)]
+        repo: String,
+        /// The version that is installed now.
+        #[arg(long)]
+        current: String,
+        /// Download the new build into this folder when one is available.
+        #[arg(long)]
+        download: Option<PathBuf>,
+    },
+    /// Print the notes for one version from a changelog file.
+    ChangelogSection {
+        #[arg(long)]
+        changelog: PathBuf,
+        #[arg(long)]
+        version: String,
+    },
+    /// List KOTOR installs found on this computer (Steam, GOG, Origin). Read-only.
+    DetectGames {
+        /// Print the installs as JSON.
+        #[arg(long)]
+        json: bool,
+    },
     /// Print the saved completion receipt summary, or report that there is none.
     CompletionSummary {
         #[arg(long)]
@@ -331,6 +383,29 @@ enum Action {
         /// Print the summary as JSON, or null when there is no receipt.
         #[arg(long)]
         json: bool,
+    },
+    /// Check a DeadlyStream account. The password is read from the
+    /// MODSYNC_DEADLYSTREAM_PASSWORD environment variable and never stored.
+    DeadlystreamSignIn {
+        #[arg(long)]
+        username: String,
+        /// Keep the signed-in session (not the password) in settings, so downloads
+        /// from DeadlyStream are made signed in.
+        #[arg(long)]
+        save: bool,
+        #[arg(long)]
+        settings_dir: Option<PathBuf>,
+    },
+    /// Check whether the DeadlyStream session kept by `deadlystream-sign-in --save` is
+    /// still signed in; an expired one is forgotten.
+    DeadlystreamStatus {
+        #[arg(long)]
+        settings_dir: Option<PathBuf>,
+    },
+    /// Forget the DeadlyStream session kept by `deadlystream-sign-in --save`.
+    DeadlystreamSignOut {
+        #[arg(long)]
+        settings_dir: Option<PathBuf>,
     },
     /// Convert TOML, JSON, YAML, XML, or Markdown input.
     /// Use convert --merge --existing <guide> --incoming <guide> for legacy merge mode.
@@ -545,6 +620,42 @@ impl From<PeerModeArg> for modsync::p2p::PeerMode {
     }
 }
 #[derive(Args)]
+struct BuildsArgs {
+    /// Settings directory holding builds/ (defaults to the ModSync settings folder).
+    #[arg(long, global = true)]
+    settings_dir: Option<PathBuf>,
+    #[command(subcommand)]
+    action: BuildsAction,
+}
+#[derive(Subcommand)]
+enum BuildsAction {
+    /// List every build as JSON.
+    List,
+    /// Add a build link (an instruction file, or a community portal build page).
+    Add {
+        #[arg(long)]
+        label: String,
+        /// KOTOR1 or KOTOR2.
+        #[arg(long)]
+        game: String,
+        #[arg(long)]
+        url: String,
+    },
+    /// Remove an added build and its saved copy.
+    Remove {
+        #[arg(long)]
+        key: String,
+    },
+    /// Print the path of a build's instruction file, downloading it if needed.
+    Fetch {
+        #[arg(long)]
+        key: String,
+        /// Download the latest version even when a saved copy exists.
+        #[arg(long)]
+        refresh: bool,
+    },
+}
+#[derive(Args)]
 struct DeploymentArgs {
     #[command(subcommand)]
     action: DeploymentAction,
@@ -602,6 +713,18 @@ enum DeploymentAction {
     },
     /// Uninstall all manifests newest first.
     Purge {
+        #[command(flatten)]
+        roots: DeploymentRoots,
+    },
+    /// Delete the staged copy of a component that is not deployed.
+    Remove {
+        #[command(flatten)]
+        roots: DeploymentRoots,
+        #[arg(long)]
+        component: String,
+    },
+    /// List deployed components that share a name (older copies of the same mod).
+    Duplicates {
         #[command(flatten)]
         roots: DeploymentRoots,
     },
@@ -694,6 +817,10 @@ enum ValidationOutput {
 
 #[derive(Args)]
 struct InstallArgs {
+    /// While this file exists, downloads, checks and the install hold at the next
+    /// safe point (between downloads or reads, or between mods). Delete it to resume.
+    #[arg(long, value_name = "PATH")]
+    pause_file: Option<PathBuf>,
     /// Suppress post-download configuration; unresolved installers still block installation.
     #[arg(long)]
     fomod_skip: bool,
@@ -1324,6 +1451,7 @@ fn process_conversion_inner(
                 timeout: None,
                 completed: Vec::new(),
                 include_unselected_authoring: true,
+                paused: None,
             },
         );
         if cancelled.load(Ordering::Acquire) {
@@ -1633,6 +1761,35 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                 },
             },
         ),
+        Some(Action::Builds(args)) => {
+            let catalog = modsync::builds::Catalog::open(args.settings_dir.as_deref())?;
+            match args.action {
+                BuildsAction::List => {
+                    println!("{}", serde_json::to_string_pretty(&catalog.list()?)?);
+                }
+                BuildsAction::Add { label, game, url } => {
+                    println!(
+                        "{}",
+                        serde_json::to_string_pretty(&catalog.add(&label, &game, &url)?)?
+                    );
+                }
+                BuildsAction::Remove { key } => {
+                    anyhow::ensure!(
+                        catalog.remove(&key)?,
+                        "There is no added build called {key}"
+                    );
+                }
+                BuildsAction::Fetch { key, refresh } => {
+                    let cancelled = modsync::p2p::stop_signal_flag()?;
+                    let fetched = catalog.fetch(&key, refresh, &cancelled)?;
+                    if let Some(warning) = &fetched.warning {
+                        eprintln!("warning: using the saved copy: {warning}");
+                    }
+                    println!("{}", fetched.path.display());
+                }
+            }
+            Ok(())
+        }
         Some(Action::Deployment(args)) => {
             let print = |value: serde_json::Value| -> Result<()> {
                 println!("{}", serde_json::to_string_pretty(&value)?);
@@ -1676,6 +1833,20 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                         warn(&report.warnings);
                     }
                     print(serde_json::json!({"purged": reports.len(), "components": reports}))
+                }
+                DeploymentAction::Remove { roots, component } => {
+                    let removed = roots.service()?.remove_from_library(&component)?;
+                    print(serde_json::json!({"component": component, "removed": removed}))
+                }
+                DeploymentAction::Duplicates { roots } => {
+                    let service = modsync::deployment::Service::resolve_readonly(
+                        &roots.game_dir,
+                        roots.staging_dir.as_deref(),
+                        roots.manifest_dir.as_deref(),
+                        roots.settings_dir.as_deref(),
+                        roots.profile.as_deref(),
+                    )?;
+                    print(serde_json::to_value(service.duplicates()?)?)
                 }
                 DeploymentAction::Snapshot { roots, out } => {
                     let index = roots.service()?.capture_index()?;
@@ -2069,6 +2240,36 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             println!("{}", serde_json::to_string_pretty(&Guide::load(&input)?)?);
             Ok(())
         }
+        Some(Action::ImportArchive {
+            archive,
+            source_dir,
+            output,
+            name,
+        }) => {
+            let cancelled = modsync::p2p::stop_signal_flag()?;
+            let prepared = modsync::import::prepare(
+                &archive,
+                &source_dir,
+                name.as_deref(),
+                &modsync::archive::Options::default(),
+                &cancelled,
+            )?
+            .context("This archive has no game files or TSLPatcher data; install it by hand")?;
+            prepared.guide.save(&output)?;
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&serde_json::json!({
+                    "archive": prepared.archive,
+                    "copied": prepared.copied,
+                    "sha256": prepared.sha256,
+                    "method": prepared.method,
+                    "name": prepared.guide.components[0].name,
+                    "guid": prepared.guide.components[0].guid,
+                    "guide": output,
+                }))?
+            );
+            Ok(())
+        }
         Some(Action::ProtocolParse { url }) => {
             println!(
                 "{}",
@@ -2448,6 +2649,62 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             }
             Ok(())
         }
+        Some(Action::DeadlystreamSignIn {
+            username,
+            save,
+            settings_dir,
+        }) => {
+            let password = std::env::var("MODSYNC_DEADLYSTREAM_PASSWORD")
+                .context("Set MODSYNC_DEADLYSTREAM_PASSWORD to the account's password")?;
+            let cancelled = modsync::p2p::stop_signal_flag()?;
+            let account = modsync::deadlystream_account::sign_in(&username, &password, &cancelled)?;
+            if save {
+                modsync::profiles::Store::from_settings_directory(settings_dir.as_deref())?
+                    .save_deadlystream_session(Some((
+                        &account.username,
+                        account.session.header(),
+                    )))?;
+            }
+            println!("{}", serde_json::to_string_pretty(&account)?);
+            Ok(())
+        }
+        Some(Action::DeadlystreamStatus { settings_dir }) => {
+            let store = modsync::profiles::Store::from_settings_directory(settings_dir.as_deref())?;
+            let (username, signed_in) = match store.deadlystream_session()? {
+                None => (String::new(), false),
+                Some((username, saved)) => {
+                    let cancelled = modsync::p2p::stop_signal_flag()?;
+                    let session = modsync::deadlystream_account::Session::from_header(&saved)?;
+                    match modsync::deadlystream_account::check_session(&session, &cancelled)? {
+                        Some(renewed) => {
+                            if renewed.header() != saved {
+                                store.save_deadlystream_session(Some((
+                                    &username,
+                                    renewed.header(),
+                                )))?;
+                            }
+                            (username, true)
+                        }
+                        None => {
+                            store.save_deadlystream_session(None)?;
+                            (username, false)
+                        }
+                    }
+                }
+            };
+            println!(
+                "{}",
+                serde_json::to_string_pretty(
+                    &serde_json::json!({"username": username, "signedIn": signed_in})
+                )?
+            );
+            Ok(())
+        }
+        Some(Action::DeadlystreamSignOut { settings_dir }) => {
+            modsync::profiles::Store::from_settings_directory(settings_dir.as_deref())?
+                .save_deadlystream_session(None)?;
+            Ok(())
+        }
         Some(Action::Convert {
             input,
             output,
@@ -2543,6 +2800,73 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             game_dir,
             source_dir,
         }) => recovery::restore(&Roots::new(&source_dir, &game_dir)?),
+        Some(Action::ModInfo { url, settings_dir }) => {
+            let key = if matches!(
+                modsync::mod_info::page(&url),
+                Some(modsync::mod_info::Page::Nexus { .. })
+            ) {
+                modsync::profiles::Store::from_settings_directory(settings_dir.as_deref())?
+                    .nexus_api_key()?
+            } else {
+                None
+            };
+            let cancelled = modsync::p2p::stop_signal_flag()?;
+            match modsync::mod_info::fetch(&url, key, &cancelled)? {
+                Some(info) => println!("{}", serde_json::to_string_pretty(&info)?),
+                None => anyhow::bail!("Only DeadlyStream and Nexus Mods pages are supported"),
+            }
+            Ok(())
+        }
+        Some(Action::AppUpdate {
+            repo,
+            current,
+            download,
+        }) => {
+            let cancelled = modsync::p2p::stop_signal_flag()?;
+            let check = modsync::app_update::check(&repo, &current, &cancelled)?;
+            let downloaded = match (&download, &check.latest) {
+                (Some(directory), Some(release)) if check.available => Some(
+                    modsync::app_update::download(release, directory, &cancelled)?,
+                ),
+                _ => None,
+            };
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&serde_json::json!({
+                    "check": check,
+                    "downloaded": downloaded,
+                }))?
+            );
+            Ok(())
+        }
+        Some(Action::ChangelogSection { changelog, version }) => {
+            let text = std::fs::read_to_string(&changelog)?;
+            match modsync::app_update::changelog_section(&text, &version) {
+                Some(section) => println!("{section}"),
+                None => anyhow::bail!("The changelog has no section for {version}"),
+            }
+            Ok(())
+        }
+        Some(Action::DetectGames { json }) => {
+            let installs = modsync::game_locator::find_installs();
+            if json {
+                println!("{}", serde_json::to_string_pretty(&installs)?);
+            } else if installs.is_empty() {
+                println!("No KOTOR installs found.");
+            } else {
+                for install in &installs {
+                    let game = match install.game {
+                        modsync::game_locator::Game::Kotor1 => "KOTOR 1",
+                        modsync::game_locator::Game::Kotor2 if install.aspyr => {
+                            "KOTOR 2 (Aspyr update)"
+                        }
+                        modsync::game_locator::Game::Kotor2 => "KOTOR 2",
+                    };
+                    println!("{game} ({}): {}", install.source, install.path.display());
+                }
+            }
+            Ok(())
+        }
         Some(Action::CompletionSummary {
             game_dir,
             source_dir,
@@ -2800,6 +3124,17 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                     // actually read (see above).
                     (_, None) => None,
                 };
+            // A saved DeadlyStream sign-in, as for the stored Nexus key; a fixture run reads
+            // no stored credential.
+            let deadlystream_session = if deadlystream_base.is_none() && mega_api_base.is_none() {
+                modsync::profiles::Store::from_settings_directory(settings_dir.as_deref())
+                    .and_then(|store| store.deadlystream_session())
+                    .ok()
+                    .flatten()
+                    .map(|(_, session)| session)
+            } else {
+                None
+            };
             let run_settings = orchestrator::RunSettings {
                 workers,
                 retries,
@@ -2809,6 +3144,8 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                 deadlystream_base,
                 mega_api_base,
                 peer,
+                paused: None,
+                deadlystream_session,
             };
             // Execution only: dry-run returned above without network discovery. A
             // discovery error after a signal exits 130, as planning and the run do.
@@ -3248,6 +3585,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             let mut validation_started = false;
             let mut validation_emitted = false;
             let dispatch_cancelled = modsync::p2p::stop_signal_flag()?;
+            let dispatch_paused = args.pause_file.clone().map(modsync::pause::follow_file);
             let dispatch = (|| -> Result<()> {
                 let refused = [
                     (args.skip_validation, "--skip-validation"),
@@ -3520,6 +3858,9 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                 };
                 let mut settings = Settings::new(&paths.source, &paths.game)?;
                 settings.cancelled = dispatch_cancelled.clone();
+                if let Some(paused) = &dispatch_paused {
+                    settings.paused = paused.clone();
+                }
                 let prepared = modsync::phase::prepare_with_roots(
                     &guide,
                     args.phase.into(),
@@ -3564,6 +3905,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                             fomod_non_interactive: args.non_interactive,
                             completed: prepared.completed.clone(),
                             include_unselected_authoring: false,
+                            paused: dispatch_paused.clone(),
                         },
                     )?;
                 }

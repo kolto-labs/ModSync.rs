@@ -63,6 +63,9 @@ pub struct Settings {
     pub provided_installer: Option<ProvidedInstallerRunner>,
     pub archive: archive::Options,
     pub cancelled: Arc<AtomicBool>,
+    /// While set, checks and installs hold at the next component boundary
+    /// ([`crate::pause`]). Cancellation still stops a held run.
+    pub paused: Arc<AtomicBool>,
 }
 impl Settings {
     pub fn new(mods: &Path, game: &Path) -> Result<Self> {
@@ -75,6 +78,7 @@ impl Settings {
             provided_installer: None,
             archive: archive::Options::default(),
             cancelled: Arc::new(AtomicBool::new(false)),
+            paused: Arc::new(AtomicBool::new(false)),
         })
     }
 }
@@ -1647,6 +1651,7 @@ impl Engine {
             {
                 continue;
             }
+            self.hold_if_paused(|| {});
             self.validation_target = Some((component.name.clone(), component.guid.clone(), None));
             let component_issue_start = issues.len();
             if component.instructions.is_empty() {
@@ -1739,6 +1744,7 @@ impl Engine {
                 .completed
                 .contains(&crate::guid::key_ascii(&component.guid))
         }) {
+            self.hold_if_paused(|| {});
             // Missing archives and Destination errors are one error per step, as
             // the reference lists them; any other failure stops this component's
             // checks with one error. Warnings show only when there is no error.
@@ -2579,6 +2585,9 @@ impl Engine {
             step: 0,
             message: "Creating recovery snapshot of game and mod directories".into(),
         });
+        self.hold_if_paused(|| {
+            observer.emit(InstallPhase::Paused, "Paused before any change was made")
+        });
         self.check_cancelled()?;
         observer.emit(
             InstallPhase::CreatingSnapshot,
@@ -2790,6 +2799,16 @@ impl Engine {
         Ok(())
     }
 
+    /// Hold here while the run is paused. Only called between components, so a
+    /// pause never leaves a component half applied. `on_hold` runs once before
+    /// waiting, for reporting.
+    fn hold_if_paused(&self, on_hold: impl FnOnce()) {
+        if crate::pause::is_holding(&self.settings.paused, &self.settings.cancelled) {
+            on_hold();
+            crate::pause::hold(&self.settings.paused, &self.settings.cancelled);
+        }
+    }
+
     fn check_cancelled(&self) -> Result<()> {
         ensure!(
             !self.settings.cancelled.load(Ordering::Relaxed),
@@ -2840,6 +2859,15 @@ impl Engine {
         mut progress: Option<&mut InstallObserver<'_>>,
     ) -> Result<()> {
         for (index, c) in ordered.iter().enumerate() {
+            // The install's own simulation preflight is short and writes nothing;
+            // a pause takes effect before the snapshot or between real components.
+            if self.install {
+                self.hold_if_paused(|| {
+                    if let Some(observer) = progress.as_deref_mut() {
+                        observer.emit(InstallPhase::Paused, format!("Paused before: {}", c.name));
+                    }
+                });
+            }
             if self.exact_patcher_prediction && c.instructions.is_empty() {
                 self.check_component(c)?;
                 continue;

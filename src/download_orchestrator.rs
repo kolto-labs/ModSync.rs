@@ -632,12 +632,7 @@ fn expand_deadlystream_page(
                 target.component_guid
             )
         })?;
-    let files = deadlystream::resolve(
-        page,
-        settings.deadlystream_base.as_deref(),
-        loopback_ca,
-        cancelled,
-    )?;
+    let files = deadlystream_files(page, settings, loopback_ca, cancelled)?;
     let names: Vec<String> = files
         .iter()
         .map(|file| file.name.clone())
@@ -1020,6 +1015,14 @@ pub struct RunSettings {
     /// The Peer source (BitTorrent slice). `None` while the tunnel is down or sharing is
     /// off: every Peer step then fails closed and opens no sockets.
     pub peer: Option<Arc<dyn Acquire>>,
+    /// While set, downloads hold in place between reads, and new downloads wait to
+    /// start ([`crate::pause`]). Cancellation still stops a held download.
+    pub paused: Option<Arc<AtomicBool>>,
+    /// The `Cookie` header of a saved DeadlyStream sign-in
+    /// (`deadlystream_account::Session`). DeadlyStream pages are then read signed in, and
+    /// a page that fails signed in is read again anonymously. Never sent in fixture mode
+    /// or to any other site. Never persisted by the orchestrator.
+    pub deadlystream_session: Option<String>,
 }
 
 impl Default for RunSettings {
@@ -1033,6 +1036,8 @@ impl Default for RunSettings {
             deadlystream_base: None,
             mega_api_base: None,
             peer: None,
+            paused: None,
+            deadlystream_session: None,
         }
     }
 }
@@ -1093,6 +1098,16 @@ struct RunContext<'a> {
     nexus: Option<Mutex<NexusClient>>,
     /// One run-wide decision: Ok(true) premium, Ok(false) valid free, Err(text) failed.
     premium: Option<std::result::Result<bool, String>>,
+}
+
+impl RunContext<'_> {
+    /// Hold while the run is paused: before a download starts, and between the reads
+    /// of a running one, so nothing is published half written.
+    fn hold_if_paused(&self, cancelled: &AtomicBool) {
+        if let Some(paused) = &self.settings.paused {
+            crate::pause::hold(paused, cancelled);
+        }
+    }
 }
 
 fn validate_premium_with_retries(
@@ -1717,6 +1732,7 @@ fn acquire_sources(
         .sources
         .first()
         .map_or(SourceKind::Manual, Source::kind);
+    context.hold_if_paused(context.cancelled);
     if context.cancelled.load(Ordering::Relaxed) {
         emit(context, index, target, first, Phase::Cancelled);
         return outcome(index, target, TargetStatus::Cancelled);
@@ -2612,6 +2628,7 @@ fn origin_once(
     cancelled: &AtomicBool,
     on: &mut dyn FnMut(AcquisitionEvent),
 ) -> Result<Acquired> {
+    context.hold_if_paused(cancelled);
     let Source::Origin {
         url,
         provider,
@@ -2730,6 +2747,7 @@ fn origin_once(
     };
     let mut last = None::<Instant>;
     let mut progress = |progress: FetchProgress| {
+        context.hold_if_paused(cancelled);
         let phase = match progress {
             FetchProgress::Transferring { bytes, total } => {
                 let done = total == Some(bytes);
@@ -2809,6 +2827,32 @@ fn mega_resolve(
     )
 }
 
+/// The archives a DeadlyStream page offers. Every page listing goes through here, the
+/// parallel discovery pass included, so how pages are read is decided in one place: with
+/// a saved sign-in the page is read signed in first, and read again anonymously if that
+/// fails.
+fn deadlystream_files(
+    page: &str,
+    settings: &RunSettings,
+    loopback_ca: Option<&download::LoopbackCa>,
+    cancelled: &AtomicBool,
+) -> Result<Vec<deadlystream::File>> {
+    let base = settings.deadlystream_base.as_deref();
+    if let Some(session) = settings
+        .deadlystream_session
+        .as_deref()
+        .filter(|_| base.is_none())
+    {
+        match deadlystream::resolve_with_session(page, None, loopback_ca, Some(session), cancelled)
+        {
+            Ok(files) => return Ok(files),
+            Err(error) if cancelled.load(Ordering::Acquire) => return Err(error),
+            Err(_) => {}
+        }
+    }
+    deadlystream::resolve(page, base, loopback_ca, cancelled)
+}
+
 /// The archive of a DeadlyStream page that `target` wants: the one named by its filename
 /// (ASCII case-insensitive), or, unnamed, the page's only one. Never a guess between several.
 fn deadlystream_file(
@@ -2817,12 +2861,7 @@ fn deadlystream_file(
     url: &str,
     cancelled: &AtomicBool,
 ) -> Result<deadlystream::File> {
-    let mut files = deadlystream::resolve(
-        url,
-        context.settings.deadlystream_base.as_deref(),
-        context.loopback_ca,
-        cancelled,
-    )?;
+    let mut files = deadlystream_files(url, context.settings, context.loopback_ca, cancelled)?;
     match &target.filename {
         Some(name) => {
             let position = files

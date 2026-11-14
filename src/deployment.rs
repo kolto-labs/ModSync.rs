@@ -12,7 +12,9 @@
 //! without a backup of its prior bytes.
 
 mod intake;
+mod library;
 mod management;
+pub use library::{DuplicateGroup, duplicate_groups};
 pub use management::{ManagementAction, ManagementReceipt, ManagementStatus};
 
 use anyhow::{Context, Result, bail, ensure};
