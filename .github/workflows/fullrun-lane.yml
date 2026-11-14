@@ -170,7 +170,8 @@ jobs:
           fi
           python tools/modsync-ci/fullrun_stage.py install --engine . --guides guide-input \
             --game "$GAME" --mode "$MODE" --game-dir "$RUNNER_TEMP/game" \
-            --cache "$RUNNER_TEMP/mod-cache" --work-dir "$RUNNER_TEMP/lane-work" --output "$RUNNER_TEMP/lane-evidence"
+            --cache "$RUNNER_TEMP/mod-cache" --work-dir "$RUNNER_TEMP/lane-work" --output "$RUNNER_TEMP/lane-evidence" \
+            --prune-restored-object-cache
       - name: Retain encrypted lane evidence
         if: ${{ (success() || failure()) && steps.admission.outcome == 'success' }}
         uses: ./.github/actions/retain-fullrun-evidence

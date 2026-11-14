@@ -22,6 +22,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import zipfile
+from collections import OrderedDict
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 
@@ -39,6 +40,7 @@ __all__ = [
 
 DEFAULT_API = "https://api.github.com"
 COPY_CHUNK = 4 * 1024 * 1024
+_MEMBER_COPY_CHUNK = 32 * 1024 * 1024
 
 _API_VERSION = "2022-11-28"
 _USER_AGENT = "modsync-artstore-client/1"
@@ -231,6 +233,9 @@ class ArtifactsClient:
         self._reresolve_limit = 2
         self.rate_limit_remaining = None
         self.requests_made = 0
+        self._member_url_reuse = False
+        self._url_leases = OrderedDict()
+        self._url_lease_lock = threading.Lock()
 
     def __repr__(self):
         return f"ArtifactsClient(repo={self.repo!r}, api={self.api!r})"
@@ -430,6 +435,37 @@ class ArtifactsClient:
                 )
             raise self._error_for(reply, "resolve artifact")
 
+    def enable_member_url_reuse(self):
+        """Opt normal member reads into process-local, bounded signed-URL leases.
+
+        Public resolve_url and full ZIP downloads always resolve afresh. A lease
+        belongs to this authenticated client and is never persisted or logged.
+        """
+        self._member_url_reuse = True
+
+    def _member_url_lease(self, artifact_id, max_age=480.0):
+        key = (self.api, self.repo, int(artifact_id))
+        # Serialize resolution as well as lookup: concurrent misses must not
+        # spend one authenticated API request per reader.
+        with self._url_lease_lock:
+            now = time.monotonic()
+            lease = self._url_leases.get(key)
+            if lease is None or now - lease[1] >= min(480.0, max(0.0, max_age)):
+                self._url_leases.pop(key, None)
+                lease = (_Secret(self.resolve_url(artifact_id)), now)
+                self._url_leases[key] = lease
+            self._url_leases.move_to_end(key)
+            while len(self._url_leases) > 64:
+                self._url_leases.popitem(last=False)
+            return lease
+
+    def _reject_member_url_lease(self, artifact_id, lease):
+        key = (self.api, self.repo, int(artifact_id))
+        with self._url_lease_lock:
+            # An older reader must never evict a newer reader's replacement.
+            if self._url_leases.get(key) is lease:
+                del self._url_leases[key]
+
     def download_zip(self, artifact_id, dest_path, expect_digest=None):
         expected = _parse_digest(expect_digest)
         attempts = self._reresolve_limit + 1
@@ -482,7 +518,8 @@ class ArtifactsClient:
         return RangedFile(self, artifact_id, **options)
 
     def read_member(self, artifact_id, member_name, dest_path, expect_size=None):
-        ranged = RangedFile(self, artifact_id)
+        ranged = (RangedFile(self, artifact_id, reuse_urls=True)
+                  if self._member_url_reuse else RangedFile(self, artifact_id))
         try:
             with zipfile.ZipFile(ranged) as archive:
                 try:
@@ -493,6 +530,9 @@ class ArtifactsClient:
                     ) from None
                 self._check_member(info, expect_size)
                 if info.compress_type == zipfile.ZIP_STORED and not info.flag_bits & 0x1:
+                    if self._member_url_reuse and info.file_size >= _MEMBER_COPY_CHUNK:
+                        ranged._max_fetch = _MEMBER_COPY_CHUNK
+                        return self._copy_member(archive, info, dest_path, chunk_size=_MEMBER_COPY_CHUNK)
                     return self._copy_member(archive, info, dest_path)
         except zipfile.BadZipFile as exc:
             raise ArtifactError(f"artifact is not a readable zip: {exc}") from None
@@ -510,12 +550,12 @@ class ArtifactsClient:
                 f"member {info.filename!r} is {info.file_size} bytes, expected {expect_size}"
             )
 
-    def _copy_member(self, archive, info, dest_path):
+    def _copy_member(self, archive, info, dest_path, *, chunk_size=COPY_CHUNK):
         written = 0
         try:
             with archive.open(info) as source, _atomic_file(dest_path) as handle:
                 while True:
-                    chunk = source.read(COPY_CHUNK)
+                    chunk = source.read(chunk_size)
                     if not chunk:
                         break
                     handle.write(chunk)
@@ -570,6 +610,7 @@ class RangedFile(io.RawIOBase):
         cache_windows=4,
         cache_limit=1024 * 1024,
         url_ttl=480.0,
+        reuse_urls=False,
     ):
         super().__init__()
         self._client = client
@@ -580,6 +621,8 @@ class RangedFile(io.RawIOBase):
         self._cache_windows = max(1, int(cache_windows))
         self._cache_limit = int(cache_limit)
         self._url_ttl = float(url_ttl)
+        self._reuse_urls = reuse_urls
+        self._url_lease = None
         self._url = None
         self._url_at = 0.0
         self._pos = 0
@@ -657,10 +700,17 @@ class RangedFile(io.RawIOBase):
         super().close()
 
     def _ensure_url(self):
-        expired = time.monotonic() - self._url_at > self._url_ttl
+        age = time.monotonic() - self._url_at
+        expired = age >= min(self._url_ttl, 480.0) if self._reuse_urls else age > self._url_ttl
         if self._url is None or expired:
-            self._url = self._client.resolve_url(self._artifact_id)
-            self._url_at = time.monotonic()
+            if self._reuse_urls:
+                self._url_lease = self._client._member_url_lease(
+                    self._artifact_id, max_age=min(self._url_ttl, 480.0))
+                self._url = self._url_lease[0].reveal()
+                self._url_at = self._url_lease[1]
+            else:
+                self._url = self._client.resolve_url(self._artifact_id)
+                self._url_at = time.monotonic()
             self.resolves += 1
         return self._url
 
@@ -683,6 +733,9 @@ class RangedFile(io.RawIOBase):
                 status = reply.status
                 self.requests += 1
                 if status in _RERESOLVE_STATUSES:
+                    if self._reuse_urls:
+                        self._client._reject_member_url_lease(self._artifact_id, self._url_lease)
+                        self._url_lease = None
                     self._url = None
                     if last:
                         raise ArtifactError(

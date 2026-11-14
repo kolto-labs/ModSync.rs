@@ -1831,6 +1831,9 @@ def artstore_session():
                     if client is None:
                         notice("artifact store unavailable (no token or repository); continuing without it")
                     else:
+                        reuse_urls = getattr(client, "enable_member_url_reuse", None)
+                        if callable(reuse_urls):
+                            reuse_urls()
                         session = {"client": client, "index": module.load_index(client)}
                 except Exception:
                     warn("artifact store index unavailable; continuing without it")

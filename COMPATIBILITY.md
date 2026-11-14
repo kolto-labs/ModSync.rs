@@ -4755,3 +4755,5 @@ require a separate proof. The 7z replay uses a bounded 20 GiB input snapshot and
 expanded-byte limit; archive inference does not spool extracted movie payloads.
 
 The full-run archive/install/seed runtime includes distribution `unrar` for RAR integrity validation. The exact retained Extended Enclave and Quarterstaff RARs pass its CRC checks; Ubuntu 24.04 7-Zip crashes on them and libarchive lacks the required VM/solid support. This adds a compatible reader to the existing strict validation path; actual installation still requires the real lanes.
+
+Hosted full-run lanes can release their disposable hash-object copies only after successful independent archive restoration, preserving the archives and provenance. Normal artifact member reads use bounded client-local signed-URL leases and 32 MiB reads for large stored members, retaining CRC/hash checks and credential isolation. A real encrypted 256 MiB member and a second member passed verification with one authenticated URL resolution; controlled scope/cleanup checks passed. These resource improvements do not establish full-guide runtime acceptance or a complete disk bound.

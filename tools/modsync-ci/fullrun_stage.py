@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import stat
 import subprocess
 import sys
 import tempfile
@@ -133,6 +134,108 @@ def refresh(args, games):
         "archive_cache_key": key, "games": games, "status": "verified", "verification": receipts})
 
 
+def object_cache_prune_scope(root, archives, protected, runner_temp, actions, runner_environment):
+    """Pure scope gate: this opt-in cleanup belongs only to an isolated hosted lane."""
+    if actions != "true" or runner_environment != "github-hosted":
+        raise ValueError("Object-cache pruning requires an explicit GitHub-hosted lane")
+    if (not runner_temp.is_absolute() or runner_temp == Path("/")
+            or not root.is_absolute() or root == runner_temp or not root.is_relative_to(runner_temp)):
+        raise ValueError("Object-cache pruning requires a strict RUNNER_TEMP child")
+    for destination in (archives, *protected):
+        if root == destination or root.is_relative_to(destination) or destination.is_relative_to(root):
+            raise ValueError("Object cache overlaps a consumer or evidence directory")
+
+
+def prune_restored_object_cache(args, archives, report_path, map_path):
+    """Release only ephemeral hash objects after independent archive copies are admitted."""
+    raw_temp = os.environ.get("RUNNER_TEMP", "")
+    if not raw_temp:
+        raise ValueError("Object-cache pruning requires RUNNER_TEMP")
+    declared_temp, declared_cache = Path(raw_temp), Path(args.cache)
+    if (not declared_temp.is_absolute() or not declared_cache.is_absolute()
+            or ".." in declared_temp.parts or ".." in declared_cache.parts):
+        raise ValueError("Object-cache pruning paths must be absolute without parent traversal")
+    # Check before resolving: symlinks must not authorize a different ephemeral root.
+    for path in (declared_temp, declared_cache):
+        for part in (path, *path.parents):
+            if part.is_symlink():
+                raise ValueError("Object-cache pruning refuses symlinked paths")
+    runner_temp = declared_temp.resolve(strict=True)
+    root, archives = declared_cache.resolve(strict=True), Path(archives).resolve(strict=True)
+    protected = tuple(Path(path).resolve(strict=True) for path in
+                      (args.game_dir, args.work_dir, args.output))
+    object_cache_prune_scope(root, archives, protected, runner_temp,
+                             os.environ.get("GITHUB_ACTIONS"), os.environ.get("RUNNER_ENVIRONMENT"))
+    objects, manifest_path = root / "objects", root / "manifest.json"
+    if (objects.is_symlink() or not objects.is_dir() or manifest_path.is_symlink()
+            or not manifest_path.is_file()):
+        raise ValueError("Object-cache pruning requires a regular cache and manifest")
+    provenance_paths = (manifest_path, report_path, map_path)
+    if any(path.is_symlink() or not path.is_file() for path in provenance_paths):
+        raise ValueError("Object-cache pruning requires retained regular provenance files")
+    provenance = {path: path.read_bytes() for path in provenance_paths}
+    manifest, report, mapping = (json.loads(provenance[path]) for path in provenance_paths)
+    if (manifest.get("schema") != 1 or not isinstance(manifest.get("entries"), dict)
+            or report.get("ok") is not True or report.get("command") != "restore"
+            or not isinstance(report.get("entries"), list) or not isinstance(mapping, dict)):
+        raise ValueError("Object-cache pruning requires a successful complete restore report")
+    restored = {}
+    for entry in report["entries"]:
+        if entry.get("status") != "restored":
+            continue
+        files = entry.get("files", [{"file": entry.get("file"), "sha256": entry.get("sha256")}])
+        if not isinstance(files, list) or not files:
+            raise ValueError("Restored archive file evidence is missing")
+        for record in files:
+            name, checksum = record.get("file"), record.get("sha256")
+            if (not isinstance(name, str) or name != name.strip() or name in ("", ".", "..")
+                    or len(name) > 255 or any(char in name for char in ("/", "\\"))
+                    or any(ord(char) < 32 or ord(char) == 127 for char in name)
+                    or not isinstance(checksum, str) or cache.SHA256.fullmatch(checksum) is None):
+                raise ValueError("Restored archive file identity is unsafe")
+            path = archives / name
+            if path.is_symlink() or not path.is_file() or path.resolve().parent != archives:
+                raise ValueError("An independent restored archive is missing")
+            source = objects / checksum
+            if source.exists() and os.path.samefile(source, path):
+                raise ValueError("Restored archive must be independent of the disposable object cache")
+            info = path.stat()
+            restored[path] = (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns)
+    if not restored:
+        raise ValueError("No independently restored archive copies were admitted")
+    for values in mapping.values():
+        values = [values] if isinstance(values, str) else values
+        if not isinstance(values, list) or any(archives / str(name) not in restored for name in values):
+            raise ValueError("Archive-map consumer input is not in the successful restore report")
+    candidates = []
+    for path in objects.iterdir():
+        if path.is_symlink():
+            raise ValueError("Object-cache pruning refuses symlinked object entries")
+        if cache.SHA256.fullmatch(path.name):
+            info = path.stat()
+            if not stat.S_ISREG(info.st_mode):
+                raise ValueError("Object-cache pruning refuses nonregular hash entries")
+            candidates.append(info.st_size)
+    cache.prune(root, manifest, 0)
+    if any(cache.SHA256.fullmatch(path.name) for path in objects.iterdir()):
+        raise ValueError("Ephemeral hash-object pruning did not finish")
+    if any(path.read_bytes() != data for path, data in provenance.items()):
+        raise ValueError("Object-cache pruning changed provenance")
+    for path, expected in restored.items():
+        info = path.stat()
+        if (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns) != expected:
+            raise ValueError("Object-cache pruning changed an admitted archive")
+    contract.write_json(Path(args.output) / "object-cache-prune.json", {
+        "schema_version": 1, "status": "ephemeral-hash-objects-pruned",
+        "objects_pruned": len(candidates), "object_bytes_released": sum(candidates),
+        "retained_archive_files": len(restored), "retained_archive_bytes": sum(info[2] for info in restored.values()),
+        "manifest_sha256": hashlib.sha256(provenance[manifest_path]).hexdigest(),
+        "restore_report_sha256": hashlib.sha256(provenance[report_path]).hexdigest(),
+        "archive_map_sha256": hashlib.sha256(provenance[map_path]).hexdigest()})
+    print("Released %d bytes from %d ephemeral hash objects; retained %d independent archive files"
+          % (sum(candidates), len(candidates), len(restored)), flush=True)
+
+
 def install(args):
     temp = Path(args.output)
     temp.mkdir(parents=True, exist_ok=True)
@@ -144,6 +247,8 @@ def install(args):
              "--cache-dir", args.cache, "--destination", str(work / "archives"),
              "--archive-map", str(temp / "archive-map.json"), "--report", str(temp / "restore.json"),
              *options, *remote_options()], temp / "restore-private.log")
+    if getattr(args, "prune_restored_object_cache", False):
+        prune_restored_object_cache(args, work / "archives", temp / "restore.json", temp / "archive-map.json")
     checked([sys.executable, str(HERE / "ports.py"), "--implementation", "rust", "--mode", args.mode, "--complete-guide", "--max-quarantine", "0",
              "--source", args.engine, "--guide", str(Path(args.guides) / "content" / args.game / "full.md"),
              "--game-dir", args.game_dir, "--archives", str(work / "archives"),
@@ -174,6 +279,8 @@ def main(argv=None):
             child.add_argument("--engine-sha", required=True)
             child.add_argument("--guide-sha", required=True)
         if name == "install":
+            child.add_argument("--prune-restored-object-cache", action="store_true",
+                               help="hosted CI only: release hash objects after verified independent archive restore")
             child.add_argument("--cache", required=True)
             child.add_argument("--work-dir", required=True)
             child.add_argument("--game-dir", required=True)
