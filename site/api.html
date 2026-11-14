@@ -31,9 +31,9 @@
   <nav id="docs-nav" class="docs-nav" aria-label="Documentation">
     <div class="docs-quick">
       <a href="./"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/></svg>Home</a>
-      <a data-repo="/releases" href="https://github.com/ChristopherVR/ModSync.rs/releases"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M6 11l6 6 6-6M4 20h16"/></svg>Download</a>
-      <a data-repo="" href="https://github.com/ChristopherVR/ModSync.rs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg>Source on GitHub</a>
-      <a data-repo="/issues" href="https://github.com/ChristopherVR/ModSync.rs/issues"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg>Report a problem</a>
+      <a data-repo="/releases" href="https://github.com/kolto-labs/ModSync.rs/releases"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M6 11l6 6 6-6M4 20h16"/></svg>Download</a>
+      <a data-repo="" href="https://github.com/kolto-labs/ModSync.rs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg>Source on GitHub</a>
+      <a data-repo="/issues" href="https://github.com/kolto-labs/ModSync.rs/issues"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg>Report a problem</a>
     </div>
     <h2>For players</h2><a href="getting-started.html">Getting started</a><a href="walkthrough-install.html">Walkthrough: your first build</a><a href="safety.html">Safety and recovery</a><a href="troubleshooting.html">Troubleshooting</a><a href="faq.html">FAQ</a><h2>For guide authors</h2><a href="instruction-files.html">Instruction files</a><a href="walkthrough-authoring.html">Walkthrough: writing a guide</a><a href="format-reference.html">Format reference</a><a href="cli.html">Command line</a><a href="cli-reference.html">CLI reference</a><h2>For developers</h2><a href="api.html" aria-current="page">Library API</a><h2>Project</h2><a href="status.html">Features and roadmap</a>
   </nav>
@@ -48,7 +48,7 @@
 <h2>Adding the dependency</h2>
 <p>Add the crate from its Git repository and turn off the default <code>desktop</code> feature. That feature brings in the graphical app and its toolkit, which a library does not need.</p>
 <pre class="code" data-lang="TOML" tabindex="0"><code>[dependencies]
-modsync = { git = "https://github.com/ChristopherVR/ModSync.rs", default-features = false }</code></pre>
+modsync = { git = "https://github.com/kolto-labs/ModSync.rs", default-features = false }</code></pre>
 <p>The examples assume a function that returns <code>anyhow::Result</code>, so <code>?</code> works throughout. The project builds with and without the <code>desktop</code> feature.</p>
 </section>
 
@@ -281,7 +281,7 @@ let settings = Settings::new(&amp;mods, &amp;game)?;</code></pre>
 <nav class="pager" aria-label="Previous and next page"><a class="prev" href="cli-reference.html"><small>Previous</small>CLI reference</a><a class="next" href="status.html"><small>Next</small>Features and roadmap</a></nav>
 </main>
 <nav class="docs-outline" aria-label="On this page"><h2>On this page</h2><a href="#build">Adding the dependency</a><a href="#layout">Crate layout</a><a href="#load">Loading a guide</a><a href="#choose">Choosing components and options</a><a href="#validate">Validating without touching files</a><a href="#install">Installing with progress and cancellation</a><a href="#restore">Restoring after a failure</a><a href="#convert">Converting between formats</a><a href="#download">Downloading archives</a><a href="#errors">Errors</a><a href="#safety">Safety rules every caller must keep</a></nav>
-<footer class="docs-foot"><span>ModSync. Made for the KOTOR modding community.</span><span><a data-repo="/issues" href="https://github.com/ChristopherVR/ModSync.rs/issues">Report a problem</a></span></footer>
+<footer class="docs-foot"><span>ModSync. Made for the KOTOR modding community.</span><span><a data-repo="/issues" href="https://github.com/kolto-labs/ModSync.rs/issues">Report a problem</a></span></footer>
 </div>
 </div>
 </body>

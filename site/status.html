@@ -31,9 +31,9 @@
   <nav id="docs-nav" class="docs-nav" aria-label="Documentation">
     <div class="docs-quick">
       <a href="./"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/></svg>Home</a>
-      <a data-repo="/releases" href="https://github.com/ChristopherVR/ModSync.rs/releases"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M6 11l6 6 6-6M4 20h16"/></svg>Download</a>
-      <a data-repo="" href="https://github.com/ChristopherVR/ModSync.rs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg>Source on GitHub</a>
-      <a data-repo="/issues" href="https://github.com/ChristopherVR/ModSync.rs/issues"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg>Report a problem</a>
+      <a data-repo="/releases" href="https://github.com/kolto-labs/ModSync.rs/releases"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v12M6 11l6 6 6-6M4 20h16"/></svg>Download</a>
+      <a data-repo="" href="https://github.com/kolto-labs/ModSync.rs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 7-5 5 5 5M16 7l5 5-5 5"/></svg>Source on GitHub</a>
+      <a data-repo="/issues" href="https://github.com/kolto-labs/ModSync.rs/issues"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg>Report a problem</a>
     </div>
     <h2>For players</h2><a href="getting-started.html">Getting started</a><a href="walkthrough-install.html">Walkthrough: your first build</a><a href="safety.html">Safety and recovery</a><a href="troubleshooting.html">Troubleshooting</a><a href="faq.html">FAQ</a><h2>For guide authors</h2><a href="instruction-files.html">Instruction files</a><a href="walkthrough-authoring.html">Walkthrough: writing a guide</a><a href="format-reference.html">Format reference</a><a href="cli.html">Command line</a><a href="cli-reference.html">CLI reference</a><h2>For developers</h2><a href="api.html">Library API</a><h2>Project</h2><a href="status.html" aria-current="page">Features and roadmap</a>
   </nav>
@@ -55,7 +55,7 @@
 <div class="table stack"><table>
 <thead><tr><th>Area</th><th>Works today</th><th>Coming later</th></tr></thead>
 <tbody><tr><td>Desktop app</td><td data-label="Works today">Guided steps for loading a guide, choosing mods and options, validating, installing, restoring, logs and reports.</td><td data-label="Coming later">A refreshed interface, based on the KOTOR Mod Manager design.</td></tr><tr><td>Command line</td><td data-label="Works today">List, convert, validate, install, restore, download, conflicts, profiles and progress output.</td><td data-label="Coming later">Protocol link registration only runs on Linux.</td></tr><tr><td>Guide formats</td><td data-label="Works today">TOML, JSON, YAML, XML and structured Markdown. Prose Markdown can be drafted for review.</td><td data-label="Coming later">Exporting back to prose Markdown is still in progress.</td></tr><tr><td>Install order</td><td data-label="Works today">Order from dependencies and install-before/after rules.</td><td data-label="Coming later">Clearer messages when a guide has missing references or loops.</td></tr><tr><td>File steps</td><td data-label="Works today">Copy, Move, Rename, Delete, Extract, DelDuplicate and CleanList.</td><td data-label="Coming later">Rare edge cases are listed in COMPATIBILITY.md.</td></tr><tr><td>Archives</td><td data-label="Works today">ZIP, 7z, RAR, TAR, GZip and 7z self-extracting archives, streamed.</td><td data-label="Coming later">No encrypted or multi-part archives.</td></tr><tr><td>Patchers</td><td data-label="Works today">OdyPatcher, HoloPatcher and KPatcher, with exit checks and captured output.</td><td data-label="Coming later">Running Windows-only patchers on Linux or macOS.</td></tr><tr><td>Recovery</td><td data-label="Works today">One snapshot of both folders, stop at the first failure, verified restore.</td><td data-label="Coming later">Full copies only. No per-mod resume.</td></tr><tr><td>Downloads</td><td data-label="Works today">Direct HTTPS and BitTorrent downloads, checked and never overwriting.</td><td data-label="Coming later">No account handling or CAPTCHAs. Host pages are mostly browser downloads.</td></tr><tr><td>Game detection</td><td data-label="Works today">KOTOR 1, KOTOR 2 and KOTOR 2 Aspyr, Aspyr-only mods and the separate widescreen phase.</td><td data-label="Coming later">Not yet checked on every platform or with a full build.</td></tr><tr><td>Profiles</td><td data-label="Works today">Saved profiles from the command line and the desktop.</td><td data-label="Coming later">Some settings and platform details still differ.</td></tr><tr><td>Guide editor</td><td data-label="Works today">Component details, dependencies, restrictions, and instruction editing.</td><td data-label="Coming later">No option editor, no raw text editing and no import from links.</td></tr></tbody></table></div>
-<p>The full technical list is in <a data-repo="/blob/main/COMPATIBILITY.md" href="https://github.com/ChristopherVR/ModSync.rs/blob/main/COMPATIBILITY.md">COMPATIBILITY.md</a>.</p>
+<p>The full technical list is in <a data-repo="/blob/main/COMPATIBILITY.md" href="https://github.com/kolto-labs/ModSync.rs/blob/main/COMPATIBILITY.md">COMPATIBILITY.md</a>.</p>
 </section>
 
 <section id="tested">
@@ -84,15 +84,15 @@
 <section id="more">
 <h2>Read more</h2>
 <ul>
-<li><a data-repo="/blob/main/COMPATIBILITY.md" href="https://github.com/ChristopherVR/ModSync.rs/blob/main/COMPATIBILITY.md">COMPATIBILITY.md</a>: supported behaviour and proof boundaries, area by area.</li>
-<li><a data-repo="/blob/main/docs/parity/ACCEPTANCE.md" href="https://github.com/ChristopherVR/ModSync.rs/blob/main/docs/parity/ACCEPTANCE.md">docs/parity/ACCEPTANCE.md</a>: the full feature inventory and what acceptance requires.</li>
-<li><a data-repo="/blob/main/README.md" href="https://github.com/ChristopherVR/ModSync.rs/blob/main/README.md">README.md</a>: build and usage notes.</li>
+<li><a data-repo="/blob/main/COMPATIBILITY.md" href="https://github.com/kolto-labs/ModSync.rs/blob/main/COMPATIBILITY.md">COMPATIBILITY.md</a>: supported behaviour and proof boundaries, area by area.</li>
+<li><a data-repo="/blob/main/docs/parity/ACCEPTANCE.md" href="https://github.com/kolto-labs/ModSync.rs/blob/main/docs/parity/ACCEPTANCE.md">docs/parity/ACCEPTANCE.md</a>: the full feature inventory and what acceptance requires.</li>
+<li><a data-repo="/blob/main/README.md" href="https://github.com/kolto-labs/ModSync.rs/blob/main/README.md">README.md</a>: build and usage notes.</li>
 </ul>
 </section>
 <nav class="pager" aria-label="Previous and next page"><a class="prev" href="api.html"><small>Previous</small>Library API</a></nav>
 </main>
 <nav class="docs-outline" aria-label="On this page"><h2>On this page</h2><a href="#summary">Where it stands</a><a href="#works">What works today</a><a href="#tested">What has been tested</a><a href="#desktop">The desktop apps</a><a href="#more">Read more</a></nav>
-<footer class="docs-foot"><span>ModSync. Made for the KOTOR modding community.</span><span><a data-repo="/issues" href="https://github.com/ChristopherVR/ModSync.rs/issues">Report a problem</a></span></footer>
+<footer class="docs-foot"><span>ModSync. Made for the KOTOR modding community.</span><span><a data-repo="/issues" href="https://github.com/kolto-labs/ModSync.rs/issues">Report a problem</a></span></footer>
 </div>
 </div>
 </body>

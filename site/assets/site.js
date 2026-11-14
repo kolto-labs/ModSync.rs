@@ -4,7 +4,7 @@
 // To move the site to another repository, change this one value. The pages also carry the
 // same slug as a no-JavaScript fallback in their href attributes; this script rewrites
 // every link marked with data-repo and every element marked with data-repo-url at load.
-const REPO = 'ChristopherVR/ModSync.rs';
+const REPO = 'kolto-labs/ModSync.rs';
 const REPO_URL = 'https://github.com/' + REPO;
 
 for (const link of document.querySelectorAll('a[data-repo]')) {
