@@ -30,7 +30,6 @@ pub struct UiPrefs {
     pub language: String,
     pub setup_done: bool,
     pub last_seen_version: String,
-    pub seven_zip_path: String,
     /// Game (KOTOR1/KOTOR2) of each game install, by install name.
     pub install_games: BTreeMap<String, String>,
     /// Build links added before the engine had a build catalog.

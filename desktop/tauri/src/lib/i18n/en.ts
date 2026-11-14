@@ -265,16 +265,6 @@ export const en: Dict = {
   "settings.section.updates": "Updates",
 
   // Settings → Archive extraction
-  "settings.archive.title": "Archive extraction",
-  "settings.archive.hint": "7-Zip is detected automatically. If your installation is not found, choose its command-line executable here. No PATH changes are needed.",
-  "settings.archive.path": "7-Zip executable (optional)",
-  "settings.archive.save": "Save 7-Zip path",
-  "settings.archive.placeholder": "Automatic, or select 7z.exe / 7zz / 7z",
-  "settings.archive.detected": "7-Zip in use: {path}",
-  "settings.archive.notFound": "7-Zip was not found. Check the selected path or install 7-Zip if an archive needs it.",
-  "settings.archive.fallbackHint": "ZIP files work without 7-Zip on Windows and Linux. Other archives use available system tools or bundled libraries when possible. Some self-extracting EXE installers still require 7-Zip.",
-  "settings.archive.loadFailed": "Could not load archive extraction settings.",
-  "settings.archive.saveFailed": "Could not save archive extraction settings.",
 
   // Settings → General
   "settings.general.language": "Language",

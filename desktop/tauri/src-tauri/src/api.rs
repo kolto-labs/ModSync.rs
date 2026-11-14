@@ -122,12 +122,6 @@ fn route(app: &AppHandle, r: &Request) -> Reply {
         }
         (["api", "patcher", "options"], "GET") => patcher_options(app),
         (["api", "patcher", "options"], "POST") => save_patcher_options(app, r),
-        (["api", "extractor", "status"], _) => {
-            // Archives are extracted by the engine itself; this shows the 7-Zip
-            // the player chose, or the one installed on this computer.
-            let chosen = state(app).lock().ui.seven_zip_path.clone();
-            Ok(json!({"seven_zip_path": seven_zip(&chosen).map(|p| p.display().to_string())}))
-        }
         (["api", "setup"], _) => setup_state(app),
         (["api", "setup", "done"], _) => {
             let st = state(app);
@@ -159,53 +153,6 @@ fn route(app: &AppHandle, r: &Request) -> Reply {
         (["api", "nexus", "validate"], _) => nexus_validate(app),
         _ => Err(fail(404, "This part of the app is not available yet.")),
     }
-}
-
-/// The 7-Zip program: the chosen one, else `7z`, `7za`, `7zz` or `7zr` on
-/// PATH, else the usual install folders (Program Files, both 32 and 64 bit,
-/// and per-user installs), so a 7-Zip that is installed but not on PATH counts.
-fn seven_zip(chosen: &str) -> Option<std::path::PathBuf> {
-    use std::path::PathBuf;
-    let chosen = chosen.trim().trim_matches('"');
-    if !chosen.is_empty() {
-        return Path::new(chosen).is_file().then(|| PathBuf::from(chosen));
-    }
-    let suffixes: &[&str] = if cfg!(windows) { &[".exe", ""] } else { &[""] };
-    let on_path = std::env::var_os("PATH")
-        .map(|path| std::env::split_paths(&path).collect::<Vec<_>>())
-        .unwrap_or_default();
-    for name in ["7z", "7za", "7zz", "7zr"] {
-        for folder in &on_path {
-            for suffix in suffixes {
-                let candidate = folder.join(format!("{name}{suffix}"));
-                if candidate.is_file() {
-                    return Some(candidate);
-                }
-            }
-        }
-    }
-    let mut folders: Vec<PathBuf> = Vec::new();
-    if cfg!(windows) {
-        folders.push(PathBuf::from(r"C:\Program Files\7-Zip"));
-        folders.push(PathBuf::from(r"C:\Program Files (x86)\7-Zip"));
-        for variable in [
-            "ProgramW6432",
-            "ProgramFiles",
-            "ProgramFiles(x86)",
-            "LOCALAPPDATA",
-        ] {
-            if let Some(base) = std::env::var_os(variable).map(PathBuf::from) {
-                folders.push(base.join("7-Zip"));
-                if variable == "LOCALAPPDATA" {
-                    folders.push(base.join("Programs").join("7-Zip"));
-                }
-            }
-        }
-    }
-    folders
-        .into_iter()
-        .map(|folder| folder.join("7z.exe"))
-        .find(|candidate| candidate.is_file())
 }
 
 fn platform() -> &'static str {
@@ -443,7 +390,6 @@ fn get_settings(app: &AppHandle) -> Reply {
         "download_dir": st.mods_dir(),
         "language": if ui.language.is_empty() { "en".to_owned() } else { ui.language },
         "custom_patcher_path": patcher,
-        "seven_zip_path": ui.seven_zip_path,
         "nexus_api_key": key,
         "filter_downloads_by_resolution": st.prefs.filter_by_resolution(),
         "scratch_dir": ui.scratch_dir,
@@ -485,7 +431,6 @@ fn set_settings(app: &AppHandle, r: &Request) -> Reply {
     {
         let mut inner = st.lock();
         inner.ui.language = r.b("language");
-        inner.ui.seven_zip_path = r.b("seven_zip_path");
         if let Some(on) = r
             .body
             .get("filter_downloads_by_resolution")

@@ -174,16 +174,6 @@ export const de: Dict = {
   "settings.section.updates": "Updates",
 
   // Settings → Archive extraction
-  "settings.archive.title": "Archive entpacken",
-  "settings.archive.hint": "7-Zip wird automatisch erkannt. Falls es nicht gefunden wird, wähle hier die ausführbare Kommandozeilendatei aus. PATH muss nicht geändert werden.",
-  "settings.archive.path": "7-Zip-Programmdatei (optional)",
-  "settings.archive.save": "7-Zip-Pfad speichern",
-  "settings.archive.placeholder": "Automatisch, oder 7z.exe / 7zz / 7z auswählen",
-  "settings.archive.detected": "Verwendetes 7-Zip: {path}",
-  "settings.archive.notFound": "7-Zip wurde nicht gefunden. Prüfe den ausgewählten Pfad oder installiere 7-Zip, falls ein Archiv es benötigt.",
-  "settings.archive.fallbackHint": "ZIP-Dateien funktionieren unter Windows und Linux ohne 7-Zip. Andere Archive werden nach Möglichkeit mit verfügbaren Systemprogrammen oder mitgelieferten Bibliotheken entpackt. Manche selbstentpackenden EXE-Dateien benötigen weiterhin 7-Zip.",
-  "settings.archive.loadFailed": "Die Einstellungen zum Entpacken konnten nicht geladen werden.",
-  "settings.archive.saveFailed": "Die Einstellungen zum Entpacken konnten nicht gespeichert werden.",
 
   // Settings → General
   "settings.general.language": "Sprache",

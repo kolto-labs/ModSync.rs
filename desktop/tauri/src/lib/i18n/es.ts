@@ -174,16 +174,6 @@ export const es: Dict = {
   "settings.section.updates": "Actualizaciones",
 
   // Settings → Archive extraction
-  "settings.archive.title": "Extracción de archivos",
-  "settings.archive.hint": "7-Zip se detecta automáticamente. Si no se encuentra, selecciona aquí su ejecutable de línea de comandos. No es necesario cambiar PATH.",
-  "settings.archive.path": "Ejecutable de 7-Zip (opcional)",
-  "settings.archive.save": "Guardar ruta de 7-Zip",
-  "settings.archive.placeholder": "Automático, o selecciona 7z.exe / 7zz / 7z",
-  "settings.archive.detected": "7-Zip en uso: {path}",
-  "settings.archive.notFound": "No se encontró 7-Zip. Revisa la ruta seleccionada o instala 7-Zip si un archivo lo necesita.",
-  "settings.archive.fallbackHint": "Los archivos ZIP funcionan sin 7-Zip en Windows y Linux. Para otros archivos se usan herramientas del sistema o bibliotecas incluidas cuando es posible. Algunos instaladores EXE autoextraíbles siguen necesitando 7-Zip.",
-  "settings.archive.loadFailed": "No se pudo cargar la configuración de extracción.",
-  "settings.archive.saveFailed": "No se pudo guardar la configuración de extracción.",
 
   // Settings → General
   "settings.general.language": "Idioma",

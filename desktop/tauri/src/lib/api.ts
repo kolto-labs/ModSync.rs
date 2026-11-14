@@ -94,7 +94,6 @@ export interface Settings {
   download_dir: string;
   language: string;
   custom_patcher_path: string;
-  seven_zip_path: string;
   nexus_api_key: string;
   filter_downloads_by_resolution: boolean;
   /** Folder for unpacking archives; empty for the system temporary folder. */
@@ -261,7 +260,6 @@ export const api = {
   logout: () => req<{ ok: boolean }>("/api/logout", { method: "POST" }),
   nexusValidate: () => req<NexusValidation>("/api/nexus/validate"),
   getSettings: () => req<Settings>("/api/settings"),
-  extractorStatus: () => req<{ seven_zip_path: string | null }>("/api/extractor/status"),
   setSettings: (s: Settings) =>
     req<{ ok: boolean }>("/api/settings", { method: "POST", body: JSON.stringify(s) }),
   /** refresh forces a fresh fetch of the guide instead of using the cache. */
