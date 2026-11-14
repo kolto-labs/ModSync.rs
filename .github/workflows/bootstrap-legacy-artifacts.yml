@@ -76,12 +76,15 @@ jobs:
           for item in listing:
               run = item.get('workflow_run') or {}
               if seed_mode:
-                  if run.get('id') != int(seed_run) or not item['name'].startswith((core.PACK_PREFIX, core.INDEX_PREFIX)):
+                  if run.get('id') != int(seed_run) or not (item['name'].startswith((core.PACK_PREFIX, core.INDEX_PREFIX)) or item['name'] == 'mod-archive-manifest-sealed'):
                       continue
                   name_match = re.fullmatch(r'artstore-(?:pack|index)-' + seed_run + r'-([1-9][0-9]*)-(?:[0-9]+|seed)', item['name'])
-                  if name_match is None:
-                      raise SystemExit('Seed artifact name does not match the pinned source run')
-                  seed_attempts.add(name_match[1])
+                  if item['name'] != 'mod-archive-manifest-sealed':
+                      if name_match is None:
+                          raise SystemExit('Seed artifact name does not match the pinned source run')
+                      seed_attempts.add(name_match[1])
+                  elif not 0 < item['size_in_bytes'] <= 32 * 1024**2:
+                      raise SystemExit('Sealed source manifest exceeds its bound')
               elif item['id'] not in expected:
                   continue
               if ((not seed_mode and item['name'] != expected[item['id']])
@@ -94,10 +97,14 @@ jobs:
               pinned.append({key: item[key] for key in (
                   'id', 'name', 'digest', 'size_in_bytes', 'workflow_run', 'expires_at', 'created_at')})
           if seed_mode:
-              if (len(pinned) != 2 or len(seed_attempts) != 1
-                      or sum(item['name'].startswith(core.PACK_PREFIX) for item in pinned) != 1
+              expected_packs = sum(item['name'].startswith(core.PACK_PREFIX) for item in pinned)
+              manifests = sum(item['name'] == 'mod-archive-manifest-sealed' for item in pinned)
+              if (not 1 <= expected_packs <= 2 or len(seed_attempts) != 1 or manifests > 1
+                      or len(pinned) != expected_packs + 1 + manifests
                       or sum(item['name'].startswith(core.INDEX_PREFIX) for item in pinned) != 1):
-                  raise SystemExit('Expected exactly one seed pack and one index from one source attempt')
+                  raise SystemExit('Expected one or two seed packs, one index and at most one sealed manifest from one source attempt')
+              for item in pinned:
+                  item['source_attempt'] = int(next(iter(seed_attempts)))
           elif len(pinned) != len(expected):
               raise SystemExit('A pinned source artifact is missing or expired')
           base = Path(os.environ['RUNNER_TEMP']) / 'bootstrap-plan'
@@ -183,7 +190,7 @@ jobs:
           import hashlib, json, os, re, stat, sys, zipfile
           from pathlib import Path
           sys.path.insert(0, 'tools/modsync-ci')
-          import artstore_client, artstore_core as core, game_backup
+          import artstore_client, artstore_core as core, game_backup, seal
           record = json.loads(os.environ['ARTIFACT_RECORD'])
           temp = Path(os.environ['RUNNER_TEMP'])
           plan = json.loads((temp / 'bootstrap-plan/plan.json').read_text())
@@ -197,6 +204,7 @@ jobs:
           output = temp / 'transfer'
           output.mkdir()
           is_game = record['name'] in ('game-k1-sealed', 'game-k2-sealed')
+          is_manifest = record['name'] == 'mod-archive-manifest-sealed'
           copied = {}
           with zipfile.ZipFile(archive_path) as archive:
               entries = archive.infolist()
@@ -206,16 +214,18 @@ jobs:
                   name = member.filename
                   part = re.fullmatch(r'[0-9a-f]{64}\.part', name)
                   manifest = is_game and name == 'manifest.json'
+                  sealed_manifest = is_manifest and name == 'manifest.seal'
                   mode = member.external_attr >> 16
-                  if (not (part or manifest) or name in copied or member.is_dir()
+                  if (not (part or manifest or sealed_manifest) or name in copied or member.is_dir()
                           or stat.S_IFMT(mode) not in (0, stat.S_IFREG) or member.flag_bits & 1
-                          or not 0 < member.file_size <= (4 * 1024**3 if part else 1024**2)):
+                          or not 0 < member.file_size <= (4 * 1024**3 if part else 32 * 1024**2 if sealed_manifest else 1024**2)):
                       raise SystemExit('Unsafe or unexpected payload ZIP member')
                   digest = hashlib.sha256()
                   count = 0
                   with archive.open(member) as source, (output / name).open('xb') as dest:
-                      prefix = source.read(len(core.MAGIC))
-                      if part and prefix != core.MAGIC:
+                      magic = seal.MAGIC if sealed_manifest else core.MAGIC
+                      prefix = source.read(len(magic))
+                      if (part or sealed_manifest) and prefix != magic:
                           raise SystemExit('Payload is not an encrypted artstore part')
                       digest.update(prefix)
                       dest.write(prefix)
@@ -227,7 +237,11 @@ jobs:
                   if count != member.file_size or part and digest.hexdigest() != name[:-5]:
                       raise SystemExit('Encrypted member size or digest mismatch')
                   copied[name] = count
-          if is_game:
+          if is_manifest:
+              if set(copied) != {'manifest.seal'}:
+                  raise SystemExit('Unexpected sealed manifest members')
+              required = dict(copied)
+          elif is_game:
               manifest = game_backup.parse_manifest((output / 'manifest.json').read_text(), record['name'][5:7])
               required = {part['stored_sha256'] + '.part': part['stored_size'] for part in manifest['parts']}
               if set(copied) != set(required) | {'manifest.json'}:
@@ -242,6 +256,7 @@ jobs:
           if any(copied.get(name) != size for name, size in required.items()):
               raise SystemExit('Index or manifest member sizes disagree')
           provenance = {'schema_version': 1, 'source_repository': client.repo, 'source_artifact': record,
+                        'source_attempt': record.get('source_attempt'),
                         'target_repository': os.environ['GITHUB_REPOSITORY'],
                         'target_sha': os.environ['GITHUB_SHA'], 'target_run_id': os.environ['GITHUB_RUN_ID']}
           (output / 'transfer-provenance.json').write_text(json.dumps(provenance, sort_keys=True, indent=2))
