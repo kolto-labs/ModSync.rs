@@ -455,14 +455,29 @@ fn patcher_status(app: &AppHandle) -> Reply {
         .and_then(|store| store.patcher_preferences())
         .map_err(fail_any)?;
     let custom = prefs.executable.unwrap_or_default();
-    let found = Path::new(&custom).is_file();
-    let engine = engine_name(prefs.engine);
+    let configured = (!custom.is_empty()).then(|| Path::new(&custom));
+    // The program the engine would run: the chosen one, else one found next to the
+    // app or on PATH. OdyPatcher with neither runs the engine's built-in copy.
+    let resolved = modsync::patcher::resolve(prefs.engine, configured)
+        .ok()
+        .flatten();
+    let (available, source, path) = match resolved {
+        Some(path) => (
+            true,
+            if configured.is_some() { "custom" } else { "system" },
+            Value::from(path.display().to_string()),
+        ),
+        None if configured.is_none() && prefs.engine == modsync::PatcherEngine::OdyPatcher => {
+            (true, "bundled", Value::Null)
+        }
+        None => (false, "none", Value::Null),
+    };
     Ok(json!({
-        "available": found,
-        "path": if found { Value::from(custom.clone()) } else { Value::Null },
-        "source": if found { "custom" } else { "none" },
+        "available": available,
+        "path": path,
+        "source": source,
         "custom_patcher_path": custom,
-        "strategies": [engine],
+        "strategies": [engine_name(prefs.engine)],
     }))
 }
 

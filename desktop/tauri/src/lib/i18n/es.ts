@@ -234,7 +234,7 @@ export const es: Dict = {
   // Settings → Patcher
   "settings.patcher.title": "Motor del parcheador",
   "settings.patcher.description":
-    "Los mods de TSLPatcher se aplican automáticamente mediante un motor HoloPatcher incluido, para que no tengas que pasar por el instalador de cada mod.",
+    "El OdyPatcher integrado aplica automáticamente los mods de TSLPatcher compatibles. KPatcher y HoloPatcher necesitan su programa, encontrado en este equipo o elegido abajo.",
   "settings.patcher.ready": "Listo",
   "settings.patcher.notAvailable": "No disponible",
   "settings.patcher.loading": "Comprobando el motor del parcheador…",

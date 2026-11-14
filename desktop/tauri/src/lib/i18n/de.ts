@@ -234,7 +234,7 @@ export const de: Dict = {
   // Settings → Patcher
   "settings.patcher.title": "Patcher-Engine",
   "settings.patcher.description":
-    "TSLPatcher-Mods werden automatisch von einer mitgelieferten HoloPatcher-Engine angewendet, sodass du dich nicht durch den Installer jedes Mods klicken musst.",
+    "Der eingebaute OdyPatcher wendet kompatible TSLPatcher-Mods automatisch an. KPatcher und HoloPatcher brauchen ihr Programm, das auf diesem Computer gefunden oder unten ausgewählt wird.",
   "settings.patcher.ready": "Bereit",
   "settings.patcher.notAvailable": "Nicht verfügbar",
   "settings.patcher.loading": "Patcher-Engine wird geprüft…",

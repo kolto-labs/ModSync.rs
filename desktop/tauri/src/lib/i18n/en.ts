@@ -335,7 +335,7 @@ export const en: Dict = {
   "settings.patcher.allowPrograms": "Let mods run their patcher or installer",
   "settings.patcher.allowProgramsHint": "Most builds need this. Turn it off to stop any program from a mod running during an install; mods that need one will then fail with a clear message.",
   "settings.patcher.description":
-    "The bundled HoloPatcher installs compatible TSLPatcher mods automatically.",
+    "The built-in OdyPatcher installs compatible TSLPatcher mods automatically. KPatcher and HoloPatcher need their program, found on this computer or chosen below.",
   "settings.patcher.ready": "Ready",
   "settings.patcher.notAvailable": "Not available",
   "settings.patcher.loading": "Checking patcher engine…",
