@@ -41,6 +41,8 @@ pub struct UiPrefs {
     pub dismissed_conflicts: Vec<String>,
     /// DeadlyStream account name of the saved sign-in.
     pub deadlystream_username: String,
+    /// Let guides run patchers and installer programs (on unless turned off).
+    pub block_programs: bool,
 }
 
 pub struct Prefs {

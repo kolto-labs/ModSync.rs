@@ -342,7 +342,7 @@ fn run(app: &AppHandle, job: Job, tally: &mut Tally) -> Result<()> {
     }
     // 3. Check, changing nothing on disk.
     let mut settings = Settings::new(&mods, &game)?;
-    settings.allow_processes = true;
+    settings.allow_processes = !state(app).lock().ui.block_programs;
     if let Ok(prefs) = state(app)
         .prefs
         .store()
@@ -471,7 +471,7 @@ fn rebuild_settings(
     cancelled: &Arc<AtomicBool>,
 ) -> Result<Settings> {
     let mut settings = Settings::new(mods, game)?;
-    settings.allow_processes = true;
+    settings.allow_processes = !state(app).lock().ui.block_programs;
     if let Ok(prefs) = state(app)
         .prefs
         .store()

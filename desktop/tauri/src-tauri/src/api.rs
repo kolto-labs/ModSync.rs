@@ -113,6 +113,8 @@ fn route(app: &AppHandle, r: &Request) -> Reply {
                 .map(|_| json!({"ok": true, "path": mods, "fallback": true}))
         }
         (["api", "patcher", "status"], _) => patcher_status(app),
+        (["api", "patcher", "options"], "GET") => patcher_options(app),
+        (["api", "patcher", "options"], "POST") => save_patcher_options(app, r),
         (["api", "extractor", "status"], _) => {
             // Archives are extracted by the engine itself; this shows the 7-Zip
             // the player chose, or the one installed on this computer.
@@ -474,11 +476,7 @@ fn patcher_status(app: &AppHandle) -> Reply {
         .map_err(fail_any)?;
     let custom = prefs.executable.unwrap_or_default();
     let found = Path::new(&custom).is_file();
-    let engine = match prefs.engine {
-        modsync::PatcherEngine::OdyPatcher => "OdyPatcher",
-        modsync::PatcherEngine::KPatcher => "KPatcher",
-        modsync::PatcherEngine::HoloPatcher => "HoloPatcher",
-    };
+    let engine = engine_name(prefs.engine);
     Ok(json!({
         "available": found,
         "path": if found { Value::from(custom.clone()) } else { Value::Null },
@@ -486,6 +484,51 @@ fn patcher_status(app: &AppHandle) -> Reply {
         "custom_patcher_path": custom,
         "strategies": [engine],
     }))
+}
+
+fn engine_name(engine: modsync::PatcherEngine) -> &'static str {
+    match engine {
+        modsync::PatcherEngine::OdyPatcher => "OdyPatcher",
+        modsync::PatcherEngine::KPatcher => "KPatcher",
+        modsync::PatcherEngine::HoloPatcher => "HoloPatcher",
+    }
+}
+
+/// Which patcher applies TSLPatcher-style mods, and whether guides may run
+/// patchers and installer programs at all.
+fn patcher_options(app: &AppHandle) -> Reply {
+    let st = state(app);
+    let prefs = st
+        .prefs
+        .store()
+        .and_then(|store| store.patcher_preferences())
+        .map_err(fail_any)?;
+    let allow = !st.lock().ui.block_programs;
+    Ok(json!({"engine": engine_name(prefs.engine), "allow_programs": allow}))
+}
+
+fn save_patcher_options(app: &AppHandle, r: &Request) -> Reply {
+    let st = state(app);
+    let store = st.prefs.store().map_err(fail_any)?;
+    let current = store.patcher_preferences().map_err(fail_any)?;
+    let engine = match r.b("engine").as_str() {
+        "HoloPatcher" => modsync::PatcherEngine::HoloPatcher,
+        "KPatcher" => modsync::PatcherEngine::KPatcher,
+        _ => modsync::PatcherEngine::OdyPatcher,
+    };
+    if engine != current.engine {
+        store
+            .save_patcher_preferences(engine, &current.executable.unwrap_or_default())
+            .map_err(fail_any)?;
+    }
+    let allow = r
+        .body
+        .get("allow_programs")
+        .and_then(Value::as_bool)
+        .unwrap_or(true);
+    st.lock().ui.block_programs = !allow;
+    st.save_ui();
+    Ok(json!({"ok": true}))
 }
 
 fn setup_state(app: &AppHandle) -> Reply {

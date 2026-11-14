@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Select } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { useT } from "@/lib/i18n";
 
 interface PatcherSectionProps {
@@ -42,6 +44,20 @@ export function PatcherSection({ addLog }: PatcherSectionProps) {
   }, [addLog]);
 
   useEffect(() => { refresh(); }, [refresh]);
+
+  // Which patcher runs TSLPatcher-style mods, and whether guides may run
+  // patchers and installer programs at all.
+  const [options, setOptions] = useState<{ engine: string; allow_programs: boolean } | null>(null);
+  useEffect(() => { api.patcherOptions().then(setOptions).catch(() => {}); }, []);
+  const saveOptions = async (next: { engine: string; allow_programs: boolean }) => {
+    setOptions(next);
+    try {
+      await api.savePatcherOptions(next);
+      await refresh();
+    } catch (e: any) {
+      addLog(`Failed to save patcher settings: ${e?.message}`, "error");
+    }
+  };
 
   const persist = async (path: string) => {
     setSaving(true);
@@ -127,6 +143,39 @@ export function PatcherSection({ addLog }: PatcherSectionProps) {
               )}
             </>
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle>{t("settings.patcher.engineTitle")}</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="patcher-engine">{t("settings.patcher.engineLabel")}</Label>
+            <Select
+              id="patcher-engine"
+              value={options?.engine ?? "OdyPatcher"}
+              disabled={!options}
+              onChange={(e) => options && saveOptions({ ...options, engine: e.target.value })}
+              className="max-w-[16rem]"
+            >
+              <option value="OdyPatcher">OdyPatcher</option>
+              <option value="HoloPatcher">HoloPatcher</option>
+              <option value="KPatcher">KPatcher</option>
+            </Select>
+            <p className="text-xs text-muted-foreground">{t("settings.patcher.engineHint")}</p>
+          </div>
+          <div className="flex items-center justify-between gap-4">
+            <div className="space-y-0.5">
+              <Label htmlFor="allow-programs">{t("settings.patcher.allowPrograms")}</Label>
+              <p className="text-xs text-muted-foreground">{t("settings.patcher.allowProgramsHint")}</p>
+            </div>
+            <Switch
+              id="allow-programs"
+              checked={options?.allow_programs ?? true}
+              disabled={!options}
+              onCheckedChange={(on) => options && saveOptions({ ...options, allow_programs: on })}
+            />
+          </div>
         </CardContent>
       </Card>
 

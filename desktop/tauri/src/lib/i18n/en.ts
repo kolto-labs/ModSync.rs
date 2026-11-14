@@ -315,6 +315,11 @@ export const en: Dict = {
 
   // Settings → Patcher
   "settings.patcher.title": "Patcher engine",
+  "settings.patcher.engineTitle": "Patcher and installer programs",
+  "settings.patcher.engineLabel": "Patcher for TSLPatcher mods",
+  "settings.patcher.engineHint": "The program that applies TSLPatcher and HoloPatcher mods during an install.",
+  "settings.patcher.allowPrograms": "Let mods run their patcher or installer",
+  "settings.patcher.allowProgramsHint": "Most builds need this. Turn it off to stop any program from a mod running during an install; mods that need one will then fail with a clear message.",
   "settings.patcher.description":
     "The bundled HoloPatcher installs compatible TSLPatcher mods automatically.",
   "settings.patcher.ready": "Ready",

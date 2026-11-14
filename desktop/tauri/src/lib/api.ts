@@ -376,6 +376,9 @@ export const api = {
       `/api/mod/info?file_id=${encodeURIComponent(fileId)}&slug=${encodeURIComponent(slug)}&game=${game}`),
   imageProxy: (url: string) => convertFileSrc(url, "kmm-image"),
   patcherStatus: () => req<PatcherStatus>("/api/patcher/status"),
+  patcherOptions: () => req<{ engine: string; allow_programs: boolean }>("/api/patcher/options"),
+  savePatcherOptions: (body: { engine: string; allow_programs: boolean }) =>
+    req<{ ok: boolean }>("/api/patcher/options", { method: "POST", body: JSON.stringify(body) }),
   openUrl: (url: string) =>
     req<{ ok: boolean }>(
       `/api/update/open?url=${encodeURIComponent(url)}`, { method: "POST" }),
