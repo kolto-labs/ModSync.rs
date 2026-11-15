@@ -10,15 +10,19 @@ const LIMIT: usize = 8 * 1024 * 1024;
 
 /// Reproduce the pinned legacy installer's duplicate-key traversal in an
 /// already authenticated private staging copy, before ordinary log preparation.
-pub(super) fn prepare_legacy_ini(
+pub(super) fn prepare_native_ini(
     contract: Option<&crate::archive_generation::reviewed_manual::NativePatcherContract>,
+    package: &Path,
     ini: &Path,
     cancelled: &AtomicBool,
 ) -> Result<Option<serde_json::Value>> {
     use sha2::{Digest, Sha256};
-    let Some(contract) = contract
-        .filter(|contract| contract.component_guid() == "581433cd-4c71-848a-92f3-03064c7eae94")
-    else {
+    let Some(contract) = contract.filter(|contract| {
+        matches!(
+            contract.component_guid(),
+            "581433cd-4c71-848a-92f3-03064c7eae94" | "97c5f09c-0521-82df-beec-0896382e83f9"
+        )
+    }) else {
         return Ok(None);
     };
     ensure!(
@@ -27,6 +31,19 @@ pub(super) fn prepare_legacy_ini(
         "Legacy duplicate-key preparation requires its private original-program contract"
     );
     let original = read(ini, cancelled)?;
+    if contract.component_guid() == "97c5f09c-0521-82df-beec-0896382e83f9" {
+        let raw = decode(&original)?;
+        let (effective, receipt) = contract
+            .native_ini_translation(package, &raw, cancelled)?
+            .context("HQ original source interpretation is unavailable")?;
+        ensure!(read(ini, cancelled)? == original, "HQ private INI changed");
+        crate::recovery::atomic_copy(ini, std::io::Cursor::new(effective.as_bytes()), cancelled)?;
+        ensure!(
+            read(ini, cancelled)? == effective.as_bytes(),
+            "HQ private INI publication differs"
+        );
+        return Ok(Some(receipt));
+    }
     let text = std::str::from_utf8(&original).context("Legacy Swoop INI is not UTF-8")?;
     let effective = crate::archive_generation::source_plan_namespace::effective_ini_text(
         contract.component_guid(),
@@ -114,11 +131,8 @@ pub(super) fn decode(bytes: &[u8]) -> Result<String> {
             .collect();
         return String::from_utf16(&units).context("Patcher INI contains invalid UTF-16");
     }
-    Ok(
-        std::str::from_utf8(bytes.strip_prefix(&[0xef, 0xbb, 0xbf]).unwrap_or(bytes))
-            .context("Patcher INI needs UTF-8 or BOM-marked Unicode text")?
-            .to_owned(),
-    )
+    crate::archive_generation::source_plan_namespace::decode_ini_bytes(bytes)
+        .context("Patcher INI needs supported source-pinned or BOM-marked Unicode text")
 }
 
 fn ordinary(path: &Path) -> Result<std::fs::Metadata> {

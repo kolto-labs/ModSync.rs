@@ -2,8 +2,10 @@
 """Private-source, fail-closed full-guide port runner (Python 3.11+)."""
 
 import argparse
+from contextlib import nullcontext
 from cache import link_key
 import gui_diag
+import live_output
 from fullrun_contract import require_gui_phases
 import fullrun_guide_choices
 import k1_widescreen_inputs
@@ -100,13 +102,13 @@ def reemit_gui_failure(text, driver_report, report):
     lines = [gui_diag.CONTROL.sub("", gui_diag.redact(line))
              for line in text.splitlines()[-GUI_TAIL_LINES:]]
     print(f"gui output (last {GUI_TAIL_LINES} lines)", file=sys.stderr)
-    print("\n".join(lines), file=sys.stderr)
+    live_output.emit_lines("\n".join(lines))
     diagnostics = load_worker_diagnostics(driver_report)
     if diagnostics is None:
         return
     report["worker_diagnostics"] = diagnostics
     if not any(line.startswith(GUI_TAIL_GROUP) for line in lines):
-        print("\n".join(gui_diag.render_group(diagnostics)), file=sys.stderr)
+        live_output.emit_lines("\n".join(gui_diag.render_group(diagnostics)))
 
 
 def progress(message):
@@ -136,32 +138,59 @@ def run(command, source, private, stage, report, env):
     log = private / (stage + ".log")
     started = time.monotonic()
     progress(f"{stage}: started")
-    with log.open("xb") as output:
-        process = subprocess.Popen(
-            command, cwd=source, env=env, stdin=subprocess.DEVNULL,
-            stdout=output, stderr=subprocess.STDOUT, start_new_session=True,
-        )
-        try:
-            code = process.wait(timeout=7200)
-        except (subprocess.TimeoutExpired, KeyboardInterrupt):
-            os.killpg(process.pid, signal.SIGTERM)
+    interaction = nullcontext(None)
+    if ("--patcher-engine" in command
+            and command[command.index("--patcher-engine") + 1] == "mod-packaged"
+            and (len(command) > 1 and command[1] == "install"
+                 or any(Path(str(arg)).name == "gui_rust.py" for arg in command[:2]))):
+        import packaged_patcher_ui
+        request_dir = command[command.index("--execute-request-dir") + 1]
+        game_dir = command[command.index("--game-dir") + 1]
+        interaction = packaged_patcher_ui.driver(request_dir, game_dir)
+    try:
+        with interaction as driver, log.open("xb") as output:
+            process = live_output.Popen(
+                command, cwd=source, env=env, stdin=subprocess.DEVNULL,
+                stdout=output, stderr=subprocess.STDOUT, start_new_session=True,
+            )
             try:
-                process.wait(timeout=10)
-            except subprocess.TimeoutExpired:
-                os.killpg(process.pid, signal.SIGKILL)
-                process.wait()
-            finish_stage(report, stage, started, "interrupted or timed out")
-            raise Blocked("command_interrupted_or_timed_out") from None
+                if driver is None:
+                    code = process.wait(timeout=7200)
+                else:
+                    deadline = time.monotonic() + 7200
+                    while True:
+                        if driver["failures"]:
+                            raise Blocked("packaged_patcher_ui_failed")
+                        if time.monotonic() >= deadline:
+                            raise subprocess.TimeoutExpired(command, 7200)
+                        try:
+                            code = process.wait(timeout=0.5)
+                            break
+                        except subprocess.TimeoutExpired:
+                            continue
+            except (subprocess.TimeoutExpired, KeyboardInterrupt, Blocked):
+                os.killpg(process.pid, signal.SIGINT)
+                try:
+                    process.wait(timeout=10)
+                except subprocess.TimeoutExpired:
+                    os.killpg(process.pid, signal.SIGKILL)
+                    process.wait()
+                finish_stage(report, stage, started, "interrupted or timed out")
+                raise Blocked("command_interrupted_or_timed_out") from None
+    except RuntimeError as error:
+        finish_stage(report, stage, started, "packaged installer UI failed")
+        raise Blocked("packaged_patcher_ui_failed") from error
+    process.check_output()
     finish_stage(report, stage, started, f"exit {code}")
     report["commands"].append({"stage": stage, "exit_code": code})
     if code:
-        text = log.read_text(encoding="utf-8", errors="replace")
+        text = live_output.private_tail(log)
         if is_gui_stage(stage):
             reemit_gui_failure(text, private / gui_report_name(stage), report)
         else:
             lines = text.splitlines()[-FAILURE_TAIL_LINES:]
             print(f"::group::{stage} output (last {FAILURE_TAIL_LINES} lines)", file=sys.stderr)
-            print("\n".join(lines), file=sys.stderr)
+            live_output.emit_lines("\n".join(lines))
             print("::endgroup::", file=sys.stderr)
         record_failure(text, stage, code, report, print_excerpt=True)
         raise Blocked(stage + "_failed")
@@ -439,9 +468,8 @@ def record_failure(text, stage, code, report, print_excerpt=False):
             excerpt += validate_error_excerpt(text)
         print(f"::group::{stage} failure evidence (bounded excerpt, {len(excerpt)} lines)",
               file=sys.stderr)
-        print("\n".join(excerpt) if excerpt
-              else "(no Error/Exception line or install-stopped marker in the output)",
-              file=sys.stderr)
+        live_output.emit_lines("\n".join(excerpt) if excerpt
+              else "(no Error/Exception line or install-stopped marker in the output)")
         print("::endgroup::", file=sys.stderr)
         if parsed:
             print(f"ports: {stage} failed at component '{parsed['component']}', step {parsed['step']} "
@@ -476,7 +504,7 @@ def skip_cause(reason):
 def record_convert_skips(log, report):
     """Keep the converter's per-component skip report (a JSON array on stderr, merged into the log)."""
     try:
-        text = log.read_text(encoding="utf-8", errors="replace")
+        text = live_output.private_tail(log)
     except OSError:
         return
     decoder = json.JSONDecoder()
@@ -511,7 +539,7 @@ DRAFT_REVIEW_STAGE = "review_verified_drafts"
 def record_draft_review(log, report):
     """Keep the converter's {cleared, skipped} report (a JSON object on stderr, merged into the log)."""
     try:
-        text = log.read_text(encoding="utf-8", errors="replace")
+        text = live_output.private_tail(log)
     except OSError:
         return
     decoder = json.JSONDecoder()
@@ -801,7 +829,11 @@ def load_source_program_groups(source, game, converted):
         raw = row["raw_component"]
         if (row["guid"] != component.get("Guid") or raw.get("Guid") != row["guid"]
                 or raw.get("Name") != row["name"] or row["source_kind"] != "authored-supplemental"
-                or not source_context_equal(component, row["canonical_component"])):
+                # Initial guide conversion emits the authenticated raw draft.
+                # Reloading that model canonicalizes instruction Source paths.
+                # Both complete representations are pinned in this authority.
+                or not any(source_context_equal(component, row[representation])
+                           for representation in ("raw_component", "canonical_component"))):
             raise Blocked("source_program_supplemental_owner_context_changed")
         groups[row["guid"]] = [{"filename": pin["filename"], "sha256": pin["sha256"],
                                 "source_url": pin["source_url"]}
@@ -1269,8 +1301,9 @@ def bind_archives(command, source, guide, converted, archives, archive_map, priv
     --resolved-archives only touches components without instructions and conflicts with
     --auto-generate-local, so it runs from the guide (--parse-directions) and the local
     generation pass then runs on its output. That branch is used only when both exit 0 and
-    nothing the plain convert produced is lost; otherwise the plain converted.toml is kept
-    and the failure is recorded. Returns the TOML the verified review should read.
+    nothing the plain convert produced is lost. Legacy callers retain the plain conversion
+    when binding fails. Complete source-program callers propagate failed binding so its
+    original error remains the stage failure. Returns the TOML the verified review should read.
     """
     review = report.setdefault("draft_review", {})
     review["bound"] = 0
@@ -1315,11 +1348,15 @@ def bind_archives(command, source, guide, converted, archives, archive_map, priv
         if str(failure) == INTERRUPTED:
             raise
         review["bind_failed"] = str(failure)
+        if compact_defaults:
+            raise
         return converted
     finally:
         record_bind_diagnostics(private, report, component_names(converted))
     if not bound.is_file() or bound.is_symlink():
         review["bind_failed"] = "bind_output_missing"
+        if compact_defaults:
+            raise Blocked("bind_archives_output_missing")
         return converted
     try:
         count, problem = bound_result(converted, bound)
@@ -1327,6 +1364,8 @@ def bind_archives(command, source, guide, converted, archives, archive_map, priv
         count, problem = 0, "bound_output_unreadable"
     if problem:
         review["bind_failed"] = problem
+        if compact_defaults:
+            raise Blocked("bind_archives_invalid_output")
         return converted
     review["bound"] = count
     return bound if count else converted
@@ -1460,11 +1499,11 @@ def baseline_applicability(command, source, game, guide, converted, private, rep
             "baseline_basis": fullrun_guide_choices.ASPYR_BASIS}
 
 
-def execute_runner_arguments(private, converted, report):
+def execute_runner_arguments(private, converted, report, force=False):
     """Create one private execution prefix without changing the native Patcher backend."""
     vendors = [component for component in converted_components(converted)
                if component.get("VendorInstallerBinding")]
-    if not vendors:
+    if not vendors and not force:
         return []
     programs = {name: shutil.which(name) for name in ("Xvfb", "wine", "wineserver")}
     if not all(programs.values()):
@@ -2593,11 +2632,10 @@ def engine_restore(command, directories, source, private, stage, report, env, in
     progress(f"{stage}: started")
     status = "failed"
     try:
-        with log.open("wb") as output:
-            completed = subprocess.run(
-                command + (["restore"] + arguments if invocation is None else arguments), cwd=source, env=env, stdin=subprocess.DEVNULL,
-                stdout=output, stderr=subprocess.STDOUT, timeout=ENGINE_RESTORE_TIMEOUT)
-        text = log.read_text(encoding="utf-8", errors="replace")
+        completed = live_output.run(
+            command + (["restore"] + arguments if invocation is None else arguments), log,
+            cwd=source, env=env, stdin=subprocess.DEVNULL, timeout=ENGINE_RESTORE_TIMEOUT)
+        text = live_output.private_tail(log)
         if completed.returncode == 0:
             status = "restored"
         elif NOTHING_TO_RESTORE in ANSI_ESCAPE.sub("", text).lower():
@@ -2607,7 +2645,7 @@ def engine_restore(command, directories, source, private, stage, report, env, in
                 record["uncaptured_mutation"] = True
             lines = text.splitlines()[-FAILURE_TAIL_LINES:]
             print(f"::group::{stage} output (last {FAILURE_TAIL_LINES} lines)", file=sys.stderr)
-            print("\n".join(lines), file=sys.stderr)
+            live_output.emit_lines("\n".join(lines))
             print("::endgroup::", file=sys.stderr)
     except (FileNotFoundError, PermissionError):
         status = "unavailable"
@@ -2745,6 +2783,8 @@ def install_with_quarantine(command, directories, deselect, converted, game, sou
                     phase_arguments = arguments(deselect) + ["--phase", phase] + list(extra)
                 else:
                     phase_arguments = directories + deselect + ["--non-interactive", "--phase", "all"]
+                    if "--patcher-engine" in directories:
+                        phase_arguments += ["--component-checkpoints"]
                 run(command + ["install"] + phase_arguments, source, private, stage, report, env)
         except Blocked as failure:
             if str(failure) != stage + "_failed":
@@ -2973,7 +3013,7 @@ def rust_gui_failure_fields(failure, components):
 def install_rust_gui_with_quarantine(command, source, private, game, archives, converted, policy_guids,
                                      deselect, report, env, max_iterations=QUARANTINE_MAX_ITERATIONS,
                                      max_fraction=QUARANTINE_MAX_FRACTION, complete_guide=False,
-                                     execute_runner=(), profile_receipt=None):
+                                     execute_runner=(), profile_receipt=None, patcher=()):
     """Run the Rust GUI driver with the shared bounded install quarantine policy."""
     components = converted_components(converted)
     profile_arguments = []
@@ -3005,7 +3045,7 @@ def install_rust_gui_with_quarantine(command, source, private, game, archives, c
                  "--work-dir", str(gui_work), "--report", str(driver_report),
                  "--timeout", "7000"]
                 + (["--complete-guide"] if complete_guide else ["--exclude-widescreen"])
-                + list(execute_runner) + profile_arguments
+                + list(execute_runner) + list(patcher) + profile_arguments
                 + [flag for guid_ in sorted(skipped) for flag in ("--deselect", guid_)],
                 source, private, stage, report, env)
         except Blocked as failure:
@@ -4073,7 +4113,92 @@ def consume_verified_build(fd, source, mode, private, report):
     return destination
 
 
+def gui_diag_runner_arguments(args):
+    # Share the production driver's canonical path and complete-runner checks.
+    import gui_rust
+    try:
+        return gui_rust.execute_runner_arguments(args)
+    except gui_rust.Blocked as error:
+        raise Blocked(str(error)) from error
+
+
+def selected_patcher_arguments(args):
+    backend = getattr(args, "patcher_engine", None)
+    executable = getattr(args, "patcher", None)
+    if backend is not None and args.implementation != "rust":
+        raise Blocked("patcher_backend_selection_requires_rust")
+    if executable is not None and backend != "holo-patcher":
+        raise Blocked("patcher_path_requires_holo_patcher_backend")
+    if backend == "holo-patcher" and executable is None:
+        raise Blocked("holo_patcher_requires_explicit_executable")
+    arguments = [] if backend is None else ["--patcher-engine", backend]
+    if executable is not None:
+        path = Path(executable).resolve(strict=True)
+        if not (path.is_file() or (path.is_dir() and (path / "PyKotor/Tools/HoloPatcher/src/holopatcher/__main__.py").is_file())):
+            raise Blocked("patcher_executable_missing")
+        arguments += ["--patcher", str(path)]
+    return arguments
+
+
+def record_patcher_comparison(args, report, source, private, command, converted, game, archives,
+                               runner, gui_result=None):
+    """Bind the exporter to the observed successful launch and completion receipt."""
+    if getattr(args, "patcher_engine", None) is None:
+        return
+    if not getattr(args, "complete_guide", False):
+        return
+    if gui_result is not None:
+        launched = gui_result.get("launch_command")
+    else:
+        path = private / "install.log.command.json"
+        if not path.is_file() or path.is_symlink() or path.stat().st_size > 1024 * 1024:
+            raise Blocked("comparison_install_command_receipt_missing")
+        launched = json.loads(path.read_text(encoding="utf-8")).get("argv")
+    state = engine_state_dir(game)
+    completion = state / "completion.json"
+    if not completion.is_file() or completion.is_symlink() or completion.stat().st_size > 64 * 1024 ** 2:
+        raise Blocked("comparison_completion_receipt_missing_or_oversized")
+    receipt = json.loads(completion.read_text(encoding="utf-8"))
+    identity = (receipt.get("installReport") or {}).get("checkpoint") or {}
+    if not identity.get("sessionId") or not identity.get("checkpointId"):
+        raise Blocked("comparison_requires_committed_checkpoint_completion")
+    git = subprocess.run(["git", "rev-parse", "HEAD"], cwd=source,
+                         capture_output=True, text=True, check=True)
+    head = git.stdout.strip()
+    if re.fullmatch(r"[0-9a-f]{40}", head) is None:
+        raise Blocked("comparison_engine_revision_invalid")
+    request_dir = runner[runner.index("--execute-request-dir") + 1] if "--execute-request-dir" in runner else None
+    report["patcher_comparison_execution"] = {
+        "schema_version": 1, "backend": args.patcher_engine, "mode": args.mode,
+        "command": launched, "binary_sha256": digest(Path(command[0])), "engine_sha": head,
+        "guide_digest": report["guide_sha256"], "input_digest": digest(converted),
+        "profile": report["install_profile"]["profile"],
+        "selected_guid_order": [component["Guid"] for component in receipt["components"]],
+        "session_id": identity["sessionId"], "checkpoint_id": identity["checkpointId"],
+        "request_dir": request_dir, "binary": str(command[0]), "converted_guide": str(converted),
+        "game_dir": str(game), "archives": str(archives),
+        "output_dir": str(getattr(args, "comparison_output_dir", None) or private / "patcher-comparison")}
+
+
+def export_patcher_comparison(args, report):
+    execution = report.get("patcher_comparison_execution")
+    if not execution or report.get("status") != "installed":
+        return
+    output = Path(execution["output_dir"])
+    command = [sys.executable, str(Path(__file__).with_name("patcher_comparison.py")), "export",
+               "--backend", execution["backend"], "--mode", args.mode,
+               "--binary", execution["binary"], "--game-dir", execution["game_dir"],
+               "--archives", execution["archives"], "--converted-guide", execution["converted_guide"],
+               "--lane-report", str(args.report.absolute()), "--output-dir", str(output)]
+    result = live_output.run(command, output.parent / (output.name + "-export.log"),
+                             stdin=subprocess.DEVNULL, timeout=7200)
+    if result.returncode:
+        raise Blocked("patcher_comparison_export_failed")
+
+
 def execute(args, report):
+    patcher = selected_patcher_arguments(args)
+    external_backend = getattr(args, "patcher_engine", None) in ("holo-patcher", "mod-packaged")
     verified_fd = getattr(args, "verified_build_fd", None)
     if verified_fd is not None and (args.implementation != "rust" or not getattr(args, "complete_guide", False)):
         raise Blocked("verified_build_requires_complete_rust_lane")
@@ -4372,8 +4497,11 @@ def execute(args, report):
         return
     directories = ["--input", str(converted), "--game-dir", str(game),
                    "--source-dir", str(archives), "--use-file-selection"]
-    execute_runner = execute_runner_arguments(private, converted, report) if complete_rust else []
-    if complete_rust:
+    explicit_runner = gui_diag_runner_arguments(args)
+    execute_runner = explicit_runner or (execute_runner_arguments(private, converted, report, force=True)
+        if external_backend else execute_runner_arguments(private, converted, report) if complete_rust else [])
+    directories += patcher
+    if complete_rust or external_backend:
         # Complete runs authorize the reviewed admitted external instructions.
         # Desktop trust is independently enabled through its native checkbox.
         directories += ["--allow-processes"] + execute_runner
@@ -4390,7 +4518,8 @@ def execute(args, report):
             getattr(args, "max_quarantine", QUARANTINE_MAX_ITERATIONS),
             getattr(args, "max_quarantine_fraction", QUARANTINE_MAX_FRACTION),
             complete_guide=complete_gui, execute_runner=execute_runner,
-            profile_receipt=profile_receipt or None)
+            profile_receipt=profile_receipt or None,
+            **({"patcher": patcher} if patcher else {}))
         gui_skipped = policy_guids | {item["component_guid"] for item in quarantined_entries(report)}
         if not driver_report.is_file() or driver_report.is_symlink():
             raise Blocked("gui_completion_report_missing")
@@ -4451,6 +4580,8 @@ def execute(args, report):
         report["proof"] = "native_gui_and_verified_completion_receipt"
         report["status"] = "installed"
         report["reason"] = result["reason"]
+        record_patcher_comparison(args, report, source, private, command, converted, game, archives,
+                                  execute_runner, gui_result=result)
         return
     install_with_quarantine(
         command, directories, deselect, converted, game, source, private, report, env,
@@ -4458,12 +4589,19 @@ def execute(args, report):
         getattr(args, "max_quarantine_fraction", QUARANTINE_MAX_FRACTION))
     report["status"] = "installed"
     report["reason"] = "native_install_command_succeeded"
+    record_patcher_comparison(args, report, source, private, command, converted, game, archives,
+                              execute_runner)
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--implementation", choices=("rust", "typescript"), required=True)
     parser.add_argument("--mode", choices=("cli", "gui"), required=True)
+    parser.add_argument("--patcher-engine", choices=("ody-patcher", "holo-patcher", "mod-packaged"))
+    parser.add_argument("--patcher", type=Path)
+    parser.add_argument("--comparison-output-dir", type=Path)
+    for name in ("execute-request-dir", "execute-xvfb", "execute-wine", "execute-wineserver", "execute-wine-prefix"):
+        parser.add_argument("--" + name, type=Path)
     parser.add_argument("--install-profile", choices=install_profiles.PROFILES, default="minimal",
                         help="closed selections on the complete pinned source guide; definitions stay intact")
     parser.add_argument("--complete-guide", action="store_true",
@@ -4535,6 +4673,12 @@ def main(argv=None):
         with destination.open("x", encoding="utf-8") as output:
             json.dump(report, output, indent=2)
             output.write("\n")
+        try:
+            export_patcher_comparison(args, report)
+        except (Blocked, OSError, ValueError, subprocess.SubprocessError) as error:
+            report["status"] = "blocked"
+            report["reason"] = str(error) if isinstance(error, Blocked) else "patcher_comparison_export_failed"
+            destination.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
         print(json.dumps(report), flush=True)
         print_diagnostics(report)
         sys.stderr.flush()

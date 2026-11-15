@@ -287,34 +287,66 @@ fn original_header_provider(
     source_root: &Path,
     cancel: &AtomicBool,
 ) -> Result<CertifiedInput> {
-    ensure!(
-        game == Game::K2,
-        "No original-pinned missing-header provider for actual game"
-    );
-    let (guide, guide_sha, plan, plan_sha, _) = super::GUIDES[1];
+    let (
+        game_index,
+        step_index,
+        step_id,
+        heading,
+        archive_name,
+        archive_sha,
+        archive_bytes,
+        member_name,
+        member_bytes,
+        header_sha,
+    ) = match game {
+        Game::K1 => (
+            0,
+            108,
+            "step-109",
+            "### Kill The Czerka Guard",
+            "KillCzerkaJerk.zip",
+            "c35c49ff297a2cefde992596d261ee365aefdcd233b55206bedbd5661e2d9769",
+            489373,
+            "tslpatchdata/nwscript.nss",
+            216650,
+            K1_HEADER,
+        ),
+        Game::K2 => (
+            1,
+            103,
+            "step-104",
+            "### Better Disciple Meditation",
+            HEADER_PROVIDER_ARCHIVE,
+            HEADER_PROVIDER_SHA,
+            HEADER_PROVIDER_BYTES,
+            HEADER_PROVIDER_MEMBER,
+            HEADER_PROVIDER_MEMBER_BYTES,
+            K2_HEADER,
+        ),
+    };
+    let (guide, guide_sha, plan, plan_sha, _) = super::GUIDES[game_index];
     ensure!(
         digest(guide) == guide_sha && digest(plan) == plan_sha,
         "Original header provider guide/plan source changed"
     );
     let plan: Value = serde_json::from_slice(plan)?;
     let step = plan["steps"]
-        .get(103)
+        .get(step_index)
         .context("Original header provider step absent")?;
     ensure!(
-        step["id"] == "step-104"
-            && step["source_heading"] == "### Better Disciple Meditation"
+        step["id"] == step_id
+            && step["source_heading"] == heading
             && step["operations"][0]
-                == json!({"type":"extract","source":format!("{{archives}}/{HEADER_PROVIDER_ARCHIVE}"),"destination":"{extract}/step-104/1"})
+                == json!({"type":"extract","source":format!("{{archives}}/{archive_name}"),"destination":format!("{{extract}}/{step_id}/1")})
             && plan["guide_sha256"] == guide_sha
-            && plan["archive_sha256"][format!("{{archives}}/{HEADER_PROVIDER_ARCHIVE}")]
-                == HEADER_PROVIDER_SHA,
+            && plan["archive_sha256"][format!("{{archives}}/{archive_name}")] == archive_sha,
         "Original header provider source association changed"
     );
     ensure!(
         source_root.is_absolute(),
         "Original header provider source root must be absolute"
     );
-    let source = source_root.join(HEADER_PROVIDER_ARCHIVE);
+    let source = source_root.join(archive_name);
     let mut observed = PathBuf::new();
     for part in source.components() {
         ensure!(
@@ -341,17 +373,16 @@ fn original_header_provider(
     super::check(cancel)?;
     let file = crate::paths::open_regular_read(&source)?;
     ensure!(
-        file.metadata()?.len() == HEADER_PROVIDER_BYTES,
+        file.metadata()?.len() == archive_bytes,
         "Original header provider archive size differs"
     );
     // Own this exact bounded byte snapshot before ZIP parsing. No later read can
     // follow a replaced source path or replace a certified raw header.
     let mut snapshot = Vec::new();
-    file.take(HEADER_PROVIDER_BYTES + 1)
-        .read_to_end(&mut snapshot)?;
+    file.take(archive_bytes + 1).read_to_end(&mut snapshot)?;
     super::check(cancel)?;
     ensure!(
-        snapshot.len() as u64 == HEADER_PROVIDER_BYTES && digest(&snapshot) == HEADER_PROVIDER_SHA,
+        snapshot.len() as u64 == archive_bytes && digest(&snapshot) == archive_sha,
         "Original header provider archive hash differs"
     );
     let mut archive = zip::ZipArchive::new(Cursor::new(snapshot))?;
@@ -386,18 +417,16 @@ fn original_header_provider(
             expanded <= 2 * 1024 * 1024 && member.size() <= 1024 * 1024,
             "Original header provider ZIP expansion exceeds bound"
         );
-        if name == HEADER_PROVIDER_MEMBER {
+        if name == member_name {
             ensure!(
-                !member.is_dir()
-                    && member.size() == HEADER_PROVIDER_MEMBER_BYTES
-                    && header.is_none(),
+                !member.is_dir() && member.size() == member_bytes && header.is_none(),
                 "Original header provider member differs"
             );
             let mut raw = Vec::new();
             member.take(MAX_HEADER as u64 + 1).read_to_end(&mut raw)?;
             ensure!(
-                raw.len() as u64 == HEADER_PROVIDER_MEMBER_BYTES
-                    && digest(&raw) == K2_HEADER
+                raw.len() as u64 == member_bytes
+                    && digest(&raw) == header_sha
                     && decoded(&raw).len() <= MAX_HEADER,
                 "Original header provider member hash differs from actual game"
             );
@@ -406,19 +435,19 @@ fn original_header_provider(
     }
     let raw = header.context("Original pinned header member absent")?;
     Ok(CertifiedInput {
-        package_path: HEADER_PROVIDER_MEMBER.into(),
-        sha256: K2_HEADER.into(),
+        package_path: member_name.into(),
+        sha256: header_sha.into(),
         raw: raw.into(),
         origin: InputOrigin::OriginalPinnedHeader(Box::new(HeaderOrigin {
             source_guide_sha256: guide_sha.into(),
             source_plan_sha256: plan_sha.into(),
             original_step: step.clone(),
-            archive_filename: HEADER_PROVIDER_ARCHIVE.into(),
-            archive_sha256: HEADER_PROVIDER_SHA.into(),
-            archive_bytes: HEADER_PROVIDER_BYTES,
-            member_path: HEADER_PROVIDER_MEMBER.into(),
-            member_sha256: K2_HEADER.into(),
-            member_bytes: HEADER_PROVIDER_MEMBER_BYTES,
+            archive_filename: archive_name.into(),
+            archive_sha256: archive_sha.into(),
+            archive_bytes,
+            member_path: member_name.into(),
+            member_sha256: header_sha.into(),
+            member_bytes,
         })),
     })
 }
@@ -674,6 +703,7 @@ pub(super) fn policy_json() -> Value {
     let l = VirtualLimits::default();
     json!({"Policy":"original-program-closed-nss-v1","Headers":{"K1":K1_HEADER,"K2":K2_HEADER},"MaxMains":MAX_MAINS,
         "SourcePolicy":"default-then-ordered-configured-then-current-flat-nss-v1",
+        "MissingHeaderProviderK1":{"Game":1,"OriginalStep":"step-109","SourcePlanSha256":super::GUIDES[0].3,"Archive":"KillCzerkaJerk.zip","ArchiveSha256":"c35c49ff297a2cefde992596d261ee365aefdcd233b55206bedbd5661e2d9769","ArchiveBytes":489373,"Member":"tslpatchdata/nwscript.nss","MemberSha256":K1_HEADER,"MemberBytes":216650},
         "MissingHeaderProvider":{"Game":2,"OriginalStep":"step-104","SourcePlanSha256":super::GUIDES[1].3,"Archive":HEADER_PROVIDER_ARCHIVE,"ArchiveSha256":HEADER_PROVIDER_SHA,"ArchiveBytes":HEADER_PROVIDER_BYTES,"Member":HEADER_PROVIDER_MEMBER,"MemberSha256":K2_HEADER,"MemberBytes":HEADER_PROVIDER_MEMBER_BYTES},"TokenPolicy":"actual-ordered-patcher-memory-main-only-v1",
         "CompilerPolicyVersion":POLICY_VERSION,"Limits":[l.max_source_bytes,l.max_header_bytes,l.max_total_source_bytes,l.max_files,l.max_include_depth,l.max_expanded_bytes,l.max_tokens,l.max_ast_nodes,l.max_syntax_depth,l.max_expression_tokens,l.max_recursion,l.max_work as usize,l.max_diagnostics,l.max_output_bytes],
         "CompilerProvenance":digest(include_bytes!("../../../vendor/bionsscomp/PROVENANCE.json")),

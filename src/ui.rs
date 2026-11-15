@@ -197,6 +197,8 @@ pub struct App {
     mods: String,
     patcher: String,
     patcher_engine: PatcherEngine,
+    patcher_override: Option<(PatcherEngine, Option<PathBuf>)>,
+    stream_output: bool,
     scratch: String,
     fomod_choices: String,
     fomod_archive: String,
@@ -269,6 +271,20 @@ pub struct App {
 
 impl App {
     fn handle_message(&mut self, message: Message) {
+        if self.stream_output {
+            match &message {
+                Message::Log(line) => eprintln!("{line}"),
+                Message::InstallProgress(_, progress) => {
+                    if let Ok(value) = serde_json::to_string(progress) {
+                        eprintln!("{value}");
+                    }
+                }
+                Message::Done(Err(error)) | Message::ValidationDone(_, Err(error)) => {
+                    eprintln!("{error:#}");
+                }
+                _ => {}
+            }
+        }
         match message {
             Message::ShellTerminal(result) => self.shell_terminal(*result),
             Message::DeploymentTerminal(result) => self.deployment_terminal(*result),
@@ -2820,8 +2836,14 @@ impl App {
                                 PatcherEngine::HoloPatcher => "HoloPatcher",
                                 PatcherEngine::KPatcher => "KPatcher",
                                 PatcherEngine::OdyPatcher => "OdyPatcher",
+                                PatcherEngine::ModPackaged => "Mod-packaged installer",
                             })
                             .show_ui(ui, |ui| {
+                                ui.selectable_value(
+                                    &mut self.patcher_engine,
+                                    PatcherEngine::ModPackaged,
+                                    "Mod-packaged installer",
+                                );
                                 ui.selectable_value(
                                     &mut self.patcher_engine,
                                     PatcherEngine::HoloPatcher,
@@ -2839,7 +2861,9 @@ impl App {
                                 );
                             });
                     });
-                    if Self::path_row(ui, "Patcher executable", &mut self.patcher, false) {
+                    if self.patcher_engine == PatcherEngine::ModPackaged {
+                        ui.label("Runs the authenticated installer shipped with each mod. Configure the headless runner when launching ModSync.");
+                    } else if Self::path_row(ui, "Patcher executable", &mut self.patcher, false) {
                         self.validated = false;
                         self.conflicts = None;
                         validation_page::clear_report(
@@ -3022,6 +3046,8 @@ impl App {
             mods: string(mods),
             patcher: String::new(),
             patcher_engine: PatcherEngine::default(),
+            patcher_override: None,
+            stream_output: false,
             scratch: String::new(),
             fomod_choices: String::new(),
             fomod_archive: String::new(),
@@ -3951,11 +3977,12 @@ impl App {
         settings.allow_processes = self.allow_processes;
         settings.execute_runner = self.execute_runner.clone();
         settings.patcher_engine = self.patcher_engine;
-        settings.patcher = if self.patcher.is_empty() {
-            None
-        } else {
-            Some(PathBuf::from(&self.patcher))
-        };
+        settings.patcher =
+            if self.patcher.is_empty() || self.patcher_engine == PatcherEngine::ModPackaged {
+                None
+            } else {
+                Some(PathBuf::from(&self.patcher))
+            };
         settings.archive.scratch_dir = if self.scratch.is_empty() {
             None
         } else {
@@ -4971,6 +4998,9 @@ impl eframe::App for App {
 }
 
 pub struct LaunchContext {
+    pub stream_output: bool,
+    pub component_checkpoints: bool,
+    pub patcher_override: Option<(PatcherEngine, Option<PathBuf>)>,
     pub execute_runner: Option<modsync::engine::ProvidedInstallerRunner>,
     pub probe: Option<Probe>,
     pub easy_session: Option<PathBuf>,
@@ -4986,6 +5016,9 @@ pub fn launch(
     context: LaunchContext,
 ) -> Result<()> {
     let LaunchContext {
+        stream_output,
+        component_checkpoints,
+        patcher_override,
         execute_runner,
         probe,
         easy_session,
@@ -5000,7 +5033,9 @@ pub fn launch(
     let separate = allow_multiple_instances
         || probe.is_some()
         || easy_session.is_some()
-        || execute_runner.is_some();
+        || execute_runner.is_some()
+        || component_checkpoints
+        || patcher_override.is_some();
     let primary = if separate {
         None
     } else {
@@ -5027,6 +5062,9 @@ pub fn launch(
         Box::new(move |creation| {
             let mut app = App::with_launch(input, game, mods, settings_dir, probe);
             app.execute_runner = execute_runner;
+            app.patcher_override = patcher_override;
+            app.stream_output = stream_output;
+            app.checkpoints.config.enabled = component_checkpoints;
             app.refresh_input_stamp();
             app.repaint = Some(creation.egui_ctx.clone());
             #[cfg(target_os = "macos")]

@@ -53,8 +53,61 @@ pub struct ParticipantBinding {
     pub kind: ParticipantKind,
 }
 
+/// Execution authority shared by all phases and resume branches of an install.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct BackendBinding {
+    pub backend: BackendKind,
+    pub invocation_sha256: String,
+    pub source_authority_sha256: String,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum BackendKind {
+    OdyPatcher,
+    KPatcher,
+    HoloPatcher,
+    ModPackaged,
+}
+
+impl BackendBinding {
+    pub fn new(
+        backend: BackendKind,
+        invocation: &serde_json::Value,
+        source_authority: &serde_json::Value,
+    ) -> anyhow::Result<Self> {
+        use sha2::{Digest, Sha256};
+        Ok(Self {
+            backend,
+            invocation_sha256: format!(
+                "{:x}",
+                Sha256::digest(super::store::canonical_bytes(invocation)?)
+            ),
+            source_authority_sha256: format!(
+                "{:x}",
+                Sha256::digest(super::store::canonical_bytes(source_authority)?)
+            ),
+        })
+    }
+
+    pub(super) fn validate(&self) -> anyhow::Result<()> {
+        anyhow::ensure!(
+            [&self.invocation_sha256, &self.source_authority_sha256]
+                .into_iter()
+                .all(|digest| digest.len() == 64
+                    && digest
+                        .bytes()
+                        .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))),
+            "Malformed checkpoint backend identity digest"
+        );
+        Ok(())
+    }
+}
+
 #[derive(Clone, Debug, Default)]
 pub struct InstallContext {
+    pub backend_binding: Option<BackendBinding>,
     pub ordered_components: Vec<serde_json::Value>,
     pub initial_completed_components: Vec<serde_json::Value>,
     pub participants: BTreeMap<String, ParticipantBinding>,
@@ -86,6 +139,8 @@ pub struct ReceiptBinding {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Session {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub backend_binding: Option<BackendBinding>,
     pub schema_version: u32,
     pub session_id: String,
     pub created_utc: String,
@@ -116,6 +171,8 @@ pub struct Session {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Checkpoint {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub backend_binding: Option<BackendBinding>,
     pub schema_version: u32,
     pub checkpoint_id: String,
     pub session_id: String,

@@ -37,6 +37,13 @@ pub(super) fn expected_receipt(
         &session.ordered_components,
         &game_files(&checkpoint.game),
     )?;
+    if let Some(binding) = &session.backend_binding {
+        binding.validate()?;
+        value
+            .as_object_mut()
+            .context("Completion receipt is not an object")?
+            .insert("backendBinding".into(), serde_json::to_value(binding)?);
+    }
     if let Some(report) = report {
         let typed: crate::engine::InstallReport =
             serde_json::from_value(report.clone()).context("Malformed stored install report")?;
@@ -90,6 +97,66 @@ pub(super) fn finalize_intent(
 }
 
 impl Store {
+    /// Verify inherited completion against the engine's freshly constructed
+    /// backend identity. Legacy receipts remain valid only for native defaults.
+    pub fn verify_completion_backend(&self, expected: Option<&BackendBinding>) -> Result<()> {
+        use std::io::Read;
+        if let Some(binding) = expected {
+            binding.validate()?;
+        }
+        let path = recovery::state_dir(&self.roots).join("completion.json");
+        let file = crate::paths::open_regular_read(&path)?;
+        ensure!(
+            file.metadata()?.len() <= 64 * 1024 * 1024,
+            "Completion receipt exceeds bound"
+        );
+        let mut bytes = Vec::new();
+        file.take(64 * 1024 * 1024 + 1).read_to_end(&mut bytes)?;
+        ensure!(
+            bytes.len() <= 64 * 1024 * 1024,
+            "Completion receipt exceeds bound"
+        );
+        let document: serde_json::Value = serde_json::from_slice(&bytes)?;
+        let observed: Option<BackendBinding> = document
+            .get("backendBinding")
+            .map(|value| serde_json::from_value(value.clone()))
+            .transpose()?;
+        ensure!(
+            observed.as_ref() == expected,
+            "Completion backend or invocation/source authority differs"
+        );
+        if expected.is_some() {
+            let report: crate::engine::InstallReport = serde_json::from_value(
+                document
+                    .get("installReport")
+                    .context("Backend completion has no checkpoint report")?
+                    .clone(),
+            )?;
+            let identity = report
+                .checkpoint
+                .as_ref()
+                .context("Backend completion has no checkpoint identity")?;
+            let (session, head, _) = self.checked_history(&identity.session_id)?;
+            ensure!(
+                session.backend_binding.as_ref() == expected
+                    && head.status == "Complete"
+                    && head.checkpoint_id == identity.checkpoint_id
+                    && head.generation == identity.generation,
+                "Backend completion is not the matching finalized checkpoint session"
+            );
+            let retained = head
+                .finalization_receipt
+                .as_ref()
+                .context("Backend completion checkpoint has no finalization receipt")?;
+            ensure!(
+                retained.sha256 == format!("{:x}", Sha256::digest(&bytes))
+                    && retained.size == bytes.len() as u64,
+                "Backend completion receipt differs from retained checkpoint authority"
+            );
+        }
+        Ok(())
+    }
+
     /// Idle component boundaries are still an unfinished install. Legacy whole-run
     /// restore cannot safely restore only roots and leave auxiliary state behind.
     pub fn ensure_no_unfinished_install_sessions(&self) -> Result<()> {
@@ -197,7 +264,7 @@ impl Store {
                 && old_head.checkpoint_id == expected.checkpoint_id,
             "Stale or non-ready finalization HEAD"
         );
-        let checkpoint = history.last().context("Finalization checkpoint missing")?;
+        let checkpoint = &history.current(self)?;
         ensure!(
             checkpoint.completed_components == session.ordered_components,
             "Cannot finalize an incomplete component prefix"
@@ -218,7 +285,7 @@ impl Store {
                     ),
             "Live roots or auxiliary state differ from final committed checkpoint"
         );
-        let baseline = history.first().context("Session baseline missing")?;
+        let baseline = &history.baseline(self)?;
         recovery::verify_checkpoint_legacy_snapshot(
             &self.roots,
             &game_files(&baseline.mods),
@@ -322,9 +389,7 @@ impl Store {
     ) -> Result<()> {
         self.require_lock(lock)?;
         let (session, old_head, history) = self.checked_history(&operation.session_id)?;
-        let checkpoint = history
-            .last()
-            .context("Finalize recovery checkpoint missing")?;
+        let checkpoint = &history.current(self)?;
         self.validate_finalize_intent(operation, &session, &old_head, checkpoint)?;
         self.verify_target(&session, checkpoint, flag)?;
         ensure!(

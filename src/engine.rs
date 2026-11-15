@@ -1,4 +1,5 @@
 mod authoring;
+mod backend_contract;
 pub use authoring::AuthoringActionReport;
 mod checkpoint_coordinator;
 mod cleanlist;
@@ -24,6 +25,7 @@ pub struct CheckpointRunReport {
     pub generation: u64,
 }
 mod companion_selector;
+mod external_patcher;
 mod patcher_prediction;
 mod patcher_prepare;
 mod provided_installer;
@@ -60,6 +62,8 @@ pub enum PatcherEngine {
     OdyPatcher,
     KPatcher,
     HoloPatcher,
+    /// The actual executable shipped in each authenticated mod package.
+    ModPackaged,
 }
 
 #[derive(Clone, Debug)]
@@ -789,9 +793,19 @@ impl Engine {
             "Archive scratch directory must be outside game and mod trees"
         );
         settings.archive.scratch_dir = Some(scratch);
-        let (patcher_invocation, patcher_resolution_error) = if settings
-            .provided_installer
-            .is_some()
+        if settings.patcher_engine == PatcherEngine::ModPackaged {
+            ensure!(
+                settings.patcher.is_none(),
+                "Mod-packaged backend selects each original executable; do not configure --patcher"
+            );
+            ensure!(
+                settings.provided_installer.is_none(),
+                "Mod-packaged source authority cannot be combined with an unbound supplied installer"
+            );
+        }
+        let (patcher_invocation, patcher_resolution_error) = if settings.patcher_engine
+            == PatcherEngine::ModPackaged
+            || settings.provided_installer.is_some()
             || (settings.patcher_engine == PatcherEngine::OdyPatcher && settings.patcher.is_none())
         {
             (None, None)
@@ -805,9 +819,12 @@ impl Engine {
                 Err(error) => (None, Some(format!("{error:#}"))),
             }
         };
-        settings.patcher = patcher_invocation
+        if let Some(program) = patcher_invocation
             .as_ref()
-            .and_then(|invocation| invocation.native_path().map(Path::to_owned));
+            .and_then(crate::patcher::Invocation::native_path)
+        {
+            settings.patcher = Some(program.to_owned());
+        }
         let mut engine = Self {
             settings,
             path_policy,
@@ -1214,7 +1231,7 @@ impl Engine {
 
     pub fn validate(mut self, guide: &Guide, mut emit: impl FnMut(Event)) -> Result<()> {
         recovery::ensure_clean(&self.settings.roots)?;
-        recovery::verify_completion(&self.settings.roots, guide, self.completed.len())?;
+        self.verify_completion_for_backend(guide, self.completed.len())?;
         // C# runs FomodConfigurationGate on every validate path, not only the report.
         self.fomod_gate(guide, &mut emit)?;
         self.destination_gate(guide)?;
@@ -1562,7 +1579,7 @@ impl Engine {
             );
             let environment = (|| -> Result<()> {
                 recovery::ensure_clean(&self.settings.roots)?;
-                recovery::verify_completion(&self.settings.roots, guide, self.completed.len())
+                self.verify_completion_for_backend(guide, self.completed.len())
             })()
             .map_err(|error| format!("{error:#}"));
             let passed = match environment {
@@ -1703,9 +1720,9 @@ impl Engine {
     }
 
     fn validate_dry_run(mut self, guide: &Guide) -> Vec<crate::validation::DryRunIssue> {
-        if let Err(error) = recovery::ensure_clean(&self.settings.roots).and_then(|_| {
-            recovery::verify_completion(&self.settings.roots, guide, self.completed.len())
-        }) {
+        if let Err(error) = recovery::ensure_clean(&self.settings.roots)
+            .and_then(|_| self.verify_completion_for_backend(guide, self.completed.len()))
+        {
             return vec![crate::validation::DryRunIssue::engine(
                 format!("{error:#}"),
                 None,
@@ -1831,7 +1848,7 @@ impl Engine {
         full_validation: bool,
     ) -> Result<Vec<crate::validation::ArchiveOutcome>> {
         recovery::ensure_clean(&self.settings.roots)?;
-        recovery::verify_completion(&self.settings.roots, guide, self.completed.len())?;
+        self.verify_completion_for_backend(guide, self.completed.len())?;
         self.prepare_k2(guide, None, emit)?;
         self.selected = selected_guid_keys(guide);
         self.selected.extend(self.completed.iter().cloned());
@@ -2593,10 +2610,12 @@ impl Engine {
                 .transpose()?
                 .unwrap_or_default();
             let store = crate::checkpoint::Store::open(&self.settings.roots)?;
-            let plan = store.resume_plan(
+            let backend_binding = self.checkpoint_backend_binding(guide)?;
+            let plan = store.resume_plan_with_backend(
                 request,
                 &definitions,
                 &participants,
+                backend_binding.as_ref(),
                 &self.settings.cancelled,
             )?;
             let completed = plan
@@ -2645,7 +2664,7 @@ impl Engine {
         // ResumePlan already proves the exact checkpoint prefix and live inventory;
         // its branch transaction reconciles the legacy receipt before execution.
         if resume_plan.is_none() {
-            recovery::verify_completion(&self.settings.roots, guide, self.completed.len())?;
+            self.verify_completion_for_backend(guide, self.completed.len())?;
         }
         self.selected = selected_guid_keys(guide);
         self.selected_names = guide
@@ -2891,8 +2910,18 @@ impl Engine {
         completed: &[String],
     ) -> Result<crate::conflicts::Report> {
         self.set_completed_prefix(guide, completed)?;
-        recovery::verify_completion(&self.settings.roots, guide, self.completed.len())?;
+        self.verify_completion_for_backend(guide, self.completed.len())?;
         self.analyze_conflicts(guide)
+    }
+
+    fn verify_completion_for_backend(&self, guide: &Guide, completed: usize) -> Result<()> {
+        recovery::verify_completion(&self.settings.roots, guide, completed)?;
+        if completed > 0 {
+            let binding = self.checkpoint_backend_binding(guide)?;
+            crate::checkpoint::Store::open(&self.settings.roots)?
+                .verify_completion_backend(binding.as_ref())?;
+        }
+        Ok(())
     }
 
     fn set_completed_prefix(&mut self, guide: &Guide, completed: &[String]) -> Result<()> {
@@ -2993,7 +3022,11 @@ impl Engine {
         if crate::k2_preparation::verify(guide)?.is_some() {
             return Ok(true);
         }
-        let provided = self.settings.provided_installer.is_some();
+        let provided = self.settings.provided_installer.is_some()
+            || matches!(
+                self.settings.patcher_engine,
+                PatcherEngine::HoloPatcher | PatcherEngine::ModPackaged
+            );
         let execute = self.settings.execute_runner.is_some() || provided;
         fn visit(
             engine: &Engine,
@@ -3141,6 +3174,7 @@ impl Engine {
         let result: Result<()> = (|| {
             self.validation_target = Some((c.name.clone(), c.guid.clone(), None));
             self.check_component(c)?;
+            let external_owner = self.verify_original_external_component(c)?;
             if crate::archive_generation::source_plan_namespace::requires_standalone_k2_profile(c) {
                 crate::archive_generation::source_plan_namespace::verify_standalone_k2_guide(
                     self.supplemental_source_guide
@@ -3170,8 +3204,8 @@ impl Engine {
             {
                 let key = crate::guid::key_ascii(&predecessor);
                 ensure!(
-                    actual_install || self.exact_patcher_prediction,
-                    "Supplemental prerequisites require exact native prediction before source effects"
+                    actual_install || self.exact_patcher_prediction || external_owner,
+                    "Supplemental prerequisites require exact native prediction or authenticated external presence validation before source effects"
                 );
                 if actual_install {
                     ensure!(
@@ -3210,29 +3244,46 @@ impl Engine {
                     }
                 }
             }
-            crate::archive_generation::reviewed_manual::verify_runtime(
-                c,
-                &self.settings.roots.mods,
-                &self.settings.archive,
-                &self.settings.cancelled,
-            )?;
+            if !external_owner {
+                crate::archive_generation::reviewed_manual::verify_runtime(
+                    c,
+                    &self.settings.roots.mods,
+                    &self.settings.archive,
+                    &self.settings.cancelled,
+                )?;
+            }
             for instruction in c
                 .instructions
                 .iter()
                 .enumerate()
                 .filter(|(_, instruction)| instruction.action == "Patcher")
             {
-                if self
-                    .native_patcher_contract(c, instruction.1, instruction.0)?
-                    .is_some()
+                if !external_owner
+                    && self
+                        .native_patcher_contract(c, instruction.1, instruction.0)?
+                        .is_some()
                 {
-                    ensure!(
-                        self.settings.patcher_engine == PatcherEngine::OdyPatcher
-                            && self.settings.patcher.is_none()
-                            && self.patcher_invocation.is_none()
-                            && self.settings.provided_installer.is_none(),
-                        "Reviewed single-INI recipes require the built-in OdyPatcher backend"
-                    );
+                    if matches!(
+                        self.settings.patcher_engine,
+                        PatcherEngine::HoloPatcher | PatcherEngine::ModPackaged
+                    ) {
+                        ensure!(
+                            self.settings.provided_installer.is_none(),
+                            "Original external backend cannot use an unbound supplied installer"
+                        );
+                        crate::archive_generation::external_patcher_source::resolve(
+                            c, instruction.1, instruction.0, &self.settings.roots.mods,
+                            &self.settings.archive, &self.settings.cancelled,
+                        )?.context("Reviewed external patcher requires independently authenticated original source authority")?;
+                    } else {
+                        ensure!(
+                            self.settings.patcher_engine == PatcherEngine::OdyPatcher
+                                && self.settings.patcher.is_none()
+                                && self.patcher_invocation.is_none()
+                                && self.settings.provided_installer.is_none(),
+                            "Reviewed single-INI recipes require the built-in OdyPatcher backend"
+                        );
+                    }
                 }
             }
             let vendor_proof = crate::vendor_installer::before(
@@ -3241,6 +3292,7 @@ impl Engine {
                 self.install,
                 &self.settings.cancelled,
             )?;
+            let mut unobserved_external_game_effects = false;
             for (n, instruction) in c.instructions.iter().enumerate() {
                 self.validation_target = Some((c.name.clone(), c.guid.clone(), Some(n + 1)));
                 self.check_cancelled()?;
@@ -3253,6 +3305,16 @@ impl Engine {
                     if let Some(observer) = progress.as_deref_mut() {
                         observer.instruction(c, n + 1, "Skipped by instruction conditions".into());
                     }
+                    continue;
+                }
+                if unobserved_external_game_effects
+                    && self.defer_external_game_delete(instruction)?
+                {
+                    emit(Event {
+                        component: c.name.clone(),
+                        step: n + 1,
+                        message: "Delete: game file presence deferred until the original external backend completes".into(),
+                    });
                     continue;
                 }
                 let message = if instruction.action == "Patcher" && !self.install {
@@ -3303,6 +3365,8 @@ impl Engine {
                 instruction_result.with_context(|| {
                     format!("{} / step {} ({})", c.name, n + 1, instruction.action)
                 })?;
+                unobserved_external_game_effects |=
+                    !self.install && external_owner && instruction.action == "Patcher";
                 emit(Event {
                     component: c.name.clone(),
                     step: n + 1,
@@ -3341,6 +3405,26 @@ impl Engine {
         result
     }
 
+    /// A freshly authenticated original program may delete an external patcher's
+    /// output. Its absence during presence-only validation says nothing about
+    /// the actual post-process game. Real execution still resolves every Delete
+    /// after the backend has completed and the game inventory has been rescanned.
+    fn defer_external_game_delete(&self, instruction: &Instruction) -> Result<bool> {
+        if self.install || instruction.action != "Delete" || instruction.source.len() != 1 {
+            return Ok(false);
+        }
+        let source = &instruction.source[0];
+        if source.contains(['*', '?']) {
+            return Ok(false);
+        }
+        let (path, _) = self.source_pattern(source)?;
+        let key = self.path_policy.key(&path);
+        Ok(path.starts_with(&self.settings.roots.game)
+            && !self.settings.roots.is_root(&path)
+            && !self.files.contains_key(&key)
+            && !self.directories.contains_key(&key))
+    }
+
     fn native_patcher_contract(
         &self,
         component: &Component,
@@ -3376,6 +3460,21 @@ impl Engine {
         Ok(namespace.or(derived).or(legacy))
     }
 
+    fn verify_original_external_component(&self, component: &Component) -> Result<bool> {
+        if !matches!(
+            self.settings.patcher_engine,
+            PatcherEngine::HoloPatcher | PatcherEngine::ModPackaged
+        ) {
+            return Ok(false);
+        }
+        crate::archive_generation::external_patcher_source::verify_component_original(
+            component,
+            &self.settings.roots.mods,
+            &self.settings.archive,
+            &self.settings.cancelled,
+        )
+    }
+
     fn check_component(&self, c: &Component) -> Result<()> {
         self.check_cancelled()?;
         ensure!(
@@ -3389,18 +3488,20 @@ impl Engine {
             &self.settings.archive,
             &self.settings.cancelled,
         )?;
-        crate::archive_generation::source_plan_patcher::verify_runtime(
-            c,
-            &self.settings.roots.mods,
-            &self.settings.archive,
-            &self.settings.cancelled,
-        )?;
-        crate::archive_generation::source_plan_namespace::verify_runtime(
-            c,
-            &self.settings.roots.mods,
-            &self.settings.archive,
-            &self.settings.cancelled,
-        )?;
+        if !self.verify_original_external_component(c)? {
+            crate::archive_generation::source_plan_patcher::verify_runtime(
+                c,
+                &self.settings.roots.mods,
+                &self.settings.archive,
+                &self.settings.cancelled,
+            )?;
+            crate::archive_generation::source_plan_namespace::verify_runtime(
+                c,
+                &self.settings.roots.mods,
+                &self.settings.archive,
+                &self.settings.cancelled,
+            )?;
+        }
         ensure!(
             c.metadata
                 .get("UnresolvedMasters")
@@ -4613,11 +4714,35 @@ impl Engine {
                         ),
                     "An original source program requires its explicit current operation ordinal"
                 );
-                let contract = self.native_patcher_contract(
-                    component,
-                    i,
-                    operation_index.unwrap_or(usize::MAX),
-                )?;
+                let external = if matches!(
+                    self.settings.patcher_engine,
+                    PatcherEngine::HoloPatcher | PatcherEngine::ModPackaged
+                ) {
+                    crate::archive_generation::external_patcher_source::resolve(
+                        component,
+                        i,
+                        operation_index.context("External source requires operation ordinal")?,
+                        &self.settings.roots.mods,
+                        &self.settings.archive,
+                        &self.settings.cancelled,
+                    )?
+                } else {
+                    None
+                };
+                ensure!(
+                    self.settings.patcher_engine != PatcherEngine::ModPackaged
+                        || external.is_some(),
+                    "No authenticated original external patcher source for this instruction"
+                );
+                let contract = if external.is_some() {
+                    None
+                } else {
+                    self.native_patcher_contract(
+                        component,
+                        i,
+                        operation_index.unwrap_or(usize::MAX),
+                    )?
+                };
                 if self.install
                     && contract
                         .as_ref()
@@ -4628,7 +4753,32 @@ impl Engine {
                         "Reviewed native publication requires its owned running component checkpoint and root lock"
                     );
                 }
-                self.process_path(i, path, &[], contract.as_ref(), emit)?;
+                if let Some(external) = external {
+                    ensure!(
+                        !self.exact_patcher_prediction,
+                        "External backend effects require a matching verified real-disk checkpoint; native prediction cannot stand in for this backend"
+                    );
+                    if self.install {
+                        self.process_original_external(i, &external, emit)?;
+                    } else {
+                        // Presence-only validation reads the authored patch-data VFS.
+                        // It neither executes a backend nor claims known patch bytes.
+                        let base = if self.files.contains_key(&self.path_policy.key(path)) {
+                            path.parent().context("Patcher source has no parent")?
+                        } else {
+                            path
+                        };
+                        self.simulate_patcher(
+                            base,
+                            &self.settings.roots.game.clone(),
+                            &i.arguments,
+                            None,
+                            emit,
+                        )?;
+                    }
+                } else {
+                    self.process_path(i, path, &[], contract.as_ref(), emit)?;
+                }
             }
             "K1Widescreen" => self.execute_k1_widescreen(component, i, emit)?,
             "Execute" | "Run" => self.process(i, emit)?,
@@ -4643,6 +4793,7 @@ impl Engine {
         action != "Patcher"
             || self.patcher_invocation.is_some()
             || self.settings.provided_installer.is_some()
+            || self.settings.patcher_engine == PatcherEngine::ModPackaged
     }
 
     /// Execute/Run only; Patcher binds through `resolve_instruction`.
@@ -4857,15 +5008,16 @@ impl Engine {
                     &raw_ini,
                     &self.settings.cancelled,
                 )?;
-                if let Some(receipt) = patcher_prepare::prepare_legacy_ini(
+                if let Some(receipt) = patcher_prepare::prepare_native_ini(
                     Some(contract),
+                    raw_base,
                     &raw_ini,
                     &self.settings.cancelled,
                 )? {
                     emit(Event {
                         component: "Patcher".into(),
                         step: 0,
-                        message: format!("Legacy duplicate-key preparation: {receipt}"),
+                        message: format!("Source-pinned native INI preparation: {receipt}"),
                     });
                 }
             }
@@ -5057,6 +5209,13 @@ impl Engine {
     }
 
     fn check_patcher_backend(&self) -> Result<()> {
+        if self.settings.patcher_engine == PatcherEngine::ModPackaged {
+            ensure!(
+                self.settings.execute_runner.is_some(),
+                "Mod-packaged backend requires explicit headless runner configuration"
+            );
+            return Ok(());
+        }
         if self.settings.provided_installer.is_some() {
             return Ok(());
         }

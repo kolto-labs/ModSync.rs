@@ -129,6 +129,18 @@ impl Engine {
                 &self.settings.cancelled,
             )?;
         }
+        if let Some(receipt) = super::patcher_prepare::prepare_native_ini(
+            contract,
+            &mods,
+            &ini,
+            &self.settings.cancelled,
+        )? {
+            emit(Event {
+                component: "Patcher".into(),
+                step: 0,
+                message: format!("Source-pinned native INI preparation: {receipt}"),
+            });
+        }
         let resource_sources = super::source_plan_resources::prepare(
             contract,
             &mods,
@@ -140,15 +152,6 @@ impl Engine {
             &game,
             &self.settings.cancelled,
         )?;
-        if let Some(receipt) =
-            super::patcher_prepare::prepare_legacy_ini(contract, &ini, &self.settings.cancelled)?
-        {
-            emit(Event {
-                component: "Patcher".into(),
-                step: 0,
-                message: format!("Legacy duplicate-key preparation: {receipt}"),
-            });
-        }
         if contract.is_some_and(|authority| authority.original_program_run().is_some()) {
             super::patcher_prepare::normalize_selected(&mods, &ini, &self.settings.cancelled)?;
         } else {

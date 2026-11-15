@@ -371,7 +371,16 @@ impl Engine {
                 && !requests.starts_with(&self.settings.roots.game),
             "Installer request storage must be outside mod and game trees"
         );
+        let source_package =
+            backend_contract::PackageIdentity::capture(base, &self.settings.cancelled)?;
         let (_stage, staged_base) = patcher_prepare::stage(base, &self.settings.cancelled)?;
+        ensure!(
+            backend_contract::PackageIdentity::capture(&staged_base, &self.settings.cancelled)?
+                == source_package
+                && backend_contract::PackageIdentity::capture(base, &self.settings.cancelled)?
+                    == source_package,
+            "Supplied installer package changed during staging"
+        );
         let staged_executable = staged_base.join(
             source
                 .file_name()
@@ -443,6 +452,8 @@ impl Engine {
             }
         }
         clear_patcher_logs(&staged_base)?;
+        let prepared_package =
+            backend_contract::PackageIdentity::capture(&staged_base, &self.settings.cancelled)?;
         let (checkpoint_lock, operation) = self.checkpoint_process.as_ref().context(
             "Supplied installer execution requires its owned Materializing checkpoint operation",
         )?;
@@ -462,10 +473,19 @@ impl Engine {
             "sourceExecutable": source, "stagedExecutable": staged_executable, "executableSha256": source_hash,
             "gameTarget": destination, "namespaceIndex": namespace, "namespaceName": namespace_name,
             "iniName": ini, "headlessDisplay": headless.display, "headlessServerPid": headless.child.id(), "checkpointOperations": checkpoints,
-            "argumentsPassedToExecutable": [], "checkpointCommitVerified": false, "laneParityVerified": false
+            "argumentsPassedToExecutable": [], "checkpointCommitVerified": false, "laneParityVerified": false,
+            "backendInputEvidence": { "schemaVersion": 1, "kind": "suppliedExecutable",
+                "instruction": instruction, "sourcePackage": source_package, "preparedPackage": prepared_package,
+                "originalGuideAuthorityVerified": false, "effectPredictionVerified": false }
         });
         let mut command = runner.command(&staged_executable, &headless.display)?;
         command.current_dir(&staged_base);
+        request["launch"] = backend_contract::launch_identity(&command)?;
+        ensure!(
+            backend_contract::PackageIdentity::capture(&staged_base, &self.settings.cancelled)?
+                == prepared_package,
+            "Supplied installer prepared input changed before submission"
+        );
         recovery::atomic_write(&request_path, &serde_json::to_vec_pretty(&request)?)?;
         fs::File::open(&requests)?.sync_all()?;
         emit(Event {
@@ -480,10 +500,31 @@ impl Engine {
                 .as_ref()
                 .is_ok_and(|receipt| receipt.no_child_started || receipt.process_group_quiescent),
         );
+        // Preserve process evidence even when writer quiescence cannot be proven.
+        // Never inspect mutable installer logs while a writer may still be alive.
+        if let Ok(receipt) = &result {
+            request["processReceipt"] = serde_json::json!({ "exitCode": receipt.exit_code, "cancelled": receipt.cancelled, "failure": receipt.failure, "processGroupQuiescent": receipt.process_group_quiescent, "noChildStarted": receipt.no_child_started, "stdout": receipt.stdout, "stderr": receipt.stderr });
+        } else if let Err(error) = &result {
+            request["processError"] = format!("{error:#}").into();
+        }
+        request["writerQuiescenceVerified"] = quiescence.is_ok().into();
+        let captured_log = if quiescence.is_ok() {
+            let log = patcher_install_log(&staged_base);
+            match &log {
+                Ok((path, content)) => {
+                    request["installLog"] = serde_json::json!({
+                        "path": path, "sha256": format!("{:x}", Sha256::digest(content.as_bytes())), "text": content
+                    })
+                }
+                Err(error) => request["installLogError"] = format!("{error:#}").into(),
+            }
+            Some(log)
+        } else {
+            None
+        };
         let verification = (|| -> Result<()> {
             quiescence?;
             let receipt = result?;
-            request["processReceipt"] = serde_json::json!({ "exitCode": receipt.exit_code, "cancelled": receipt.cancelled, "failure": receipt.failure, "processGroupQuiescent": receipt.process_group_quiescent, "noChildStarted": receipt.no_child_started, "stdout": receipt.stdout, "stderr": receipt.stderr });
             for text in [&receipt.stdout, &receipt.stderr] {
                 if !text.is_empty() {
                     emit(Event {
@@ -507,8 +548,8 @@ impl Engine {
                 "Supplied installer exited {:?}; restore before retrying",
                 receipt.exit_code
             );
-            let (log, content) = patcher_install_log(&staged_base)?;
-            request["installLog"] = serde_json::json!({ "path": log, "sha256": format!("{:x}", Sha256::digest(content.as_bytes())), "text": content });
+            let (log, content) =
+                captured_log.context("Installer log capture requires writer quiescence")??;
             emit(Event {
                 component: instruction.action.clone(),
                 step: 0,

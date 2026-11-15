@@ -176,6 +176,13 @@ impl App {
         }
         self.patcher_engine = patcher.engine;
         self.patcher = patcher.executable.unwrap_or_default();
+        if let Some((engine, executable)) = &self.patcher_override {
+            self.patcher_engine = *engine;
+            self.patcher = executable
+                .as_ref()
+                .map(|path| path.to_string_lossy().into_owned())
+                .unwrap_or_default();
+        }
         modsync::logging::set_debug_logging(settings.debug_logging);
         self.desktop.settings = settings;
         self.apply_theme(ctx);
@@ -276,7 +283,11 @@ impl App {
         self.sharing.mutation();
         let directory = self.profile_directory.clone();
         let engine = self.patcher_engine;
-        let executable = self.patcher.clone();
+        let executable = if engine == modsync::PatcherEngine::ModPackaged {
+            String::new()
+        } else {
+            self.patcher.clone()
+        };
         let explicit = self.desktop.explicit.clone();
         let (tx, rx) = mpsc::channel();
         self.desktop.receiver = Some(rx);

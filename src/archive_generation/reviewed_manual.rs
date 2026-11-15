@@ -388,6 +388,17 @@ impl NativePatcherContract {
     pub(crate) fn component_guid(&self) -> &str {
         &self.component_guid
     }
+    pub(crate) fn native_ini_translation(
+        &self,
+        base: &Path,
+        raw: &str,
+        cancelled: &AtomicBool,
+    ) -> Result<Option<(String, Value)>> {
+        match &self.source_namespace {
+            Some(admitted) => admitted.native_ini_translation(base, raw, cancelled),
+            None => Ok(None),
+        }
+    }
     pub(crate) fn expected_game(&self) -> Option<odypatcher::Game> {
         self.source_namespace
             .as_ref()

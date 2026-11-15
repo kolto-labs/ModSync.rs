@@ -1,6 +1,7 @@
 //! Local archive inference shared by guide conversion and desktop callers.
 pub mod archive_map;
 pub mod duplicate_cleanup;
+pub(crate) mod external_patcher_source;
 mod merge;
 pub mod resolved;
 pub mod reviewed_manual;

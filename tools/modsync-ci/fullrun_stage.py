@@ -15,6 +15,8 @@ import artstore_client
 import fullrun_archive_manifest
 import cache
 import gui_diag
+import live_output
+import gzip
 import evidence_receipt
 import k1_widescreen_inputs
 import supplemental_public_inputs
@@ -26,9 +28,8 @@ HERE = Path(__file__).resolve().parent
 def checked(command, log, env=None, pass_fds=()):
     log = Path(log)
     log.parent.mkdir(parents=True, exist_ok=True)
-    with log.open("w", encoding="utf-8") as stream:
-        options = {"pass_fds": pass_fds} if pass_fds else {}
-        result = subprocess.run(command, stdout=stream, stderr=subprocess.STDOUT, check=False, env=env, **options)
+    options = {"pass_fds": pass_fds} if pass_fds else {}
+    result = live_output.run(command, log, env=env, **options)
     if result.returncode:
         raise ValueError("stage failed; inspect its retained encrypted evidence")
     return result
@@ -54,7 +55,10 @@ def production_build_capability(engine, mode, output):
             or not os.environ.get("CACHE_ENCRYPTION_KEY")):
         return None
     import production_build
-    if os.environ.get("GITHUB_REF") not in production_build.REFS:
+    # Actions executes PRs at a merge ref, while the owned producer builds the
+    # authenticated same-repository head. Keep its existing branch allowlist.
+    source_identity = evidence_receipt.source_identity(os.environ)
+    if source_identity["source_ref"] not in production_build.REFS:
         return None
     engine = Path(engine).resolve(strict=True)
     if not (engine / ".git").exists():
@@ -62,7 +66,7 @@ def production_build_capability(engine, mode, output):
     git = subprocess.run(["git", "rev-parse", "HEAD"], cwd=engine,
                          stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
                          text=True, check=False, env=installer_environment())
-    if git.returncode or git.stdout.strip() != os.environ.get("GITHUB_SHA"):
+    if git.returncode or git.stdout.strip() != source_identity["source_sha"]:
         return None
     output = Path(output)
     receipt_path = output / "production-build-acquisition.json"
@@ -75,9 +79,12 @@ def production_build_capability(engine, mode, output):
                "GITHUB_WORKFLOW_SHA", "GITHUB_JOB", "GITHUB_EVENT_NAME", "GITHUB_API_URL",
                "GITHUB_TOKEN", "CACHE_ENCRYPTION_KEY"}
     environment = {name: value for name, value in os.environ.items() if name in allowed}
-    with (output / "production-build-acquisition-private.log").open("w", encoding="utf-8") as log:
-        result = subprocess.run(command, stdout=log, stderr=subprocess.STDOUT,
-                                check=False, env=environment)
+    # Only fetch's source selector changes. Consumer execution/workflow IDs and
+    # SHAs remain the original Actions values; producer provenance is checked
+    # independently against its own API run, workflow and sealed source recipe.
+    environment.update(GITHUB_SHA=source_identity["source_sha"], GITHUB_REF=source_identity["source_ref"])
+    result = live_output.run(command, output / "production-build-acquisition-private.log",
+                             env=environment)
     if result.returncode == 3:
         return None
     if result.returncode:
@@ -89,7 +96,8 @@ def production_build_capability(engine, mode, output):
         body = source.read(12 * 1024 * 1024 + 1)
     receipt = json.loads(body)
     if (receipt.get("status") != "verified" or receipt.get("head_sha") != git.stdout.strip()
-            or receipt.get("repository") != os.environ["GITHUB_REPOSITORY"] or receipt.get("mode") != mode):
+            or receipt.get("repository") != os.environ["GITHUB_REPOSITORY"] or receipt.get("mode") != mode
+            or receipt.get("ref") != source_identity["source_ref"]):
         raise ValueError("Verified build acquiring parent identity differs")
     payload = json.dumps({"schema_version": 1, "source_path": str(engine), "receipt": receipt}).encode()
     if len(payload) > 12 * 1024 * 1024:
@@ -508,16 +516,28 @@ def install(args):
             download_mode=getattr(args, "download_mode", "cache-first"))
         if auxiliary.get("ok") is not True:
             raise ValueError("Pinned K1 native inputs unavailable; inspect encrypted acquisition evidence")
+    if args.game == "k1" and scope is not None:
+        import source_text_diagnostics
+        source_text_diagnostics.retain(work / "archives", temp / "source-text-diagnostics")
     build_descriptor = None
     try:
         build_descriptor = production_build_capability(args.engine, args.mode, temp)
         build_arguments = [] if build_descriptor is None else ["--verified-build-fd", str(build_descriptor)]
+        backend_arguments = []
+        if getattr(args, "patcher_engine", None) is not None:
+            backend_arguments += ["--patcher-engine", args.patcher_engine,
+                                  "--comparison-output-dir", str(temp / "patcher-comparison")]
+        if getattr(args, "patcher", None) is not None:
+            backend_arguments += ["--patcher", str(args.patcher)]
+        for name in ("execute_request_dir", "execute_xvfb", "execute_wine", "execute_wineserver", "execute_wine_prefix"):
+            if getattr(args, name, None) is not None:
+                backend_arguments += ["--" + name.replace("_", "-"), str(getattr(args, name))]
         checked([sys.executable, str(HERE / "ports.py"), "--implementation", "rust", "--mode", args.mode, "--complete-guide", "--max-quarantine", "0",
                  *(["--install-profile", scope["profile"]] if scope is not None else []),
                  "--source", args.engine, "--guide", str(Path(args.guides) / "content" / args.game / "full.md"),
                  "--game-dir", args.game_dir, "--archives", str(work / "archives"),
                  "--archive-map", str(temp / "archive-map.json"), "--restore-report", str(temp / "restore.json"),
-                 "--work-dir", str(work / "work"), "--report", str(temp / "report.json"), *build_arguments], temp / "install-private.log",
+                 "--work-dir", str(work / "work"), "--report", str(temp / "report.json"), *build_arguments, *backend_arguments], temp / "install-private.log",
                 env=installer_environment(), pass_fds=() if build_descriptor is None else (build_descriptor,))
     finally:
         if build_descriptor is not None:
@@ -541,35 +561,108 @@ def retain_port_diagnostics(work, destination):
     if work.is_symlink() or not work.is_dir():
         raise ValueError("unsafe native diagnostics directory")
     allowed = {"resolved-archives.json", "gui-report.json"}
-    remaining = 64 * 1024 ** 2
+    # Compress complete raw streams in independently verifiable 16 MiB chunks.
+    # Explicit budgets fail the lane; never silently truncate evidence.
+    raw_remaining = 16 * 1024 ** 3
+    compressed_remaining = 4 * 1024 ** 3
     destination.mkdir(mode=0o700)
+    manifest = []
+    game_envelopes = []
     for directory in sorted(work.iterdir()):
         if not directory.name.startswith("ports-"):
             continue
         if directory.is_symlink() or not directory.is_dir():
             raise ValueError("unsafe native diagnostics entry")
-        target = destination / directory.name
-        target.mkdir(mode=0o700)
-        for path in sorted(directory.iterdir()):
-            if not (path.suffix == ".log" or
-                    path.name.startswith("converted") and path.suffix == ".toml" or
-                    path.name in allowed):
+        paths = []
+        for base, folders, files in os.walk(directory, followlinks=False):
+            # Never descend into game baselines, builds, settings or archives.
+            relative_parts = Path(base).relative_to(directory).parts
+            installer_evidence = "windows-execute" in relative_parts
+            if installer_evidence:
+                # Backend backups can contain licensed game resources. Keep
+                # those bodies behind the game key inside diagnostics encryption.
+                for name in sorted(name for name in folders if name.endswith("-artifacts")):
+                    source = Path(base) / name
+                    if source.is_symlink():
+                        raise ValueError("unsafe backend artifact directory")
+                    total = 0
+                    for member in source.rglob("*"):
+                        if member.is_symlink() or not (member.is_file() or member.is_dir()):
+                            raise ValueError("unsafe backend artifact member")
+                        if member.is_file():
+                            total += member.stat().st_size
+                    raw_remaining -= total
+                    if raw_remaining < 0:
+                        raise ValueError("backend evidence exceeds explicit 16 GiB raw budget")
+                    relative = source.relative_to(work)
+                    target = destination / relative.parent / (name + ".seal")
+                    target.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+                    import seal
+                    seal.seal(source, target)
+                    compressed_remaining -= target.stat().st_size
+                    if compressed_remaining < 0:
+                        raise ValueError("backend evidence exceeds explicit 4 GiB encrypted budget")
+                    game_envelopes.append({"source": str(relative), "path": str(target.relative_to(destination)),
+                                           "plaintext_bytes": total, "ciphertext_bytes": target.stat().st_size,
+                                           "ciphertext_sha256": cache.digest(target),
+                                           "access": "CACHE_ENCRYPTION_KEY"})
+                folders[:] = sorted(name for name in folders if name.startswith("packaged-ui-"))
+            else:
+                folders[:] = sorted(name for name in folders
+                                    if name.startswith(("gui-work", "gui-rust-")) or name == "windows-execute")
+            if any((Path(base) / name).is_symlink() for name in folders):
+                raise ValueError("unsafe native diagnostics directory link")
+            paths.extend(Path(base) / name for name in sorted(files))
+        for path in paths:
+            if path.is_symlink():
+                raise ValueError("unsafe native diagnostics entry")
+            if path.is_dir():
                 continue
-            limit = min(16 * 1024 ** 2, remaining)
+            installer_evidence = "windows-execute" in path.relative_to(directory).parts
+            if not (installer_evidence or path.suffix == ".log" or path.name.endswith(".command.json") or
+                    path.name.startswith("converted") and path.suffix == ".toml" or
+                    path.name in allowed or path.name == "command.json" or
+                    path.name.startswith("review-query-") and path.suffix == ".json" or
+                    path.name == "phase-plan.json"):
+                continue
+            relative = path.relative_to(work)
+            target = destination / relative.parent
+            target.mkdir(mode=0o700, parents=True, exist_ok=True)
             descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+            checksum = hashlib.sha256()
+            size = 0
+            chunks = []
             with os.fdopen(descriptor, "rb") as incoming:
-                info = os.fstat(incoming.fileno())
-                if not stat.S_ISREG(info.st_mode):
+                if not stat.S_ISREG(os.fstat(incoming.fileno()).st_mode):
                     raise ValueError("native diagnostics must be regular files")
-                if info.st_size > limit:
-                    raise ValueError("native diagnostics exceeds evidence budget")
-                data = incoming.read(limit + 1)
-                if len(data) > limit:
-                    raise ValueError("native diagnostics exceeds evidence budget")
-            with (target / path.name).open("xb") as output:
+                while data := incoming.read(16 * 1024 ** 2):
+                    size += len(data)
+                    raw_remaining -= len(data)
+                    if raw_remaining < 0:
+                        raise ValueError("complete native evidence exceeds explicit 16 GiB raw budget")
+                    checksum.update(data)
+                    name = path.name + (".%06d.gz" % len(chunks))
+                    archive = target / name
+                    with archive.open("xb") as output:
+                        os.chmod(archive, 0o600)
+                        with gzip.GzipFile(filename="", fileobj=output, mode="wb", compresslevel=1, mtime=0) as zipped:
+                            zipped.write(data)
+                    compressed_remaining -= archive.stat().st_size
+                    if compressed_remaining < 0:
+                        raise ValueError("complete native evidence exceeds explicit 4 GiB compressed budget")
+                    chunks.append({"path": str(archive.relative_to(destination)),
+                                   "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()})
+            manifest.append({"path": str(relative), "bytes": size,
+                             "sha256": checksum.hexdigest(), "chunks": chunks})
+            # Keep small structured inputs usable by existing encrypted-evidence readers.
+            if path.suffix != ".log" and size <= 16 * 1024 ** 2:
+                import shutil
+                shutil.copyfile(path, target / path.name)
                 os.chmod(target / path.name, 0o600)
-                output.write(data)
-            remaining -= len(data)
+    contract.write_json(destination / "complete-log-manifest.json",
+                        {"schema_version": 1, "files": manifest})
+    contract.write_json(destination / "game-output-envelopes.json",
+                        {"schema_version": 1, "envelopes": game_envelopes})
 
 
 def main(argv=None):
@@ -596,6 +689,10 @@ def main(argv=None):
             child.add_argument("--engine-sha", required=True)
             child.add_argument("--guide-sha", required=True)
         if name == "install":
+            child.add_argument("--patcher-engine", choices=("ody-patcher", "holo-patcher", "mod-packaged"))
+            child.add_argument("--patcher", type=Path)
+            for name in ("execute-request-dir", "execute-xvfb", "execute-wine", "execute-wineserver", "execute-wine-prefix"):
+                child.add_argument("--" + name, type=Path)
             child.add_argument("--prune-restored-object-cache", action="store_true",
                                help="hosted CI only: release hash objects after verified independent archive restore")
             child.add_argument("--cache", required=True)

@@ -71,6 +71,35 @@ pub(super) fn classify(entry: &Entry, parser: &ConfigParser, message: &str) -> R
         return Ok(false);
     };
     let row = &entry.row;
+    if row.guid == "07416fb0-1f9b-88ba-952f-4029575ad036"
+        && row.game == "k1"
+        && row.ini.sha256 == "5c3f46fd3403c6671e232a3ca8486455d524e73a3e12597fb34b33632ce057f9"
+    {
+        return classify_unreachable_graph(parser, names);
+    }
+    if row.game == "k1"
+        && ((row.guid == "8e70428e-2dab-8972-bf4c-6900d4ed8c26"
+            && row.archive.sha256
+                == "9e9462731ae2247126be75f08819e5b6d66d7aa50b1a4e5fcc44bcaf10cfd032"
+            && matches!(
+                (row.ini.path.as_str(), row.ini.sha256.as_str()),
+                (
+                    "tslpatchdata/changes.ini",
+                    "430735565ccc98fe90a85d1474dcdacef070ad50fcbfaaa7a25676449a0311c5"
+                ) | (
+                    "tslpatchdata/CP.ini",
+                    "296b99041edfda635ef54d962a1ee1734129873a20327c3a2739d0dfb9027033"
+                )
+            ))
+            || (row.guid == "3f5cb051-3598-8fb9-abb0-b50ac47d269d"
+                && row.archive.sha256
+                    == "5c1c3e2a23de8a96f7bdf275d0326a8ed79aac786d8e5f096c92e9b799a7bbf9"
+                && row.ini.path == "tslpatchdata/changes.ini"
+                && row.ini.sha256
+                    == "99fd073e161921b9ece05dd4975bcfbec213cbb8e85004c0b5f246dc5b232bec"))
+    {
+        return classify_unreachable_graph(parser, names);
+    }
     if row.guid == "581433cd-4c71-848a-92f3-03064c7eae94" {
         return classify_swoop(entry, parser, names);
     }
@@ -491,4 +520,134 @@ pub(super) fn effective_swoop_ini(owner_guid: &str, raw: &str) -> Result<Option<
         "File6=tat_m17ac_module.ifo",
         1,
     )))
+}
+
+/// Follow every section-valued key and value from every active list. This
+/// over-approximates active traversal, so only a disconnected closed subgraph
+/// can be classified. Callers provide an exact owner and authenticated INI pin.
+fn classify_unreachable_graph(parser: &ConfigParser, names: &str) -> Result<bool> {
+    let inactive = unreachable_sections(parser)?;
+    let logged: Vec<_> = names.lines().collect();
+    ensure!(
+        !inactive.is_empty()
+            && logged.len() == inactive.len()
+            && logged.iter().copied().collect::<BTreeSet<_>>() == inactive,
+        "Pinned orphan diagnostic differs from unreachable section closure"
+    );
+    Ok(true)
+}
+
+/// The authenticated Korriban source leaves two Yuthura templates disconnected.
+/// One contains an authored kor53 typo. Exclude that proved inert pair only from
+/// conservative graph analysis. The original INI and native patch model stay intact.
+pub(super) fn effective_korriban_graph(
+    owner_guid: &str,
+    raw: &str,
+    parser: &ConfigParser,
+) -> Result<Option<String>> {
+    if owner_guid != "8e70428e-2dab-8972-bf4c-6900d4ed8c26"
+        || ![
+            "430735565ccc98fe90a85d1474dcdacef070ad50fcbfaaa7a25676449a0311c5",
+            "296b99041edfda635ef54d962a1ee1734129873a20327c3a2739d0dfb9027033",
+        ]
+        .contains(&super::sha(raw.as_bytes()).as_str())
+    {
+        return Ok(None);
+    }
+    let inactive = unreachable_sections(parser)?;
+    ensure!(
+        inactive == BTreeSet::from(["gff_kor35_yuthura_FeatList_0_0", "gff_kor35_yuthura_Feat_0",]),
+        "Korriban malformed templates differ from the exact inactive pair"
+    );
+    let mut include = true;
+    let mut result = String::new();
+    for line in raw.split_inclusive('\n') {
+        if let Some(section) = line
+            .trim()
+            .strip_prefix('[')
+            .and_then(|s| s.strip_suffix(']'))
+        {
+            include = !inactive.contains(section);
+        }
+        if include {
+            result.push_str(line);
+        }
+    }
+    Ok(Some(result))
+}
+
+fn unreachable_sections(parser: &ConfigParser) -> Result<BTreeSet<&str>> {
+    let sections: BTreeSet<_> = parser.sections().collect();
+    let standard = [
+        "Settings",
+        "TLKList",
+        "InstallList",
+        "2DAList",
+        "GFFList",
+        "CompileList",
+        "SSFList",
+        "HACKList",
+    ];
+    let mut active = BTreeSet::new();
+    let mut pending: Vec<_> = standard
+        .into_iter()
+        .filter(|name| sections.contains(name))
+        .collect();
+    while let Some(name) = pending.pop() {
+        if !active.insert(name) {
+            continue;
+        }
+        let section = parser
+            .section(name)
+            .context("Pinned inactive graph section absent")?;
+        for (key, value) in section.items() {
+            for target in std::iter::once(key.as_str()).chain(value.as_deref()) {
+                if let Some(target) = sections
+                    .iter()
+                    .find(|section| section.eq_ignore_ascii_case(target))
+                {
+                    pending.push(*target);
+                }
+            }
+        }
+    }
+    Ok(sections.difference(&active).copied().collect())
+}
+
+/// The original HQ guide deletes this source before the installer and explicitly
+/// expects its one missing-source error. The section has no memory stores or
+/// AddField children, so skipping its failed load has no later patch effects.
+pub(super) fn effective_hq_ini(raw: &str) -> Result<String> {
+    ensure!(
+        super::sha(raw.as_bytes())
+            == "17084e0e86b8de5d18b6118c8f33150dce9dd99fbfd4c7d659f3c4cd89ccaa43",
+        "HQ original INI differs before authored source-omission interpretation"
+    );
+    let parser = ConfigParser::read_string(raw, odypatcher::patcher::ini::OptionXform::Identity)
+        .map_err(|error| anyhow::anyhow!("Parse exact HQ source INI: {error}"))?;
+    ensure!(
+        field(&parser, "GFFList", "File6") == Some("keblastore.utm")
+            && parser
+                .section("keblastore.utm")
+                .is_some_and(|section| section.len() == 2)
+            && field(&parser, "keblastore.utm", "!ReplaceFile") == Some("1")
+            && field(&parser, "keblastore.utm", "ItemList\\40\\InventoryRes")
+                == Some("g_w_blstrrfl006")
+            && raw.matches("keblastore.utm").count() == 2,
+        "HQ omitted section is not its exact closed source-only patch"
+    );
+    let list = "File6=keblastore.utm\r\n";
+    let section =
+        "[keblastore.utm]\r\n!ReplaceFile=1\r\nItemList\\40\\InventoryRes=g_w_blstrrfl006\r\n";
+    ensure!(
+        raw.matches(list).count() == 1 && raw.matches(section).count() == 1,
+        "HQ source omission byte boundaries differ"
+    );
+    let effective = raw.replacen(list, "", 1).replacen(section, "", 1);
+    ensure!(
+        super::sha(effective.as_bytes())
+            == "dd7df5824257c4392f688f051e2962821766b0a7c0db73038c48b7f3249ef7cb",
+        "HQ effective native INI identity differs"
+    );
+    Ok(effective)
 }

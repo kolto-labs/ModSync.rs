@@ -87,10 +87,7 @@ impl Store {
                 session.install_scope == "install",
                 "Operation is not bound to an install session"
             );
-            let parent = history
-                .iter()
-                .find(|checkpoint| checkpoint.checkpoint_id == operation.from_checkpoint_id)
-                .context("Operation parent is not committed ancestry")?;
+            let parent = &history.get(self, &operation.from_checkpoint_id)?;
             ensure!(
                 operation.expected_generation
                     == parent
@@ -134,7 +131,7 @@ impl Store {
                             .checked_add(1)
                             .context("Operation generation overflow")?
                     && head.operation_id == operation.operation_id
-                    && history.last().is_some_and(|checkpoint| {
+                    && history.entries.last().is_some_and(|checkpoint| {
                         checkpoint.parent_id.as_deref()
                             == Some(operation.from_checkpoint_id.as_str())
                     });
@@ -229,7 +226,7 @@ impl Store {
             }
             let (session, checked_head, history) = self.checked_history(&session_id)?;
             ensure!(head == checked_head, "Cleanup HEAD changed while reading");
-            let checkpoint = history.last().context("Missing cleanup checkpoint")?;
+            let checkpoint = &history.current(self)?;
             let operation = if head.status == "FinalizeCleanupRequired" {
                 super::finalize::finalize_intent(
                     &session,
@@ -347,7 +344,7 @@ impl Store {
             session.install_scope == "install",
             "Baseline-only sessions cannot record component completion"
         );
-        let parent = history.last().context("Missing current checkpoint")?;
+        let parent = &history.current(self)?;
         let definition = if let Some(receipt) = preparation {
             ensure!(
                 parent.preparation.is_none() && parent.completed_components.is_empty(),
@@ -453,7 +450,7 @@ impl Store {
             "Component mutation phase was not durably entered"
         );
         let (session, old_head, history) = self.checked_history(&operation.session_id)?;
-        let parent = history.last().context("Missing component parent")?;
+        let parent = &history.current(self)?;
         let (mods, game, auxiliary_snapshots, ancestor_shells, file_count, total_bytes) = self
             .capture_all(
                 &session.participants,
@@ -469,6 +466,7 @@ impl Store {
         }
         let checkpoint_id = uuid::Uuid::new_v4().to_string();
         let document = Checkpoint {
+            backend_binding: session.backend_binding.clone(),
             schema_version: SCHEMA_VERSION,
             checkpoint_id: checkpoint_id.clone(),
             session_id: operation.session_id.clone(),

@@ -534,10 +534,7 @@ impl Store {
         let (_, head, history) = self.checked_history(session)?;
         let checkpoint = checkpoint.unwrap_or(&head.checkpoint_id);
         id(checkpoint)?;
-        let document = history
-            .iter()
-            .find(|document| document.checkpoint_id == checkpoint)
-            .context("Checkpoint is not in committed HEAD ancestry")?;
+        let document = &history.get(self, checkpoint)?;
         let mut objects = super::auxiliary::objects(document);
         if let Some(receipt) = &head.finalization_receipt {
             objects.insert((receipt.sha256.clone(), receipt.size));
