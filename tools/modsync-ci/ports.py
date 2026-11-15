@@ -4029,7 +4029,6 @@ def consume_verified_build(fd, source, mode, private, report):
     require(type(receipt["schema"]) is int and receipt["schema"] == 1
             and receipt["status"] == "verified" and receipt["mode"] == mode
             and receipt["repository"] == production_build.REPOSITORY
-            and receipt["ref"] in production_build.REFS
             and isinstance(receipt["head_sha"], str)
             and re.fullmatch(r"[0-9a-f]{40}", receipt["head_sha"]), "identity_differs")
     for key in ("binary_sha256", "artifact_zip_sha256", "ciphertext_sha256"):
@@ -4038,6 +4037,30 @@ def consume_verified_build(fd, source, mode, private, report):
     for key in ("producer_run_id", "producer_run_attempt", "artifact_id", "binary_bytes"):
         require(type(receipt[key]) is int and receipt[key] > 0, "size_or_identifier_invalid")
     require(receipt["binary_bytes"] <= production_build.MAX_BINARY, "binary_oversized")
+    identity = {"repository": receipt["repository"], "ref": receipt["ref"],
+                "head_sha": receipt["head_sha"]}
+    try:
+        caller = production_build.fullrun_execution(identity)
+        if caller:
+            # The anonymous descriptor authorizes the parent's verified bytes.
+            # Independently bind them to the child's original nonsecret Actions
+            # context, including PR source identity from its Actions event file.
+            require(production_build.identity() == identity, "caller_source_differs")
+            require(str(receipt["producer_run_id"]) == os.environ.get("GITHUB_RUN_ID")
+                    and str(receipt["producer_run_attempt"]) == os.environ.get("GITHUB_RUN_ATTEMPT"),
+                    "caller_run_or_attempt_differs")
+            fields = ("GITHUB_REPOSITORY_ID", "GITHUB_REPOSITORY_OWNER_ID")
+            require(all(re.fullmatch(r"[1-9][0-9]*", os.environ.get(field, ""))
+                        for field in fields), "caller_repository_identity_missing")
+            execution = {**caller, "repository_id": os.environ["GITHUB_REPOSITORY_ID"],
+                         "repository_owner_id": os.environ["GITHUB_REPOSITORY_OWNER_ID"]}
+        else:
+            require(receipt["ref"] in production_build.REFS, "identity_differs")
+            execution = {"workflow_sha": receipt["head_sha"],
+                         "workflow_ref": receipt["repository"] + "/" + production_build.WORKFLOW
+                                         + "@" + receipt["ref"]}
+    except (KeyError, OSError, TypeError, ValueError) as error:
+        raise Blocked("verified_build_caller_context_invalid") from error
     clean = {key: os.environ[key] for key in ("PATH", "HOME") if key in os.environ}
     clean.update(GIT_CONFIG_NOSYSTEM="1", GIT_CONFIG_GLOBAL="/dev/null", GIT_OPTIONAL_LOCKS="0")
     try:
@@ -4051,15 +4074,14 @@ def consume_verified_build(fd, source, mode, private, report):
     provenance = receipt["build_provenance"]
     require(isinstance(provenance, dict), "provenance_missing")
     wanted = {"schema": 1, "mode": mode, "repository": receipt["repository"],
-              "ref": receipt["ref"], "head_sha": head, "workflow_sha": head,
-              "workflow_ref": receipt["repository"] + "/" + production_build.WORKFLOW + "@" + receipt["ref"],
+              "ref": receipt["ref"], "head_sha": head, **execution,
               "job": "production", "run_id": str(receipt["producer_run_id"]),
               "run_attempt": str(receipt["producer_run_attempt"]), "recipe": expected,
               "recipe_sha256": production_build.digest(production_build.stable(expected)),
               "binary": {"filename": "modsync", "bytes": receipt["binary_bytes"],
                          "sha256": receipt["binary_sha256"]}}
     require(all(provenance.get(key) == value for key, value in wanted.items())
-            and provenance.get("event") in ("push", "workflow_dispatch")
+            and (caller is not None or provenance.get("event") in ("push", "workflow_dispatch"))
             and isinstance(provenance.get("compiler"), str)
             and provenance["compiler"].startswith("rustc 1.95.0 ")
             and "host: x86_64-unknown-linux-gnu" in provenance["compiler"]
