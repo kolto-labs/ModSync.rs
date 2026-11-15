@@ -186,7 +186,37 @@ jobs:
                       quiesce(); drives(); state['quiescent']=True
                   finally: save()
           PY
-      - name: Run rootless network-isolated original and read actual output metadata
+          cat >"$RUNNER_TEMP/companion-runtime/preflight.py" <<'PYCODE'
+          import json,os,sys
+          from pathlib import Path
+          uid,gid,user_ns,net_ns,pid_ns,mnt_ns=map(int,sys.argv[1:])
+          status=dict(line.split(':',1) for line in Path('/proc/self/status').read_text().splitlines())
+          ns={name:os.stat('/proc/self/ns/'+name).st_ino for name in ('user','net','pid','mnt')}
+          state={'uid':list(map(int,status['Uid'].split())),'gid':list(map(int,status['Gid'].split())),
+                 'groups':os.getgroups(),'namespaces':ns,'uid_map':Path('/proc/self/uid_map').read_text().split(),
+                 'gid_map':Path('/proc/self/gid_map').read_text().split(),
+                 'capabilities':{name:int(status[name].strip(),16) for name in ('CapInh','CapPrm','CapEff','CapBnd','CapAmb')},
+                 'no_new_privs':int(status['NoNewPrivs'].strip()),'status':'checking'}
+          try:
+              assert uid>0 and gid>0 and state['uid']==[uid]*4 and state['gid']==[gid]*4
+              assert os.getresuid()==(uid,uid,uid) and os.getresgid()==(gid,gid,gid) and not os.getgroups()
+              assert all(value==0 for value in state['capabilities'].values()) and state['no_new_privs']==1
+              assert state['uid_map']==state['gid_map']==['0','0','4294967295']
+              assert ns['user']==user_ns and ns['net']!=net_ns and ns['pid']!=pid_ns and ns['mnt']!=mnt_ns
+              interfaces={line.split(':',1)[0].strip() for line in Path('/proc/net/dev').read_text().splitlines() if ':' in line}
+              assert interfaces=={'lo'}
+              assert not any(Path(path).exists() for path in ('/home/runner','/root','/etc/shadow','/etc/sudoers','/etc/ssh'))
+              assert not any('TOKEN' in name or 'ENCRYPTION' in name for name in os.environ)
+              for fd in Path('/proc/self/fd').iterdir():
+                  try: os.readlink(fd)
+                  except FileNotFoundError: continue
+                  assert int(fd.name)<=2,'unexpected inherited descriptor'
+              state['status']='verified'
+          finally:
+              Path('/work/namespace-preflight.json').write_text(json.dumps(state,indent=2))
+          os.execv('/usr/bin/xvfb-run',['/usr/bin/xvfb-run','-a','-s','-screen 0 1024x768x24','/usr/bin/python3','/reference/worker.py'])
+          PYCODE
+      - name: Run network-isolated original and read actual output metadata
         timeout-minutes: 25
         run: |
           env -i PATH=/usr/bin:/bin RUNNER_TEMP="$RUNNER_TEMP" python3 - <<'PY'
@@ -258,16 +288,24 @@ jobs:
                       report['input_fields'][name]=locstring_bytes(data)
               save()
               (work/'recipe.json').write_text(json.dumps(recipe))
-              args=['/usr/bin/bwrap','--unshare-all','--die-with-parent','--new-session',
-                    '--uid',str(os.getuid()),'--gid',str(os.getgid()),'--cap-drop','ALL',
+              runner_uid,runner_gid=os.getuid(),os.getgid(); assert runner_uid>0 and runner_gid>0
+              host_ns=[str(os.stat('/proc/self/ns/'+name).st_ino) for name in ('user','net','pid','mnt')]
+              (work/'passwd').write_text('root:x:0:0:root:/nonexistent:/usr/sbin/nologin\nrunner:x:'+str(runner_uid)+':'+str(runner_gid)+':runner:/work/home:/usr/sbin/nologin\n')
+              (work/'group').write_text('root:x:0:\nrunner:x:'+str(runner_gid)+':\n')
+              args=['/usr/bin/sudo','-n','/usr/bin/bwrap','--unshare-pid','--unshare-net','--unshare-ipc','--unshare-uts',
+                    '--unshare-cgroup-try','--die-with-parent','--new-session','--cap-drop','ALL',
+                    '--cap-add','CAP_SETUID','--cap-add','CAP_SETGID','--cap-add','CAP_SETPCAP',
                     '--ro-bind','/usr','/usr','--symlink','usr/bin','/bin','--symlink','usr/lib','/lib',
-                    '--symlink','usr/lib64','/lib64','--ro-bind','/etc','/etc',
+                    '--symlink','usr/lib64','/lib64','--dir','/etc',
+                    '--ro-bind','/etc/ld.so.cache','/etc/ld.so.cache','--ro-bind','/etc/fonts','/etc/fonts',
+                    '--ro-bind',str(work/'passwd'),'/etc/passwd','--ro-bind',str(work/'group'),'/etc/group',
                     '--proc','/proc','--dev','/dev','--tmpfs','/tmp','--tmpfs','/run',
                     '--dir','/reference','--ro-bind',str(Path('tools/modsync-ci/manual.py').resolve()),'/reference/manual.py',
                     '--ro-bind',str(Path('tools/modsync-ci/fixtures/ci/k2-manual-plan.json').resolve()),'/reference/plan.json',
                     '--ro-bind',str(work/'recipe.json'),'/reference/recipe.json',
                     '--ro-bind',str(evidence/'game-before.json'),'/reference/game-before.json',
                     '--ro-bind',str(work/'worker.py'),'/reference/worker.py',
+                    '--ro-bind',str(work/'preflight.py'),'/reference/preflight.py',
                     '--ro-bind',str(root/'companion-python'),'/reference/python',
                     '--ro-bind',str(root/'companion-archives'),'/archives',
                     '--bind',str(work),'/work','--bind',str(game),'/game','--chdir','/work',
@@ -276,10 +314,12 @@ jobs:
                     '--setenv','WINEPREFIX','/work/prefix','--setenv','WINEARCH','win32',
                     '--setenv','WINEDLLOVERRIDES','mscoree,mshtml=',
                     '--setenv','WINEDEBUG','-all','--setenv','LC_ALL','C.UTF-8',
-                    '/usr/bin/xvfb-run','-a','-s','-screen 0 1024x768x24','/usr/bin/python3','/reference/worker.py']
+                    '/usr/bin/setpriv','--reuid',str(runner_uid),'--regid',str(runner_gid),'--clear-groups',
+                    '--bounding-set=-all','--inh-caps=-all','--ambient-caps=-all','--no-new-privs',
+                    '/usr/bin/python3','-I','/reference/preflight.py',str(runner_uid),str(runner_gid),*host_ns]
               # No host home, runner temp, workspace, API credentials or network in the namespace.
               with (work/'sandbox.log').open('wb') as log:
-                  p=subprocess.Popen(args,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,start_new_session=True,env={})
+                  p=subprocess.Popen(args,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,start_new_session=True,close_fds=True,env={})
                   try: code=p.wait(timeout=1200)
                   finally:
                       try: os.killpg(p.pid,signal.SIGKILL)
@@ -331,7 +371,7 @@ jobs:
               if original.is_file() and not original.is_symlink() and original.resolve().is_relative_to(work.resolve()) and 0<original.stat().st_size<=1024*1024:
                   (evidence/'original-installlog.rtf').write_bytes(original.read_bytes())
               # Bounded allowlist only. Never retain archives, UTI bytes, game, prefix or screenshots.
-              for name in ('runtime.json','runtime.log','sandbox.log'):
+              for name in ('runtime.json','runtime.log','sandbox.log','namespace-preflight.json'):
                   path=work/name
                   if path.is_file() and not path.is_symlink() and path.stat().st_size<=2*1024*1024:
                       (evidence/name).write_bytes(path.read_bytes())
@@ -348,7 +388,7 @@ jobs:
           allowed={'acquisition.log':2*1024*1024,'material-provenance.json':1024*1024,
                    'game-before.json':64*1024*1024,'game-after.json':64*1024*1024,
                    'vendor-witness.json':4*1024*1024,'original-installlog.rtf':1024*1024,
-                   'runtime.json':65536,'runtime.log':2*1024*1024,'sandbox.log':2*1024*1024}
+                   'runtime.json':65536,'runtime.log':2*1024*1024,'sandbox.log':2*1024*1024,'namespace-preflight.json':65536}
           rejected=[]
           for path in evidence.iterdir():
               if path.is_symlink() or not path.is_file() or path.name not in allowed:
