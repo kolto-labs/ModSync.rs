@@ -1730,7 +1730,14 @@ impl Engine {
                 ));
                 continue;
             }
-            if let Err(error) = self.check_component(component) {
+            if let Err(error) = self.check_component(component).and_then(|_| {
+                crate::archive_generation::reviewed_manual::verify_runtime(
+                    component,
+                    &self.settings.roots.mods,
+                    &self.settings.archive,
+                    &self.settings.cancelled,
+                )
+            }) {
                 issues.push(crate::validation::DryRunIssue::engine(
                     format!("{error:#}"),
                     self.validation_target.clone(),
@@ -3086,6 +3093,7 @@ impl Engine {
             crate::archive_generation::reviewed_manual::verify_runtime(
                 c,
                 &self.settings.roots.mods,
+                &self.settings.archive,
                 &self.settings.cancelled,
             )?;
             for instruction in c

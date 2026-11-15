@@ -1,4 +1,4 @@
-//! Strict outcomes for the four compiled native Patcher translations only.
+//! Strict outcomes for compiled native Patcher translations only.
 use anyhow::{Context, Result, ensure};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};

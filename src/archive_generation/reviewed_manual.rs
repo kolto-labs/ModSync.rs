@@ -1050,12 +1050,13 @@ fn value_digest(value: &Value) -> Result<String> {
 }
 
 /// Check the approved model and its immutable archive bytes before consumption.
-/// Initial dedicated replay owns archive decoding/inventory completeness; runtime
-/// verifies that its whole-model receipt and exact pinned inputs remain unchanged.
-/// This performs bounded streaming reads, never extraction or external execution.
+/// Public receipt hashes are identities, not authorization. Runtime independently
+/// reconstructs the complete model from compiled authority and pinned archives.
+/// Archive decoding uses bounded private scratch, never game/mod writes or programs.
 pub(crate) fn verify_runtime(
     component: &Component,
     root: &Path,
+    options: &archive::Options,
     cancelled: &AtomicBool,
 ) -> Result<()> {
     let Some(binding) = component.metadata.get(BINDING) else {
@@ -1170,8 +1171,9 @@ pub(crate) fn verify_runtime(
             && record.get("Result") == pending.get("Result"),
         "Runtime recipe diagnostics changed"
     );
-    let mut replayed = component.clone();
-    replayed.metadata.insert("DraftReview".into(), pending);
+    // A caller can edit instructions and recompute both public receipt hashes.
+    // Only regeneration from the compiled recipe can authorize those instructions.
+    let replayed = replay(component, &root, options, cancelled)?;
     let verification = record
         .get("Verification")
         .context("Missing verified replay receipt")?;

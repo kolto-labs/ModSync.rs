@@ -4872,3 +4872,16 @@ changing the151-component source order; destination and archive-byte mutation
 controls retain the review requirement. Formatting, lib/bin builds and strict
 Clippy pass with and without default features. Actual CLI/GUI installation
 remains pending the eight-owner hosted proof and full-guide coverage.
+
+
+Reviewed manual recipes now reconstruct their complete model from the compiled
+recipe and freshly authenticated archives at runtime, including report dry-run
+validation. Public review identity and replay hashes remain identity checks;
+they cannot authorize submitted instructions. Actual production validation
+previously accepted an altered native recipe after both hashes were recomputed;
+it now rejects that model against independent replay. An unchanged approved
+Mandalorian file-effect recipe still validates. Both observations preserve the
+public source archives and owned validation roots; they are not install proof.
+All production formatting/build/strict Clippy checks pass with and without
+desktop features. Archive decoding uses bounded private scratch and runs no
+external programs or game/mod writes during validation.
