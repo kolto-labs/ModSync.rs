@@ -127,6 +127,13 @@ pub(crate) fn local_root(root: &Path) -> Result<PathBuf> {
             "Inference root contains a parent traversal"
         );
         current.push(part);
+        // A bare Windows prefix (`C:`, `\\?\C:`, `\\server\share`) names a drive's
+        // current directory or the volume device, not a directory on the path, and
+        // querying the device fails with ERROR_INVALID_FUNCTION. The root directory
+        // that follows it is checked like every other ancestor.
+        if matches!(part, std::path::Component::Prefix(_)) {
+            continue;
+        }
         ordinary(&current, true)?;
     }
     Ok(absolute)

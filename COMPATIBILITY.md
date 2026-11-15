@@ -3111,6 +3111,17 @@ game directory, because the checkpoint store binds managed participants to that
 spelling and refused the ordinary `D:\...` form. Ownership records already used
 the canonical spelling and are unchanged. Unix paths are unaffected.
 
+### Windows verbatim inference roots
+
+The archive inference root check (`archive_generation::resolved::local_root`)
+walked every component of the root in the same way, so a verbatim source path
+such as `convert --auto-generate-local --source-path \\?\D:\mods` failed with
+"Incorrect function. (os error 1)" before reading any archive. The same root is
+used by resolved-archive generation and draft review. Prefix components are now
+skipped there too; the root directory and every folder below it are still
+checked for symlinks, reparse points, file types and parent traversal. Ordinary
+`D:\...` roots and Unix paths are unaffected.
+
 ### Opt-in managed checkpoints and archive times (2026-10-02)
 
 `install --component-checkpoints` now connects the engine to durable component

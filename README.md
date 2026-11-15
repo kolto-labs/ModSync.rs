@@ -19,6 +19,15 @@ ModSync is a [Kolto Labs](https://koltolabs.bodecloud.workers.dev/) tool for ins
 
 The site's source is in [`site/`](site/) and deploys from `main` through `.github/workflows/pages.yml`.
 
+A Cloudflare Workers deployment is also available at [modsync-site.bodecloud.workers.dev](https://modsync-site.bodecloud.workers.dev/). The site is static HTML, CSS and JavaScript and needs no build step. To deploy the checked-out site's contents to Workers, run these commands from the repository root with Node.js and npm installed.
+
+```sh
+npx wrangler login
+npx wrangler deploy
+```
+
+The root `wrangler.jsonc` publishes only `site/`. Local preview is available with `python3 -m http.server 8000 --directory site` at `http://localhost:8000/`.
+
 ## Download
 
 Packaged builds are published on the [Releases page](https://github.com/kolto-labs/ModSync.rs/releases).

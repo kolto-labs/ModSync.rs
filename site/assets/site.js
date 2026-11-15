@@ -140,3 +140,14 @@ for (const pre of document.querySelectorAll('pre.code')) {
   });
   pre.append(button);
 }
+
+// A link to a question (faq.html#odypatcher) opens that question instead of landing on it closed.
+function openLinkedQuestion() {
+  const target = location.hash && document.getElementById(decodeURIComponent(location.hash.slice(1)));
+  if (target instanceof HTMLDetailsElement) {
+    target.open = true;
+    target.scrollIntoView();
+  }
+}
+openLinkedQuestion();
+addEventListener('hashchange', openLinkedQuestion);
