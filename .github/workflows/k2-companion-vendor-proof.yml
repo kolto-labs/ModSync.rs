@@ -129,8 +129,8 @@ jobs:
                   try: os.killpg(p.pid,signal.SIGKILL)
                   except ProcessLookupError: pass
                   p.wait()
-          def quiesce():
-              command(['/usr/bin/wineserver','-k'],30)
+          def quiesce(stop=False):
+              if stop: command(['/usr/bin/wineserver','-k'],30)
               command(['/usr/bin/wineserver','-w'],60)
           def drives():
               found={p.name:p.resolve(strict=True) for p in (prefix/'dosdevices').iterdir()}
@@ -183,7 +183,7 @@ jobs:
                   raise
               finally:
                   try:
-                      quiesce(); drives(); state['quiescent']=True
+                      quiesce(state['status']=='failed'); drives(); state['quiescent']=True
                   finally: save()
           PY
           cat >"$RUNNER_TEMP/companion-runtime/preflight.py" <<'PYCODE'
