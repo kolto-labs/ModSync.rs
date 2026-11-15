@@ -39,8 +39,8 @@ Install Rust stable and a C/C++ build toolchain, then:
 ```sh
 git clone https://github.com/kolto-labs/ModSync.rs.git
 cd ModSync.rs
-cargo run --release                         # desktop app
-cargo build --release --no-default-features # CLI only: ./target/release/modsync
+cargo run --locked --release                         # desktop app
+cargo build --locked --release --no-default-features # CLI only: ./target/release/modsync
 ```
 
 Linux needs an X11 or Wayland session with OpenGL support, and file dialogs use the desktop portal. Windows builds need the MSVC C++ tools; macOS needs the Xcode command-line tools. The RAR reader compiles the bundled UnRAR C++ library.
@@ -104,8 +104,8 @@ backend. Invalid configured paths fail with the path and cause in the error.
 External execution requires `--allow-processes`. The linked library runs within
 ModSync and needs no external-process permission.
 
-The production CI workflow compiles and lints the library and CLI with both
-feature configurations. `--no-default-features` disables the desktop feature.
+The production CI workflow is configured to compile and lint the library and CLI
+with both feature configurations. `--no-default-features` disables the desktop feature.
 Current production CI sets no runtime patcher override. Backend selection follows
 runtime settings and `--patcher-engine` / `--patcher`. Any verification run passing
 those flags exercises an explicit backend override.

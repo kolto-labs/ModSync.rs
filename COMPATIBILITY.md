@@ -4872,7 +4872,19 @@ process trust. An unavailable configured path now includes the requested path
 and underlying filesystem cause in its diagnostic.
 
 The CLI help, README and published documentation describe the linked default,
-external selection and process permission consistently. Production CI builds and
-lints both feature configurations. It sets no runtime patcher override, and its
-`--no-default-features` flag disables desktop support. Runtime checks that supply
+external selection and process permission consistently. Production CI is configured
+to build and lint both feature configurations. It sets no runtime patcher override.
+Its `--no-default-features` flag disables desktop support. Runtime checks that supply
 `--patcher-engine` or `--patcher` select an explicit override.
+
+Controlled Linux production CLI checks exercised fresh settings, empty and
+whitespace-only legacy settings, explicit and saved external executables,
+CLI precedence, namespace and named-INI selection, executable aliases, PATH and
+packaged-resource conflicts, and validation without external execution. The
+external executable was built from the exact pinned OdyPatcher source, including
+a path containing spaces. Missing paths, directories, non-executable files,
+invalid executable format, denied process trust, nonzero child exit and absent
+fresh install logs were rejected. Source payload hashes remained intact.
+HoloPatcher/KPatcher argument adapters were exercised with the compatible pinned
+OdyPatcher CLI. Commands, output excerpts and production-check results accompany
+[PR #108](https://github.com/kolto-labs/ModSync.rs/pull/108).
