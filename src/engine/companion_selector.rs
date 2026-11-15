@@ -25,17 +25,76 @@ pub(super) fn adapt(
         "p_kreia.utc",
         "p_visas.utc",
     ];
+    let expected_copies = [
+        "a_light_x02.uti",
+        "a_light_x09.uti",
+        "m_armor_bd.uti",
+        "m_armor_dp.uti",
+        "m_armor_hm.uti",
+        "m_armor_kr.uti",
+        "m_armor_vm.uti",
+        "p_baodur.utc",
+        "p_disciple.utc",
+        "p_handmaiden.utc",
+        "p_kreia.utc",
+        "p_visas.utc",
+    ];
     ensure!(
         config.patches_gff.len() == expected_files.len()
-            && config
-                .patches_gff
-                .iter()
-                .zip(expected_files)
-                .all(|(patch, expected)| patch.base.sourcefile == expected
-                    && patch.base.saveas == expected
-                    && patch.base.destination == "Override")
-            && config.clone().patch_count() == 19,
-        "Original Companion configuration shape changed"
+            && config.install_list.len() == expected_copies.len()
+            && config.patches_2da.is_empty()
+            && config.patches_ssf.is_empty()
+            && config.patches_nss.is_empty()
+            && config.patches_ncs.is_empty()
+            && config.patches_tlk.modifiers.is_empty()
+            && config.patches_tlk.female.is_none(),
+        "Original Companion configuration inventory changed; expected 12 copies and 7 GFF file operations"
+    );
+    for ((patch, expected), modifiers) in config
+        .patches_gff
+        .iter()
+        .zip(expected_files)
+        .zip([2, 2, 1, 1, 1, 1, 1])
+    {
+        ensure!(
+            patch.base.sourcefile == expected
+                && patch.base.saveas == expected
+                && patch.base.sourcefolder == "."
+                && patch.base.destination == "Override"
+                && !patch.base.replace_file
+                && patch.base.action == "Patch "
+                && patch.base.override_type == "warn"
+                && !patch.base.skip_if_not_replace
+                && patch.modifiers.len() == modifiers,
+            "Original Companion GFF source, output, defaults, order or modifier count changed for {expected}"
+        );
+    }
+    for (copy, expected) in config.install_list.iter().zip(expected_copies) {
+        ensure!(
+            copy.base.sourcefile == expected
+                && copy.base.saveas == expected
+                && copy.base.sourcefolder == "."
+                && copy.base.destination == "Override"
+                && !copy.base.replace_file
+                && copy.base.action == "Copy "
+                && copy.base.override_type == "warn"
+                && copy.base.skip_if_not_replace,
+            "Original Companion copy source, output, defaults or order changed for {expected}"
+        );
+    }
+    // Installer::push_lists counts file operations (12 copies + 7 GFF patches).
+    // PatcherConfig::patch_count instead flattens field operations, including
+    // Bao-Dur's added struct and its two child fields (12 copies + 11 fields).
+    const FILE_OPERATIONS: usize = 19;
+    const FLATTENED_OPERATIONS: usize = 23;
+    ensure!(
+        config.install_list.len() + config.patches_gff.len() == FILE_OPERATIONS,
+        "Companion file-operation count changed; expected {FILE_OPERATIONS}"
+    );
+    let flattened = config.clone().patch_count();
+    ensure!(
+        flattened == FLATTENED_OPERATIONS,
+        "Companion flattened field-operation count changed: expected {FLATTENED_OPERATIONS}, observed {flattened}; file-operation contract remains {FILE_OPERATIONS}"
     );
     let expected = [
         (
@@ -99,8 +158,9 @@ pub(super) fn adapt(
         field.value = FieldValueKind::constant(GffValue::LocDelta(LocalizedStringDelta::new(None)));
     }
     ensure!(
-        config.clone().patch_count() == 19,
-        "Companion operation count changed"
+        config.install_list.len() + config.patches_gff.len() == FILE_OPERATIONS
+            && config.clone().patch_count() == FLATTENED_OPERATIONS,
+        "Companion file or flattened field-operation count changed after selector adaptation"
     );
     installer.log.add_note(
         "Original Companion negative-language-selector compatibility v1: retained two no-op localized-field operations",
