@@ -41,10 +41,11 @@ on:
       STEAM_GUARD_CODES: {required: false}
 permissions:
   contents: read
-# Writer and Steam-enabled invocations share one repository-wide acquisition
-# lock. Read-only recovery uses isolated hosted runners and a per-run group.
+# Writer invocations (the only ones that may run Steam acquisition) share one
+# repository-wide lock. Read-only recovery, regardless of allow_steam, uses
+# isolated hosted runners and a per-run group.
 concurrency:
-  group: ${{ (inputs.cache_writer || inputs.allow_steam) && format('modsync-game-acquisition-{0}', github.repository) || format('modsync-game-recovery-{0}-{1}-{2}', github.repository, github.run_id, github.run_attempt) }}
+  group: ${{ inputs.cache_writer && format('modsync-game-acquisition-{0}', github.repository) || format('modsync-game-recovery-{0}-{1}-{2}', github.repository, github.run_id, github.run_attempt) }}
   cancel-in-progress: false
 jobs:
   game:
@@ -56,7 +57,7 @@ jobs:
       actions: read
     strategy:
       fail-fast: false
-      max-parallel: ${{ (inputs.cache_writer || inputs.allow_steam) && 1 || 2 }}
+      max-parallel: ${{ inputs.cache_writer && 1 || 2 }}
       matrix:
         game: ${{ fromJSON(inputs.games) }}
     env:
