@@ -25,6 +25,7 @@ pub mod peer_sharing;
 pub mod phase;
 pub mod recovery;
 pub mod validation;
+pub mod vendor_installer;
 
 pub use engine::{Engine, Event, PatcherEngine, Settings};
 pub use model::{Component, Guide, Instruction};

@@ -535,6 +535,7 @@ BIND_STAGE = "bind_archives"
 BIND_GENERATE_STAGE = "bind_generate_local"
 BIND_GENERATOR = "resolved-filenames"
 MOVIE_BIND_GENERATOR = "resolved-movie-archives"
+VENDOR_BIND_GENERATOR = "resolved-vendor-installer"
 BIND_SUFFIXES = (".zip", ".7z", ".rar")
 BIND_UNSAFE_NAME = re.compile(r"[/\\*?\[\]\x00-\x1f\x7f]")
 INTERRUPTED = "command_interrupted_or_timed_out"
@@ -618,7 +619,7 @@ def declared_archive(component, counts, rules, archives):
     return rule["files"][0]
 
 
-def resolved_archive_bindings(converted, mapping, archives, rules=None):
+def resolved_archive_bindings(converted, mapping, archives, rules=None, vendor_languages=None):
     """--resolved-archives entries for components whose links map to exactly one archive present in `archives`.
 
     A component the map cannot resolve falls back to its reviewed `archive_aliases` rule
@@ -638,9 +639,12 @@ def resolved_archive_bindings(converted, mapping, archives, rules=None):
         guid, name = component.get("Guid"), component_archive(component, mapping)
         if name is None and by_key:
             name = declared_archive(component, counts, by_key, archives)
+        vendor = (guid == "bee5a72b-d748-8f83-8261-81758a9bfc56"
+                  and name == "tslrcm2022.exe"
+                  and (vendor_languages or {}).get(guid) == "english")
         if (not isinstance(guid, str) or not guid or seen[guid] != 1 or name is None
                 or not 0 < len(name) <= 255 or name in (".", "..") or BIND_UNSAFE_NAME.search(name)
-                or not name.lower().endswith(BIND_SUFFIXES)):
+                or not (name.lower().endswith(BIND_SUFFIXES) or vendor)):
             continue
         path = archives / name
         if path.is_symlink() or not path.is_file():
@@ -691,6 +695,17 @@ def bound_result(before, after):
                 option for option in component.get("Options") or [] if isinstance(option, dict)]))
         return found
 
+    def vendor_bindings(components):
+        found = {}
+        for component in components:
+            if (component.get("DraftReview") or {}).get("Generator") == VENDOR_BIND_GENERATOR:
+                found[str(component.get("Guid", "")).lower()] = {
+                    key: component.get(key) for key in
+                    ("Instructions", "Options", "VendorInstallerBinding", "DraftReview")}
+            found.update(vendor_bindings([
+                option for option in component.get("Options") or [] if isinstance(option, dict)]))
+        return found
+
     old, new = components_of(before), components_of(after)
     if [item.get("Guid") for item in old] != [item.get("Guid") for item in new]:
         return 0, "bound_output_components_changed"
@@ -698,6 +713,10 @@ def bound_result(before, after):
     if any(new_movies.get(identity) != binding
            for identity, binding in movie_bindings(old).items()):
         return 0, "bound_output_changes_resolved_movie_recipe"
+    new_vendors = vendor_bindings(new)
+    if any(new_vendors.get(identity) != binding
+           for identity, binding in vendor_bindings(old).items()):
+        return 0, "bound_output_changes_resolved_vendor_recipe"
     kept = flatten(new, {})
     for guid, (count, drafted, warned, _) in flatten(old, {}).items():
         if guid not in kept:
@@ -710,7 +729,7 @@ def bound_result(before, after):
             return 0, "bound_output_drops_instructions_or_drafts"
     return sum(1 for item in new
                if (item.get("DraftReview") or {}).get("Generator") in
-               (BIND_GENERATOR, MOVIE_BIND_GENERATOR)), None
+               (BIND_GENERATOR, MOVIE_BIND_GENERATOR, VENDOR_BIND_GENERATOR)), None
 
 
 BIND_DIAGNOSTICS_KEY = "bind_diagnostics"
@@ -801,7 +820,7 @@ def record_bind_diagnostics(private, report, names=None):
 
 
 def bind_archives(command, source, guide, converted, archives, archive_map, private, report, env,
-                  rules=None):
+                  rules=None, vendor_languages=None):
     """Bind method-only loose-file components to their one mapped archive (convert --resolved-archives).
 
     --resolved-archives only touches components without instructions and conflicts with
@@ -816,12 +835,17 @@ def bind_archives(command, source, guide, converted, archives, archive_map, priv
         return converted
     try:
         bindings = resolved_archive_bindings(
-            converted, mapped_archives(archive_map.resolve(strict=True)), archives, rules)
+            converted, mapped_archives(archive_map.resolve(strict=True)), archives, rules,
+            vendor_languages=vendor_languages)
     except (OSError, ValueError, AttributeError):
         review["bind_failed"] = "archive_map_unreadable"
         return converted
     if not bindings:
         return converted
+    for binding in bindings:
+        language = (vendor_languages or {}).get(binding["componentGuid"])
+        if language is not None:
+            binding["vendorLanguage"] = language
     plan = private / "resolved-archives.json"
     plan.write_text(json.dumps(bindings), encoding="utf-8")
     bound, staged = private / "converted-bound.toml", private / "converted-bound-pending.toml"
@@ -852,6 +876,101 @@ def bind_archives(command, source, guide, converted, archives, archive_map, priv
         return converted
     review["bound"] = count
     return bound if count else converted
+
+
+def vendor_language_selection(game, guide, report):
+    """Select the reviewed English vendor path only for an actual English K2 baseline."""
+    if guide.parent.name != "k2":
+        return {}
+    tlk, executable = game / "dialog.tlk", game / "swkotor2.exe"
+    try:
+        if any(path.is_symlink() or not stat.S_ISREG(path.stat().st_mode)
+               for path in (tlk, executable)):
+            return {}
+        with tlk.open("rb") as stream:
+            header = stream.read(12)
+        with executable.open("rb") as stream:
+            signature = stream.read(2)
+        if (len(header) != 12 or header[:8] != b"TLK V3.0"
+                or int.from_bytes(header[8:], "little") != 0 or signature != b"MZ"):
+            return {}
+        report["vendor_language_selection"] = {
+            "language": "english", "tlk_language_id": 0,
+            "tlk_sha256": digest(tlk), "executable_sha256": digest(executable),
+            "basis": "verified K2 baseline TLK header; native execution rechecks game and language"}
+        return {"bee5a72b-d748-8f83-8261-81758a9bfc56": "english"}
+    except OSError:
+        return {}
+
+
+def baseline_applicability(command, source, game, guide, converted, private, report, env):
+    """Observe native game detection without archive inspection or input mutation."""
+    if guide.parent.name != "k2":
+        return None
+    # Native selection may resolve a Steam assets subtree. This closed rule
+    # binds only the authenticated Windows baseline at the supplied root.
+    if (game / "steamassets").exists() or (game / "steamassets").is_symlink():
+        return None
+    executable = game / "swkotor2.exe"
+    binary = Path(command[0])
+    if any(path.is_symlink() or not path.is_file()
+           for path in (executable, binary, converted)):
+        raise Blocked("baseline_applicability_requires_regular_inputs")
+    before = {"input": digest(converted), "binary": digest(binary),
+              "executable": digest(executable), "size": executable.stat().st_size}
+    stage = "baseline_applicability"
+    run(command + ["selection", "--input", str(converted), "--game-dir", str(game), "--json"],
+        source, private, stage, report, env)
+    after = {"input": digest(converted), "binary": digest(binary),
+             "executable": digest(executable), "size": executable.stat().st_size}
+    if (before != after or (game / "steamassets").exists()
+            or (game / "steamassets").is_symlink()
+            or any(path.is_symlink() for path in (executable, binary, converted))):
+        raise Blocked("baseline_applicability_inputs_changed")
+    log = private / (stage + ".log")
+    if log.stat().st_size > 8 * 1024 * 1024:
+        raise Blocked("baseline_applicability_output_too_large")
+    try:
+        observed = json.loads(log.read_text(encoding="utf-8"))
+    except (ValueError, UnicodeError) as error:
+        raise Blocked("baseline_applicability_output_invalid") from error
+    detected = observed.get("game") if isinstance(observed, dict) else None
+    native = {"command": "selection", "source_dir_supplied": False, "exit_code": 0,
+              "game": detected, "input_sha256": before["input"],
+              "stdout_sha256": digest(log), "binary_sha256": before["binary"]}
+    actual_executable = {"relative_path": "swkotor2.exe", "sha256": before["executable"],
+                         "size": before["size"]}
+    report["baseline_applicability_observation"] = {
+        "native_selection": native, "executable": actual_executable}
+    if (detected != "Kotor2Aspyr"
+            or before["executable"] != fullrun_guide_choices.ASPYR_EXE_SHA256
+            or before["size"] != fullrun_guide_choices.ASPYR_EXE_SIZE):
+        return None
+    return {"schema_version": 1, "rule": fullrun_guide_choices.FOUR_GB_RULE["rule"],
+            "native_selection": native, "executable": actual_executable,
+            "baseline_basis": fullrun_guide_choices.ASPYR_BASIS}
+
+
+def execute_runner_arguments(private, converted, report):
+    """Create one private execution prefix without changing the native Patcher backend."""
+    vendors = [component for component in converted_components(converted)
+               if component.get("VendorInstallerBinding")]
+    if not vendors:
+        return []
+    programs = {name: shutil.which(name) for name in ("Xvfb", "wine", "wineserver")}
+    if not all(programs.values()):
+        raise Blocked("reviewed_vendor_requires_installed_wine_and_xvfb")
+    programs = {name: str(Path(path).resolve(strict=True)) for name, path in programs.items()}
+    requests = private / "windows-execute"
+    requests.mkdir(mode=0o700)
+    prefix = requests / "wine-prefix"
+    prefix.mkdir(mode=0o700)
+    report["windows_execute_runner"] = {
+        "backend": "Wine/Xvfb", "configured": True,
+        "components": [component["Guid"] for component in vendors]}
+    return ["--execute-request-dir", str(requests), "--execute-xvfb", programs["Xvfb"],
+            "--execute-wine", programs["wine"], "--execute-wineserver", programs["wineserver"],
+            "--execute-wine-prefix", str(prefix)]
 
 
 ALIAS_MOD_DIRECTORY = re.compile(r"<<modDirectory>>[\\/]+", re.IGNORECASE)
@@ -2344,7 +2463,8 @@ def rust_gui_failure_fields(failure, components):
 
 def install_rust_gui_with_quarantine(command, source, private, game, archives, converted, policy_guids,
                                      deselect, report, env, max_iterations=QUARANTINE_MAX_ITERATIONS,
-                                     max_fraction=QUARANTINE_MAX_FRACTION, complete_guide=False):
+                                     max_fraction=QUARANTINE_MAX_FRACTION, complete_guide=False,
+                                     execute_runner=()):
     """Run the Rust GUI driver with the shared bounded install quarantine policy."""
     components = converted_components(converted)
     policy = report.get("quarantine") or start_quarantine(
@@ -2371,6 +2491,7 @@ def install_rust_gui_with_quarantine(command, source, private, game, archives, c
                  "--work-dir", str(gui_work), "--report", str(driver_report),
                  "--timeout", "7000"]
                 + (["--complete-guide"] if complete_guide else ["--exclude-widescreen"])
+                + list(execute_runner)
                 + [flag for guid_ in sorted(skipped) for flag in ("--deselect", guid_)],
                 source, private, stage, report, env)
         except Blocked as failure:
@@ -3350,7 +3471,9 @@ def execute(args, report):
         reviewed = private / "converted-reviewed.toml"
         review_input = bind_archives(command, source, guide, converted, archives,
                                      args.archive_map, private, report, env,
-                                     load_archive_aliases(guide.parent.name))
+                                     load_archive_aliases(guide.parent.name),
+                                     vendor_languages=(vendor_language_selection(game, guide, report)
+                                                       if getattr(args, "complete_guide", False) else None))
         try:
             run(command + ["convert", str(review_input), str(reviewed), "--format", "toml",
                            "--source-path", str(archives), "--review-verified-drafts"],
@@ -3399,6 +3522,8 @@ def execute(args, report):
     if complete_rust:
         if args.restore_report is None or args.archive_map is None:
             raise Blocked("complete_guide_requires_current_restore_report_and_archive_map")
+        applicability = baseline_applicability(
+            command, source, game, guide, converted, private, report, env)
         report["stage"] = "guide_selection"
         try:
             receipt, retained = fullrun_guide_choices.project(
@@ -3406,7 +3531,7 @@ def execute(args, report):
                 args.archive_map.resolve(strict=True),
                 Path(__file__).resolve().with_name("seed_pins.json"),
                 guide_step_list(guide.read_text(encoding="utf-8"), "rust")[0],
-                report.get(SKIPPED_REPORT_KEY, []))
+                report.get(SKIPPED_REPORT_KEY, []), baseline_applicability=applicability)
         except (ValueError, OSError, subprocess.SubprocessError) as error:
             raise Blocked("documented_linux_guide_selection_refused: " + str(error)) from error
         report["guide_selection"] = receipt
@@ -3538,10 +3663,11 @@ def execute(args, report):
         return
     directories = ["--input", str(converted), "--game-dir", str(game),
                    "--source-dir", str(archives)]
+    execute_runner = execute_runner_arguments(private, converted, report) if complete_rust else []
     if complete_rust:
         # Complete runs authorize the reviewed admitted external instructions.
         # Desktop trust is independently enabled through its native checkbox.
-        directories += ["--allow-processes"]
+        directories += ["--allow-processes"] + execute_runner
     validate_with_quarantine(
         command, directories, deselect, converted, game, source, private, report, env,
         getattr(args, "max_quarantine", QUARANTINE_MAX_ITERATIONS),
@@ -3554,7 +3680,7 @@ def execute(args, report):
             command, source, private, game, archives, converted, policy_guids, deselect, report, env,
             getattr(args, "max_quarantine", QUARANTINE_MAX_ITERATIONS),
             getattr(args, "max_quarantine_fraction", QUARANTINE_MAX_FRACTION),
-            complete_guide=complete_gui)
+            complete_guide=complete_gui, execute_runner=execute_runner)
         gui_skipped = policy_guids | {item["component_guid"] for item in quarantined_entries(report)}
         if not driver_report.is_file() or driver_report.is_symlink():
             raise Blocked("gui_completion_report_missing")

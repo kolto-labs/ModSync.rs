@@ -12,7 +12,7 @@ use std::{
     sync::atomic::{AtomicBool, Ordering},
 };
 
-#[derive(Debug, Serialize, serde::Deserialize)]
+#[derive(Clone, Debug, Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
 pub struct ResolvedFiles {
@@ -23,6 +23,50 @@ pub struct ResolvedFiles {
     #[serde(default)]
     pub size_bytes: Option<u64>,
 }
+/// CLI request extension; legacy public ResolvedFiles and its strict schema stay unchanged.
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ResolvedRequest {
+    #[serde(flatten)]
+    pub files: ResolvedFiles,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub vendor_language: Option<String>,
+}
+impl std::ops::Deref for ResolvedRequest {
+    type Target = ResolvedFiles;
+    fn deref(&self) -> &Self::Target {
+        &self.files
+    }
+}
+impl<'de> serde::Deserialize<'de> for ResolvedRequest {
+    fn deserialize<D: serde::Deserializer<'de>>(
+        deserializer: D,
+    ) -> std::result::Result<Self, D::Error> {
+        #[derive(serde::Deserialize)]
+        #[serde(rename_all = "camelCase", deny_unknown_fields)]
+        struct Wire {
+            component_guid: String,
+            filenames: Vec<String>,
+            #[serde(default)]
+            sha256: Option<String>,
+            #[serde(default)]
+            size_bytes: Option<u64>,
+            #[serde(default)]
+            vendor_language: Option<String>,
+        }
+        let wire = <Wire as serde::Deserialize>::deserialize(deserializer)?;
+        Ok(Self {
+            files: ResolvedFiles {
+                component_guid: wire.component_guid,
+                filenames: wire.filenames,
+                sha256: wire.sha256,
+                size_bytes: wire.size_bytes,
+            },
+            vendor_language: wire.vendor_language,
+        })
+    }
+}
+
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ResolvedReport {
@@ -1204,7 +1248,27 @@ pub fn generate(
     options: &archive::Options,
     cancelled: &AtomicBool,
 ) -> Result<Vec<ResolvedReport>> {
+    generate_with_vendor_languages(guide, resolved, &BTreeMap::new(), root, options, cancelled)
+}
+
+pub fn generate_with_vendor_languages(
+    guide: &mut Guide,
+    resolved: &[ResolvedFiles],
+    vendor_languages: &BTreeMap<String, String>,
+    root: Option<&Path>,
+    options: &archive::Options,
+    cancelled: &AtomicBool,
+) -> Result<Vec<ResolvedReport>> {
     check(cancelled)?;
+    ensure!(
+        vendor_languages.len() <= 1
+            && vendor_languages
+                .iter()
+                .all(|(guid, language)| guid == crate::vendor_installer::GUID
+                    && language == "english"
+                    && resolved.iter().any(|item| &item.component_guid == guid)),
+        "Vendor language selection is unsupported or has no resolved component"
+    );
     ensure!(resolved.len() <= 4096, "Too many resolved component groups");
     resolved
         .iter()
@@ -1248,6 +1312,31 @@ pub fn generate(
             instructions_added: 0,
             diagnostics: Vec::new(),
         };
+        if let Some(language) = vendor_languages.get(&group.component_guid) {
+            ensure!(
+                group.component_guid == crate::vendor_installer::GUID
+                    && group.filenames.len() == 1
+                    && group.filenames[0] == crate::vendor_installer::FILENAME
+                    && group.sha256.as_deref() == Some(crate::vendor_installer::SHA256)
+                    && group.size_bytes == Some(crate::vendor_installer::SIZE)
+                    && resolved
+                        .iter()
+                        .filter(|other| other.component_guid == group.component_guid)
+                        .count()
+                        == 1,
+                "Explicit vendor selection requires the exact reviewed installer group"
+            );
+            crate::vendor_installer::bind(
+                component,
+                root.as_deref()
+                    .context("Vendor binding requires local source")?,
+                language,
+                cancelled,
+            )?;
+            report.instructions_added = component.instructions.len();
+            reports.push(report);
+            continue;
+        }
         if component.instructions.is_empty()
             && let Some(root) = root.as_deref()
             && bind_movie_archives(component, &group.filenames, root, options, cancelled)?

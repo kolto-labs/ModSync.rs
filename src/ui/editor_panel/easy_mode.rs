@@ -614,6 +614,7 @@ impl App {
                         .and_then(|settings| archive_settings(settings, &self.scratch, &self.expanded_budget)) {
                         Ok(mut settings) => {
                             settings.allow_processes = self.allow_processes;
+                            settings.execute_runner = self.execute_runner.clone();
                             settings.patcher_engine = self.patcher_engine;
                             settings.patcher = (!self.patcher.is_empty()).then(|| PathBuf::from(&self.patcher));
                             settings.archive.scratch_dir = (!self.scratch.is_empty()).then(|| PathBuf::from(&self.scratch));

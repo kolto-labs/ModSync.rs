@@ -70,6 +70,10 @@ jobs:
         run: |
           rustup toolchain install 1.95.0 --profile minimal
           packages=(age 7zip 7zip-rar unrar megatools libarchive-tools pkg-config libssl-dev)
+          if [[ "$GAME" == k2 ]]; then
+            sudo dpkg --add-architecture i386
+            packages+=(wine wine64 wine32:i386 xvfb xauth)
+          fi
           if [[ "$MODE" == gui ]]; then
             packages+=(xvfb xauth python3-tk tesseract-ocr libxkbcommon-x11-dev libx11-dev libxcursor-dev libxrandr-dev libxi-dev libgl1-mesa-dev libwayland-dev scrot)
           fi

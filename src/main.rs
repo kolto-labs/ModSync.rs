@@ -3,6 +3,7 @@ mod cli_acquisition;
 mod cli_compat;
 mod cli_session;
 mod easy_cli;
+mod execute_runner_cli;
 mod maintenance_cli;
 mod profile_cli;
 mod protocol_cli;
@@ -59,6 +60,8 @@ enum Action {
     Maintenance(maintenance_cli::MaintenanceArgs),
     /// Open the desktop installer (also the default with no command).
     Gui {
+        #[command(flatten)]
+        execute_runner: execute_runner_cli::ExecuteRunnerArgs,
         #[arg(long)]
         settings_dir: Option<PathBuf>,
         #[arg(long)]
@@ -694,6 +697,8 @@ enum ValidationOutput {
 
 #[derive(Args)]
 struct InstallArgs {
+    #[command(flatten)]
+    execute_runner: execute_runner_cli::ExecuteRunnerArgs,
     /// Suppress post-download configuration; unresolved installers still block installation.
     #[arg(long)]
     fomod_skip: bool,
@@ -1098,6 +1103,7 @@ fn validate_without_roots(
         (args.non_interactive, "--non-interactive"),
         (args.direct_markdown, "--direct-markdown"),
         (args.allow_processes, "--allow-processes"),
+        (args.execute_runner.is_configured(), "--execute-request-dir"),
         (args.patcher.is_some(), "--patcher"),
         (args.patcher_engine.is_some(), "--patcher-engine"),
         (args.scratch_dir.is_some(), "--scratch-dir"),
@@ -1367,9 +1373,23 @@ fn process_conversion_inner(
         conversion_cancelled(cancelled)?;
         let resolved = load_resolved_archives(path, guide)?;
         modsync::draft::generate_method_contexts(guide);
-        let reports = modsync::archive_generation::resolved::generate(
+        let files: Vec<_> = resolved
+            .iter()
+            .map(|request| request.files.clone())
+            .collect();
+        let vendor_languages = resolved
+            .iter()
+            .filter_map(|request| {
+                request
+                    .vendor_language
+                    .as_ref()
+                    .map(|language| (request.component_guid.clone(), language.clone()))
+            })
+            .collect();
+        let reports = modsync::archive_generation::resolved::generate_with_vendor_languages(
             guide,
-            &resolved,
+            &files,
+            &vendor_languages,
             options.source_path.as_deref(),
             &modsync::archive::Options::default(),
             cancelled,
@@ -1412,7 +1432,7 @@ fn process_conversion_inner(
 fn load_resolved_archives(
     path: &std::path::Path,
     guide: &Guide,
-) -> Result<Vec<modsync::archive_generation::resolved::ResolvedFiles>> {
+) -> Result<Vec<modsync::archive_generation::resolved::ResolvedRequest>> {
     use anyhow::ensure;
     use std::collections::BTreeSet;
 
@@ -1430,7 +1450,7 @@ fn load_resolved_archives(
         bytes.len() <= 8 * 1024 * 1024,
         "Resolved archive input exceeds 8 MiB"
     );
-    let resolved: Vec<modsync::archive_generation::resolved::ResolvedFiles> =
+    let resolved: Vec<modsync::archive_generation::resolved::ResolvedRequest> =
         serde_json::from_slice(&bytes)?;
     ensure!(
         !resolved.is_empty() && resolved.len() <= 4096,
@@ -1460,6 +1480,11 @@ fn load_resolved_archives(
         total_files = total_files
             .checked_add(binding.filenames.len())
             .context("Resolved archive filename count overflow")?;
+        let reviewed_vendor = binding.vendor_language.as_deref() == Some("english")
+            && binding.component_guid == modsync::vendor_installer::GUID
+            && binding.filenames == [modsync::vendor_installer::FILENAME]
+            && binding.sha256.as_deref() == Some(modsync::vendor_installer::SHA256)
+            && binding.size_bytes == Some(modsync::vendor_installer::SIZE);
         for filename in &binding.filenames {
             ensure!(
                 !filename.is_empty()
@@ -1473,14 +1498,15 @@ fn load_resolved_archives(
                 "Resolved archive filename must be a safe literal basename"
             );
             ensure!(
-                matches!(
-                    std::path::Path::new(filename)
-                        .extension()
-                        .and_then(|extension| extension.to_str())
-                        .map(str::to_ascii_lowercase)
-                        .as_deref(),
-                    Some("zip" | "7z" | "rar")
-                ),
+                reviewed_vendor
+                    || matches!(
+                        std::path::Path::new(filename)
+                            .extension()
+                            .and_then(|extension| extension.to_str())
+                            .map(str::to_ascii_lowercase)
+                            .as_deref(),
+                        Some("zip" | "7z" | "rar")
+                    ),
                 "Resolved archive filename must name a ZIP, 7z, or RAR archive"
             );
             total_name_bytes = total_name_bytes
@@ -1607,6 +1633,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             GuiInvocation::default(),
         ),
         Some(Action::Gui {
+            execute_runner,
             settings_dir,
             input,
             game_dir,
@@ -1625,6 +1652,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             protocol,
             allow_multiple_instances,
             GuiInvocation {
+                execute_runner: execute_runner.build()?,
                 easy_session,
                 probe: GuiProbe {
                     nexus_mods_api_key,
@@ -3440,6 +3468,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                     } else {
                         let mut settings = Settings::new(&paths.source, &paths.game)?;
                         settings.cancelled = dispatch_cancelled.clone();
+                        settings.execute_runner = args.execute_runner.build()?;
                         settings.archive.scratch_dir = args.scratch_dir.clone();
                         settings.archive.max_expanded_bytes = args.max_expanded_bytes;
                         Some(Engine::new_with_case_insensitive_pathing(
@@ -3531,6 +3560,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                 )?;
                 let mut guide = prepared.guide;
                 settings.allow_processes = args.allow_processes;
+                settings.execute_runner = args.execute_runner.build()?;
                 settings.patcher = args.patcher.or_else(|| {
                     patcher_preferences
                         .filter(|preferences| preferences.engine == patcher_engine)
@@ -3773,6 +3803,7 @@ struct GuiProbe {
 
 #[derive(Default)]
 struct GuiInvocation {
+    execute_runner: Option<modsync::engine::ProvidedInstallerRunner>,
     probe: GuiProbe,
     easy_session: Option<PathBuf>,
 }
@@ -3787,6 +3818,7 @@ fn gui(
     invocation: GuiInvocation,
 ) -> Result<()> {
     let GuiInvocation {
+        execute_runner,
         probe,
         easy_session,
     } = invocation;
@@ -3808,6 +3840,7 @@ fn gui(
             protocol,
             allow_multiple_instances,
             ui::LaunchContext {
+                execute_runner,
                 probe,
                 easy_session,
             },
@@ -3822,6 +3855,7 @@ fn gui(
             settings_dir,
             protocol,
             allow_multiple_instances,
+            execute_runner,
             probe.nexus_mods_api_key,
             probe.nexus_api_base,
             probe.extra_ca_file,

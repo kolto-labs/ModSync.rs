@@ -61,6 +61,8 @@ pub struct Settings {
     pub patcher: Option<PathBuf>,
     pub patcher_engine: PatcherEngine,
     pub provided_installer: Option<ProvidedInstallerRunner>,
+    /// Explicit headless execution for Execute/Run, independent of the Patcher backend.
+    pub execute_runner: Option<ProvidedInstallerRunner>,
     pub archive: archive::Options,
     pub cancelled: Arc<AtomicBool>,
 }
@@ -73,6 +75,7 @@ impl Settings {
             patcher: None,
             patcher_engine: PatcherEngine::default(),
             provided_installer: None,
+            execute_runner: None,
             archive: archive::Options::default(),
             cancelled: Arc::new(AtomicBool::new(false)),
         })
@@ -2893,6 +2896,12 @@ impl Engine {
         let result: Result<()> = (|| {
             self.validation_target = Some((c.name.clone(), c.guid.clone(), None));
             self.check_component(c)?;
+            let vendor_proof = crate::vendor_installer::before(
+                c,
+                &self.settings.roots,
+                self.install,
+                &self.settings.cancelled,
+            )?;
             for (n, instruction) in c.instructions.iter().enumerate() {
                 self.validation_target = Some((c.name.clone(), c.guid.clone(), Some(n + 1)));
                 self.check_cancelled()?;
@@ -2957,6 +2966,13 @@ impl Engine {
                 if let Some(observer) = progress.as_deref_mut() {
                     observer.instruction(c, n + 1, message);
                 }
+            }
+            if let Some(proof) = vendor_proof {
+                crate::vendor_installer::after(
+                    proof,
+                    &self.settings.roots,
+                    &self.settings.cancelled,
+                )?;
             }
             Ok(())
         })();
@@ -4192,12 +4208,13 @@ impl Engine {
                 let content = self.files[&self.path_policy.key(path)].1.clone();
                 self.put(path, content, true)?;
             }
-            let mut cmd = if self.install && self.settings.provided_installer.is_some() {
-                let runner = self
-                    .settings
-                    .provided_installer
-                    .as_ref()
-                    .context("Missing headless runner")?;
+            let execute_runner = self
+                .settings
+                .execute_runner
+                .as_ref()
+                .or(self.settings.provided_installer.as_ref());
+            let mut cmd = if self.install && execute_runner.is_some() {
+                let runner = execute_runner.context("Missing headless runner")?;
                 let requests = fs::canonicalize(&runner.request_dir)?;
                 ensure!(
                     !requests.starts_with(&self.settings.roots.mods)

@@ -383,6 +383,9 @@ pub fn verify_archive_derived(
         record.get("RequiresReview").and_then(Value::as_bool) == Some(true),
         "Draft is not awaiting review"
     );
+    if record.get("Generator").and_then(Value::as_str) == Some(crate::vendor_installer::GENERATOR) {
+        return verify_vendor_derived(component, root, cancelled);
+    }
     if record.get("Generator").and_then(Value::as_str) == Some("resolved-movie-archives") {
         return verify_movie_archive_derived(component, root, options, cancelled);
     }
@@ -502,6 +505,41 @@ pub fn verify_archive_derived(
         archive_sha256: derivation.sha256.to_ascii_lowercase(),
         archive_filename: derivation.filename.clone(),
         replay_digest: format!("{:x}", Sha256::digest(serde_json::to_vec(&expected)?)),
+    };
+    let mut cleared = component.clone();
+    clear_subtree(&mut cleared, &serde_json::to_value(verification)?, 0)?;
+    *component = cleared;
+    Ok(())
+}
+
+fn verify_vendor_derived(
+    component: &mut Component,
+    root: &Path,
+    cancelled: &AtomicBool,
+) -> Result<()> {
+    let record = component
+        .metadata
+        .get("DraftReview")
+        .context("Missing vendor review")?;
+    const KEYS: [&str; 4] = ["RequiresReview", "Result", "Generator", "Derivations"];
+    ensure!(
+        record
+            .as_object()
+            .is_some_and(|object| object.keys().all(|key| KEYS.contains(&key.as_str()))),
+        "Vendor review carries unsupported resolution history"
+    );
+    ensure!(
+        !pending_masters(component, 0),
+        "Vendor component has unresolved Markdown masters"
+    );
+    let replayed = crate::vendor_installer::replay(component, root, cancelled)?;
+    let verification = Verification {
+        reviewer: VERIFIER_NAME.into(),
+        kind: VERIFICATION_KIND.into(),
+        tool_version: concat!("ModSync.rs/", env!("CARGO_PKG_VERSION")).into(),
+        archive_sha256: crate::vendor_installer::SHA256.into(),
+        archive_filename: crate::vendor_installer::FILENAME.into(),
+        replay_digest: crate::vendor_installer::replay_digest(&replayed)?,
     };
     let mut cleared = component.clone();
     clear_subtree(&mut cleared, &serde_json::to_value(verification)?, 0)?;

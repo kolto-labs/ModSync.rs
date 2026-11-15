@@ -4781,3 +4781,14 @@ After documented guide-choice projection, complete runs also refuse policy skips
 that still name an admitted component. A warning label does not prove an Aspyr,
 3C-FD or executable-patch prerequisite. Existing aggregate baseline receipts do
 not establish those states; no additional applicability exclusion is claimed.
+
+
+### Exact TSLRCM vendor binding and separate Windows Execute configuration
+
+Resolved CLI requests may explicitly select `vendorLanguage: "english"` for the original pinned TSLRCM2022 executable only. The complete imported guide component, executable filename/SHA-256/size, language, arguments, expected outputs and draft diagnostics are bound and independently replayed before review clears. Generic executable requests and manual review cannot approve this recipe. The legacy four-field `ResolvedFiles` API remains unchanged; `ResolvedRequest` extends the strict CLI wire format.
+
+Native CLI and desktop invocations accept all-or-none `--execute-request-dir`, `--execute-xvfb`, `--execute-wine`, `--execute-wineserver` and `--execute-wine-prefix`. These configure Execute/Run separately from the Patcher backend and do not grant process trust. Dedicated prefix ownership, checkpoint writer fencing and successful quiescence remain mandatory. Vendor execution requires actual K2 detection and English TLK, an absent setup log, the verified original executable, a fresh successful English setup log and both exact changed output identities after quiescence. Validation runs no external program. This narrowly supported Wine recipe requires absolute POSIX roots.
+
+Production formatting, library/CLI builds and strict Clippy passed with and without desktop features. The original vendor/manual path separately passed hosted execution with its exact log, outputs and complete post-quiescence manifest; this does not establish the new native CLI/GUI execution or full-guide success, which remain pending.
+
+Complete K2 guide admission may use the version-2 recipe only after the current production CLI detects `Kotor2Aspyr` without source/archive inspection and the same unchanged baseline executable matches the authenticated pin. Input, binary, executable and selection-output hashes are retained. A Steam-assets subtree is excluded from this closed rule. Only the guide's exact inapplicable 4GB component is additionally inactive; unknown/Legacy/different executables retain the original recipe and all unresolved required components remain fatal. This is native detector and authenticated-content evidence, not a claim about an exact vendor build, LAA suitability or 3C-FD installation.

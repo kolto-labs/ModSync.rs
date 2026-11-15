@@ -138,6 +138,40 @@ class Blocked(Exception):
     pass
 
 
+EXECUTE_RUNNER_PATHS = ("execute_request_dir", "execute_xvfb", "execute_wine",
+                        "execute_wineserver", "execute_wine_prefix")
+
+
+def execute_runner_arguments(args):
+    """Validate explicitly supplied runner paths without creating or changing anything."""
+    supplied = {name: getattr(args, name, None) for name in EXECUTE_RUNNER_PATHS}
+    if not any(value is not None for value in supplied.values()):
+        return []
+    if any(value is None for value in supplied.values()):
+        raise Blocked("execute_runner_requires_all_five_paths")
+    paths = {}
+    for name, value in supplied.items():
+        raw = Path(value).absolute()
+        if ".." in raw.parts or any(path.is_symlink() for path in (raw, *raw.parents)):
+            raise Blocked("execute_runner_symlink_or_noncanonical_path_" + name)
+        path = raw.resolve(strict=True)
+        if name in ("execute_request_dir", "execute_wine_prefix"):
+            if not path.is_dir():
+                raise Blocked("execute_runner_directory_required_" + name)
+        elif not path.is_file() or not os.access(path, os.X_OK):
+            raise Blocked("execute_runner_executable_required_" + name)
+        paths[name] = path
+    request, prefix = paths["execute_request_dir"], paths["execute_wine_prefix"]
+    if prefix == request or not prefix.is_relative_to(request):
+        raise Blocked("execute_wine_prefix_must_be_proper_child_of_request_directory")
+    roots = (args.game_dir.resolve(strict=True), args.archives.resolve(strict=True))
+    for name, path in paths.items():
+        if any(path.is_relative_to(root) or root.is_relative_to(path) for root in roots):
+            raise Blocked("execute_runner_overlaps_game_or_archives_" + name)
+    return [argument for name in EXECUTE_RUNNER_PATHS
+            for argument in ("--" + name.replace("_", "-"), str(paths[name]))]
+
+
 def strip_ocr_path_prefix(value):
     text = " ".join(str(value).split())
     component = text
@@ -957,6 +991,7 @@ def drive(args, private, result):
                "--input", str(driven_input), "--game-dir", str(args.game_dir),
                "--source-dir", str(args.archives),
                "--settings-dir", str(private / "settings")]
+    command.extend(execute_runner_arguments(args))
     seed_telemetry_config(private / "settings")
     save(private / "command.json", command)
     environment = os.environ.copy()
@@ -1123,6 +1158,7 @@ def verify_receipt(args, result, check_time, expected_ids):
 def execute(args, result):
     for name in ("binary", "input", "game_dir", "archives"):
         setattr(args, name, getattr(args, name).resolve(strict=True))
+    execute_runner_arguments(args)
     if not args.binary.is_file() or not os.access(args.binary, os.X_OK):
         raise Blocked("executable_required")
     if args.input.suffix.lower() != ".toml":
@@ -1237,6 +1273,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("binary", "input", "game-dir", "archives", "work-dir", "report"):
         parser.add_argument("--" + name, type=Path, required=True)
+    for name in EXECUTE_RUNNER_PATHS:
+        parser.add_argument("--" + name.replace("_", "-"), type=Path,
+                            help="explicit Windows Execute runner path; supply all five runner "
+                                 "paths together (external-program trust remains required)")
     parser.add_argument("--deselect", action="append", default=[], metavar="GUID",
                         help="reviewed policy skip: written IsSelected=false into a private copy and "
                              "reported as skipped_by_reviewed_policy, never as covered (repeatable)")
@@ -1276,6 +1316,7 @@ def main():
             gui_diag.mark_phase(args.private_worker, "preflight")
             for name in ("binary", "input", "game_dir", "archives"):
                 setattr(args, name, getattr(args, name).resolve(strict=True))
+            execute_runner_arguments(args)
             drive(args, args.private_worker, result)
         else:
             execute(args, result)

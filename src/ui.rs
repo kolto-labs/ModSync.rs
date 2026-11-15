@@ -166,6 +166,7 @@ pub struct App {
     peer_view: PeerView,
     expanded_budget: String,
     allow_processes: bool,
+    execute_runner: Option<modsync::engine::ProvidedInstallerRunner>,
     guide: Option<Guide>,
     page: usize,
     wizard: Option<Wizard>,
@@ -503,6 +504,7 @@ impl App {
                 &self.fomod_choices,
                 Self::choices_file_stamp(Path::new(&self.fomod_choices)),
                 self.allow_processes,
+                &self.execute_runner,
                 (
                     &self.checkpoints.config,
                     &self.profile_directory,
@@ -3001,6 +3003,7 @@ impl App {
             peer_view: Default::default(),
             expanded_budget: String::new(),
             allow_processes: false,
+            execute_runner: None,
             guide: None,
             page: 0,
             wizard: None,
@@ -3915,6 +3918,7 @@ impl App {
             self.restore_roots = Some(settings.roots.clone());
         }
         settings.allow_processes = self.allow_processes;
+        settings.execute_runner = self.execute_runner.clone();
         settings.patcher_engine = self.patcher_engine;
         settings.patcher = if self.patcher.is_empty() {
             None
@@ -4936,6 +4940,7 @@ impl eframe::App for App {
 }
 
 pub struct LaunchContext {
+    pub execute_runner: Option<modsync::engine::ProvidedInstallerRunner>,
     pub probe: Option<Probe>,
     pub easy_session: Option<PathBuf>,
 }
@@ -4950,6 +4955,7 @@ pub fn launch(
     context: LaunchContext,
 ) -> Result<()> {
     let LaunchContext {
+        execute_runner,
         probe,
         easy_session,
     } = context;
@@ -4960,7 +4966,10 @@ pub fn launch(
     };
     // A probe is always a separate instance: no socket claim and no forwarding, since
     // forwarding carries only protocol text, never probe configuration.
-    let separate = allow_multiple_instances || probe.is_some() || easy_session.is_some();
+    let separate = allow_multiple_instances
+        || probe.is_some()
+        || easy_session.is_some()
+        || execute_runner.is_some();
     let primary = if separate {
         None
     } else {
@@ -4986,6 +4995,8 @@ pub fn launch(
         native,
         Box::new(move |creation| {
             let mut app = App::with_launch(input, game, mods, settings_dir, probe);
+            app.execute_runner = execute_runner;
+            app.refresh_input_stamp();
             app.repaint = Some(creation.egui_ctx.clone());
             #[cfg(target_os = "macos")]
             {

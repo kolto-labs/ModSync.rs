@@ -39,6 +39,15 @@ pub fn requires_review(component: &Component) -> bool {
 
 pub fn mark_reviewed(component: &mut Component) -> anyhow::Result<()> {
     use anyhow::{Context, ensure};
+    ensure!(
+        component
+            .metadata
+            .get("DraftReview")
+            .and_then(|record| record.get("Generator"))
+            .and_then(serde_json::Value::as_str)
+            != Some(crate::vendor_installer::GENERATOR),
+        "Vendor installer drafts require independent verified replay"
+    );
     let reviewed_identity = review::identity(component)?;
     if let Some(record) = component.metadata.get("DraftReview") {
         anyhow::ensure!(
