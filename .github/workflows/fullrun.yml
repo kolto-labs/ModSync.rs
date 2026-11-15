@@ -209,7 +209,7 @@ jobs:
       MOD_CACHE_S3_ENDPOINT: ${{ vars.MOD_CACHE_BUCKET && secrets.MOD_CACHE_S3_ENDPOINT || '' }}
   comparison:
     needs: [plan, install]
-    if: ${{ !cancelled() && needs.install.result == 'success' && contains(fromJSON(needs.plan.outputs.modes), 'cli') && contains(fromJSON(needs.plan.outputs.modes), 'gui') }}
+    if: ${{ !cancelled() && (needs.plan.outputs.operation == 'full' || needs.plan.outputs.operation == 'install') && contains(fromJSON(needs.plan.outputs.modes || '[]'), 'cli') && contains(fromJSON(needs.plan.outputs.modes || '[]'), 'gui') }}
     strategy:
       fail-fast: false
       matrix:

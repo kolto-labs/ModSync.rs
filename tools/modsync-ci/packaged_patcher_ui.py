@@ -19,6 +19,13 @@ import uuid
 
 MAX_REQUEST = 16 * 1024 * 1024
 DEADLINE_SECONDS = 300
+PREFIX_STARTUP_SECONDS = 90
+
+
+class PrefixNotReady(Exception):
+    """The owned cold Wine prefix has not created its drive map yet."""
+
+
 # This helper operates Windows controls. The packaged installer receives no
 # additional command-line arguments and remains responsible for all patching.
 WINDOW_HELPER = r'''
@@ -358,7 +365,14 @@ def read_request(path, game):
     if not prefix.is_relative_to(path.parent):
         raise ValueError('packaged_ui_prefix_scope')
     ordinary(prefix, directory=True)
-    if (prefix / "dosdevices" / "z:").resolve() != Path("/"):
+    devices = prefix / "dosdevices"
+    if not devices.exists() and not devices.is_symlink():
+        raise PrefixNotReady()
+    ordinary(devices, directory=True)
+    mapping = devices / "z:"
+    if not mapping.exists() and not mapping.is_symlink():
+        raise PrefixNotReady()
+    if not mapping.is_symlink() or mapping.resolve(strict=True) != Path("/"):
         raise ValueError("packaged_ui_drive_mapping")
     return data, executable, prefix
 
@@ -549,6 +563,7 @@ def driver(requestdir, game):
     """Monitor only this operation's request directory and exact game target."""
     requests, game = ordinary(requestdir, directory=True), ordinary(game, directory=True)
     stopped, failures, children, seen = threading.Event(), [], {}, set()
+    prefix_pending = {}
 
     def monitor():
         while not stopped.wait(0.25):
@@ -561,7 +576,14 @@ def driver(requestdir, game):
                     data = json.loads(path.read_text())
                     if data.get('backend') != 'mod-packaged' or data.get('status') != 'awaitingHeadlessInteraction':
                         continue
-                    read_request(path, game)
+                    try:
+                        read_request(path, game)
+                    except PrefixNotReady:
+                        started = prefix_pending.setdefault(path.name, time.monotonic())
+                        if time.monotonic() - started >= PREFIX_STARTUP_SECONDS:
+                            raise ValueError('packaged_ui_prefix_startup_deadline') from None
+                        continue
+                    prefix_pending.pop(path.name, None)
                     seen.add(path.name)
                     log = (requests / ('packaged-ui-' + path.stem + '.log')).open('wb')
                     process = subprocess.Popen([sys.executable, __file__, '--request', str(path), '--game', str(game)],
@@ -575,7 +597,7 @@ def driver(requestdir, game):
                     if process.poll() not in (None, 0) and name not in failures:
                         failures.append(name)
             except Exception as error:
-                failures.append(type(error).__name__)
+                failures.append(str(error) if isinstance(error, ValueError) else type(error).__name__)
                 stopped.set()
 
     thread = threading.Thread(target=monitor, name='packaged-patcher-ui', daemon=True)
