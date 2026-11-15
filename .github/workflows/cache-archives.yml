@@ -66,6 +66,34 @@ jobs:
           path: ${{ runner.temp }}/mod-cache
           key: mod-archives-
           restore-keys: mod-archives-
+      - name: Prepare applicable exact K1 public-input identity
+        id: k1-public-key
+        env:
+          REQUESTED_GAMES: ${{ inputs.games }}
+        run: |
+          python - <<'PYKEY'
+          import json,os,sys
+          from pathlib import Path
+          sys.path.insert(0,'tools/modsync-ci')
+          import fullrun_stage,k1_widescreen_inputs as inputs
+          games=json.loads(os.environ['REQUESTED_GAMES'])
+          assert isinstance(games,list) and all(game in ('k1','k2') for game in games)
+          applicable=(os.environ['GITHUB_REPOSITORY']=='kolto-labs/ModSync.rs'
+              and os.environ['GITHUB_REF'].startswith('refs/heads/')
+              and 'k1' in games and fullrun_stage.native_k1_scope(Path('guide-input')))
+          with open(os.environ['GITHUB_OUTPUT'],'a') as output:
+              output.write('applicable='+str(applicable).lower()+'\n')
+              if applicable:
+                  identity='k1-widescreen-public-v1-'+inputs.PROFILE_SHA256+'-'+inputs.GALAXY_PROFILE_SHA256
+                  output.write('key='+identity+'\n')
+          PYKEY
+      - name: Restore exact K1 six-public-input accelerator
+        id: k1-public-cache
+        if: ${{ steps.k1-public-key.outputs.applicable == 'true' }}
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: ${{ runner.temp }}/mod-cache/k1-widescreen-inputs
+          key: ${{ steps.k1-public-key.outputs.key }}
       - name: Verify and refresh required archives
         id: refresh
         env:
@@ -88,6 +116,36 @@ jobs:
           fi
           python tools/modsync-ci/fullrun_stage.py refresh --guides guide-input --games "$GAMES" \
             --cache "$RUNNER_TEMP/mod-cache" --output "$RUNNER_TEMP/archive-evidence"
+      - name: Admit only the six verified public objects for auxiliary caching
+        id: k1-public-ready
+        if: ${{ inputs.cache_writer && steps.refresh.outcome == 'success' && steps.k1-public-key.outputs.applicable == 'true' && steps.k1-public-cache.outputs.cache-hit != 'true' }}
+        run: |
+          python - <<'PYCACHE'
+          import json,os,sys
+          from pathlib import Path
+          sys.path.insert(0,'tools/modsync-ci')
+          import fullrun_stage,k1_widescreen_inputs as inputs
+          root=Path(os.environ['RUNNER_TEMP'])
+          assert fullrun_stage.native_k1_scope(Path('guide-input'))
+          result=json.loads((root/'archive-evidence'/'k1-native-inputs.json').read_text())
+          assert result['ok'] is True and len(result['entries'])==6
+          assert result['profile_sha256']==inputs.PROFILE_SHA256
+          assert result['galaxy_profile_sha256']==inputs.GALAXY_PROFILE_SHA256
+          assert result['source_guide_sha256']==inputs.GUIDE_SHA256
+          auxiliary=root/'mod-cache'/'k1-widescreen-inputs'
+          expected={entry['sha256']:entry['bytes'] for entry in result['entries']}
+          assert len(expected)==6 and {path.name for path in auxiliary.iterdir()}=={'objects'}
+          objects=auxiliary/'objects'; assert objects.is_dir() and not objects.is_symlink()
+          assert {path.name for path in objects.iterdir()}==set(expected)
+          for path in objects.iterdir():
+              assert path.is_file() and not path.is_symlink() and path.stat().st_size==expected[path.name]
+          PYCACHE
+      - name: Save exact verified K1 six-public-input accelerator
+        if: ${{ inputs.cache_writer && steps.refresh.outcome == 'success' && steps.k1-public-key.outputs.applicable == 'true' && steps.k1-public-ready.outcome == 'success' && steps.k1-public-cache.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: ${{ runner.temp }}/mod-cache/k1-widescreen-inputs
+          key: ${{ steps.k1-public-key.outputs.key }}
       - name: Save verified public mod archive accelerator
         if: ${{ inputs.cache_writer && steps.refresh.outcome == 'success' && steps.refresh.outputs.archive_cache_key != '' }}
         uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830

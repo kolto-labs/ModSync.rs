@@ -43,6 +43,26 @@ jobs:
           ref: 67dc5fd8da6abde324c51d32eee3d04687070dd6
           path: guide-input
           persist-credentials: false
+      - name: Prepare exact six-public-input cache identity
+        id: k1-public-key
+        run: |
+          python - <<'PYKEY'
+          import hashlib,os,sys
+          from pathlib import Path
+          sys.path.insert(0,'tools/modsync-ci')
+          import k1_widescreen_inputs as inputs
+          guide=Path('guide-input/content/k1/full.md')
+          assert not guide.is_symlink() and guide.is_file()
+          assert hashlib.sha256(guide.read_bytes()).hexdigest()==inputs.GUIDE_SHA256
+          identity='k1-widescreen-public-v1-'+inputs.PROFILE_SHA256+'-'+inputs.GALAXY_PROFILE_SHA256
+          with open(os.environ['GITHUB_OUTPUT'],'a') as output: output.write('key='+identity+'\n')
+          PYKEY
+      - name: Restore exact six-public-input accelerator
+        id: k1-public-cache
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: ${{ runner.temp }}/mod-cache/k1-widescreen-inputs
+          key: ${{ steps.k1-public-key.outputs.key }}
       - name: Prepare disposable native runtime and real X11 input
         timeout-minutes: 15
         run: |
@@ -53,6 +73,7 @@ jobs:
           python -m pip install PyAutoGUI==0.9.54 pytesseract==0.3.13 Pillow==11.3.0
           rustup toolchain install 1.95.0 --profile minimal
       - name: Acquire six fixed public native inputs with production helper
+        id: public-inputs
         timeout-minutes: 20
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -66,9 +87,22 @@ jobs:
           import k1_widescreen_inputs
           assert os.environ['ARTSTORE_REPOSITORY']==os.environ['GITHUB_REPOSITORY']=='kolto-labs/ModSync.rs'
           root=Path(os.environ['RUNNER_TEMP'])
-          result=k1_widescreen_inputs.ensure(root/'archives',root/'public-input-cache',root/'k1-focused-evidence'/'public-input-provenance.json')
+          result=k1_widescreen_inputs.ensure(root/'archives',root/'mod-cache',root/'k1-focused-evidence'/'public-input-provenance.json')
           assert result['ok'] is True and len(result['entries'])==6
+          auxiliary=root/'mod-cache'/'k1-widescreen-inputs'
+          expected={entry['sha256']:entry['bytes'] for entry in result['entries']}
+          assert len(expected)==6 and {path.name for path in auxiliary.iterdir()}=={'objects'}
+          objects=auxiliary/'objects'; assert objects.is_dir() and not objects.is_symlink()
+          assert {path.name for path in objects.iterdir()}==set(expected)
+          for path in objects.iterdir():
+              assert path.is_file() and not path.is_symlink() and path.stat().st_size==expected[path.name]
           PY
+      - name: Save verified six-public-input accelerator before application build
+        if: ${{ steps.public-inputs.outcome == 'success' && steps.k1-public-cache.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: ${{ runner.temp }}/mod-cache/k1-widescreen-inputs
+          key: ${{ steps.k1-public-key.outputs.key }}
       - name: Build production application with no acquisition credentials
         timeout-minutes: 40
         run: |

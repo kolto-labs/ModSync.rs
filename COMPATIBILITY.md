@@ -4961,3 +4961,12 @@ a download endpoint. Only empty transient landing responses are retried within
 the existing deadline; challenge responses and every byte/name/path mismatch
 still reject. All six exact public inputs verify locally through that path;
 hosted acquisition and actual installation remain separate required proofs.
+
+The focused K1 producer and ordinary archive producer share an exact-profile
+accelerator for the six verified public input objects. Its dedicated path and
+key are identical across both workflows; all objects are rehashed by the
+production acquisition helper before use. Successful acquisition saves this
+small public-mod cache before application compilation, so later jobs can avoid
+intermittent empty publisher pages. Ordinary producer saves remain conditional
+on cache-writer mode and the original pinned K1 source. Hosted cache reuse is
+pending verification; game backups and diagnostic artifacts retain encryption.
