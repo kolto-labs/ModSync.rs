@@ -26,8 +26,8 @@ jobs:
           sudo rm -rf -- /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
           sudo dpkg --add-architecture i386
           sudo apt-get -o Acquire::Retries=3 update -qq
-          sudo apt-get -o Acquire::Retries=3 install -y --no-install-recommends age bubblewrap wine wine32:i386 wine64 xvfb xauth xdotool imagemagick tesseract-ocr zstd openssl python3-pip
-          /usr/bin/python3 -m pip install --target "$RUNNER_TEMP/companion-python" pykotor==2.3.12
+          sudo apt-get -o Acquire::Retries=3 install -y --no-install-recommends age bubblewrap wine wine32:i386 wine64 xvfb xauth xdotool tesseract-ocr zstd openssl python3-pip
+          /usr/bin/python3 -m pip install --target "$RUNNER_TEMP/companion-python" pykotor==2.3.12 Pillow==11.3.0
         env:
           RECIPIENT: ${{ vars.DIAGNOSTICS_ENCRYPTION_RECIPIENT }}
       - name: Acquire target-owned genuine baseline and one pinned original archive
@@ -115,6 +115,7 @@ jobs:
           from pathlib import Path
           sys.path.insert(0,'/reference')
           import manual
+          from PIL import ImageGrab
           work=Path('/work'); prefix=work/'prefix'; prefix.mkdir(mode=0o700)
           home=work/'home'; home.mkdir(mode=0o700)
           assert os.getuid()!=0
@@ -153,7 +154,11 @@ jobs:
                       assert window.isdecimal()
                       image=work/'modal.png'
                       try:
-                          subprocess.run(['/usr/bin/import','-window',window,str(image)],check=True,stdout=log,stderr=log,timeout=10)
+                          geometry=subprocess.run(['/usr/bin/xdotool','getwindowgeometry','--shell',window],capture_output=True,check=True,timeout=10).stdout.decode('ascii')
+                          fields=dict(line.split('=',1) for line in geometry.splitlines())
+                          x,y,width,height=(int(fields[key]) for key in ('X','Y','WIDTH','HEIGHT'))
+                          assert 0<=x<x+width<=1024 and 0<=y<y+height<=768
+                          ImageGrab.grab(bbox=(x,y,x+width,y+height),xdisplay=os.environ['DISPLAY']).save(image)
                           assert image.is_file() and image.stat().st_size<=4*1024*1024
                           text=subprocess.run(['/usr/bin/tesseract',str(image),'stdout','--psm','6'],capture_output=True,check=True,timeout=20).stdout
                           assert len(text)<=8192
