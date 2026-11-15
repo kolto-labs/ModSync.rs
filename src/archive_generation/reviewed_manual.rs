@@ -25,7 +25,7 @@ struct BookSpec {
     kind: &'static str,
     generator: &'static str,
 }
-const BOOKS: [BookSpec; 4] = [
+const BOOKS: [BookSpec; 5] = [
     BookSpec {
         filename: "reviewed_manual_k2.json",
         content: include_str!("reviewed_manual_k2.json"),
@@ -63,6 +63,16 @@ const BOOKS: [BookSpec; 4] = [
         guide_sha256: "f442bdf574031623ed577609730d887069b9bc8e38e8e2f38ecc43a7e7487d5f",
         plan_sha256: "0add8c1aeb7cdfad3df4b21761e135c150aa7832cf3fc0edabe01a91245a9258",
         count: 1,
+        kind: "ReviewedManualK2NativePatcher",
+        generator: PATCHER_GENERATOR,
+    },
+    BookSpec {
+        filename: "reviewed_manual_log_delete_k2.json",
+        content: include_str!("reviewed_manual_log_delete_k2.json"),
+        sha256: "b4850e572859cf4c22616be584a0ca02411fb2ddcd3ae4f23fcb05d7a97af13a",
+        guide_sha256: "f442bdf574031623ed577609730d887069b9bc8e38e8e2f38ecc43a7e7487d5f",
+        plan_sha256: "0add8c1aeb7cdfad3df4b21761e135c150aa7832cf3fc0edabe01a91245a9258",
+        count: 2,
         kind: "ReviewedManualK2NativePatcher",
         generator: PATCHER_GENERATOR,
     },
@@ -126,6 +136,79 @@ impl NativeTranslation {
         Ok(parent.to_path_buf())
     }
 }
+/// Only these two compiled owners may delete their packaged stale log before
+/// their native patch. This map is not recipe admission; find_recipe still
+/// requires a hash-pinned compiled book and the full original owner/plan.
+fn packaged_native_log(guid: &str) -> Option<&'static str> {
+    match guid {
+        "2de86e49-571f-8600-931e-5bc2ad5acebe" => Some("Rescaled Trandoshans/installlog.rtf"),
+        "3eb56efe-013e-8095-80cf-a2584ba2cf94" => Some("Install/installlog.rtf"),
+        _ => None,
+    }
+}
+
+/// Admit exactly the existing two-operation shape or either closed three-step
+/// source plan. No other action, deletion, slot, optional deletion or owner is
+/// admitted by extending the Patcher operation index.
+fn native_shape(recipe: &Recipe) -> Result<Option<&'static str>> {
+    let translation = recipe
+        .native_patcher
+        .as_ref()
+        .context("Missing native translation")?;
+    ensure!(
+        translation.extract_operation_index == 0 && recipe.archives.len() == 1,
+        "Native translation requires one extraction and one archive"
+    );
+    let Some(Operation::Extract {
+        source,
+        destination,
+    }) = recipe.plan_step.operations.first()
+    else {
+        anyhow::bail!("Native translation must begin with its exact extraction");
+    };
+    ensure!(
+        token(source, "archives")? == recipe.archives[0].filename,
+        "Native extraction differs from its sole compiled archive"
+    );
+    let slot = token(destination, "extract")?;
+    let log = packaged_native_log(&recipe.component_guid);
+    if let Some(member) = log {
+        let step = match recipe.component_guid.as_str() {
+            "2de86e49-571f-8600-931e-5bc2ad5acebe" => "step-122",
+            "3eb56efe-013e-8095-80cf-a2584ba2cf94" => "step-118",
+            _ => anyhow::bail!("Unknown native packaged-log owner"),
+        };
+        ensure!(
+            recipe.plan_step.id == step
+                && slot == format!("{step}/1")
+                && translation.operation_index == 2
+                && recipe.plan_step.operations.len() == 3
+                && translation.installer_parent()?.join("installlog.rtf") == Path::new(member),
+            "Native packaged-log translation differs from the closed owner slot/root/operation shape"
+        );
+        let Operation::Delete { path, missing_ok } = &recipe.plan_step.operations[1] else {
+            anyhow::bail!("Native packaged-log translation requires its original deletion");
+        };
+        ensure!(
+            missing_ok.is_none() && token(path, "extract")? == format!("{slot}/{member}"),
+            "Native packaged-log deletion must be the exact original strict slot-local installlog.rtf"
+        );
+    } else {
+        ensure!(
+            translation.operation_index == 1 && recipe.plan_step.operations.len() == 2,
+            "Native translation supports only the original extract/Patcher shape for this owner"
+        );
+    }
+    ensure!(
+        matches!(
+            recipe.plan_step.operations.get(translation.operation_index),
+            Some(Operation::GuiPatcher { .. })
+        ),
+        "Native translation must end at its original GUI operation"
+    );
+    Ok(log)
+}
+
 /// Cannot be constructed from authored JSON. Issued only for a known, cleared
 /// compiled recipe and its exact native instruction.
 pub(crate) struct NativePatcherContract {
@@ -145,6 +228,13 @@ impl NativePatcherContract {
     }
     pub(crate) fn verify_staged(&self, base: &Path, cancelled: &AtomicBool) -> Result<()> {
         let parent = self.translation.installer_parent()?;
+        if packaged_native_log(&self.component_guid).is_some() {
+            ensure!(
+                matches!(std::fs::symlink_metadata(base.join("installlog.rtf")),
+                Err(error) if error.kind() == std::io::ErrorKind::NotFound),
+                "Native packaged stale log was not deleted before private staging"
+            );
+        }
         ensure!(
             !base.join("tslpatchdata/namespaces.ini").exists(),
             "Reviewed Patcher forbids namespaces"
@@ -562,6 +652,8 @@ fn verify_native_members(
         "Native translation requires one archive and canonical sole INI"
     );
     translation.installer_parent()?;
+    let packaged_log = native_shape(recipe)?;
+    let mut packaged_log_found = false;
     let pin = &recipe.archives[0];
     let mut bounded = options.clone();
     bounded.max_expanded_bytes = Some(
@@ -586,6 +678,10 @@ fn verify_native_members(
             .context("Non-UTF8 native member")?
             .replace('\\', "/");
         let lower = name.to_lowercase();
+        if packaged_log == Some(name.as_str()) {
+            ensure!(!packaged_log_found, "Duplicate native packaged log member");
+            packaged_log_found = true;
+        }
         ensure!(
             !lower.ends_with("/namespaces.ini") && lower != "namespaces.ini",
             "Native translation forbids namespaces"
@@ -605,8 +701,8 @@ fn verify_native_members(
         }
     }
     ensure!(
-        ini_count == 1 && found.len() == 2,
-        "Native translation requires exact installer and sole INI"
+        ini_count == 1 && found.len() == 2 && (packaged_log.is_none() || packaged_log_found),
+        "Native translation requires exact installer, sole INI and any declared packaged log"
     );
     ensure!(
         hash(&root.join(&pin.filename), cancelled)?.0 == pin.sha256,
@@ -642,8 +738,10 @@ pub(crate) fn native_patcher_contract(
         );
         return Ok(None);
     };
+    let packaged_log = native_shape(&recipe)?;
     ensure!(
-        spec.generator == PATCHER_GENERATOR && component.instructions.len() == 2,
+        spec.generator == PATCHER_GENERATOR
+            && component.instructions.len() == recipe.plan_step.operations.len(),
         "Native Patcher recipe instruction shape changed"
     );
     let binding = component
@@ -679,21 +777,33 @@ pub(crate) fn native_patcher_contract(
         native.clone(),
         false,
     );
+    let mut expected_instructions = vec![expected_extract];
+    if let Some(member) = packaged_log {
+        expected_instructions.push(instruction(
+            component,
+            1,
+            "Delete",
+            format!("{native}/{member}"),
+            String::new(),
+            true,
+        ));
+    }
     let mut expected_patcher = instruction(
         component,
-        1,
+        translation.operation_index,
         "Patcher",
         format!("{native}/{}", translation.installer.path),
         translation.destination.clone(),
         false,
     );
     expected_patcher.arguments = translation.arguments.clone();
+    expected_instructions.push(expected_patcher);
     ensure!(
         serde_json::to_value(&component.instructions)?
-            == serde_json::to_value([expected_extract, expected_patcher])?,
+            == serde_json::to_value(expected_instructions)?,
         "Native Patcher complete instruction model differs from catalog"
     );
-    let expected = &component.instructions[1];
+    let expected = &component.instructions[translation.operation_index];
     ensure!(
         expected.action == "Patcher"
             && expected.arguments == translation.arguments
@@ -760,6 +870,11 @@ pub(crate) fn bind(
             inspect(pin, &root, options, cancelled)?,
         );
     }
+    let packaged_log = if recipe.native_patcher.is_some() {
+        native_shape(&recipe)?
+    } else {
+        None
+    };
     let mut slots: BTreeMap<String, Slot> = BTreeMap::new();
     let mut used = BTreeSet::new();
     let mut instructions = Vec::new();
@@ -780,10 +895,8 @@ pub(crate) fn bind(
                     .context("GUI operation is not a native translation")?;
                 ensure!(
                     spec.generator == PATCHER_GENERATOR
-                        && operation_index == 1
-                        && translation.operation_index == 1
+                        && operation_index == translation.operation_index
                         && translation.extract_operation_index == 0
-                        && recipe.plan_step.operations.len() == 2
                         && recipe.archives.len() == 1
                         && translation.arguments == "changes.ini"
                         && translation.destination == "<<kotorDirectory>>"
@@ -801,6 +914,12 @@ pub(crate) fn bind(
                         && slot.files.contains(&member),
                     "Native Patcher source differs from original recipe"
                 );
+                if let Some(log) = packaged_log {
+                    ensure!(
+                        !slot.files.contains(log),
+                        "Native packaged log remains in the expected slot model before Patcher"
+                    );
+                }
                 verify_native_members(&recipe, &root, options, cancelled)?;
                 let mut generated = instruction(
                     &bound,

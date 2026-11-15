@@ -4942,3 +4942,22 @@ from the installer's19 file operations, and requires both counts plus the exact
 option trees cannot carry native bindings, generator or action markers; this
 prevents both ordinary Choose execution and recorded actions from bypassing
 the closed whole-guide schedule.
+
+HQ Blasters and Rescaled Trandoshans retain their exact three-operation source
+plans: extract the complete original archive, strictly delete its packaged old
+installlog.rtf in the owned slot, then run the single built-in native Patcher.
+Only these two compiled GUIDs/steps admit that form; both file-operation models
+and missing-file semantics are checked in full at replay and runtime. Exact
+original EXE/INI and every member inventory were independently authenticated
+in hosted metadata run43704056024, without exporting payloads. The original
+123 file-effect and five native book pins remain unchanged. Actual complete151
+K2 source binding/replay for Trandoshans passes, and changed deletion targets or
+semantics retain the review requirement. All five production checks pass;
+actual seven-native/ten-owner CLI and GUI installation is still pending.
+
+K1 public input discovery now starts from each publisher's actual landing page
+and follows its verified session-bound download button, rather than guessing
+a download endpoint. Only empty transient landing responses are retried within
+the existing deadline; challenge responses and every byte/name/path mismatch
+still reject. All six exact public inputs verify locally through that path;
+hosted acquisition and actual installation remain separate required proofs.
