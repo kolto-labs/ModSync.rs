@@ -154,12 +154,12 @@ jobs:
                   report['interface_ocr']=' '.join(pytesseract.image_to_string(combo,config='--psm 7',timeout=20).split())
                   assert report['interface_ocr']==report['interface'], 'Exact selected vendor interface not observed'
                   report['actions'].append('selected exact KOTOR 1024x768 interface, OCR confirmed'); save()
-                  # Vendor-owned Find searches only C: prefix and D: disposable target.
-                  click(row(rows,r'F?ind\s+it\s+for\s+me\.*'))
-                  for attempt in range(6):
-                      time.sleep(5); rows=capture('03-folder-'+str(attempt))
-                      if not any('searching' in r['text'].lower() for r in rows): break
-                  assert not any('searching' in r['text'].lower() for r in rows), 'Vendor search did not settle'
+                  # D: is the disposable target itself; select its visible vendor tree item.
+                  # Find instead leaves a Found dialog and a Keep searching button on success.
+                  click(row(rows,r'\(D:\)',zone=(0.0,0.2,0.5,0.65)))
+                  time.sleep(2); rows=capture('03-folder')
+                  row(rows,r'Patch',zone=(0.85,0.82,1.0,1.0))
+                  report['actions'].append('selected isolated D: target in vendor folder tree, Patch control OCR confirmed'); save()
                   # Resolution edits are the native controls immediately right of their labels.
                   width=row(rows,r'(?:Screen\s+)?Width:?'); ui.click(width['right']+35,(width['y']+width['bottom'])/2); ui.hotkey('ctrl','a'); ui.write('1920')
                   # Height may share an OCR line with adjacent width text: refuse ambiguity.
