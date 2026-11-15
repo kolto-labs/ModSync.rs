@@ -6,7 +6,8 @@ name: Engine full-run CI
 on:
   push:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
+    # Draft PRs already receive full coverage; becoming ready must not restart it.
+    types: [opened, synchronize, reopened, labeled, unlabeled]
   workflow_dispatch:
     inputs:
       operation:
