@@ -86,6 +86,8 @@ VALIDATION_NAV_LABEL = "Validation / install"
 VALIDATION_PAGE_MARKER = re.compile(r"Run\s*validation|Analyze\s*conflicts|Install\s*selected\s*mods", re.IGNORECASE)
 VALIDATION_STARTED_MARKER = re.compile(
     r"Validating\b|Starting\s*validation|Validation\s*(?:completed|passed)", re.IGNORECASE)
+FRESH_VALIDATION_STARTED_MARKER = re.compile(
+    r"^\s*(?:Validating\b|Starting\s*validation\b)", re.IGNORECASE)
 INSTALL_REVIEW_MARKER = re.compile(r"Ready\s*to\s*Install", re.IGNORECASE)
 INSTALL_CONFIRMATION_MARKER = re.compile(
     r"Create\s*snap|snap\w*\s*needs|Install\s*selected\s*mods\s*\?", re.IGNORECASE)
@@ -995,7 +997,8 @@ def drive(args, private, result):
             time.sleep(0.5)
 
     def transition(name, label, marker, reason, pattern=None, window=NAV_WINDOW_SECONDS,
-                   scales=(2,), retry=True, page_marker=None, fragments=None):
+                   scales=(2,), retry=True, page_marker=None, fragments=None,
+                   fresh_after_click=False):
         """Click `label` until `marker` is read on screen, or block with `reason`.
 
         The desktop ignores clicks on disabled controls (it is busy loading, saving the
@@ -1017,6 +1020,8 @@ def drive(args, private, result):
         screen centre, where the modal sits). With `fragments` (a fragment and an anchor
         regex) a control whose label OCR split into several words is also located from
         those words when the full-phrase pattern finds nothing.
+        With `fresh_after_click`, a marker must be new since the initial frame and
+        observed after this transition clicked its label; prior phase logs cannot qualify.
         """
         result["stage"] = name + "_navigation"
         mark()
@@ -1059,8 +1064,13 @@ def drive(args, private, result):
                 name, navigation["attempts"], len(read), len(relevant),
                 " | ".join(nav_log_lines(read, relevant, navigation["attempts"])) or "<no text>"),
                 flush=True)
-            if any(marker.search(text) for text in read):
+            marker_lines = new_lines(baseline, read) if fresh_after_click else read
+            if ((not fresh_after_click or navigation["label_clicks"] > 0)
+                    and any(marker.search(text) for text in marker_lines)):
                 navigation["reached"] = True
+                if fresh_after_click:
+                    navigation["fresh_marker_after_click"] = [
+                        text for text in marker_lines if marker.search(text)][:8]
                 shot.save(private / (evidence + ".png"))
                 save(private / (evidence + ".json"), navigation)
                 return
@@ -1216,11 +1226,22 @@ def drive(args, private, result):
                     transition("remaining_selection", "Next",
                         re.compile(r"\d+\s*widescreen\s*mods\s*selected", re.IGNORECASE),
                         "remaining_selection_not_reached", pattern=NEXT_PATTERN)
-                    transition("remaining_validation_start", "Run validation", VALIDATION_STARTED_MARKER,
-                               "remaining_validation_not_started")
+                    # The wizard embeds validation below the full widescreen
+                    # list; its controls can be below the viewport. The existing
+                    # utility tab exposes the same phase-aware validation without
+                    # changing selection, wizard position, or completed_base.
+                    transition("remaining_validation_page", VALIDATION_NAV_LABEL,
+                               VALIDATION_PAGE_MARKER, "remaining_validation_page_not_reached")
+                    transition("remaining_validation_start", "Run validation",
+                               FRESH_VALIDATION_STARTED_MARKER,
+                               "remaining_validation_not_started", retry=False,
+                               fresh_after_click=True)
                     result["stage"] = "remaining_validation"
                     mark()
                     locate("Validation passed", scales=BANNER_OCR_SCALES)
+                    transition("remaining_wizard_return", "Return to wizard",
+                               re.compile(r"Widescreen\s*Mod\s*Selection", re.IGNORECASE),
+                               "remaining_wizard_not_reached")
                     transition("remaining_confirmation", "Next", INSTALL_CONFIRMATION_MARKER,
                                "remaining_confirmation_not_reached", pattern=NEXT_PATTERN,
                                scales=CONFIRMATION_OCR_SCALES, retry=False,
