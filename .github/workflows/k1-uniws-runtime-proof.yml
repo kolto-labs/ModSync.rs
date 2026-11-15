@@ -142,8 +142,8 @@ jobs:
               with (evidence/'vendor.log').open('wb') as log:
                   process=subprocess.Popen(['wine',r'C:\uniws\uniws.exe'],cwd=vendor,env=env,stdout=log,stderr=subprocess.STDOUT)
                   time.sleep(8); rows=capture('01-initial')
-                  # Exact form resource: Game group x7,y4; combo immediately below caption.
-                  anchor=row(rows,r'Game'); ui.click(anchor['x']+220,anchor['bottom']+14)
+                  # Retained vendor OCR sees the initial combo value, but omits its Game caption.
+                  click(row(rows,r'Dungeon\s+Lords',zone=(0.0,0.0,1.0,0.2)))
                   ui.press('home'); ui.press('down',presses=8,interval=0.12); ui.press('enter'); time.sleep(2)
                   rows=capture('02-interface'); assert any('1024x768' in r['text'].replace(' ','').lower() and 'kotor' in r['text'].lower() for r in rows)
                   report['actions'].append('selected exact KOTOR 1024x768 interface, OCR confirmed'); save()
