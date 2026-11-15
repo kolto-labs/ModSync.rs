@@ -12,7 +12,7 @@ on:
       operation:
         description: Run one stage independently or compose the complete single-lane install pipeline
         type: choice
-        options: [full, check, games, archives, install, seed, p2p]
+        options: [full, check, games, archives, install, seed, retain-inputs, p2p]
         default: full
       install_profile:
         description: Installation coverage; full excludes massive movies, exhaustive includes them
@@ -60,7 +60,7 @@ env:
 permissions: {contents: read, actions: read}
 concurrency:
   # Quick pushes cannot cancel the same commit's required PR installation.
-  group: fullrun-${{ github.event_name == 'push' && 'quick' || 'installation' }}-${{ github.head_ref || github.ref_name }}
+  group: fullrun-${{ github.event_name == 'push' && 'quick' || inputs.operation == 'retain-inputs' && 'retention' || 'installation' }}-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 jobs:
   plan:
@@ -220,6 +220,12 @@ jobs:
       MOD_CACHE_S3_ACCESS_KEY_ID: ${{ !inputs.seed_dry_run && secrets.MOD_CACHE_S3_ACCESS_KEY_ID || '' }}
       MOD_CACHE_S3_SECRET_ACCESS_KEY: ${{ !inputs.seed_dry_run && secrets.MOD_CACHE_S3_SECRET_ACCESS_KEY || '' }}
       MOD_CACHE_S3_ENDPOINT: ${{ !inputs.seed_dry_run && secrets.MOD_CACHE_S3_ENDPOINT || '' }}
+  retain_inputs:
+    needs: plan
+    if: ${{ github.event_name == 'workflow_dispatch' && needs.plan.outputs.operation == 'retain-inputs' }}
+    uses: ./.github/workflows/retain-k1-public-inputs.yml
+    secrets:
+      CACHE_ENCRYPTION_KEY: ${{ secrets.CACHE_ENCRYPTION_KEY }}
   p2p:
     needs: plan
     if: ${{ needs.plan.outputs.operation == 'full' || needs.plan.outputs.operation == 'p2p' }}
@@ -230,8 +236,8 @@ jobs:
     secrets:
       MODSYNC_SOURCE_TOKEN: ${{ secrets.MODSYNC_SOURCE_TOKEN }}
   result:
-    name: ${{ github.event_name == 'pull_request' && 'PR installation gate' || github.event_name == 'push' && 'Branch installation result' || 'Manual installation result' }}
-    needs: [plan, toolkit, games, archives, install, seed, p2p]
+    name: ${{ github.event_name == 'pull_request' && 'PR installation gate' || github.event_name == 'push' && 'Branch installation result' || 'Manual requested-scope result' }}
+    needs: [plan, toolkit, games, archives, install, seed, retain_inputs, p2p]
     if: ${{ always() && (needs.plan.result != 'success' || needs.plan.outputs.install_profile != 'quick') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 2

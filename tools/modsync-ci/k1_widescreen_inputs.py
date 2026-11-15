@@ -5,7 +5,8 @@
 publisher fallback needs no credentials and remains available with remote=False.
 Cache-first uses verified cache tiers before publishers; refresh tries publishers
 first and falls back to verified cache. cache_only forbids publisher requests.
-This does not change the main archive manifest, cache objects, packs or indexes.
+Normal ensure() never publishes. Explicit one-time retention may stage exactly
+these six verified inputs into the existing encrypted cumulative artifact store.
 """
 from __future__ import annotations
 
@@ -288,7 +289,7 @@ def _publisher(pin, target):
     raise InputError("publisher-resolution-limit")
 
 
-def _remote_context():
+def _remote_context(*, strict=False):
     """Only this job's existing same-repository GitHub token, never a PAT override."""
     if os.environ.get("GITHUB_REPOSITORY", "").casefold() != REPOSITORY.casefold():
         return None
@@ -299,7 +300,23 @@ def _remote_context():
     client = artstore_client.from_environment(environment, timeout=30, max_retries=2, max_wait=4, max_pages=8)
     if client is None:
         return None
-    return artstore, client, artstore.load_index(client, keep=1)
+    if strict:
+        # Publication must not silently discard an unreadable recent fragment.
+        # Keep all pack metadata for reconciliation, but bound index reads to the
+        # same newest three live fragments used by normal recovery.
+        now = time.time()
+        listing = client.list_artifacts(include_expired=True)
+        fragments = artstore._newest_first([item for item in listing
+            if str(item.get("name", "")).startswith(artstore.core.INDEX_PREFIX)
+            and not artstore._is_dead(item, now)])[:artstore.INDEX_FETCH_LIMIT]
+        _require(bool(fragments), "artifact-staging-prior-index-unavailable")
+        packs = [item for item in listing
+            if not str(item.get("name", "")).startswith(artstore.core.INDEX_PREFIX)]
+        index = artstore._index_from_listing(client, fragments + packs,
+            artstore.INDEX_FETCH_LIMIT, now, strict=True)
+    else:
+        index = artstore.load_index(client)
+    return artstore, client, index
 
 
 def _remote_fetch(context, pin, target, scratch):
@@ -319,6 +336,53 @@ def _remote_fetch(context, pin, target, scratch):
         _identity(path, pin)
         _copy(path, target, pin)
         return True
+
+
+
+def stage_verified_artifacts(cache_root: Path, output_root: Path) -> dict:
+    """Explicit one-time encrypted retention preparation; never called by ensure.
+
+    CI owns publication: upload packs first, reconcile their API metadata, then
+    publish the cumulative index last. Only the existing same-repository token
+    and CACHE_ENCRYPTION_KEY are used. Return paths are not upload authorization.
+    """
+    root, output = _path(cache_root), _path(output_root)
+    _require(not (root.is_relative_to(output) or output.is_relative_to(root)),
+             "artifact-staging-cache-overlap")
+    pins = _pins()  # Full compiled source/guide/profile and exact raw-byte pins.
+    objects = root / "k1-widescreen-inputs" / "objects"
+    _ordinary(objects.lstat(), directory=True)
+    _require({item.name for item in objects.iterdir()} == {pin["sha256"] for pin in pins},
+             "artifact-input-inventory-mismatch")
+    for pin in pins:
+        _identity(objects / pin["sha256"], pin)
+    output = _directory(output)
+    _require(not any(output.iterdir()), "artifact-staging-not-empty")
+    context = _remote_context(strict=True)
+    _require(context is not None, "artifact-staging-own-repository-unavailable")
+    artstore, _client, index = context
+    prior = output / "prior-index.json"
+    artstore.core.dump_index(index, prior)
+    result = artstore.stage([(objects / pin["sha256"], pin["sha256"]) for pin in pins],
+        output / "staged", index=index, part_size=MAX_INPUT,
+        pack_budget=sum(pin["bytes"] for pin in pins) + 4096 * len(pins), max_packs=1)
+    _require(not result["deferred"], "artifact-staging-deferred-inputs")
+    staged = {blob["sha256"] for blob in result["blobs"]}
+    for pin in pins:
+        existing = artstore.core.lookup(index, pin["sha256"])
+        _require(pin["sha256"] in staged or existing is not None
+                 and existing["size"] == pin["bytes"], "artifact-staging-input-missing")
+    profile = _profile(Path(__file__).resolve().parents[2] / "src" / "k1_widescreen_profile.json",
+                       PROFILE_SHA256)
+    result.update(prior_index_path=str(prior), input_evidence={
+        "repository": REPOSITORY, "profile_id": PROFILE_ID,
+        "profile_sha256": PROFILE_SHA256, "galaxy_profile_sha256": GALAXY_PROFILE_SHA256,
+        "source_guide_sha256": GUIDE_SHA256, "source_plan_sha256": PLAN_SHA256,
+        "source_component_guids": [item["canonical"]["Guid"] for item in profile["source_components"]],
+        "inputs": pins})
+    # Neither prior-index.json nor input_evidence contains any plaintext payload;
+    # upload only packs[*].dir and the reconciled cumulative index chosen by CI.
+    return result
 
 
 def _report(path, report):

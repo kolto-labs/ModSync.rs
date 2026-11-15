@@ -14,7 +14,7 @@ import sys
 from seal import MIN_KEY_BYTES, validate_recipient
 import fullrun_guide_choices
 
-OPERATIONS = ("check", "full", "games", "archives", "install", "seed", "p2p")
+OPERATIONS = ("check", "full", "games", "archives", "install", "seed", "retain-inputs", "p2p")
 SHA = re.compile(r"[0-9a-f]{40}")
 REPO = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+")
 HERE = Path(__file__).resolve().parent
@@ -46,6 +46,8 @@ def plan(config, execution_repository, own_sha, counterpart_sha="", operation="c
     guide_repo = repository(config["guide_repository"])
     if operation not in OPERATIONS or game not in ("both", "k1", "k2") or mode not in ("both", "cli", "gui"):
         raise ValueError("unsupported operation, game or mode")
+    if operation == "retain-inputs" and event != "workflow_dispatch":
+        raise ValueError("public-input retention requires explicit manual dispatch")
     if type(write_cache) is not bool:
         raise ValueError("write_cache must be boolean")
     if (event != "workflow_dispatch" and operation != "check"
@@ -226,7 +228,8 @@ def aggregate(operation, results, require_downloader=False):
     required = {"check": ("plan", "toolkit"), "full": ("plan", "toolkit", "games", "archives", "install", "p2p"),
                 "games": ("plan", "toolkit", "games"), "archives": ("plan", "toolkit", "archives"),
                 "install": ("plan", "toolkit", "install"), "seed": ("plan", "toolkit", "seed"),
-                "p2p": ("plan", "toolkit", "p2p")}
+                "p2p": ("plan", "toolkit", "p2p"),
+                "retain-inputs": ("plan", "toolkit", "retain_inputs")}
     if operation not in required or not isinstance(results, dict):
         raise ValueError("unknown requested coverage")
     missing = [name for name in required[operation]
@@ -328,7 +331,9 @@ def main(argv=None):
                          operation, os.environ.get("REQUEST_GAME", "both"),
                          os.environ.get("REQUEST_MODE", "both"), raw == "true", event, trusted_pull)
             value.update(policy)
-            value["claim"] = "workflow-contract-only" if operation == "check" else policy["install_profile"] + "-installation"
+            value["claim"] = ("workflow-contract-only" if operation == "check" else
+                              "verified-public-input-retention" if operation == "retain-inputs" else
+                              policy["install_profile"] + "-installation")
             value.pop("plan_id", None)
             value["plan_id"] = hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
             emit_outputs(value)

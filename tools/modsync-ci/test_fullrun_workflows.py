@@ -35,7 +35,7 @@ class WorkflowGraph(unittest.TestCase):
         self.assertEqual(main["jobs"]["install"]["strategy"]["fail-fast"], "false")
         gate = main["jobs"]["result"]
         self.assertIn("always()", gate["if"])
-        self.assertEqual(set(gate["needs"]), {"plan","toolkit","games","archives","install","seed","p2p"})
+        self.assertEqual(set(gate["needs"]), {"plan","toolkit","games","archives","install","seed","retain_inputs","p2p"})
     def test_install_admits_skipped_producers_but_not_cancelled_or_invalid_plans(self):
         main = yaml.load((ROOT / ".github/workflows/fullrun.yml").read_text(), Loader=yaml.BaseLoader)
         expression = main["jobs"]["install"]["if"][3:-2].strip()
@@ -63,7 +63,8 @@ class WorkflowGraph(unittest.TestCase):
                 ("workflow_dispatch", "full", False, "feature", "full", "minimal", "cache-first", False),
                 ("workflow_dispatch", "games", True, "feature", "games", "minimal", "cache-first", True),
                 ("workflow_dispatch", "install", True, "feature", "install", "minimal", "cache-first", False),
-                ("workflow_dispatch", "check", True, "feature", "check", "minimal", "cache-first", False)):
+                ("workflow_dispatch", "check", True, "feature", "check", "minimal", "cache-first", False),
+                ("workflow_dispatch", "retain-inputs", True, "feature", "retain-inputs", "minimal", "cache-first", False)):
             repository = "kolto-labs/ModSync.rs"
             context = {"github.event_name": event, "github.repository": repository,
                        "github.event.pull_request.head.repo.full_name": repository,
@@ -118,6 +119,45 @@ class WorkflowGraph(unittest.TestCase):
             document = yaml.load(path.read_text(), Loader=yaml.BaseLoader)
             if path.name != "fullrun.yml":
                 self.assertNotIn("push", document.get("on", {}), path.name)
+    def test_pr_reads_pinned_k1_auxiliary_cache_without_enabling_publication(self):
+        import fullrun_stage
+        archive = yaml.load((ROOT / ".github/workflows/cache-archives.yml").read_text(), Loader=yaml.BaseLoader)
+        steps = archive["jobs"]["archives"]["steps"]
+        key = next(step for step in steps if step.get("id") == "k1-public-key")
+        script = "\n".join(key["run"].splitlines()[1:-1])
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "outputs"
+            env = {"GITHUB_REPOSITORY": "kolto-labs/ModSync.rs", "GITHUB_REF": "refs/pull/95/merge",
+                   "REQUESTED_GAMES": '["k1","k2"]', "GITHUB_OUTPUT": str(path)}
+            with mock.patch.dict(os.environ, env, clear=True), mock.patch.object(fullrun_stage, "native_k1_scope", return_value=True):
+                exec(compile(script, "<archive cache identity>", "exec"), {})
+            self.assertIn("applicable=true", path.read_text())
+            self.assertIn("key=k1-widescreen-public-v1-", path.read_text())
+        ready = next(step for step in steps if step.get("id") == "k1-public-ready")
+        self.assertIn("startsWith(github.ref, 'refs/heads/')", ready["if"])
+        lane = yaml.load((ROOT / ".github/workflows/fullrun-lane.yml").read_text(), Loader=yaml.BaseLoader)
+        restored = [step for step in lane["jobs"]["install"]["steps"]
+                    if step.get("name") == "Restore exact K1 auxiliary cache independently of its producer"]
+        self.assertEqual(len(restored), 1)
+        self.assertIn("actions/cache/restore@", restored[0]["uses"])
+
+    def test_retention_is_reusable_before_default_branch_registration_and_manual_only(self):
+        main = yaml.load((ROOT / ".github/workflows/fullrun.yml").read_text(), Loader=yaml.BaseLoader)
+        retention = main["jobs"]["retain_inputs"]
+        self.assertIn("github.event_name == 'workflow_dispatch'", retention["if"])
+        self.assertEqual(retention["uses"], "./.github/workflows/retain-k1-public-inputs.yml")
+        document = yaml.load((ROOT / retention["uses"][2:]).read_text(), Loader=yaml.BaseLoader)
+        self.assertIn("workflow_call", document["on"])
+        self.assertEqual(document["on"]["workflow_call"]["secrets"]["CACHE_ENCRYPTION_KEY"]["required"], "true")
+        self.assertIn("'retention'", main["concurrency"]["group"])
+        config = json.loads((ROOT / ".github/fullrun.json").read_text())
+        with self.assertRaises(ValueError):
+            fullrun_contract.plan(config, config["repository"], "a" * 40, operation="retain-inputs", event="push")
+        self.assertEqual(fullrun_contract.aggregate("retain-inputs", {name: {"result": "success"}
+            for name in ("plan", "toolkit", "retain_inputs")})["status"], "passed")
+        with self.assertRaises(ValueError):
+            fullrun_contract.aggregate("retain-inputs", {name: {"result": "success"} for name in ("plan", "toolkit")})
+
     def test_each_private_stage_checks_its_own_credentials_before_any_acquisition(self):
         for filename, job, stage, keys in (
                 ("cache-game.yml", "game", "games", {"CACHE_ENCRYPTION_KEY"}),

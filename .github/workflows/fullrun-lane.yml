@@ -186,6 +186,29 @@ jobs:
           path: ${{ runner.temp }}/mod-cache
           key: ${{ inputs.archive_cache_key || 'mod-archives-' }}
           restore-keys: mod-archives-
+      - name: Resolve exact K1 auxiliary cache identity
+        id: k1-public-key
+        if: inputs.game == 'k1'
+        run: |
+          python - <<'PYKEY'
+          import os,sys
+          from pathlib import Path
+          sys.path.insert(0,'tools/modsync-ci')
+          import fullrun_stage,k1_widescreen_inputs as inputs
+          applicable=(os.environ['GITHUB_REPOSITORY']=='kolto-labs/ModSync.rs'
+              and fullrun_stage.native_k1_scope(Path('guide-input')))
+          with open(os.environ['GITHUB_OUTPUT'],'a') as output:
+              output.write('applicable='+str(applicable).lower()+'\n')
+              if applicable:
+                  identity='k1-widescreen-public-v1-'+inputs.PROFILE_SHA256+'-'+inputs.GALAXY_PROFILE_SHA256
+                  output.write('key='+identity+'\n')
+          PYKEY
+      - name: Restore exact K1 auxiliary cache independently of its producer
+        if: steps.k1-public-key.outputs.applicable == 'true'
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: ${{ runner.temp }}/mod-cache/k1-widescreen-inputs
+          key: ${{ steps.k1-public-key.outputs.key }}
       - name: Install the admitted full guide and require complete coverage
         env:
           ARTSTORE_REPOSITORY: ${{ inputs.artifact_repository || github.repository }}

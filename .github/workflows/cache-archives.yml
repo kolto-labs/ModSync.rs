@@ -86,7 +86,6 @@ jobs:
           games=json.loads(os.environ['REQUESTED_GAMES'])
           assert isinstance(games,list) and all(game in ('k1','k2') for game in games)
           applicable=(os.environ['GITHUB_REPOSITORY']=='kolto-labs/ModSync.rs'
-              and os.environ['GITHUB_REF'].startswith('refs/heads/')
               and 'k1' in games and fullrun_stage.native_k1_scope(Path('guide-input')))
           with open(os.environ['GITHUB_OUTPUT'],'a') as output:
               output.write('applicable='+str(applicable).lower()+'\n')
@@ -101,7 +100,7 @@ jobs:
         with:
           path: ${{ runner.temp }}/mod-cache/k1-widescreen-inputs
           key: ${{ steps.k1-public-key.outputs.key }}
-      - name: Verify and refresh required archives
+      - name: Verify requested archive inputs
         id: refresh
         env:
           GAMES: ${{ inputs.games }}
@@ -128,7 +127,7 @@ jobs:
             --install-profile "$INSTALL_PROFILE" --download-mode "$DOWNLOAD_MODE"
       - name: Admit only the six verified public objects for auxiliary caching
         id: k1-public-ready
-        if: ${{ inputs.cache_writer && steps.refresh.outcome == 'success' && steps.k1-public-key.outputs.applicable == 'true' && steps.k1-public-cache.outputs.cache-hit != 'true' }}
+        if: ${{ inputs.cache_writer && startsWith(github.ref, 'refs/heads/') && steps.refresh.outcome == 'success' && steps.k1-public-key.outputs.applicable == 'true' && steps.k1-public-cache.outputs.cache-hit != 'true' }}
         run: |
           python - <<'PYCACHE'
           import json,os,sys
@@ -151,7 +150,7 @@ jobs:
               assert path.is_file() and not path.is_symlink() and path.stat().st_size==expected[path.name]
           PYCACHE
       - name: Save exact verified K1 six-public-input accelerator
-        if: ${{ inputs.cache_writer && steps.refresh.outcome == 'success' && steps.k1-public-key.outputs.applicable == 'true' && steps.k1-public-ready.outcome == 'success' && steps.k1-public-cache.outputs.cache-hit != 'true' }}
+        if: ${{ inputs.cache_writer && startsWith(github.ref, 'refs/heads/') && steps.refresh.outcome == 'success' && steps.k1-public-key.outputs.applicable == 'true' && steps.k1-public-ready.outcome == 'success' && steps.k1-public-cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
         with:
           path: ${{ runner.temp }}/mod-cache/k1-widescreen-inputs
