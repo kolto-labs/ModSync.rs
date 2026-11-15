@@ -208,6 +208,12 @@ jobs:
               state=game.parent/('.modsync-'+hashlib.sha256(os.fsencode(str(game))).hexdigest()[:16])
               completion=json.loads((state/'completion.json').read_text())
               assert [component['Guid'].lower() for component in completion['components']]==guids
+              checkpoint=completion['installReport']['checkpoint']
+              assert isinstance(checkpoint,dict) and checkpoint['sessionId'] and checkpoint['checkpointId']
+              assert isinstance(checkpoint['generation'],int) and checkpoint['generation']>0
+              assert not (state/'external-writers-v1.json').exists()
+              assert not list((state/'checkpoints-v1'/'operations').glob('*.json'))
+              report['checkpoint']=checkpoint
               report['completion']=receipt
               expected={'dialog.tlk':(10171056,'e501c665f7763bf9c63ac44e3a034a6969abbc6f0023096d8e137a400aa23e25'),'modules/003ebo.mod':(3853307,'575d7a5cb502d3e5e1ed07803e47968f66f91ddb83094f887c7597d74edd0013')}
               for name,(size,sha) in expected.items(): assert (game/name).stat().st_size==size and digest(game/name)==sha
@@ -215,6 +221,14 @@ jobs:
           except BaseException as error:
               report.update(status='failed',failure_category=type(error).__name__); raise
           finally:
+              # Bounded ownership metadata diagnoses failures without retaining captured roots/CAS.
+              state=game.parent/('.modsync-'+hashlib.sha256(os.fsencode(str(game))).hexdigest()[:16])
+              candidates=[state/'external-writers-v1.json',state/'checkpoints-v1'/'active.json']
+              candidates.extend(sorted((state/'checkpoints-v1'/'operations').glob('*.json'))[:16])
+              for index,path in enumerate(candidates):
+                  if path.is_symlink() or not path.is_file() or path.stat().st_size>4*1024*1024: continue
+                  if not path.resolve().is_relative_to(state.resolve()): continue
+                  shutil.copyfile(path,evidence/('checkpoint-'+str(index)+'-'+path.name))
               # Allowlisted GUI metadata only; never copy game, archives, prefix or build trees.
               total=0
               if (root/'gui-work').is_dir():

@@ -48,6 +48,7 @@ pub fn mark_reviewed(component: &mut Component) -> anyhow::Result<()> {
             .is_none_or(|generator| {
                 generator != crate::vendor_installer::GENERATOR
                     && generator != crate::archive_generation::reviewed_manual::GENERATOR
+                    && generator != crate::archive_generation::reviewed_manual::PATCHER_GENERATOR
             }),
         "Bound vendor and reviewed manual drafts require independent verified replay"
     );

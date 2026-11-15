@@ -447,8 +447,13 @@ pub fn verify_archive_derived(
         record.get("RequiresReview").and_then(Value::as_bool) == Some(true),
         "Draft is not awaiting review"
     );
-    if record.get("Generator").and_then(Value::as_str)
-        == Some(crate::archive_generation::reviewed_manual::GENERATOR)
+    if record
+        .get("Generator")
+        .and_then(Value::as_str)
+        .is_some_and(|generator| {
+            generator == crate::archive_generation::reviewed_manual::GENERATOR
+                || generator == crate::archive_generation::reviewed_manual::PATCHER_GENERATOR
+        })
     {
         return verify_reviewed_manual(component, root, options, cancelled);
     }

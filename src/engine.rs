@@ -22,6 +22,7 @@ pub struct CheckpointRunReport {
 mod patcher_prediction;
 mod patcher_prepare;
 mod provided_installer;
+mod reviewed_patcher;
 pub use provided_installer::{ProvidedInstallerRunner, WindowsProcessRunner};
 mod patcher_simulation;
 pub(crate) mod process_arguments;
@@ -588,9 +589,9 @@ pub struct Engine {
     selection_directory_stamps: BTreeMap<PathBuf, String>,
     install: bool,
     component_checkpoints: bool,
+    checkpoint_history_forbidden: bool,
     checkpoint_report: Option<CheckpointRunReport>,
     checkpoint_resume: Option<crate::checkpoint::ResumeRequest>,
-    #[cfg(windows)]
     checkpoint_process: Option<(
         std::sync::Arc<recovery::Lock>,
         crate::checkpoint::OperationIntent,
@@ -702,6 +703,13 @@ impl Engine {
         self
     }
 
+    /// An explicit CLI refusal of retained history cannot waive writer ownership.
+    /// The actual remaining execution scope decides whether that is a conflict.
+    pub fn with_checkpoint_history_forbidden(mut self, forbidden: bool) -> Self {
+        self.checkpoint_history_forbidden = forbidden;
+        self
+    }
+
     /// Resume only a validated checkpoint boundary; the shared store builds the
     /// immutable continuation plan while the engine holds the root lock.
     pub fn with_checkpoint_resume(
@@ -801,9 +809,9 @@ impl Engine {
             selection_directory_stamps: BTreeMap::new(),
             install: false,
             component_checkpoints: false,
+            checkpoint_history_forbidden: false,
             checkpoint_report: None,
             checkpoint_resume: None,
-            #[cfg(windows)]
             checkpoint_process: None,
             managed: None,
             stage_managed_writes: false,
@@ -2477,6 +2485,21 @@ impl Engine {
         mut emit: impl FnMut(Event),
         mut progress: impl FnMut(InstallProgress),
     ) -> Result<InstallReport> {
+        let runner_checkpoint = self.requires_external_writer_checkpoint(guide)?;
+        let continuation_checkpoint = self.requires_checkpoint_continuation()?;
+        ensure!(
+            !self.checkpoint_history_forbidden
+                || !(self.component_checkpoints || runner_checkpoint || continuation_checkpoint),
+            "--no-checkpoint conflicts with required component checkpoints for supplied installers or checkpointed phase continuation"
+        );
+        if (runner_checkpoint || continuation_checkpoint) && !self.component_checkpoints {
+            self.component_checkpoints = true;
+            emit(Event {
+                component: String::new(),
+                step: 0,
+                message: "Supplied installer execution or checkpointed phase continuation requires retained component checkpoints for all installation roots".into(),
+            });
+        }
         ensure!(
             self.path_policy.case_insensitive
                 || (!self.component_checkpoints
@@ -2504,6 +2527,10 @@ impl Engine {
         #[cfg(not(windows))]
         let lock = recovery::Lock::acquire(&self.settings.roots)?;
         let lock = std::sync::Arc::new(lock);
+        ensure!(
+            !self.requires_checkpoint_continuation()? || self.component_checkpoints,
+            "Checkpointed phase receipt changed while acquiring root locks; retry with component checkpoints"
+        );
         ensure!(
             self.managed.is_none() || self.component_checkpoints,
             "Managed installation requires component checkpoints"
@@ -2880,6 +2907,95 @@ impl Engine {
             .collect())
     }
 
+    /// A completed checkpointed phase cannot silently downgrade its continuation
+    /// when a fresh GUI engine has the optional history preference disabled. This
+    /// marker only enables stricter mode; the existing locked prefix/game checks
+    /// still verify the receipt before any snapshot or installation writes.
+    fn requires_checkpoint_continuation(&self) -> Result<bool> {
+        use std::io::Read;
+        if self.completed.is_empty() {
+            return Ok(false);
+        }
+        let path = recovery::state_dir(&self.settings.roots).join("completion.json");
+        match fs::symlink_metadata(&path) {
+            Ok(_) => {}
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(false),
+            Err(error) => return Err(error.into()),
+        }
+        let file = crate::paths::open_regular_read(&path)?;
+        const LIMIT: u64 = 64 * 1024 * 1024;
+        ensure!(
+            file.metadata()?.len() <= LIMIT,
+            "Completion receipt exceeds bound"
+        );
+        let mut bytes = Vec::new();
+        file.take(LIMIT + 1).read_to_end(&mut bytes)?;
+        ensure!(
+            bytes.len() as u64 <= LIMIT,
+            "Completion receipt exceeds bound"
+        );
+        let receipt: serde_json::Value = serde_json::from_slice(&bytes)?;
+        let Some(report) = receipt.get("installReport") else {
+            return Ok(false);
+        };
+        let report: InstallReport = serde_json::from_value(report.clone())?;
+        ensure!(
+            report.checkpoint.is_some(),
+            "Completion install report has no checkpoint identity"
+        );
+        Ok(true)
+    }
+
+    /// Inspect only applying actions and reached options. Runner configuration by
+    /// itself does not change an installation that never launches such a runner.
+    fn requires_external_writer_checkpoint(&self, guide: &Guide) -> Result<bool> {
+        let provided = self.settings.provided_installer.is_some();
+        let execute = self.settings.execute_runner.is_some() || provided;
+        if !provided && !execute {
+            return Ok(false);
+        }
+        fn visit(
+            engine: &Engine,
+            component: &Component,
+            selected: &BTreeSet<crate::guid::Identity>,
+            provided: bool,
+            execute: bool,
+            depth: usize,
+        ) -> Result<bool> {
+            engine.check_cancelled()?;
+            ensure!(
+                depth <= 64,
+                "Supplied installer option nesting exceeds bound"
+            );
+            for instruction in &component.instructions {
+                if !applies_with(selected, instruction) {
+                    continue;
+                }
+                match instruction.action.as_str() {
+                    "Execute" | "Run" if execute => return Ok(true),
+                    "Patcher" if provided => return Ok(true),
+                    "Choose" => {
+                        for option in Engine::chosen_options(component, instruction)? {
+                            if visit(engine, option, selected, provided, execute, depth + 1)? {
+                                return Ok(true);
+                            }
+                        }
+                    }
+                    _ => {}
+                }
+            }
+            Ok(false)
+        }
+        let mut selected = selected_guid_keys(guide);
+        selected.extend(self.completed.iter().cloned());
+        for component in self.remaining_ordered(guide)? {
+            if visit(self, component, &selected, provided, execute, 0)? {
+                return Ok(true);
+            }
+        }
+        Ok(false)
+    }
+
     fn run(&mut self, guide: &Guide, emit: &mut impl FnMut(Event)) -> Result<()> {
         let ordered = self.remaining_ordered(guide)?;
         self.run_ordered(guide, &ordered, emit, None)
@@ -2972,6 +3088,26 @@ impl Engine {
                 &self.settings.roots.mods,
                 &self.settings.cancelled,
             )?;
+            for instruction in c
+                .instructions
+                .iter()
+                .filter(|instruction| instruction.action == "Patcher")
+            {
+                if crate::archive_generation::reviewed_manual::native_patcher_contract(
+                    c,
+                    instruction,
+                )?
+                .is_some()
+                {
+                    ensure!(
+                        self.settings.patcher_engine == PatcherEngine::OdyPatcher
+                            && self.settings.patcher.is_none()
+                            && self.patcher_invocation.is_none()
+                            && self.settings.provided_installer.is_none(),
+                        "Reviewed single-INI recipes require the built-in OdyPatcher backend"
+                    );
+                }
+            }
             let vendor_proof = crate::vendor_installer::before(
                 c,
                 &self.settings.roots,
@@ -4236,7 +4372,10 @@ impl Engine {
                     .sources
                     .first()
                     .context("Patcher has no resolved binding")?;
-                self.process_path(i, path, &[], emit)?;
+                let contract = crate::archive_generation::reviewed_manual::native_patcher_contract(
+                    component, i,
+                )?;
+                self.process_path(i, path, &[], contract.as_ref(), emit)?;
             }
             "Execute" | "Run" => self.process(i, emit)?,
             other => bail!("Unsupported action {other}; refusing to skip it"),
@@ -4286,7 +4425,7 @@ impl Engine {
         }
         for path in paths {
             self.check_cancelled()?;
-            self.process_path(i, &path, &arguments, emit)?;
+            self.process_path(i, &path, &arguments, None, emit)?;
         }
         Ok(())
     }
@@ -4296,6 +4435,7 @@ impl Engine {
         i: &Instruction,
         path: &Path,
         arguments: &[std::ffi::OsString],
+        native_contract: Option<&crate::archive_generation::reviewed_manual::NativePatcherContract>,
         emit: &mut impl FnMut(Event),
     ) -> Result<()> {
         if self.requires_process_trust(&i.action) && (self.install || i.action != "Patcher") {
@@ -4353,6 +4493,9 @@ impl Engine {
             }
             self.check_patcher_backend()?;
             let (stage, staged_base) = patcher_prepare::stage(base, &self.settings.cancelled)?;
+            if let Some(contract) = native_contract {
+                contract.verify_staged(&staged_base, &self.settings.cancelled)?;
+            }
             patcher_data = Some(staged_base.clone());
             staged_patcher = Some(stage);
             let mut cmd = self
@@ -4458,8 +4601,16 @@ impl Engine {
                         && !requests.starts_with(&self.settings.roots.game),
                     "Runner request storage must be outside mod/game trees"
                 );
-                let session =
-                    provided_installer::RunnerSession::start(runner, path, &self.settings.roots)?;
+                let (lock, operation) = self.checkpoint_process.as_ref().context(
+                    "Supplied installer execution requires its owned Materializing checkpoint operation",
+                )?;
+                let session = provided_installer::RunnerSession::start(
+                    runner,
+                    path,
+                    &self.settings.roots,
+                    lock,
+                    operation,
+                )?;
                 let command = runner.command(path, &session.headless.display)?;
                 runner_session = Some(session);
                 command
@@ -4507,6 +4658,7 @@ impl Engine {
                     patcher_data.as_deref().context("Missing patcher staging")?,
                     destination,
                     *namespace,
+                    native_contract,
                     emit,
                 )?;
                 None
@@ -4616,6 +4768,7 @@ impl Engine {
         base: &Path,
         destination: &Path,
         namespace: Option<usize>,
+        contract: Option<&crate::archive_generation::reviewed_manual::NativePatcherContract>,
         emit: &mut impl FnMut(Event),
     ) -> Result<()> {
         // Discovery expects these canonical document names. Adjust only the
@@ -4647,6 +4800,20 @@ impl Engine {
             session.blocked_reason().unwrap_or_default()
         );
         self.check_cancelled()?;
+        let strict_before = if contract.is_some() {
+            ensure!(
+                namespace.is_none(),
+                "Reviewed native Patcher forbids namespace selection"
+            );
+            Some(reviewed_patcher::before(
+                base,
+                destination,
+                &session.load_logs,
+                &self.settings.cancelled,
+            )?)
+        } else {
+            None
+        };
         let mut installer = odypatcher::ModInstaller::new(
             &session.base_path,
             destination,
@@ -4689,6 +4856,21 @@ impl Engine {
                     log_path.is_some(),
                     "Built-in OdyPatcher did not write its install log"
                 );
+                if let Some(before) = strict_before {
+                    let receipt = reviewed_patcher::finish(
+                        before,
+                        base,
+                        destination,
+                        &report,
+                        &installer.log.all_logs,
+                        &self.settings.cancelled,
+                    )?;
+                    emit(Event {
+                        component: "Patcher".into(),
+                        step: 0,
+                        message: format!("Reviewed native Patcher outcome: {receipt}"),
+                    });
+                }
                 Ok(())
             });
         if let Err(error) = outcome {

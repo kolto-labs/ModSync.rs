@@ -287,15 +287,9 @@ impl Engine {
             InstallPhase::InstallingComponent,
             "Applying recorded action",
         );
-        #[cfg(windows)]
-        {
-            self.checkpoint_process = Some((Arc::clone(&lock), intent.clone()));
-        }
+        self.checkpoint_process = Some((Arc::clone(&lock), intent.clone()));
         let execution = self.component(&owner, &mut emit, Some(&mut observer));
-        #[cfg(windows)]
-        {
-            self.checkpoint_process = None;
-        }
+        self.checkpoint_process = None;
         execution.context("Action stopped; restore its checkpoint before retrying")?;
         ensure!(
             self.authoring_inputs == remaining_inputs,

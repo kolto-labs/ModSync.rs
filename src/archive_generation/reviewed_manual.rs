@@ -13,6 +13,7 @@ use std::{
 };
 
 pub(crate) const GENERATOR: &str = "reviewed-manual-file-effects";
+pub(crate) const PATCHER_GENERATOR: &str = "reviewed-manual-native-patcher";
 const BINDING: &str = "AuthoredRecipeBinding";
 struct BookSpec {
     filename: &'static str,
@@ -22,8 +23,9 @@ struct BookSpec {
     plan_sha256: &'static str,
     count: usize,
     kind: &'static str,
+    generator: &'static str,
 }
-const BOOKS: [BookSpec; 2] = [
+const BOOKS: [BookSpec; 3] = [
     BookSpec {
         filename: "reviewed_manual_k2.json",
         content: include_str!("reviewed_manual_k2.json"),
@@ -32,6 +34,7 @@ const BOOKS: [BookSpec; 2] = [
         plan_sha256: "0add8c1aeb7cdfad3df4b21761e135c150aa7832cf3fc0edabe01a91245a9258",
         count: 57,
         kind: "ReviewedManualK2FileEffects",
+        generator: GENERATOR,
     },
     BookSpec {
         filename: "reviewed_manual_k1.json",
@@ -41,6 +44,17 @@ const BOOKS: [BookSpec; 2] = [
         plan_sha256: "1b402ba085625c4863795069eaacaef0f53e8ea7179e56a5bd150d88eb9c0a74",
         count: 66,
         kind: "ReviewedManualK1FileEffects",
+        generator: GENERATOR,
+    },
+    BookSpec {
+        filename: "reviewed_manual_single_ini_k2.json",
+        content: include_str!("reviewed_manual_single_ini_k2.json"),
+        sha256: "2eee9ca0321722919306743903b18a872c1be1954c547963b3a737a270679fbe",
+        guide_sha256: "f442bdf574031623ed577609730d887069b9bc8e38e8e2f38ecc43a7e7487d5f",
+        plan_sha256: "0add8c1aeb7cdfad3df4b21761e135c150aa7832cf3fc0edabe01a91245a9258",
+        count: 4,
+        kind: "ReviewedManualK2NativePatcher",
+        generator: PATCHER_GENERATOR,
     },
 ];
 
@@ -64,6 +78,49 @@ struct Recipe {
     canonicalization: Canonicalization,
     plan_step: Step,
     archives: Vec<Pin>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    native_patcher: Option<NativeTranslation>,
+}
+#[derive(Clone, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+struct MemberPin {
+    path: String,
+    sha256: String,
+    bytes: u64,
+}
+#[derive(Clone, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+struct NativeTranslation {
+    operation_index: usize,
+    extract_operation_index: usize,
+    installer: MemberPin,
+    changes_ini: MemberPin,
+    inventory_sha256: String,
+    certificate_sha256: String,
+    arguments: String,
+    destination: String,
+    success_contract: String,
+}
+/// Cannot be constructed from authored JSON. Issued only for a known, cleared
+/// compiled recipe and its exact native instruction.
+pub(crate) struct NativePatcherContract {
+    translation: NativeTranslation,
+}
+impl NativePatcherContract {
+    pub(crate) fn verify_staged(&self, base: &Path, cancelled: &AtomicBool) -> Result<()> {
+        ensure!(
+            !base.join("tslpatchdata/namespaces.ini").exists(),
+            "Reviewed Patcher forbids namespaces"
+        );
+        for member in [&self.translation.installer, &self.translation.changes_ini] {
+            ensure!(
+                hash(&base.join(literal(&member.path)?), cancelled)?
+                    == (member.sha256.clone(), member.bytes),
+                "Reviewed Patcher staged bytes differ"
+            );
+        }
+        Ok(())
+    }
 }
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -95,6 +152,18 @@ struct Pin {
 #[derive(Deserialize, Serialize)]
 #[serde(tag = "type", rename_all = "snake_case", deny_unknown_fields)]
 enum Operation {
+    GuiPatcher {
+        patcher: String,
+        sha256: String,
+        argv: Vec<String>,
+        cwd: String,
+        success_log: String,
+        success_markers: Vec<String>,
+        failure_regex: Vec<String>,
+        expected_changes: String,
+        actions: Vec<Value>,
+        wine_registry: Vec<Value>,
+    },
     Extract {
         source: String,
         destination: String,
@@ -430,6 +499,166 @@ fn instruction(
     }
 }
 
+fn verify_native_members(
+    recipe: &Recipe,
+    root: &Path,
+    options: &archive::Options,
+    cancelled: &AtomicBool,
+) -> Result<()> {
+    let translation = recipe
+        .native_patcher
+        .as_ref()
+        .context("Missing native translation")?;
+    ensure!(
+        recipe.archives.len() == 1 && translation.changes_ini.path == "tslpatchdata/changes.ini",
+        "Native translation requires one archive and canonical sole INI"
+    );
+    let pin = &recipe.archives[0];
+    let mut bounded = options.clone();
+    bounded.max_expanded_bytes = Some(
+        options
+            .max_expanded_bytes
+            .unwrap_or(64 * 1024 * 1024)
+            .min(64 * 1024 * 1024),
+    );
+    let entries = archive::unpack(
+        &root.join(&pin.filename),
+        Path::new(&pin.filename),
+        &bounded,
+        cancelled,
+    )?;
+    let mut found = BTreeSet::new();
+    let mut ini_count = 0;
+    for entry in entries {
+        check(cancelled)?;
+        let name = entry
+            .path
+            .to_str()
+            .context("Non-UTF8 native member")?
+            .replace('\\', "/");
+        let lower = name.to_lowercase();
+        ensure!(
+            !lower.ends_with("/namespaces.ini") && lower != "namespaces.ini",
+            "Native translation forbids namespaces"
+        );
+        if lower.ends_with("/changes.ini") || lower == "changes.ini" {
+            ini_count += 1;
+        }
+        for member in [&translation.installer, &translation.changes_ini] {
+            if name == member.path {
+                ensure!(
+                    found.insert(name.clone())
+                        && hash(entry.file.path(), cancelled)?
+                            == (member.sha256.clone(), member.bytes),
+                    "Native translation member bytes differ"
+                );
+            }
+        }
+    }
+    ensure!(
+        ini_count == 1 && found.len() == 2,
+        "Native translation requires exact installer and sole INI"
+    );
+    ensure!(
+        hash(&root.join(&pin.filename), cancelled)?.0 == pin.sha256,
+        "Archive changed during native translation inspection"
+    );
+    Ok(())
+}
+
+/// Admission for runtime strictness; this is not an authored-JSON switch.
+/// The engine also calls verify_runtime before any recipe instruction.
+pub(crate) fn native_patcher_contract(
+    component: &Component,
+    current: &Instruction,
+) -> Result<Option<NativePatcherContract>> {
+    let has_binding = component.metadata.contains_key(BINDING);
+    let native_generator = component
+        .metadata
+        .get("DraftReview")
+        .and_then(|record| record.get("Generator"))
+        .and_then(Value::as_str)
+        == Some(PATCHER_GENERATOR);
+    // A shared catalog GUID does not turn a legacy authored instruction into
+    // a reviewed translation. Either half of new provenance must still be checked.
+    if !has_binding && !native_generator {
+        return Ok(None);
+    }
+    let (spec, recipe) = find_recipe(&component.guid)?
+        .context("Native Patcher provenance has no compiled recipe")?;
+    let Some(translation) = recipe.native_patcher.as_ref() else {
+        ensure!(
+            !native_generator,
+            "Native Patcher generator does not match compiled recipe"
+        );
+        return Ok(None);
+    };
+    ensure!(
+        spec.generator == PATCHER_GENERATOR && component.instructions.len() == 2,
+        "Native Patcher recipe instruction shape changed"
+    );
+    let binding = component
+        .metadata
+        .get(BINDING)
+        .context("Native Patcher binding absent")?;
+    let record = component
+        .metadata
+        .get("DraftReview")
+        .context("Native Patcher review absent")?;
+    ensure!(
+        record.get("RequiresReview") == Some(&json!(false))
+            && record.get("Generator") == Some(&json!(PATCHER_GENERATOR))
+            && record.get("ReviewedIdentity").and_then(Value::as_str)
+                == Some(draft::review::identity(component)?.as_str())
+            && binding.get("DatabookSha256") == Some(&json!(spec.sha256)),
+        "Native Patcher requires unchanged dedicated approval"
+    );
+    ensure!(
+        binding.get("Recipe") == Some(&serde_json::to_value(&recipe)?)
+            && binding.get("InputComponent") == Some(&recipe.canonical_input_component),
+        "Native Patcher catalog provenance differs"
+    );
+    let native = format!(
+        "<<modDirectory>>/.modsync-reviewed-{}-slot0",
+        component.guid
+    );
+    let expected_extract = instruction(
+        component,
+        0,
+        "ExtractTo",
+        format!("<<modDirectory>>/{}", recipe.archives[0].filename),
+        native.clone(),
+        false,
+    );
+    let mut expected_patcher = instruction(
+        component,
+        1,
+        "Patcher",
+        format!("{native}/{}", translation.installer.path),
+        translation.destination.clone(),
+        false,
+    );
+    expected_patcher.arguments = translation.arguments.clone();
+    ensure!(
+        serde_json::to_value(&component.instructions)?
+            == serde_json::to_value([expected_extract, expected_patcher])?,
+        "Native Patcher complete instruction model differs from catalog"
+    );
+    let expected = &component.instructions[1];
+    ensure!(
+        expected.action == "Patcher"
+            && expected.arguments == translation.arguments
+            && expected.destination == translation.destination,
+        "Native Patcher instruction changed"
+    );
+    if serde_json::to_value(current)? != serde_json::to_value(expected)? {
+        return Ok(None);
+    }
+    Ok(Some(NativePatcherContract {
+        translation: translation.clone(),
+    }))
+}
+
 /// Atomic binding: no caller-visible mutation occurs until the entire recipe is verified.
 pub(crate) fn bind(
     component: &mut Component,
@@ -485,9 +714,57 @@ pub(crate) fn bind(
     let mut used = BTreeSet::new();
     let mut instructions = Vec::new();
     let mut writes = 0usize;
-    for operation in &recipe.plan_step.operations {
+    for (operation_index, operation) in recipe.plan_step.operations.iter().enumerate() {
         check(cancelled)?;
         match operation {
+            Operation::GuiPatcher {
+                patcher,
+                sha256,
+                cwd,
+                expected_changes,
+                ..
+            } => {
+                let translation = recipe
+                    .native_patcher
+                    .as_ref()
+                    .context("GUI operation is not a native translation")?;
+                ensure!(
+                    spec.generator == PATCHER_GENERATOR
+                        && operation_index == 1
+                        && translation.operation_index == 1
+                        && translation.extract_operation_index == 0
+                        && recipe.plan_step.operations.len() == 2
+                        && recipe.archives.len() == 1
+                        && translation.arguments == "changes.ini"
+                        && translation.destination == "<<kotorDirectory>>"
+                        && translation.success_contract == "native-zero-warnings-changed-game-v1"
+                        && expected_changes == "changed_manifest",
+                    "Unsupported native Patcher translation"
+                );
+                let (slot, member) = extraction_source(patcher, &slots)?;
+                ensure!(
+                    member == translation.installer.path
+                        && sha256 == &translation.installer.sha256
+                        && token(cwd, "extract")?
+                            == token(patcher, "extract")?
+                                .strip_suffix(&format!("/{member}"))
+                                .context("Installer parent absent")?
+                        && slot.files.contains(&member),
+                    "Native Patcher source differs from original recipe"
+                );
+                verify_native_members(&recipe, &root, options, cancelled)?;
+                let mut generated = instruction(
+                    &bound,
+                    instructions.len(),
+                    "Patcher",
+                    format!("{}/{}", slot.native, member),
+                    translation.destination.clone(),
+                    false,
+                );
+                generated.arguments = translation.arguments.clone();
+                instructions.push(generated);
+                writes += 1;
+            }
             Operation::Extract {
                 source,
                 destination,
@@ -646,7 +923,7 @@ pub(crate) fn bind(
         "Recipe binding exceeds bound"
     );
     bound.metadata.insert(BINDING.into(), binding);
-    bound.metadata.insert("DraftReview".into(), json!({"RequiresReview":true,"Generator":GENERATOR,
+    bound.metadata.insert("DraftReview".into(), json!({"RequiresReview":true,"Generator":spec.generator,
         "Derivations":derivations,"Result":draft::DraftResult { component_guid:bound.guid.clone(),
             draft_instruction_count:bound.instructions.len(),unparsed_gaps:vec![],conditional_drafts:vec![],rejected_drafts:0 }}));
     check(cancelled)?;
@@ -746,7 +1023,7 @@ pub(crate) fn verify_runtime(
                 .get("DraftReview")
                 .and_then(|v| v.get("Generator"))
                 .and_then(Value::as_str)
-                != Some(GENERATOR),
+                .is_none_or(|generator| generator != GENERATOR && generator != PATCHER_GENERATOR),
             "Reviewed recipe lost its binding"
         );
         return Ok(());
@@ -834,7 +1111,7 @@ pub(crate) fn verify_runtime(
             .is_some_and(|record| record.len() == REVIEW_KEYS.len()
                 && record.keys().all(|key| REVIEW_KEYS.contains(&key.as_str())))
             && record.get("RequiresReview").and_then(Value::as_bool) == Some(false)
-            && record.get("Generator").and_then(Value::as_str) == Some(GENERATOR)
+            && record.get("Generator").and_then(Value::as_str) == Some(spec.generator)
             && record.get("ReviewedIdentity").and_then(Value::as_str)
                 == Some(draft::review::identity(component)?.as_str()),
         "Runtime recipe is not a cleared unchanged review"
@@ -843,7 +1120,7 @@ pub(crate) fn verify_runtime(
         .iter()
         .map(|item| json!({"Filename":item.filename,"Sha256":item.sha256,"Bytes":item.bytes}))
         .collect();
-    let pending = json!({"RequiresReview":true,"Generator":GENERATOR,"Derivations":derivations,
+    let pending = json!({"RequiresReview":true,"Generator":spec.generator,"Derivations":derivations,
         "Result":draft::DraftResult {component_guid:component.guid.clone(),draft_instruction_count:component.instructions.len(),
             unparsed_gaps:vec![],conditional_drafts:vec![],rejected_drafts:0}});
     ensure!(

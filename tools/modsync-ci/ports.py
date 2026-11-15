@@ -537,10 +537,12 @@ BIND_GENERATOR = "resolved-filenames"
 MOVIE_BIND_GENERATOR = "resolved-movie-archives"
 VENDOR_BIND_GENERATOR = "resolved-vendor-installer"
 MANUAL_BIND_GENERATOR = "reviewed-manual-file-effects"
+MANUAL_PATCHER_GENERATOR = "reviewed-manual-native-patcher"
 MANUAL_BOOK_SHA256 = "f85240122267d088f7b52c1746c2edb2fdb8795846889f4158dcf59b4fd91d60"
 MANUAL_BOOKS = {
-    "k1": ("reviewed_manual_k1.json", "b04b7331b5001f81698feb5571460ea9e2e486d032956abb22967d704254c338", 66),
-    "k2": ("reviewed_manual_k2.json", MANUAL_BOOK_SHA256, 57),
+    "k1": [("reviewed_manual_k1.json", "b04b7331b5001f81698feb5571460ea9e2e486d032956abb22967d704254c338", 66)],
+    "k2": [("reviewed_manual_k2.json", MANUAL_BOOK_SHA256, 57),
+           ("reviewed_manual_single_ini_k2.json", "2eee9ca0321722919306743903b18a872c1be1954c547963b3a737a270679fbe", 4)],
 }
 BIND_SUFFIXES = (".zip", ".7z", ".rar")
 BIND_UNSAFE_NAME = re.compile(r"[/\\*?\[\]\x00-\x1f\x7f]")
@@ -628,18 +630,20 @@ def declared_archive(component, counts, rules, archives):
 def load_reviewed_manual_recipes(source, game="k2"):
     if game not in MANUAL_BOOKS:
         raise Blocked("reviewed_manual_databook_game_unknown")
-    filename, checksum, count = MANUAL_BOOKS[game]
-    path = source / "src/archive_generation" / filename
-    if path.is_symlink() or not path.is_file() or path.stat().st_size > 16 * 1024 * 1024:
-        raise Blocked("reviewed_manual_databook_missing_or_unsafe")
-    if digest(path) != checksum:
-        raise Blocked("reviewed_manual_databook_identity_changed")
-    book = json.loads(path.read_text(encoding="utf-8"))
-    if book.get("schema") != 1 or len(book.get("recipes", [])) != count:
-        raise Blocked("reviewed_manual_databook_scope_changed")
-    recipes = {recipe["component_guid"]: recipe for recipe in book["recipes"]}
-    if len(recipes) != count:
-        raise Blocked("reviewed_manual_databook_duplicate_component")
+    recipes = {}
+    for filename, checksum, count in MANUAL_BOOKS[game]:
+        path = source / "src/archive_generation" / filename
+        if path.is_symlink() or not path.is_file() or path.stat().st_size > 16 * 1024 * 1024:
+            raise Blocked("reviewed_manual_databook_missing_or_unsafe")
+        if digest(path) != checksum:
+            raise Blocked("reviewed_manual_databook_identity_changed")
+        book = json.loads(path.read_text(encoding="utf-8"))
+        if book.get("schema") != 1 or len(book.get("recipes", [])) != count:
+            raise Blocked("reviewed_manual_databook_scope_changed")
+        for recipe in book["recipes"]:
+            if recipe["component_guid"] in recipes:
+                raise Blocked("reviewed_manual_databook_duplicate_component")
+            recipes[recipe["component_guid"]] = recipe
     return recipes
 
 
@@ -760,7 +764,7 @@ def bound_result(before, after):
         found = {}
         for component in components:
             if (component.get("DraftReview") or {}).get("Generator") in {
-                    VENDOR_BIND_GENERATOR, MANUAL_BIND_GENERATOR}:
+                    VENDOR_BIND_GENERATOR, MANUAL_BIND_GENERATOR, MANUAL_PATCHER_GENERATOR}:
                 found[str(component.get("Guid", "")).lower()] = {
                     key: component.get(key) for key in
                     ("Instructions", "Options", "VendorInstallerBinding", "AuthoredRecipeBinding", "DraftReview")}
@@ -791,7 +795,8 @@ def bound_result(before, after):
             return 0, "bound_output_drops_instructions_or_drafts"
     return sum(1 for item in new
                if (item.get("DraftReview") or {}).get("Generator") in
-               (BIND_GENERATOR, MOVIE_BIND_GENERATOR, VENDOR_BIND_GENERATOR, MANUAL_BIND_GENERATOR)), None
+               (BIND_GENERATOR, MOVIE_BIND_GENERATOR, VENDOR_BIND_GENERATOR,
+                MANUAL_BIND_GENERATOR, MANUAL_PATCHER_GENERATOR)), None
 
 
 BIND_DIAGNOSTICS_KEY = "bind_diagnostics"

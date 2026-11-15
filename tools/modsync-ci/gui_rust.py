@@ -434,14 +434,75 @@ def table_key(document):
     return "thisMod" if "thisMod" in document else "Components"
 
 
+def review_owners(value, depth=0):
+    """Visit real Component/Options owners, never retained provenance metadata."""
+    if depth > 64:
+        raise Blocked("draft_review_owner_nesting_exceeds_bound")
+    if isinstance(value, list):
+        for owner in value:
+            yield from review_owners(owner, depth)
+        return
+    if not isinstance(value, dict):
+        raise Blocked("draft_review_owner_malformed")
+    yield value
+    options = value.get("Options", [])
+    if not isinstance(options, list):
+        raise Blocked("draft_review_options_malformed")
+    for option in options:
+        yield from review_owners(option, depth + 1)
+
+
 def review_required(value):
-    if isinstance(value, dict):
-        if "DraftReview" in value:
-            review = value["DraftReview"]
+    for owner in review_owners(value):
+        if "DraftReview" in owner:
+            review = owner["DraftReview"]
             if not isinstance(review, dict) or review.get("RequiresReview") is not False:
                 return True
-        return any(review_required(child) for child in value.values())
-    return isinstance(value, list) and any(review_required(child) for child in value)
+        elif "DRAFT INSTRUCTIONS: parsed from guide prose" in str(owner.get("InstallationWarning", "")):
+            return True
+    return False
+
+
+def query_application_reviews(binary, driven_input, components, private, run=subprocess.run):
+    """Validate existing receipts with the production reader; never apply its operations."""
+    owners = list(review_owners(components))
+    if len(owners) > 10000:
+        raise Blocked("draft_review_owner_count_exceeds_bound")
+    identities = [str(owner.get("Guid", "")).lower() for owner in owners]
+    present = [identity for identity in identities if identity]
+    if len(set(present)) != len(present):
+        raise Blocked("draft_review_owner_identities_duplicate")
+    home = private / "review-query-home"
+    home.mkdir(mode=0o700, exist_ok=True)
+    environment = {key: os.environ[key] for key in
+                   ("PATH", "LANG", "LC_ALL", "TZ", "SYSTEMROOT", "WINDIR") if key in os.environ}
+    for name in ("HOME", "XDG_CONFIG_HOME", "XDG_CACHE_HOME", "XDG_DATA_HOME", "XDG_RUNTIME_DIR", "TMPDIR"):
+        directory = home / name.lower()
+        directory.mkdir(mode=0o700, exist_ok=True)
+        environment[name] = str(directory)
+    verified = []
+    for index, (owner, identity) in enumerate(zip(owners, identities)):
+        if "DraftReview" not in owner:
+            continue
+        if not identity:
+            raise Blocked("draft_review_owner_identity_missing")
+        output = private / ("review-query-%04d.json" % index)
+        log = private / ("review-query-%04d.log" % index)
+        command = [str(binary), "guide-draft-review", str(driven_input), identity]
+        try:
+            with output.open("w", encoding="utf-8") as stdout, log.open("w", encoding="utf-8") as stderr:
+                completed = run(command, cwd=private, env=environment, stdin=subprocess.DEVNULL,
+                                stdout=stdout, stderr=stderr, timeout=QUERY_TIMEOUT_SECONDS)
+            if completed.returncode or output.stat().st_size > 16 * 1024 * 1024:
+                raise ValueError("query failed or output exceeds bound")
+            report = json.loads(output.read_text(encoding="utf-8"))
+            if (report.get("requiresReview") is not False
+                    or str(report.get("diagnostics", {}).get("ComponentGuid", "")).lower() != identity):
+                raise ValueError("owner review not approved")
+        except (OSError, subprocess.SubprocessError, ValueError, TypeError, AttributeError):
+            raise Blocked("application_draft_review_query_rejected_owner") from None
+        verified.append(identity)
+    return {"status": "verified", "owners_checked": len(verified), "guids": verified}
 
 
 def plan_selection(components, deselect=(), exclude_widescreen=False, complete_guide=False):
@@ -1171,6 +1232,10 @@ def execute(args, result):
     identities = [component.get("Guid") for component in components]
     if any(not identity for identity in identities) or len(set(identities)) != len(identities):
         raise Blocked("component_identities_missing_or_duplicate")
+    owner_ids = [str(owner.get("Guid", "")).lower() for owner in review_owners(components)]
+    present_owner_ids = [identity for identity in owner_ids if identity]
+    if len(set(present_owner_ids)) != len(present_owner_ids):
+        raise Blocked("draft_review_owner_identities_duplicate")
     complete_guide = getattr(args, "complete_guide", False)
     plan = plan_selection(components, args.deselect, args.exclude_widescreen, complete_guide)
     if not args.game_dir.is_dir() or not args.archives.is_dir():
@@ -1203,6 +1268,11 @@ def execute(args, result):
         rewrite_selection(input_text, plan["selection"]) if plan["subset"] or complete_guide else input_text,
         encoding="utf-8")
     result["driven_input_sha256"] = digest(private / "input.toml")
+    # The real loader checks receipt identity after the selection rewrite. Nested
+    # InputComponent/Recipe snapshots remain provenance, not installation owners.
+    result["review_oracle"] = query_application_reviews(
+        args.binary, private / "input.toml",
+        [component for component, keep in zip(components, plan["selection"]) if keep], private)
     if complete_guide:
         def needs_process(component):
             return (any(str(step.get("Action", "")).casefold() in ("execute", "run")

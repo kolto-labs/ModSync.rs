@@ -3636,7 +3636,8 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                         return present_validation_report(&report, args.errors_only, report_mode);
                     }
                 }
-                .with_component_checkpoints(component_checkpoints);
+                .with_component_checkpoints(component_checkpoints)
+                .with_checkpoint_history_forbidden(args.no_checkpoint);
                 if args.managed {
                     let deployment = modsync::deployment::Service::resolve_readonly(
                         &paths.game,
@@ -3715,7 +3716,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                     } else {
                         engine.install_observed_report(&guide, emit, progress)?
                     };
-                    if args.managed || component_checkpoints {
+                    if report.managed.is_some() || report.checkpoint.is_some() {
                         if args.json || args.install_progress_json {
                             println!(
                                 "{}",

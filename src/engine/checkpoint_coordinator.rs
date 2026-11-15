@@ -92,15 +92,9 @@ impl Engine {
                     InstallPhase::InstallingComponent,
                     format!("Installing: {}", component.name),
                 );
-                #[cfg(windows)]
-                {
-                    self.checkpoint_process = Some((std::sync::Arc::clone(lock), intent.clone()));
-                }
+                self.checkpoint_process = Some((std::sync::Arc::clone(lock), intent.clone()));
                 let execution = self.component(component, emit, Some(&mut *observer));
-                #[cfg(windows)]
-                {
-                    self.checkpoint_process = None;
-                }
+                self.checkpoint_process = None;
                 execution?;
                 self.flush_managed()?;
                 let committed =
