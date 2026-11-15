@@ -214,6 +214,7 @@ jobs:
               state['status']='verified'
           finally:
               Path('/work/namespace-preflight.json').write_text(json.dumps(state,indent=2))
+          os.chdir('/work')
           os.execv('/usr/bin/xvfb-run',['/usr/bin/xvfb-run','-a','-s','-screen 0 1024x768x24','/usr/bin/python3','/reference/worker.py'])
           PYCODE
       - name: Run network-isolated original and read actual output metadata
@@ -308,7 +309,7 @@ jobs:
                     '--ro-bind',str(work/'preflight.py'),'/reference/preflight.py',
                     '--ro-bind',str(root/'companion-python'),'/reference/python',
                     '--ro-bind',str(root/'companion-archives'),'/archives',
-                    '--bind',str(work),'/work','--bind',str(game),'/game','--chdir','/work',
+                    '--bind',str(work),'/work','--bind',str(game),'/game','--chdir','/',
                     '--clearenv','--setenv','PATH','/usr/bin:/bin','--setenv','HOME','/work/home',
                     '--setenv','PYTHONPATH','/reference/python',
                     '--setenv','WINEPREFIX','/work/prefix','--setenv','WINEARCH','win32',
