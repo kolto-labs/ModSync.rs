@@ -115,7 +115,15 @@ impl Store {
             ensure!(
                 pair[1].sequence == pair[0].sequence + 1
                     && pair[1].parent_id.as_deref() == Some(pair[0].checkpoint_id.as_str())
-                    && pair[1].completed_components.len() == pair[0].completed_components.len() + 1,
+                    && if pair[1].kind == "Preparation" {
+                        pair[0].preparation.is_none()
+                            && pair[1].preparation.is_some()
+                            && pair[0].completed_components.is_empty()
+                            && pair[1].completed_components.is_empty()
+                    } else {
+                        pair[1].completed_components.len() == pair[0].completed_components.len() + 1
+                            && pair[1].preparation == pair[0].preparation
+                    },
                 "Checkpoint chain sequence/prefix growth is invalid"
             );
         }
@@ -131,9 +139,9 @@ impl Store {
         if head.status == "CleanupRequired" {
             ensure!(
                 session.install_scope == "install"
-                    && current.kind == "Component"
+                    && matches!(current.kind.as_str(), "Component" | "Preparation")
                     && current.parent_id.is_some()
-                    && !current.completed_components.is_empty()
+                    && (current.kind == "Preparation" || !current.completed_components.is_empty())
                     && head.generation > 1,
                 "Cleanup HEAD is not bound to a committed install component"
             );
@@ -191,6 +199,7 @@ impl Store {
                 session.initial_completed_components == target.completed_components
                     && session.participants == parent.participants
                     && session.ancestor_shells == parent.ancestor_shells
+                    && baseline.preparation == target.preparation
                     && baseline.game == target.game
                     && baseline.auxiliary_snapshots == target.auxiliary_snapshots
                     && baseline.ancestor_shells == target.ancestor_shells

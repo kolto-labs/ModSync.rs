@@ -251,6 +251,7 @@ impl Store {
             completed_sha256: Some(super::history::definition_hash(
                 &context.initial_completed_components,
             )?),
+            preparation: None,
             component: None,
             roots: self.binding.clone(),
             mods,
@@ -515,31 +516,7 @@ impl Store {
         let mut temporary = tempfile::Builder::new()
             .prefix(".tmp-")
             .tempfile_in(&self.directory)?;
-        let mut source = open_file(source)?;
-        let mut observed = Sha256::new();
-        let mut count = 0u64;
-        let mut buffer = [0u8; 65536];
-        loop {
-            cancelled(flag)?;
-            let n = source.read(&mut buffer)?;
-            if n == 0 {
-                break;
-            }
-            count = count
-                .checked_add(n as u64)
-                .context("Checkpoint object size overflow")?;
-            ensure!(
-                count <= expected_size,
-                "Source grew while capturing checkpoint object"
-            );
-            temporary.write_all(&buffer[..n])?;
-            observed.update(&buffer[..n]);
-        }
-        let hash = format!("{:x}", observed.finalize());
-        ensure!(
-            count == expected_size,
-            "Source length changed while capturing checkpoint object"
-        );
+        let (hash, count) = capture_private_object(source, &mut temporary, expected_size, flag)?;
         let destination = self.object_path(&hash)?;
         let parent = destination.parent().expect("object parent");
         ensure_directory(parent)?;
@@ -585,28 +562,9 @@ impl Store {
         let mut temporary = tempfile::Builder::new()
             .prefix(".tmp-")
             .tempfile_in(parent)?;
-        let mut source = open_file(source)?;
-        let mut observed = Sha256::new();
-        let mut count = 0u64;
-        let mut buffer = [0u8; 65536];
-        loop {
-            cancelled(flag)?;
-            let n = source.read(&mut buffer)?;
-            if n == 0 {
-                break;
-            }
-            count = count
-                .checked_add(n as u64)
-                .context("Checkpoint object size overflow")?;
-            ensure!(
-                count <= size,
-                "Source grew while capturing checkpoint object"
-            );
-            temporary.write_all(&buffer[..n])?;
-            observed.update(&buffer[..n]);
-        }
+        let (observed, count) = capture_private_object(source, &mut temporary, size, flag)?;
         ensure!(
-            count == size && format!("{:x}", observed.finalize()) == hash,
+            count == size && observed == hash,
             "Source changed while capturing checkpoint object"
         );
         // publish_temp flushes this handle before every publication branch.
@@ -630,6 +588,80 @@ impl Store {
         );
         Ok(())
     }
+}
+
+/// Clone only into our new private inode. A reflink shares extents, never inode
+/// identity: later changes to either file cannot modify the other file's bytes.
+fn clone_private_object(source: &fs::File, destination: &fs::File) -> Result<bool> {
+    #[cfg(target_os = "linux")]
+    {
+        use std::os::fd::AsRawFd;
+        // SAFETY: both descriptors are live regular files opened by this module;
+        // FICLONE takes the source descriptor as an integer, not a pointer.
+        if unsafe { libc::ioctl(destination.as_raw_fd(), libc::FICLONE, source.as_raw_fd()) } == 0 {
+            return Ok(true);
+        }
+        let error = std::io::Error::last_os_error();
+        if !matches!(
+            error.raw_os_error(),
+            Some(libc::EOPNOTSUPP | libc::ENOTTY | libc::EXDEV | libc::EINVAL | libc::ENOSYS)
+        ) {
+            return Err(error).context("Checkpoint private reflink failed");
+        }
+    }
+    #[cfg(not(target_os = "linux"))]
+    let _ = (source, destination);
+    Ok(false)
+}
+
+fn capture_private_object(
+    source: &Path,
+    temporary: &mut tempfile::NamedTempFile,
+    expected_size: u64,
+    flag: &AtomicBool,
+) -> Result<(String, u64)> {
+    use std::io::{Seek, SeekFrom};
+    cancelled(flag)?;
+    let mut source = open_file(source)?;
+    let cloned = clone_private_object(&source, temporary.as_file())?;
+    cancelled(flag)?;
+    // A failed/unsupported ioctl must not leave bytes in the buffered fallback.
+    if !cloned {
+        temporary.as_file_mut().set_len(0)?;
+    }
+    temporary.as_file_mut().seek(SeekFrom::Start(0))?;
+    let mut observed = Sha256::new();
+    let mut count = 0u64;
+    let mut buffer = [0u8; 65536];
+    loop {
+        cancelled(flag)?;
+        // Hash the private clone, not a possibly changing source inode. The
+        // fallback retains the existing bounded streaming copy and hash.
+        let n = if cloned {
+            temporary.as_file_mut().read(&mut buffer)?
+        } else {
+            source.read(&mut buffer)?
+        };
+        if n == 0 {
+            break;
+        }
+        count = count
+            .checked_add(n as u64)
+            .context("Checkpoint object size overflow")?;
+        ensure!(
+            count <= expected_size,
+            "Source grew while capturing checkpoint object"
+        );
+        if !cloned {
+            temporary.write_all(&buffer[..n])?;
+        }
+        observed.update(&buffer[..n]);
+    }
+    ensure!(
+        count == expected_size,
+        "Source length changed while capturing checkpoint object"
+    );
+    Ok((format!("{:x}", observed.finalize()), count))
 }
 
 pub(crate) use super::persistence::namespace_boundary;

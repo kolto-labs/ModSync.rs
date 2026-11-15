@@ -1,7 +1,12 @@
 //! Local archive inference shared by guide conversion and desktop callers.
 pub mod archive_map;
+pub mod duplicate_cleanup;
 mod merge;
 pub mod resolved;
+pub mod reviewed_manual;
+pub(crate) mod reviewed_master;
+pub(crate) mod source_plan_namespace;
+pub(crate) mod source_plan_patcher;
 use crate::{Component, Guide, Instruction, archive};
 use anyhow::{Context, Result, ensure};
 pub use archive_map::ArchiveMap;
@@ -48,6 +53,19 @@ fn vet_archive_name(name: &std::ffi::OsStr) -> Result<()> {
     ensure!(
         crate::paths::literal_relative(name)?.components().count() == 1,
         "Unsafe local archive filename"
+    );
+    Ok(())
+}
+
+fn ensure_generic_archive_inference(component: &Component) -> Result<()> {
+    ensure!(
+        !source_plan_patcher::has_owner(&component.guid)?
+            && !source_plan_patcher::contains_native(component)
+            && !source_plan_namespace::has_owner(&component.guid)?
+            && !source_plan_namespace::contains_native(component)
+            && !reviewed_master::contains_resolved(component)
+            && !duplicate_cleanup::contains(component),
+        "Mapped source-plan and resolved-master owners require their compiled binding; generic local archive inference is forbidden"
     );
     Ok(())
 }
@@ -145,6 +163,7 @@ pub fn generate_local_with_cancel(
                 component.instructions.is_empty(),
                 "Component already has instructions"
             );
+            ensure_generic_archive_inference(&component)?;
             ensure!(
                 !component.resource_registry.is_empty(),
                 "No mod links available"
@@ -193,6 +212,27 @@ pub fn generate_local_with_cancel(
                 }
                 vec![matching.path.clone()]
             };
+            let filenames = selected
+                .iter()
+                .map(|path| {
+                    path.file_name()
+                        .and_then(|name| name.to_str())
+                        .map(str::to_owned)
+                        .context("Archive filename is not UTF-8")
+                })
+                .collect::<Result<Vec<_>>>()?;
+            if resolved::bind_movie_archives(
+                &mut component,
+                &filenames,
+                &source,
+                &archive::Options::default(),
+                cancelled,
+            )? {
+                component
+                    .metadata
+                    .insert("IsDownloaded".into(), true.into());
+                return Ok(());
+            }
             for path in &selected {
                 let detail = if mapped_used {
                     format!(
@@ -310,6 +350,7 @@ pub fn generate_from_archive(
     options: &archive::Options,
     cancelled: &AtomicBool,
 ) -> Result<bool> {
+    ensure_generic_archive_inference(component)?;
     ensure!(
         !cancelled.load(Ordering::Relaxed),
         "Archive operation cancelled"
@@ -377,6 +418,7 @@ pub fn generate_from_archive(
     let mut flat = false;
     let mut folders = Vec::new();
     let mut loose = false;
+    let mut loose_movies = false;
     for (index, entry) in paths.iter().enumerate() {
         ensure!(
             !cancelled.load(Ordering::Acquire),
@@ -405,6 +447,7 @@ pub fn generate_from_archive(
             }
         } else if game_file(entry) {
             loose = true;
+            loose_movies |= name.to_ascii_lowercase().ends_with(".bik");
             if parts.len() == 1 {
                 flat = true;
             } else if !folders.contains(&parts[0]) {
@@ -412,6 +455,10 @@ pub fn generate_from_archive(
             }
         }
     }
+    ensure!(
+        !loose_movies,
+        "Loose movie payload requires an explicit guide destination and verified movie archive binding"
+    );
     if !patch_data && !loose {
         return Ok(false);
     }

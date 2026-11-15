@@ -1292,7 +1292,7 @@ fn run_guarded(
                     .flat_map(|option| &option.instructions),
             ) {
                 visit()?;
-                if instruction.action != "Extract" {
+                if !matches!(instruction.action.as_str(), "Extract" | "ExtractTo") {
                     continue;
                 }
                 has_extract = true;

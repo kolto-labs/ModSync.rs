@@ -1,0 +1,281 @@
+# Explicit optional retention only; ordinary archive preparation remains read-only.
+name: Retain verified K1 public inputs
+on:
+  workflow_dispatch:
+  workflow_call:
+    secrets:
+      CACHE_ENCRYPTION_KEY: {required: true}
+permissions: {contents: read, actions: read}
+env:
+  ARTSTORE_NAME_SUFFIX: k1-aux
+jobs:
+  publish:
+    if: ${{ github.event_name == 'workflow_dispatch' && github.repository == 'kolto-labs/ModSync.rs' && startsWith(github.ref, 'refs/heads/') }}
+    concurrency: {group: fullrun-mod-cache-writer, cancel-in-progress: false}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    outputs:
+      pack: ${{ steps.stage.outputs.pack }}
+      index: ${{ steps.stage.outputs.index }}
+      pack_id: ${{ steps.pack.outputs.artifact-id }}
+      index_id: ${{ steps.index.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {ref: '${{ github.sha }}', persist-credentials: false}
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with: {python-version: '3.12'}
+      - name: Prepare bounded ordinary archive readers
+        timeout-minutes: 10
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p "$RUNNER_TEMP/k1-aux/evidence"
+          sudo timeout 300 apt-get -o Acquire::Retries=2 update -qq
+          sudo timeout 300 apt-get -o Acquire::Retries=2 install -y --no-install-recommends age openssl 7zip 7zip-rar unrar libarchive-tools
+      - name: Compute exact six-input accelerator identity
+        id: identity
+        run: |
+          python - <<'PY'
+          import os, subprocess, sys
+          sys.path.insert(0,'tools/modsync-ci'); import k1_widescreen_inputs as inputs
+          assert os.environ['GITHUB_REPOSITORY']=='kolto-labs/ModSync.rs'
+          assert os.environ['GITHUB_REF'].startswith('refs/heads/')
+          assert subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()==os.environ['GITHUB_SHA']
+          assert len(inputs._pins())==6
+          with open(os.environ['GITHUB_OUTPUT'],'a') as output:
+              output.write('key=k1-widescreen-public-v1-'+inputs.PROFILE_SHA256+'-'+inputs.GALAXY_PROFILE_SHA256+'\n')
+          PY
+      - name: Restore exact existing six-public-input accelerator
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: ${{ runner.temp }}/mod-cache/k1-widescreen-inputs
+          key: ${{ steps.identity.outputs.key }}
+      - name: Verify all six public inputs and stage at most one encrypted pack
+        id: stage
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          CACHE_ENCRYPTION_KEY: ${{ secrets.CACHE_ENCRYPTION_KEY }}
+        run: |
+          set -euo pipefail
+          umask 077
+          python - <<'PY'
+          import contextlib, json, os, sys
+          from pathlib import Path
+          sys.path.insert(0,'tools/modsync-ci'); import artstore_core as core, cache, k1_widescreen_inputs as inputs
+          base=Path(os.environ['RUNNER_TEMP'])/'k1-aux'
+          cache_root=Path(os.environ['RUNNER_TEMP'])/'mod-cache'
+          with (base/'evidence/acquisition.log').open('w') as log, contextlib.redirect_stdout(log), contextlib.redirect_stderr(log):
+              acquired=inputs.ensure(base/'archives',cache_root,base/'evidence/acquisition.json',download_mode='cache-first')
+          assert acquired['ok'] is True
+          pins=inputs._pins(); assert len(pins)==6 and sum(pin['bytes'] for pin in pins)<16*1024**2
+          for pin in pins:
+              source=base/'archives'/pin['filename']; inputs._identity(source,pin)
+              assert cache.validate(source,300) in ('zip','7z','rar')
+          stage=inputs.stage_verified_artifacts(cache_root,base/'publication')
+          assert not stage['deferred'] and len(stage['packs'])<=1
+          assert stage['input_evidence']['inputs']==pins
+          prior=core.load_index(stage['prior_index_path'])
+          if stage['packs']:
+              pack=stage['packs'][0]; index=core.load_index(stage['index_path'])
+              assert set(prior['blobs'])<=set(index['blobs']) and set(prior['packs'])<=set(index['packs'])
+              members=list(Path(pack['dir']).iterdir())
+              assert members and all(path.is_file() and not path.is_symlink() and path.name.endswith('.part') for path in members)
+              assert sum(path.stat().st_size for path in members)<16*1024**2
+          else:
+              assert stage['index_path'] is None and stage['index_name'] is None
+              for pin in pins:
+                  blob=core.lookup(prior,pin['sha256']); assert blob is not None and blob['size']==pin['bytes']
+          (base/'stage.json').write_text(json.dumps(stage))
+          with open(os.environ['GITHUB_OUTPUT'],'a') as output:
+              output.write('pack='+(stage['packs'][0]['name'] if stage['packs'] else '')+'\n')
+              output.write('index='+(stage['index_name'] or '')+'\n')
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as summary:
+              summary.write('Verified all six pinned public inputs; '+('one encrypted pack staged.' if stage['packs'] else 'already retained; no new pack or index publication.')+'\n')
+          PY
+      - name: Publish encrypted pack first
+        id: pack
+        if: ${{ steps.stage.outputs.pack != '' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ${{ steps.stage.outputs.pack }}
+          path: ${{ runner.temp }}/k1-aux/publication/staged/${{ steps.stage.outputs.pack }}
+          compression-level: 0
+          retention-days: 90
+          if-no-files-found: error
+      - name: Reconcile live API packs and preserve the complete cumulative inventory
+        if: ${{ steps.stage.outputs.pack != '' }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PACK_ID: ${{ steps.pack.outputs.artifact-id }}
+        run: |
+          umask 077
+          python - <<'PY'
+          import json, os, re, sys, time
+          from pathlib import Path
+          sys.path.insert(0,'tools/modsync-ci'); import artstore, artstore_client, artstore_core as core
+          base=Path(os.environ['RUNNER_TEMP'])/'k1-aux'; repository=os.environ['GITHUB_REPOSITORY']
+          assert repository=='kolto-labs/ModSync.rs'
+          client=artstore_client.ArtifactsClient(repository,os.environ['GITHUB_TOKEN'])
+          listing=client.list_artifacts(include_expired=True); now=time.time()
+          stage=json.loads((base/'stage.json').read_text()); prior=core.load_index(stage['prior_index_path'])
+          staged=core.load_index(stage['index_path'])
+          fragments=artstore._newest_first([item for item in listing
+              if str(item.get('name','')).startswith(core.INDEX_PREFIX)
+              and not artstore._is_dead(item,now)])[:artstore.INDEX_FETCH_LIMIT]
+          assert fragments, 'current cumulative index unavailable'
+          packs=[item for item in listing if str(item.get('name','')).startswith(core.PACK_PREFIX)]
+          current=artstore._index_from_listing(client,fragments+packs,artstore.INDEX_FETCH_LIMIT,now,strict=True)
+          merged=core.merge_indexes([prior,current,staged],now)
+          artstore._reconcile(merged,artstore._packs_by_name(listing,now),now)
+          assert set(prior['blobs'])|set(current['blobs'])<=set(merged['blobs'])
+          assert set(prior['packs'])|set(current['packs'])<=set(merged['packs'])
+          for previous in (prior,current):
+              for digest,blob in previous['blobs'].items():assert merged['blobs'][digest]['size']==blob['size']
+          pack=next(item for item in listing if str(item['id'])==os.environ['PACK_ID']); run=pack['workflow_run']
+          assert pack['name']==stage['packs'][0]['name'] and not pack['expired']
+          assert re.fullmatch(r'sha256:[0-9a-f]{64}',pack['digest'])
+          assert run['head_sha']==os.environ['GITHUB_SHA'] and str(run['id'])==os.environ['GITHUB_RUN_ID']
+          assert str(run['repository_id'])==os.environ['GITHUB_REPOSITORY_ID'] and run['head_repository_id']==run['repository_id']
+          for blob in stage['blobs']:
+              actual=merged['blobs'][blob['sha256']]
+              assert actual['size']==blob['size'] and all(str(merged['packs'][part['pack']]['artifact_id'])==os.environ['PACK_ID'] for part in actual['parts'])
+          for pin in stage['input_evidence']['inputs']:
+              blob=core.lookup(merged,pin['sha256']); assert blob is not None and blob['size']==pin['bytes']
+          core.dump_index(merged,stage['index_path'])
+          receipt={'schema_version':1,'kind':'own-repository-k1-public-input-retention','repository':repository,
+              'repository_id':os.environ['GITHUB_REPOSITORY_ID'],'sha':os.environ['GITHUB_SHA'],
+              'run_id':os.environ['GITHUB_RUN_ID'],'run_attempt':os.environ['GITHUB_RUN_ATTEMPT'],
+              'input_evidence':stage['input_evidence'],'prior_blob_count':len(prior['blobs']),
+              'prior_pack_count':len(prior['packs']),'published_blob_count':len(merged['blobs']),
+              'pack_artifact':{key:pack[key] for key in ('id','name','digest','workflow_run')},
+              'prior_indexes':[{key:item.get(key) for key in ('id','name','digest','workflow_run')}
+                  for item in listing if item['name'].startswith(core.INDEX_PREFIX) and not artstore._is_dead(item,now)]}
+          (Path(stage['index_path']).parent/'producer-provenance.json').write_text(json.dumps(receipt,indent=2,sort_keys=True))
+          (base/'evidence/publication.json').write_text(json.dumps(receipt,indent=2,sort_keys=True))
+          PY
+      - name: Publish cumulative index last
+        id: index
+        if: ${{ steps.stage.outputs.index != '' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ${{ steps.stage.outputs.index }}
+          path: ${{ runner.temp }}/k1-aux/publication/staged/index
+          retention-days: 90
+          if-no-files-found: error
+      - name: Retain separate encrypted producer diagnostics
+        if: ${{ always() && vars.DIAGNOSTICS_ENCRYPTION_RECIPIENT != '' }}
+        uses: ./.github/actions/retain-fullrun-evidence
+        with:
+          source: ${{ runner.temp }}/k1-aux/evidence
+          name: k1-public-retention-producer-${{ github.run_id }}-${{ github.run_attempt }}
+          encryption-recipient: ${{ vars.DIAGNOSTICS_ENCRYPTION_RECIPIENT }}
+  verify:
+    needs: publish
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {ref: '${{ github.sha }}', persist-credentials: false}
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with: {python-version: '3.12'}
+      - name: Prepare ordinary verification readers
+        timeout-minutes: 10
+        run: |
+          sudo timeout 300 apt-get -o Acquire::Retries=2 update -qq
+          sudo timeout 300 apt-get -o Acquire::Retries=2 install -y --no-install-recommends age openssl 7zip 7zip-rar unrar libarchive-tools
+      - name: Independently verify uploaded ZIPs and decrypt all six pinned inputs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          CACHE_ENCRYPTION_KEY: ${{ secrets.CACHE_ENCRYPTION_KEY }}
+          PACK_ID: ${{ needs.publish.outputs.pack_id }}
+          INDEX_ID: ${{ needs.publish.outputs.index_id }}
+          PACK_NAME: ${{ needs.publish.outputs.pack }}
+          INDEX_NAME: ${{ needs.publish.outputs.index }}
+        run: |
+          umask 077
+          python - <<'PY'
+          import json, os, re, stat, subprocess, sys, time, zipfile
+          from pathlib import Path
+          sys.path.insert(0,'tools/modsync-ci'); import artstore, artstore_client, artstore_core as core, cache, k1_widescreen_inputs as inputs
+          base=Path(os.environ['RUNNER_TEMP'])/'k1-aux-verify'; base.mkdir(mode=0o700)
+          evidence=base/'evidence'; evidence.mkdir(mode=0o700)
+          assert os.environ['GITHUB_REPOSITORY']=='kolto-labs/ModSync.rs' and os.environ['GITHUB_REF'].startswith('refs/heads/')
+          assert subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()==os.environ['GITHUB_SHA']
+          client=artstore_client.ArtifactsClient(os.environ['GITHUB_REPOSITORY'],os.environ['GITHUB_TOKEN'])
+          listing=client.list_artifacts(include_expired=True); pins=inputs._pins(); assert len(pins)==6
+          index=None; records=[]; pack_members={}; producer=None
+          assert bool(os.environ['PACK_ID'])==bool(os.environ['INDEX_ID'])==bool(os.environ['PACK_NAME'])==bool(os.environ['INDEX_NAME'])
+          for label in ('PACK','INDEX') if os.environ['PACK_ID'] else ():
+              artifact=next(item for item in listing if str(item['id'])==os.environ[label+'_ID']); run=artifact['workflow_run']
+              assert artifact['name']==os.environ[label+'_NAME'] and not artifact['expired']
+              assert run['head_sha']==os.environ['GITHUB_SHA'] and str(run['id'])==os.environ['GITHUB_RUN_ID']
+              assert str(run['repository_id'])==os.environ['GITHUB_REPOSITORY_ID'] and run['head_repository_id']==run['repository_id']
+              assert re.fullmatch(r'sha256:[0-9a-f]{64}',artifact['digest']) and 0<artifact['size_in_bytes']<=32*1024**2
+              path=base/(label+'.zip'); client.download_zip(artifact['id'],path,expect_digest=artifact['digest'])
+              assert path.stat().st_size==artifact['size_in_bytes']
+              with zipfile.ZipFile(path) as archive:
+                  members=archive.infolist()
+                  assert len(members)==len(set(archive.namelist())) and len(members)<=32
+                  assert all(not member.is_dir() and stat.S_IFMT(member.external_attr>>16) in (0,stat.S_IFREG) and member.file_size<=32*1024**2 for member in members)
+                  if label=='INDEX':
+                      assert set(archive.namelist())=={'index.json','producer-provenance.json'}
+                      local=base/'index.json'; local.write_bytes(archive.read('index.json')); index=core.load_index(local)
+                      producer=json.loads(archive.read('producer-provenance.json'))
+                      assert producer['repository']==os.environ['GITHUB_REPOSITORY'] and producer['repository_id']==os.environ['GITHUB_REPOSITORY_ID']
+                      assert producer['sha']==os.environ['GITHUB_SHA'] and producer['run_id']==os.environ['GITHUB_RUN_ID'] and producer['run_attempt']==os.environ['GITHUB_RUN_ATTEMPT']
+                      context=producer['input_evidence']; assert context['inputs']==pins
+                      assert context['profile_sha256']==inputs.PROFILE_SHA256 and context['galaxy_profile_sha256']==inputs.GALAXY_PROFILE_SHA256
+                      assert context['source_guide_sha256']==inputs.GUIDE_SHA256 and context['source_plan_sha256']==inputs.PLAN_SHA256
+                      profile=inputs._profile(Path('src/k1_widescreen_profile.json'),inputs.PROFILE_SHA256)
+                      assert context['source_component_guids']==[item['canonical']['Guid'] for item in profile['source_components']]
+                      assert producer['published_blob_count']==len(index['blobs'])>=producer['prior_blob_count']
+                      assert len(index['packs'])>=producer['prior_pack_count']
+                  else:
+                      assert members and all(re.fullmatch(r'[0-9a-f]{64}\.part',member.filename) for member in members)
+                      pack_members={member.filename:member.file_size for member in members}
+              records.append({key:artifact[key] for key in ('id','name','digest','workflow_run')}); path.unlink()
+          if index is None:
+              context=inputs._remote_context(strict=True); assert context is not None
+              _module,_client,index=context
+              listing=client.list_artifacts(include_expired=True)
+          now=time.time(); artstore._reconcile(index,artstore._packs_by_name(listing,now),now)
+          expected_new_parts={}; verified=[]; historical={}
+          for pin in pins:
+              blob=core.lookup(index,pin['sha256']); assert blob is not None and blob['size']==pin['bytes']
+              input_parts=[]
+              for part in blob['parts']:
+                  pack=index['packs'][part['pack']]
+                  artifact=next(item for item in listing if item['id']==pack['artifact_id']); run=artifact['workflow_run']
+                  assert artifact['name']==part['pack'] and not artifact['expired'] and not artstore._is_dead(artifact,now)
+                  assert str(run['repository_id'])==os.environ['GITHUB_REPOSITORY_ID'] and run['head_repository_id']==run['repository_id']
+                  assert re.fullmatch(r'[0-9a-f]{40}',run['head_sha']) and re.fullmatch(r'sha256:[0-9a-f]{64}',artifact['digest'])
+                  assert 0<part['stored_size']<=inputs.MAX_INPUT+4096
+                  input_parts.append({'part':part,'artifact':{key:artifact[key] for key in ('id','name','digest','workflow_run')}})
+                  if str(artifact['id'])==os.environ['PACK_ID']:
+                      expected_new_parts[part['stored_sha256']+'.part']=part['stored_size']
+                  else:
+                      historical[str(artifact['id'])]={key:artifact[key] for key in ('id','name','digest','workflow_run')}
+              restored=base/pin['filename']
+              assert artstore.fetch(pin['sha256'],restored,client=client,index=index,workdir=base/'parts',workers=1)
+              inputs._identity(restored,pin); assert cache.validate(restored,300) in ('zip','7z','rar')
+              verified.append({'role':pin['role'],'filename':pin['filename'],'sha256':pin['sha256'],'bytes':pin['bytes'],'source_parts':input_parts})
+              restored.unlink()
+          assert len(verified)==6 and pack_members==expected_new_parts
+          receipt={'schema_version':1,'status':'six-ciphertext-inputs-independently-restored','repository':os.environ['GITHUB_REPOSITORY'],
+              'sha':os.environ['GITHUB_SHA'],'run_id':os.environ['GITHUB_RUN_ID'],'run_attempt':os.environ['GITHUB_RUN_ATTEMPT'],
+              'publication':'new-pack-and-cumulative-index' if producer else 'already-retained-no-new-publication',
+              'profile_sha256':inputs.PROFILE_SHA256,'galaxy_profile_sha256':inputs.GALAXY_PROFILE_SHA256,
+              'source_guide_sha256':inputs.GUIDE_SHA256,'source_plan_sha256':inputs.PLAN_SHA256,
+              'verified':verified,'new_artifacts':records,'historical_pack_metadata':list(historical.values()),
+              'verification':'new ZIP API digests; historical pack API provenance; stored-part digest, authenticated decryption, whole-input SHA/size and archive CRC for every input'}
+          (evidence/'verified.json').write_text(json.dumps(receipt,indent=2,sort_keys=True))
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as summary:
+              summary.write('Independently restored and verified all six pinned K1 public inputs. '+receipt['publication']+'\n')
+          PY
+      - name: Retain separate encrypted verification diagnostics
+        if: ${{ always() && vars.DIAGNOSTICS_ENCRYPTION_RECIPIENT != '' }}
+        uses: ./.github/actions/retain-fullrun-evidence
+        with:
+          source: ${{ runner.temp }}/k1-aux-verify/evidence
+          name: k1-public-retention-verifier-${{ github.run_id }}-${{ github.run_attempt }}
+          encryption-recipient: ${{ vars.DIAGNOSTICS_ENCRYPTION_RECIPIENT }}

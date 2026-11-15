@@ -15,12 +15,17 @@ Commands (all of them exit 0; a backup or lookup problem is a ::warning:: and th
           restored=true
 """
 import argparse
+from contextlib import contextmanager
 import hashlib
 import json
 import os
+import re
 import shutil
+import stat
 import sys
 import tempfile
+import time
+import zipfile
 from pathlib import Path
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
@@ -155,6 +160,73 @@ def fetch(game, artifact_id, seal_dir, client, key_env=core.KEY_ENV):
         return manifest
     finally:
         shutil.rmtree(work, ignore_errors=True)
+
+
+@contextmanager
+def verified_zip_reader(client, artifact, directory):
+    """Read a modern backup from one digest-verified ZIP instead of repeated ranges.
+
+    Older providers without ZIP digests/download support retain their original
+    member API. The caller still checks every part hash/MAC, joined seal and game
+    inventory; this adapter only changes the ciphertext transport.
+    """
+    digest = artifact.get("digest")
+    if digest is None or not callable(getattr(client, "download_zip", None)):
+        yield client
+        return
+    if (not isinstance(digest, str) or re.fullmatch(r"sha256:[0-9a-f]{64}", digest) is None
+            or not _positive(artifact.get("id")) or not _positive(artifact.get("size_in_bytes"))):
+        raise ValueError("invalid backup ZIP identity or digest")
+    identifier = artifact["id"]
+    archive_path = Path(directory) / "verified-backup.zip"
+    try:
+        started = time.monotonic()
+        _say("downloading verified ZIP for artifact %d" % identifier)
+        client.download_zip(identifier, archive_path, expect_digest=digest)
+        if archive_path.stat().st_size != artifact["size_in_bytes"]:
+            raise ValueError("backup ZIP size mismatch")
+        _say("verified ZIP for artifact %d (%d bytes, %.1fs)" % (
+            identifier, artifact["size_in_bytes"], time.monotonic() - started))
+        with zipfile.ZipFile(archive_path) as archive:
+            names = [member.filename for member in archive.infolist()]
+            if len(names) != len(set(names)):
+                raise ValueError("duplicate backup ZIP members")
+
+            class Reader:
+                def read_member(self, artifact_id, member_name, destination, expect_size=None):
+                    if (artifact_id != identifier or not isinstance(member_name, str)
+                            or member_name != MANIFEST_MEMBER
+                            and re.fullmatch(r"[0-9a-f]{64}\.part", member_name) is None):
+                        raise ValueError("unexpected backup ZIP member request")
+                    info = archive.getinfo(member_name)
+                    if (info.is_dir() or info.flag_bits & 1
+                            or stat.S_IFMT(info.external_attr >> 16) not in (0, stat.S_IFREG)
+                            or not _positive(info.file_size)
+                            or member_name == MANIFEST_MEMBER and info.file_size > MANIFEST_LIMIT
+                            or expect_size is not None and info.file_size != expect_size):
+                        raise ValueError("unsafe backup ZIP member or size")
+                    destination = Path(destination)
+                    descriptor, temporary = tempfile.mkstemp(dir=destination.parent)
+                    try:
+                        written = 0
+                        with os.fdopen(descriptor, "wb") as outgoing, archive.open(info) as incoming:
+                            while chunk := incoming.read(core.CHUNK):
+                                written += len(chunk)
+                                if written > info.file_size:
+                                    raise ValueError("backup ZIP member exceeds its size")
+                                outgoing.write(chunk)
+                        if written != info.file_size:
+                            raise ValueError("backup ZIP member is truncated")
+                        os.replace(temporary, destination)
+                    finally:
+                        Path(temporary).unlink(missing_ok=True)
+                    return written
+
+            yield Reader()
+    except (zipfile.BadZipFile, KeyError) as error:
+        raise ValueError("invalid backup ZIP member or contents") from error
+    finally:
+        archive_path.unlink(missing_ok=True)
 
 
 def command_status(args, client=None, now=None):

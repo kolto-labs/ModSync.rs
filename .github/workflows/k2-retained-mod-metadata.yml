@@ -1,0 +1,91 @@
+name: Compare retained K2 mod versions without exporting payloads
+on:
+  workflow_dispatch:
+permissions: {contents: read, actions: read}
+concurrency:
+  group: k2-retained-mod-metadata-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  metadata:
+    if: github.repository == 'kolto-labs/ModSync.rs' && github.ref == 'refs/heads/fix/fullrun-ci-credentials'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {ref: '${{ github.sha }}', persist-credentials: false}
+      - name: Prepare private metadata tools
+        timeout-minutes: 10
+        run: |
+          umask 077
+          mkdir -p "$RUNNER_TEMP/mod-version-evidence" "$RUNNER_TEMP/mod-version-private"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=60 update -qq
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=60 install -y --no-install-recommends age zstd openssl
+      - name: Read only two fixed target-owned objects and compare member identities
+        timeout-minutes: 18
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          ARTSTORE_TOKEN: ${{ github.token }}
+          ARTSTORE_REPOSITORY: ${{ github.repository }}
+          CACHE_ENCRYPTION_KEY: ${{ secrets.CACHE_ENCRYPTION_KEY }}
+        run: |
+          python - <<'PY'
+          import hashlib,json,os,stat,sys,zipfile
+          from pathlib import Path,PurePosixPath
+          sys.path.insert(0,'tools/modsync-ci')
+          import artstore,artstore_client
+          root=Path(os.environ['RUNNER_TEMP']); evidence=root/'mod-version-evidence'; private=root/'mod-version-private'
+          pins={'original':('0c6db43f218d6d5bf73b1be8e3f7dc469254f3168920b6af6fa8513313617597',8802),
+                'current':('b3730c98a05a12ee0a6610a57570be62ff14a7217abaef667ced9b4b541f7eed',4370)}
+          report={'scope':'two fixed public-mod object inventories and NCS byte identity; no installation or approval',
+                  'component_guid':'e015887a-be0f-86d1-830e-92d82c8fc46c','source_guide_sha':'67dc5fd8da6abde324c51d32eee3d04687070dd6',
+                  'source_guide_sha256':'f442bdf574031623ed577609730d887069b9bc8e38e8e2f38ecc43a7e7487d5f',
+                  'repository':os.environ['GITHUB_REPOSITORY'],'engine_sha':os.environ['GITHUB_SHA'],'status':'running','objects':{}}
+          try:
+              assert os.environ['ARTSTORE_REPOSITORY']==os.environ['GITHUB_REPOSITORY']=='kolto-labs/ModSync.rs'
+              plan_path=Path('tools/modsync-ci/fixtures/ci/k2-manual-plan.json'); plan_bytes=plan_path.read_bytes()
+              assert hashlib.sha256(plan_bytes).hexdigest()=='0add8c1aeb7cdfad3df4b21761e135c150aa7832cf3fc0edabe01a91245a9258'
+              plan=json.loads(plan_bytes); assert plan['guide_sha256']==report['source_guide_sha256']
+              assert plan['archive_sha256']['{archives}/Improved Enlightenment and Corruption Feats.zip']==pins['original'][0]
+              report['original_plan_step']=plan['steps'][135]
+              assert report['original_plan_step']['id']=='step-136'
+              client=artstore_client.from_environment(); index=artstore.load_index(client); payloads={}
+              for label,(sha,size) in pins.items():
+                  report['stage']='recover-'+label
+                  path=private/(label+'.zip'); record=index['blobs'][sha]; assert record['size']==size
+                  assert artstore.fetch(sha,path,client=client,index=index,workdir=private/'parts')
+                  assert path.is_file() and not path.is_symlink() and path.stat().st_size==size
+                  assert hashlib.sha256(path.read_bytes()).hexdigest()==sha
+                  members=[]; names=set(); total=0; selected={}
+                  with zipfile.ZipFile(path) as archive:
+                      infos=archive.infolist(); assert 0<len(infos)<=64
+                      for info in infos:
+                          normalized=info.filename.replace('\\','/'); parts=PurePosixPath(normalized).parts
+                          assert normalized and not normalized.startswith('/') and all(part not in ('.','..') and ':' not in part for part in parts)
+                          assert normalized.rstrip('/').casefold() not in names; names.add(normalized.rstrip('/').casefold())
+                          kind=stat.S_IFMT(info.external_attr>>16); assert kind in (0,stat.S_IFREG,stat.S_IFDIR)
+                          total+=info.file_size; assert info.file_size<=4*1024*1024 and total<=16*1024*1024
+                          data=archive.read(info); assert len(data)==info.file_size
+                          item={'path':info.filename,'directory':info.is_dir(),'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest(),'crc32':info.CRC}
+                          members.append(item)
+                          if not info.is_dir() and normalized.lower().endswith('.ncs'):
+                              name=PurePosixPath(normalized).name.lower(); assert name not in selected
+                              selected[name]={'bytes':len(data),'sha256':item['sha256']}
+                  packs={part['pack']:index['packs'][part['pack']] for part in record['parts']}
+                  report['objects'][label]={'sha256':sha,'bytes':size,'blob':record,'packs':packs,'members':members,'ncs':selected}
+                  assert set(selected)=={'a_influence_dec.ncs','a_influence_inc.ncs'}
+                  payloads[label]=selected
+              report.update(status='metadata_complete',ncs_payloads_byte_identical=payloads['original']==payloads['current'])
+          except BaseException as error:
+              report.update(status='failed',failure_category=type(error).__name__)
+              raise SystemExit('Retained metadata inspection failed: '+type(error).__name__)
+          finally:
+              (evidence/'comparison.json').write_text(json.dumps(report,indent=2))
+          PY
+      - name: Retain only independently encrypted metadata
+        if: success() || failure()
+        uses: ./.github/actions/retain-fullrun-evidence
+        with:
+          source: ${{ runner.temp }}/mod-version-evidence
+          name: k2-retained-mod-metadata-${{ github.run_id }}-${{ github.run_attempt }}
+          encryption-recipient: ${{ vars.DIAGNOSTICS_ENCRYPTION_RECIPIENT }}

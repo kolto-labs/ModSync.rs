@@ -6,6 +6,10 @@ Pillow. Evidence is private under --work-dir; --report contains no OCR beyond
 the numeric "Base build" summary line and no mod names. The supplied game/workspace are real writable install targets. Failures
 leave application recovery state intact; this driver never retries an install.
 
+With --complete-guide the driver selects all admitted components, verifies the base
+receipt, runs fresh remaining-phase validation and installation in the same desktop,
+and verifies the final cumulative receipt and actual game manifest.
+
 Subset installs: --deselect GUID (repeatable, reviewed policy skips) and
 --exclude-widescreen install a defined subset of the converted TOML. The
 driver never edits the supplied file: it writes IsSelected into a private copy
@@ -82,6 +86,8 @@ VALIDATION_NAV_LABEL = "Validation / install"
 VALIDATION_PAGE_MARKER = re.compile(r"Run\s*validation|Analyze\s*conflicts|Install\s*selected\s*mods", re.IGNORECASE)
 VALIDATION_STARTED_MARKER = re.compile(
     r"Validating\b|Starting\s*validation|Validation\s*(?:completed|passed)", re.IGNORECASE)
+FRESH_VALIDATION_STARTED_MARKER = re.compile(
+    r"^\s*(?:Validating\b|Starting\s*validation\b)", re.IGNORECASE)
 INSTALL_REVIEW_MARKER = re.compile(r"Ready\s*to\s*Install", re.IGNORECASE)
 INSTALL_CONFIRMATION_MARKER = re.compile(
     r"Create\s*snap|snap\w*\s*needs|Install\s*selected\s*mods\s*\?", re.IGNORECASE)
@@ -110,6 +116,12 @@ INSTALLATION_COMPONENT_STEP_PATTERN = re.compile(
     r"(?:\[Error\]\s*)?(?:Error\s*:\s*)?(?P<component>.+?)\s*/\s*step\s+"
     r"(?P<step>\d+)\s*\((?P<action>[^)]*)\)", re.IGNORECASE)
 PATCHER_ERROR_PATTERN = re.compile(r"\[Error\]|Could\s+not\s+find\s+the\s+file", re.IGNORECASE)
+# Successful structured receipts preserve the original vendor's failure_regex
+# strings. A bare quoted "Error: " array value is provenance, not an error.
+# Match only that empty label followed by a JSON delimiter; quoted messages
+# containing actual error details and all unquoted error markers stay visible.
+QUOTED_ERROR_PATTERN_LABEL = re.compile(
+    r'''["'“”‘’]\s*ERROR\s*:\s*["'“”‘’](?=\s*[,}\]])''', re.IGNORECASE)
 NEXT_PATTERN = r"\bNext\b"
 PAUSE_SHARING_PATTERN = r"Pause\s*sharing\s*to\s*edit"
 PAUSE_SHARING_RETRY_SECONDS = 5
@@ -132,6 +144,40 @@ BANNER_OCR_SCALES = (1, 2)
 
 class Blocked(Exception):
     pass
+
+
+EXECUTE_RUNNER_PATHS = ("execute_request_dir", "execute_xvfb", "execute_wine",
+                        "execute_wineserver", "execute_wine_prefix")
+
+
+def execute_runner_arguments(args):
+    """Validate explicitly supplied runner paths without creating or changing anything."""
+    supplied = {name: getattr(args, name, None) for name in EXECUTE_RUNNER_PATHS}
+    if not any(value is not None for value in supplied.values()):
+        return []
+    if any(value is None for value in supplied.values()):
+        raise Blocked("execute_runner_requires_all_five_paths")
+    paths = {}
+    for name, value in supplied.items():
+        raw = Path(value).absolute()
+        if ".." in raw.parts or any(path.is_symlink() for path in (raw, *raw.parents)):
+            raise Blocked("execute_runner_symlink_or_noncanonical_path_" + name)
+        path = raw.resolve(strict=True)
+        if name in ("execute_request_dir", "execute_wine_prefix"):
+            if not path.is_dir():
+                raise Blocked("execute_runner_directory_required_" + name)
+        elif not path.is_file() or not os.access(path, os.X_OK):
+            raise Blocked("execute_runner_executable_required_" + name)
+        paths[name] = path
+    request, prefix = paths["execute_request_dir"], paths["execute_wine_prefix"]
+    if prefix == request or not prefix.is_relative_to(request):
+        raise Blocked("execute_wine_prefix_must_be_proper_child_of_request_directory")
+    roots = (args.game_dir.resolve(strict=True), args.archives.resolve(strict=True))
+    for name, path in paths.items():
+        if any(path.is_relative_to(root) or root.is_relative_to(path) for root in roots):
+            raise Blocked("execute_runner_overlaps_game_or_archives_" + name)
+    return [argument for name in EXECUTE_RUNNER_PATHS
+            for argument in ("--" + name.replace("_", "-"), str(paths[name]))]
 
 
 def strip_ocr_path_prefix(value):
@@ -396,25 +442,89 @@ def table_key(document):
     return "thisMod" if "thisMod" in document else "Components"
 
 
+def review_owners(value, depth=0):
+    """Visit real Component/Options owners, never retained provenance metadata."""
+    if depth > 64:
+        raise Blocked("draft_review_owner_nesting_exceeds_bound")
+    if isinstance(value, list):
+        for owner in value:
+            yield from review_owners(owner, depth)
+        return
+    if not isinstance(value, dict):
+        raise Blocked("draft_review_owner_malformed")
+    yield value
+    options = value.get("Options", [])
+    if not isinstance(options, list):
+        raise Blocked("draft_review_options_malformed")
+    for option in options:
+        yield from review_owners(option, depth + 1)
+
+
 def review_required(value):
-    if isinstance(value, dict):
-        if "DraftReview" in value:
-            review = value["DraftReview"]
+    for owner in review_owners(value):
+        if "DraftReview" in owner:
+            review = owner["DraftReview"]
             if not isinstance(review, dict) or review.get("RequiresReview") is not False:
                 return True
-        return any(review_required(child) for child in value.values())
-    return isinstance(value, list) and any(review_required(child) for child in value)
+        elif "DRAFT INSTRUCTIONS: parsed from guide prose" in str(owner.get("InstallationWarning", "")):
+            return True
+    return False
 
 
-def plan_selection(components, deselect=(), exclude_widescreen=False):
+def query_application_reviews(binary, driven_input, components, private, run=subprocess.run):
+    """Validate existing receipts with the production reader; never apply its operations."""
+    owners = list(review_owners(components))
+    if len(owners) > 10000:
+        raise Blocked("draft_review_owner_count_exceeds_bound")
+    identities = [str(owner.get("Guid", "")).lower() for owner in owners]
+    present = [identity for identity in identities if identity]
+    if len(set(present)) != len(present):
+        raise Blocked("draft_review_owner_identities_duplicate")
+    home = private / "review-query-home"
+    home.mkdir(mode=0o700, exist_ok=True)
+    environment = {key: os.environ[key] for key in
+                   ("PATH", "LANG", "LC_ALL", "TZ", "SYSTEMROOT", "WINDIR") if key in os.environ}
+    for name in ("HOME", "XDG_CONFIG_HOME", "XDG_CACHE_HOME", "XDG_DATA_HOME", "XDG_RUNTIME_DIR", "TMPDIR"):
+        directory = home / name.lower()
+        directory.mkdir(mode=0o700, exist_ok=True)
+        environment[name] = str(directory)
+    verified = []
+    for index, (owner, identity) in enumerate(zip(owners, identities)):
+        if "DraftReview" not in owner:
+            continue
+        if not identity:
+            raise Blocked("draft_review_owner_identity_missing")
+        output = private / ("review-query-%04d.json" % index)
+        log = private / ("review-query-%04d.log" % index)
+        command = [str(binary), "guide-draft-review", str(driven_input), identity]
+        try:
+            with output.open("w", encoding="utf-8") as stdout, log.open("w", encoding="utf-8") as stderr:
+                completed = run(command, cwd=private, env=environment, stdin=subprocess.DEVNULL,
+                                stdout=stdout, stderr=stderr, timeout=QUERY_TIMEOUT_SECONDS)
+            if completed.returncode or output.stat().st_size > 16 * 1024 * 1024:
+                raise ValueError("query failed or output exceeds bound")
+            report = json.loads(output.read_text(encoding="utf-8"))
+            if (report.get("requiresReview") is not False
+                    or str(report.get("diagnostics", {}).get("ComponentGuid", "")).lower() != identity):
+                raise ValueError("owner review not approved")
+        except (OSError, subprocess.SubprocessError, ValueError, TypeError, AttributeError):
+            raise Blocked("application_draft_review_query_rejected_owner") from None
+        verified.append(identity)
+    return {"status": "verified", "owners_checked": len(verified), "guids": verified}
+
+
+def plan_selection(components, deselect=(), exclude_widescreen=False, complete_guide=False,
+                   profile_excluded=()):
     """Decide exactly which components the GUI will install, or refuse.
 
-    Base components not deselected are selected (what "Select all" would do).
-    Reviewed-policy GUIDs are always deselected. Widescreen-only components are
-    never installed: they are deselected with exclude_widescreen, otherwise any
-    that the input selects makes the plan refuse. Draft review is checked on
-    the components that remain selected only; the driver never authorizes it.
+    Complete mode drives both phases. A validated repository profile keeps all
+    definitions while selecting its admitted GUIDs; those explicit exclusions
+    are separate from policy skips and uncovered widescreen components. Legacy
+    mode remains a single base phase. Draft review is checked on selected
+    components only; the driver never authorizes it.
     """
+    if complete_guide and exclude_widescreen:
+        raise Blocked("complete_guide_conflicts_with_exclude_widescreen")
     identities = [str(component.get("Guid", "")).lower() for component in components]
     requested = [str(value).lower() for value in deselect]
     if len(set(requested)) != len(requested):
@@ -422,20 +532,27 @@ def plan_selection(components, deselect=(), exclude_widescreen=False):
     if not set(requested) <= set(identities):
         raise Blocked("deselect_guid_not_in_input")
     policy = set(requested)
+    profile_excluded = set(profile_excluded)
+    if not profile_excluded <= set(identities):
+        raise Blocked("profile_exclusion_guid_not_in_input")
+    if profile_excluded and not complete_guide:
+        raise Blocked("install_profile_requires_complete_guide")
+    if policy & profile_excluded:
+        raise Blocked("profile_exclusion_also_reported_as_policy_skip")
     widescreen = {identity for identity, component in zip(identities, components)
                   if component.get("WidescreenOnly") is True}
-    not_installed = widescreen - policy
+    not_installed = set() if complete_guide else widescreen - policy
     selection = []
     for identity, component in zip(identities, components):
-        if identity in policy:
+        if identity in policy or identity in profile_excluded:
             selection.append(False)
         elif identity in widescreen:
-            selection.append(component.get("IsSelected") is True and not exclude_widescreen)
+            selection.append(complete_guide or (component.get("IsSelected") is True and not exclude_widescreen))
         else:
             selection.append(True)
     if review_required([component for component, keep in zip(components, selection) if keep]):
         raise Blocked("draft_review_receipts_require_human_source_review_driver_cannot_authorize")
-    if any(keep and identity in widescreen for identity, keep in zip(identities, selection)):
+    if not complete_guide and any(keep and identity in widescreen for identity, keep in zip(identities, selection)):
         raise Blocked("full_input_contains_separate_widescreen_phase_driver_supports_single_phase_only")
     deselected = {identity for identity, keep in zip(identities, selection) if not keep}
     for component, keep in zip(components, selection):
@@ -444,19 +561,103 @@ def plan_selection(components, deselect=(), exclude_widescreen=False):
     if not any(selection):
         raise Blocked("no_component_left_selected")
     base = [identity not in widescreen for identity in identities]
-    return {
+    plan = {
         "selection": selection,
         "identities": identities,
         "expected_components": [identity for identity, keep in zip(identities, selection) if keep],
         "skipped_by_reviewed_policy": sorted(policy),
         "excluded_widescreen": sorted(not_installed),
-        "widescreen_phase": "not_covered_by_gui_lane" if widescreen else "none_in_input",
+        "widescreen_phase": ("pending" if complete_guide else "not_covered_by_gui_lane") if widescreen else "none_in_input",
         "base_total": sum(base),
         "base_selected": sum(keep and is_base for keep, is_base in zip(selection, base)),
-        "subset": bool(policy or not_installed),
-        "click_select_all": not any(identity in policy for identity, is_base
+        "subset": bool(policy or not_installed or profile_excluded),
+        "click_select_all": not any(identity in policy | profile_excluded for identity, is_base
                                     in zip(identities, base) if is_base),
     }
+    if complete_guide:
+        plan["click_select_all"] = False
+        plan["base_guids"] = [identity for identity, keep in zip(identities, selection)
+                              if keep and identity not in widescreen]
+        plan["remaining_guids"] = [identity for identity, keep in zip(identities, selection)
+                                   if keep and identity in widescreen]
+        if not plan["base_guids"]:
+            raise Blocked("complete_guide_requires_nonempty_base_phase")
+    return plan
+
+
+def query_application_phase_plan(binary, driven_input, plan, private, complete_guide=False,
+                                 run=subprocess.run):
+    """Use the production core's read-only phase plan; never infer native deferrals.
+
+    The same private, selected guide is subsequently opened by the desktop. Every
+    selected GUID and both complete membership partitions must agree before any
+    GUI process starts. A phase plan is planning evidence, never draft approval.
+    """
+    home = private / "phase-query-home"
+    home.mkdir(mode=0o700, exist_ok=True)
+    environment = {key: os.environ[key] for key in
+                   ("PATH", "LANG", "LC_ALL", "TZ", "SYSTEMROOT", "WINDIR") if key in os.environ}
+    for name in ("HOME", "XDG_CONFIG_HOME", "XDG_CACHE_HOME", "XDG_DATA_HOME", "XDG_RUNTIME_DIR", "TMPDIR"):
+        directory = home / name.lower()
+        directory.mkdir(mode=0o700, exist_ok=True)
+        environment[name] = str(directory)
+    output = private / "phase-plan.json"
+    log = private / "phase-plan.log"
+    command = [str(binary), "phase-plan", str(driven_input)]
+    before = digest(driven_input)
+    try:
+        with output.open("w", encoding="utf-8") as stdout, log.open("w", encoding="utf-8") as stderr:
+            completed = run(command, cwd=private, env=environment, stdin=subprocess.DEVNULL,
+                            stdout=stdout, stderr=stderr, timeout=QUERY_TIMEOUT_SECONDS)
+        if (completed.returncode or output.stat().st_size > 4 * 1024 * 1024
+                or log.stat().st_size > 4 * 1024 * 1024 or digest(driven_input) != before):
+            raise ValueError("phase query failed, changed input, or exceeded its output bound")
+        document = json.loads(output.read_text(encoding="utf-8"))
+        if (set(document) != {"schema_version", "execution_order", "base", "remaining",
+                              "base_all", "remaining_all", "installed"}
+                or type(document["schema_version"]) is not int or document["schema_version"] != 1
+                or document["installed"] is not False):
+            raise ValueError("invalid phase-plan schema")
+
+        def identities(name):
+            values = document[name]
+            if (not isinstance(values, list) or len(values) > 10000
+                    or any(not isinstance(value, str) or not value or len(value) > 256 for value in values)):
+                raise ValueError("invalid phase-plan identities")
+            values = [value.lower() for value in values]
+            if len(set(values)) != len(values):
+                raise ValueError("duplicate phase-plan identities")
+            return values
+
+        execution, base, remaining, base_all, remaining_all = (
+            identities(name) for name in ("execution_order", "base", "remaining", "base_all", "remaining_all"))
+        original = plan["identities"]
+        expected = plan["expected_components"]
+        base_members, remaining_members = set(base_all), set(remaining_all)
+        if (len(set(original)) != len(original) or len(set(expected)) != len(expected)
+                or set(execution) != set(expected) or len(execution) != len(expected)
+                or base_members & remaining_members or base_members | remaining_members != set(original)
+                or len(base_all) + len(remaining_all) != len(original)
+                or execution != base + remaining
+                or base != [identity for identity in execution if identity in base_members]
+                or remaining != [identity for identity in execution if identity in remaining_members]):
+            raise ValueError("application phase partition or selected execution prefix differs from plan")
+    except (OSError, subprocess.SubprocessError, ValueError, TypeError, KeyError, AttributeError):
+        raise Blocked("application_phase_plan_query_failed_or_differs_from_selection") from None
+    if not complete_guide and remaining:
+        raise Blocked("full_input_contains_separate_widescreen_phase_driver_supports_single_phase_only")
+    if complete_guide and not base:
+        raise Blocked("complete_guide_requires_nonempty_base_phase")
+    plan.update(expected_components=execution, base_guids=base, remaining_guids=remaining,
+                base_total=len(base_all), base_selected=len(base),
+                widescreen_phase=(("pending" if complete_guide else "not_covered_by_gui_lane")
+                                  if remaining_all else "none_in_input"))
+    plan["click_select_all"] = (not complete_guide
+        and not set(base_all) & set(plan["skipped_by_reviewed_policy"]))
+    return {"status": "matched", "schema_version": 1, "selected_components": len(execution),
+            "base_selected": len(base), "remaining_selected": len(remaining),
+            "base_total": len(base_all), "remaining_total": len(remaining_all),
+            "phase_plan_sha256": digest(output), "installed": False}
 
 
 def query_application_selection(binary, driven_input, game_dir, select_all, private,
@@ -680,12 +881,20 @@ def drive(args, private, result):
         if INSTALLATION_FAILURE_MARKER.search(text):
             record_installation_failure(result, text.splitlines())
             raise Blocked("installation_stopped")
-        if re.search(
+        visible_failure_text = QUOTED_ERROR_PATTERN_LABEL.sub(
+            lambda match: re.sub(r"[^\n]", " ", match.group()), text)
+        failure = re.search(
             r"validation (?:failed|stopped|did not complete)|installation (?:failed|stopped|review blocked)|"
             r"review remains open|requires? review|unreviewed|inputs changed|"
             r"result discarded|not applied|recovery required|\bERROR\s*:",
-            text, re.IGNORECASE,
-        ):
+            visible_failure_text, re.IGNORECASE,
+        )
+        if failure:
+            result["visible_failure"] = {
+                "stage": result.get("stage"),
+                "matched": failure.group()[:160],
+                "ocr_context": text[max(0, failure.start() - 80):failure.end() + 160],
+            }
             raise Blocked("visible_review_validation_or_install_error")
         return shot, data, lines
 
@@ -774,10 +983,10 @@ def drive(args, private, result):
               flush=True)
         time.sleep(NAV_SETTLE_SECONDS)
 
-    def click(label, optional=False, window=None, pattern=None):
+    def click(label, optional=False, window=None, pattern=None, scales=(2,)):
         result["stage"] = label
         mark()
-        point = locate(label, optional, window, pattern)
+        point = locate(label, optional, window, pattern, scales=scales)
         if point is None:
             return
         press(point, label)
@@ -810,7 +1019,8 @@ def drive(args, private, result):
             time.sleep(0.5)
 
     def transition(name, label, marker, reason, pattern=None, window=NAV_WINDOW_SECONDS,
-                   scales=(2,), retry=True, page_marker=None, fragments=None):
+                   scales=(2,), retry=True, page_marker=None, fragments=None,
+                   fresh_after_click=False):
         """Click `label` until `marker` is read on screen, or block with `reason`.
 
         The desktop ignores clicks on disabled controls (it is busy loading, saving the
@@ -832,6 +1042,8 @@ def drive(args, private, result):
         screen centre, where the modal sits). With `fragments` (a fragment and an anchor
         regex) a control whose label OCR split into several words is also located from
         those words when the full-phrase pattern finds nothing.
+        With `fresh_after_click`, a marker must be new since the initial frame and
+        observed after this transition clicked its label; prior phase logs cannot qualify.
         """
         result["stage"] = name + "_navigation"
         mark()
@@ -874,8 +1086,13 @@ def drive(args, private, result):
                 name, navigation["attempts"], len(read), len(relevant),
                 " | ".join(nav_log_lines(read, relevant, navigation["attempts"])) or "<no text>"),
                 flush=True)
-            if any(marker.search(text) for text in read):
+            marker_lines = new_lines(baseline, read) if fresh_after_click else read
+            if ((not fresh_after_click or navigation["label_clicks"] > 0)
+                    and any(marker.search(text) for text in marker_lines)):
                 navigation["reached"] = True
+                if fresh_after_click:
+                    navigation["fresh_marker_after_click"] = [
+                        text for text in marker_lines if marker.search(text)][:8]
                 shot.save(private / (evidence + ".png"))
                 save(private / (evidence + ".json"), navigation)
                 return
@@ -942,6 +1159,7 @@ def drive(args, private, result):
                "--input", str(driven_input), "--game-dir", str(args.game_dir),
                "--source-dir", str(args.archives),
                "--settings-dir", str(private / "settings")]
+    command.extend(execute_runner_arguments(args))
     seed_telemetry_config(private / "settings")
     save(private / "command.json", command)
     environment = os.environ.copy()
@@ -970,6 +1188,13 @@ def drive(args, private, result):
                 wait_for_selection_summary(observe_summary, plan, result, private)
             transition("validation_page", VALIDATION_NAV_LABEL, VALIDATION_PAGE_MARKER,
                        "validation_page_not_reached")
+            if getattr(args, "complete_guide", False) and plan.get("needs_process_trust"):
+                # Actual native screenshots can OCR the leading g as q at 2x.
+                # Require the whole checkbox label; retry native scale as well.
+                click("Trust this guide to run external programs", window=NAV_WINDOW_SECONDS,
+                      pattern=r"\bTrust\s+this\s+[gq]uide\s+to\s+run\s+external\s+programs\b",
+                      scales=(2, 1))
+                result["external_program_trust"] = "native_checkbox_in_fresh_desktop"
             transition("validation_start", "Run validation", VALIDATION_STARTED_MARKER,
                        "validation_not_started")
             result["stage"] = "validation"
@@ -990,7 +1215,76 @@ def drive(args, private, result):
                    scales=BANNER_OCR_SCALES)
             result["ui_completed"] = True
             mark(stage="receipt")
-            verify_receipt(args, result, check_time, plan["expected_components"])
+            if not getattr(args, "complete_guide", False):
+                verify_receipt(args, result, check_time, plan["expected_components"])
+            else:
+                phases = []
+
+                def record_phase(phase, installed, cumulative, validation, confirmation):
+                    verify_receipt(args, result, check_time, cumulative)
+                    phases.append({"phase": phase, "expected_guids": sorted(installed),
+                        "completed_guids": result["completed_guids"],
+                        "validation_passed": validation,
+                        "snapshot_confirmed": (result[confirmation + "_navigation"]["reached"]
+                            and result[("installation_start" if phase == "base" else
+                                        "remaining_installation_start") + "_navigation"]["reached"]),
+                        "ui_completed": True, "receipt_sha256": result["receipt_sha256"],
+                        "verified_game_files": result["verified_game_files"]})
+                    result["phases"] = phases
+                    # A base receipt is intermediate evidence, never terminal success.
+                    result["status"] = "blocked"
+                    result["ui_completed"] = False
+
+                record_phase("base", plan["base_guids"], plan["base_guids"], True,
+                             "install_confirmation")
+                if plan["remaining_guids"]:
+                    transition("base_completion", "Continue",
+                        re.compile(r"Base\s*Installation\s*Complete", re.IGNORECASE),
+                        "base_completion_page_not_reached")
+                    if plan["widescreen_notice"]:
+                        transition("widescreen_notice", "Next",
+                            re.compile(r"Widescreen\s*Mods", re.IGNORECASE),
+                            "widescreen_notice_not_reached", pattern=NEXT_PATTERN)
+                    transition("remaining_selection", "Next",
+                        re.compile(r"\d+\s*widescreen\s*mods\s*selected", re.IGNORECASE),
+                        "remaining_selection_not_reached", pattern=NEXT_PATTERN)
+                    # The wizard embeds validation below the full widescreen
+                    # list; its controls can be below the viewport. The existing
+                    # utility tab exposes the same phase-aware validation without
+                    # changing selection, wizard position, or completed_base.
+                    transition("remaining_validation_page", VALIDATION_NAV_LABEL,
+                               VALIDATION_PAGE_MARKER, "remaining_validation_page_not_reached")
+                    transition("remaining_validation_start", "Run validation",
+                               FRESH_VALIDATION_STARTED_MARKER,
+                               "remaining_validation_not_started", retry=False,
+                               fresh_after_click=True)
+                    result["stage"] = "remaining_validation"
+                    mark()
+                    locate("Validation passed", scales=BANNER_OCR_SCALES)
+                    transition("remaining_wizard_return", "Return to wizard",
+                               re.compile(r"Widescreen\s*Mod\s*Selection", re.IGNORECASE),
+                               "remaining_wizard_not_reached")
+                    transition("remaining_confirmation", "Next", INSTALL_CONFIRMATION_MARKER,
+                               "remaining_confirmation_not_reached", pattern=NEXT_PATTERN,
+                               scales=CONFIRMATION_OCR_SCALES, retry=False,
+                               page_marker=re.compile(r"widescreen\s*mods\s*selected", re.IGNORECASE))
+                    transition("remaining_installation_start", "Create snapshot and install",
+                               INSTALLATION_STARTED_MARKER, "remaining_installation_not_started",
+                               pattern=INSTALL_START_PATTERN, scales=INSTALL_START_OCR_SCALES,
+                               fragments=(INSTALL_START_FRAGMENTS, INSTALL_START_ANCHOR))
+                    result["stage"] = "remaining_installation"
+                    mark()
+                    locate("Installation complete", pattern=INSTALLATION_COMPLETE_PATTERN,
+                           scales=BANNER_OCR_SCALES)
+                    record_phase("remaining", plan["remaining_guids"], plan["expected_components"],
+                                 True, "remaining_confirmation")
+                    result["widescreen_phase"] = "completed_and_verified"
+                elif plan["widescreen_phase"] == "pending":
+                    result["widescreen_phase"] = "not_installed_due_to_policy"
+                # Re-read the final cumulative receipt and all actual files after both phases.
+                verify_receipt(args, result, check_time, plan["expected_components"])
+                result["ui_completed"] = True
+                result["complete_guide"] = True
     finally:
         if process is not None and process.poll() is None:
             process.terminate()
@@ -1037,15 +1331,42 @@ def verify_receipt(args, result, check_time, expected_ids):
     if observed != set(files):
         raise Blocked("completion_manifest_file_set_mismatch")
     result["receipt_sha256"] = digest(path)
+    result["completed_guids"] = sorted(actual_ids)
     result["completed_components"] = len(actual)
     result["verified_game_files"] = len(files)
     result["status"] = "installed"
     result["reason"] = "native_gui_completed_and_receipt_verified"
 
 
+def checked_install_profile(args, components):
+    """Authenticate selected-profile intent without converting exclusions into lost coverage."""
+    path = getattr(args, "install_profile_receipt", None)
+    if path is None:
+        return None
+    if not getattr(args, "complete_guide", False):
+        raise Blocked("install_profile_requires_complete_guide")
+    try:
+        if path.is_symlink() or not path.is_file() or path.stat().st_size > 4 * 1024 * 1024:
+            raise ValueError("invalid profile receipt file")
+        import install_profiles
+        receipt = json.loads(path.read_text(encoding="utf-8"))
+        selected = install_profiles.validate_receipt(receipt)
+        identities = [str(component.get("Guid", "")).lower() for component in components]
+        if (receipt["admitted_input_sha256"] != digest(args.input)
+                or identities != receipt["original_guids"]
+                or len(components) != receipt["retained_definition_count"]
+                or [component.get("IsSelected") is True for component in components]
+                   != [identity in selected for identity in identities]):
+            raise ValueError("profile receipt differs from the actual selected input")
+        return receipt
+    except (OSError, ValueError, KeyError, TypeError):
+        raise Blocked("install_profile_receipt_invalid_or_differs_from_input") from None
+
+
 def execute(args, result):
     for name in ("binary", "input", "game_dir", "archives"):
         setattr(args, name, getattr(args, name).resolve(strict=True))
+    execute_runner_arguments(args)
     if not args.binary.is_file() or not os.access(args.binary, os.X_OK):
         raise Blocked("executable_required")
     if args.input.suffix.lower() != ".toml":
@@ -1058,7 +1379,26 @@ def execute(args, result):
     identities = [component.get("Guid") for component in components]
     if any(not identity for identity in identities) or len(set(identities)) != len(identities):
         raise Blocked("component_identities_missing_or_duplicate")
-    plan = plan_selection(components, args.deselect, args.exclude_widescreen)
+    owner_ids = [str(owner.get("Guid", "")).lower() for owner in review_owners(components)]
+    present_owner_ids = [identity for identity in owner_ids if identity]
+    if len(set(present_owner_ids)) != len(present_owner_ids):
+        raise Blocked("draft_review_owner_identities_duplicate")
+    complete_guide = getattr(args, "complete_guide", False)
+    native_phase_plan = ("K1WidescreenSchedule" in document or any(
+        "K1WidescreenBinding" in owner or (isinstance(owner.get("Instructions"), list) and any(
+            isinstance(step, dict) and step.get("Action") == "K1Widescreen"
+            for step in owner["Instructions"]))
+        for owner in review_owners(components)))
+    profile = checked_install_profile(args, components)
+    profile_excluded = (set(profile["excluded_guids"]) | set(profile["platform_inactive_guids"])
+                        if profile else set())
+    plan = plan_selection(components, args.deselect, args.exclude_widescreen, complete_guide,
+                          profile_excluded=profile_excluded)
+    if profile:
+        plan["install_profile"] = profile
+        result["install_profile"] = profile
+        result["profile_excluded_guids"] = profile["excluded_guids"]
+        result["platform_inactive_guids"] = profile["platform_inactive_guids"]
     if not args.game_dir.is_dir() or not args.archives.is_dir():
         raise Blocked("real_game_and_archive_directories_required")
     args.work_dir = args.work_dir.resolve()
@@ -1081,16 +1421,39 @@ def execute(args, result):
     result["input_sha256"] = digest(args.input)
     result["binary_sha256"] = digest(args.binary)
     result["component_count"] = len(components)
-    result["coverage"] = "subset" if plan["subset"] else "full"
+    result["coverage"] = ("subset" if plan["skipped_by_reviewed_policy"]
+                          or plan["excluded_widescreen"] else "full")
     result["expected_components"] = len(plan["expected_components"])
     for name in ("skipped_by_reviewed_policy", "excluded_widescreen", "widescreen_phase"):
         result[name] = plan[name]
     (private / "input.toml").write_text(
-        rewrite_selection(input_text, plan["selection"]) if plan["subset"] else input_text,
+        rewrite_selection(input_text, plan["selection"]) if plan["subset"] or complete_guide or native_phase_plan else input_text,
         encoding="utf-8")
     result["driven_input_sha256"] = digest(private / "input.toml")
+    if native_phase_plan:
+        result["phase_oracle"] = query_application_phase_plan(
+            args.binary, private / "input.toml", plan, private, complete_guide)
+        result["expected_components"] = len(plan["expected_components"])
+        result["widescreen_phase"] = plan["widescreen_phase"]
+    # The real loader checks receipt identity after the selection rewrite. Nested
+    # InputComponent/Recipe snapshots remain provenance, not installation owners.
+    result["review_oracle"] = query_application_reviews(
+        args.binary, private / "input.toml",
+        [component for component, keep in zip(components, plan["selection"]) if keep], private)
+    if complete_guide:
+        def needs_process(component):
+            return (any(str(step.get("Action", "")).casefold() in ("execute", "run")
+                        for step in component.get("Instructions", []) if isinstance(step, dict))
+                    or any(needs_process(option) for option in component.get("Options", [])
+                           if isinstance(option, dict) and option.get("IsSelected") is True))
+        plan["needs_process_trust"] = any(needs_process(component)
+            for component, keep in zip(components, plan["selection"]) if keep)
+        metadata = document.get("metadata", {})
+        warning = metadata.get("widescreenWarningContent", metadata.get("WidescreenWarningContent",
+            document.get("widescreenWarningContent", document.get("WidescreenWarningContent", ""))))
+        plan["widescreen_notice"] = isinstance(warning, str) and bool(warning.strip())
     save(private / "selection-plan.json", plan)
-    if plan["subset"]:
+    if plan["subset"] or complete_guide:
         selected, counts = query_application_selection(
             args.binary, private / "input.toml", args.game_dir, plan["click_select_all"], private)
         try:
@@ -1147,12 +1510,20 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("binary", "input", "game-dir", "archives", "work-dir", "report"):
         parser.add_argument("--" + name, type=Path, required=True)
+    for name in EXECUTE_RUNNER_PATHS:
+        parser.add_argument("--" + name.replace("_", "-"), type=Path,
+                            help="explicit Windows Execute runner path; supply all five runner "
+                                 "paths together (external-program trust remains required)")
     parser.add_argument("--deselect", action="append", default=[], metavar="GUID",
                         help="reviewed policy skip: written IsSelected=false into a private copy and "
                              "reported as skipped_by_reviewed_policy, never as covered (repeatable)")
     parser.add_argument("--exclude-widescreen", action="store_true",
                         help="deselect widescreen-only components in the private copy and report them "
                              "as not covered; without it a selected widescreen component is refused")
+    parser.add_argument("--install-profile-receipt", type=Path,
+                        help="validated repository profile receipt matching the complete input and selected GUIDs")
+    parser.add_argument("--complete-guide", action="store_true",
+                        help="drive and verify both native base and remaining installation phases")
     parser.add_argument("--timeout", type=float, required=True, help="Total GUI time budget in seconds")
     parser.add_argument("--private-worker", type=Path, help=argparse.SUPPRESS)
     args = parser.parse_args()
@@ -1162,8 +1533,8 @@ def main():
               "source_contract": ["src/ui/validation_page.rs", "src/ui.rs",
                                   "src/ui/installing_page.rs", "src/recovery.rs",
                                   "src/checkpoint/finalize.rs"],
-              "limitations": ["Widescreen-only components are never installed: refused when selected, "
-                              "otherwise reported in excluded_widescreen as not covered",
+              "limitations": ["Widescreen components are never installed in default single-phase mode; "
+                              "--complete-guide requires both native phase receipts",
                               "Draft review cannot be authorized by this driver",
                               "Full guide coverage must be established by the caller",
                               "A failed install requires application recovery before retry"]}
@@ -1184,6 +1555,7 @@ def main():
             gui_diag.mark_phase(args.private_worker, "preflight")
             for name in ("binary", "input", "game_dir", "archives"):
                 setattr(args, name, getattr(args, name).resolve(strict=True))
+            execute_runner_arguments(args)
             drive(args, args.private_worker, result)
         else:
             execute(args, result)

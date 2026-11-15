@@ -125,6 +125,8 @@ pub struct Checkpoint {
     pub completed_components: Vec<serde_json::Value>,
     #[serde(default)]
     pub completed_sha256: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub preparation: Option<serde_json::Value>,
     #[serde(default)]
     pub component: Option<ComponentIdentity>,
     pub roots: RootBinding,

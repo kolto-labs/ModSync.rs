@@ -1,0 +1,194 @@
+{
+  "schema": 1,
+  "policy": "closed-reviewed-source-revision-v1",
+  "revision_id": "trask-without-tutorials-1.0.2-holopatcher-2.0",
+  "game": "k1",
+  "owner_guid": "14d77038-49c0-882b-83a1-0a424efa0f60",
+  "component_index": 124,
+  "original_guide_sha256": "44067788c6cb7a83b38d468817f273ce5cc901cd5e000c0f9ff65f8af15fc6ed",
+  "original_plan_sha256": "1b402ba085625c4863795069eaacaef0f53e8ea7179e56a5bd150d88eb9c0a74",
+  "original_step": {
+    "id": "step-125",
+    "source_heading": "### Tutorial Remover",
+    "operations": [
+      {
+        "type": "extract",
+        "source": "{archives}/Trask Ulgo Without Tutorials.7z",
+        "destination": "{extract}/step-125/1"
+      },
+      {
+        "type": "gui_patcher",
+        "patcher": "{extract}/step-125/1/Trask Ulgo Without Tutorials/Install.exe",
+        "sha256": "1a267454b2efcd61232332be83f4da4ffe88bd6770c5a0df517880062b1a75e8",
+        "argv": [
+          "/usr/bin/wine",
+          "{extract}/step-125/1/Trask Ulgo Without Tutorials/Install.exe"
+        ],
+        "cwd": "{extract}/step-125/1/Trask Ulgo Without Tutorials",
+        "success_log": "{extract}/step-125/1/Trask Ulgo Without Tutorials/installlog.rtf",
+        "success_markers": [
+          "Done. All changes have been applied."
+        ],
+        "failure_regex": [
+          "Error: ",
+          "Warning: ",
+          "Done\\. Some changes may have been applied"
+        ],
+        "expected_changes": "changed_manifest",
+        "wine_registry": [
+          {
+            "key": "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders",
+            "name": "Desktop",
+            "data": "{game_win}"
+          },
+          {
+            "key": "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders",
+            "name": "Desktop",
+            "data": "{game_win}"
+          }
+        ],
+        "actions": [
+          {
+            "wait_window": "^(Trask Ulgo Without Tutorials)",
+            "timeout": 120
+          },
+          {
+            "sleep": 3
+          },
+          {
+            "click": [
+              502,
+              433
+            ],
+            "window": "^(Trask Ulgo Without Tutorials)"
+          },
+          {
+            "wait_window": "^Browse for Folder$",
+            "timeout": 120
+          },
+          {
+            "sleep": 2
+          },
+          {
+            "click": [
+              62,
+              69
+            ],
+            "window": "^Browse for Folder$"
+          },
+          {
+            "sleep": 1
+          },
+          {
+            "click": [
+              157,
+              274
+            ],
+            "window": "^Browse for Folder$"
+          },
+          {
+            "wait_log": 600
+          }
+        ]
+      }
+    ]
+  },
+  "original_archive": {
+    "filename": "Trask Ulgo Without Tutorials.7z",
+    "sha256": "b9e4b5f4934594400cbc4873cbba12b78444174d5239b92f0049d746f31207cc",
+    "bytes": 453590
+  },
+  "revision_archive": {
+    "filename": "Trask Ulgo Without Tutorials.7z",
+    "sha256": "39d1da3da9476dafaa86e2568adae522ee95686b9adb51bff5e5d98c9c9e83ee",
+    "bytes": 15514430
+  },
+  "publisher_download": {
+    "source_id": "07d93c7cf8ada06f7edc81d429ff76d10fb51eaa270de815ddcb30d5a264d8a8",
+    "source_url": "https://deadlystream.com/files/file/2184-trask-ulgo-without-tutorials/",
+    "receipt_sha256": "b726ff7c6b54dc43df10489b9a960d384771419cffb844c3a449b94b63613bea",
+    "entry": {
+      "sha256": "39d1da3da9476dafaa86e2568adae522ee95686b9adb51bff5e5d98c9c9e83ee",
+      "size": 15514430,
+      "extension": "7z",
+      "archive_name": "Trask Ulgo Without Tutorials.7z",
+      "endpoint_id": "743c5a09d2c7d2ec702690b6a350b960ff403706ebca464097d71f278b563388",
+      "endpoint": "https://deadlystream.com/files/file/2184-trask-ulgo-without-tutorials/",
+      "checked_at": 1794700370.1761243,
+      "status": "verified",
+      "metadata_unknown": true,
+      "evidence": "download-without-upstream-metadata"
+    },
+    "absent_response_metadata": [
+      "etag",
+      "last_modified",
+      "version_id"
+    ]
+  },
+  "author_version": "1.0.2",
+  "installer": {
+    "path": "Trask Ulgo Without Tutorials/Install.exe",
+    "kind": "file",
+    "bytes": 15741810,
+    "crc32": "ecb10bf2",
+    "sha256": "870fe820ebd460a8dea543a6a6641e40676d051d51ead02eeb5f1db3a2c789e4"
+  },
+  "selected_ini": {
+    "path": "Trask Ulgo Without Tutorials/tslpatchdata/changes.ini",
+    "sha256": "a16dfc87a1f5e7fd0cf4d8d5333e595ece463d873ead034ac93aac30c4608b16"
+  },
+  "author_readme": {
+    "path": "Trask Ulgo Without Tutorials/READ ME.txt",
+    "kind": "file",
+    "bytes": 5065,
+    "crc32": "318aa5ca",
+    "sha256": "a42adf743393aa078448e4adbdc7d725ae7e59d92335d4f6cc282da0994b6386"
+  },
+  "configuration_contract": {
+    "namespace": "default-no-namespace",
+    "compiler_required": false,
+    "source_nss": "Source/*.nss are inert author references; install supplied NCS payloads",
+    "module_install": "Five File entries preserve existing modules and otherwise seed packaged modules; Replace NCS entries replace only named resources",
+    "gff_merge": "Seven GFF entries merge into current or package-seeded module resources",
+    "expected_existing_module_skips": "InstallList non-replace existing MOD skips remain notes; no warning/error suppression",
+    "native_outcome": "native-zero-warnings-changed-game-v1",
+    "install_modules": [
+      "ebo_m12aa.mod",
+      "end_m01aa.mod",
+      "end_m01ab.mod",
+      "tar_m02af.mod",
+      "tar_m10ac.mod"
+    ],
+    "gff_targets": [
+      [
+        "end_carth001.dlg",
+        "Modules\\end_m01ab.mod"
+      ],
+      [
+        "end_damagedroid.dlg",
+        "Modules\\end_m01ab.mod"
+      ],
+      [
+        "end_securitycomp.dlg",
+        "Modules\\end_m01ab.mod"
+      ],
+      [
+        "end_trask01.dlg",
+        "Modules\\end_m01aa.mod"
+      ],
+      [
+        "tar02_doordlg.dlg",
+        "Modules\\tar_m02af.mod"
+      ],
+      [
+        "end_door02.utd",
+        "Modules\\end_m01aa.mod"
+      ],
+      [
+        "end_door15.utd",
+        "Modules\\end_m01aa.mod"
+      ]
+    ]
+  },
+  "provenance_boundary": "New public whole-archive identity and packaged author version; original plan GUI protocol and archive remain preserved historical evidence. Native equivalent configuration is freshly derived, not proof that the new publisher executable was executed or byte-equal to its output."
+}

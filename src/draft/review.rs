@@ -27,6 +27,14 @@ pub struct Resolution {
 /// only when one exists, so receipts without it keep their earlier identity
 /// while any edit to a verification record re-fences its component.
 pub fn identity(component: &Component) -> Result<String> {
+    let modern = component
+        .metadata
+        .get("DraftReview")
+        .and_then(|review| review.get("Verification"))
+        .filter(|verification| verification.get("IdentityVersion").is_some())
+        .map(parse_verification)
+        .transpose()?
+        .is_some_and(|(_, version)| version == Some(2));
     fn strip_receipts(value: &mut Value, depth: usize, folds: &mut Vec<Vec<u8>>) -> Result<()> {
         ensure!(depth <= 64, "Draft option nesting exceeds 64 levels");
         let object = value
@@ -36,7 +44,7 @@ pub fn identity(component: &Component) -> Result<String> {
             .get("DraftReview")
             .and_then(|review| review.get("Verification"))
         {
-            folds.push(verification_digest(verification));
+            folds.push(verification_digest(verification)?);
         }
         object.remove("DraftReview");
         if let Some(options) = object.get_mut("Options").and_then(Value::as_array_mut) {
@@ -57,6 +65,9 @@ pub fn identity(component: &Component) -> Result<String> {
         .as_object_mut()
         .context("Component must be an object")?
         .remove("IsSelected");
+    if modern {
+        canonical_keys(&mut value);
+    }
     let mut digest = Sha256::new();
     digest.update(serde_json::to_vec(&value)?);
     for fold in folds {
@@ -65,11 +76,64 @@ pub fn identity(component: &Component) -> Result<String> {
     Ok(format!("{:x}", digest.finalize()))
 }
 
-fn verification_digest(value: &Value) -> Vec<u8> {
-    match serde_json::from_value::<Verification>(value.clone()) {
-        Ok(record) => Sha256::digest(serde_json::to_vec(&record).unwrap_or_default()).to_vec(),
-        Err(_) => Sha256::digest(b"invalid-verification").to_vec(),
+fn verification_digest(value: &Value) -> Result<Vec<u8>> {
+    if value.get("IdentityVersion").is_some() {
+        let (record, version) = parse_verification(value)?;
+        ensure!(version == Some(2), "Unknown review identity version");
+        return Ok(Sha256::digest(serde_json::to_vec(&versioned_verification(&record)?)?).to_vec());
     }
+    // Preserve the original unversioned verification digest bit for bit.
+    Ok(
+        match serde_json::from_value::<Verification>(value.clone()) {
+            Ok(record) => Sha256::digest(serde_json::to_vec(&record).unwrap_or_default()).to_vec(),
+            Err(_) => Sha256::digest(b"invalid-verification").to_vec(),
+        },
+    )
+}
+
+fn canonical_keys(value: &mut Value) {
+    match value {
+        Value::Object(object) => {
+            let mut entries: Vec<_> = std::mem::take(object).into_iter().collect();
+            entries.sort_by(|a, b| a.0.cmp(&b.0));
+            for (key, mut child) in entries {
+                canonical_keys(&mut child);
+                object.insert(key, child);
+            }
+        }
+        Value::Array(items) => items.iter_mut().for_each(canonical_keys),
+        _ => {}
+    }
+}
+
+/// The public six-field Verification API and unversioned receipt bytes remain
+/// unchanged. Only new verified receipts select the canonical object-key hash.
+fn versioned_verification(record: &Verification) -> Result<Value> {
+    let mut value = serde_json::to_value(record)?;
+    value["IdentityVersion"] = 2.into();
+    Ok(value)
+}
+
+fn parse_verification(value: &Value) -> Result<(Verification, Option<u64>)> {
+    let mut value = value.clone();
+    let object = value
+        .as_object_mut()
+        .context("Invalid verification object")?;
+    let version = object.remove("IdentityVersion");
+    let version = version
+        .map(|value| -> Result<u64> {
+            ensure!(value.as_u64() == Some(2), "Unknown review identity version");
+            Ok(2)
+        })
+        .transpose()?;
+    let record: Verification = serde_json::from_value(value)?;
+    if version == Some(2) {
+        ensure!(
+            record.reviewer == VERIFIER_NAME && record.kind == VERIFICATION_KIND,
+            "Versioned identity requires an owned verified replay receipt"
+        );
+    }
+    Ok((record, version))
 }
 
 pub fn original_diagnostics(component: &Component) -> Result<DraftResult> {
@@ -108,6 +172,32 @@ fn notes(notes: &[String], expected: usize, kind: &str) -> Result<()> {
 /// This is an explicit authoring action, not automatic approval. The enclosing
 /// editor transaction validates the entire resulting guide before publication.
 pub fn resolve(component: &mut Component, resolution: &Resolution) -> Result<()> {
+    ensure!(
+        !crate::archive_generation::source_plan_namespace::contains_native(component),
+        "Selected namespace recipes require their dedicated complete source replay"
+    );
+    ensure!(
+        !crate::archive_generation::duplicate_cleanup::contains(component),
+        "Compiled duplicate cleanup requires dedicated source replay"
+    );
+    ensure!(
+        !crate::archive_generation::source_plan_patcher::contains_native(component),
+        "Source-plan native owners require their dedicated independent whole-component replay verifier"
+    );
+    ensure!(
+        !crate::archive_generation::reviewed_master::contains_resolved(component),
+        "Reviewed source masters require dedicated independent archive and relation replay"
+    );
+    ensure!(
+        component
+            .metadata
+            .get("DraftReview")
+            .and_then(|review| review.get("Generator"))
+            .and_then(Value::as_str)
+            != Some(crate::k1_widescreen_recipe::GENERATOR)
+            && !component.metadata.contains_key("K1WidescreenBinding"),
+        "K1 widescreen requires its dedicated independent whole-component replay verifier"
+    );
     ensure!(
         identity(component)? == resolution.expected_identity,
         "Draft changed since the resolution was prepared"
@@ -174,8 +264,8 @@ pub(super) fn receipt_matches(component: &Component, review: &Value) -> bool {
                 return false;
             }
             if let Some(verification) = review.get("Verification")
-                && !serde_json::from_value::<Verification>(verification.clone())
-                    .is_ok_and(|record| record.kind == VERIFICATION_KIND)
+                && !parse_verification(verification)
+                    .is_ok_and(|(record, _)| record.kind == VERIFICATION_KIND)
             {
                 return false;
             }
@@ -383,6 +473,93 @@ pub fn verify_archive_derived(
         record.get("RequiresReview").and_then(Value::as_bool) == Some(true),
         "Draft is not awaiting review"
     );
+    if record.get("Generator").and_then(Value::as_str)
+        == Some(crate::k2_preparation::MASTER_GENERATOR)
+    {
+        let replayed = crate::k2_preparation::replay_master(component, root, options, cancelled)?;
+        ensure!(
+            serde_json::to_value(&*component)? == serde_json::to_value(&replayed)?,
+            "Pending Lightsaber master model differs"
+        );
+        let verification = crate::k2_preparation::master_verification(&replayed)?;
+        let mut cleared = replayed;
+        clear_subtree(&mut cleared, &verification, 0)?;
+        *component = cleared;
+        return Ok(());
+    }
+    ensure!(
+        !crate::k2_preparation::contains_master(component),
+        "Preparation master cannot use another verifier"
+    );
+    if record.get("Generator").and_then(Value::as_str)
+        == Some(crate::archive_generation::duplicate_cleanup::GENERATOR)
+    {
+        let replayed = crate::archive_generation::duplicate_cleanup::replay(component, cancelled)?;
+        let verification = crate::archive_generation::duplicate_cleanup::verification(&replayed)?;
+        let mut cleared = replayed;
+        clear_subtree(&mut cleared, &verification, 0)?;
+        *component = cleared;
+        return Ok(());
+    }
+    ensure!(
+        !crate::archive_generation::duplicate_cleanup::contains(component),
+        "Compiled duplicate cleanup cannot use another replay verifier"
+    );
+    if record
+        .get("Generator")
+        .and_then(Value::as_str)
+        .is_some_and(crate::archive_generation::reviewed_master::is_generator)
+    {
+        return verify_reviewed_master(component, root, options, cancelled);
+    }
+    ensure!(
+        !crate::archive_generation::reviewed_master::contains_resolved(component),
+        "Reviewed source master cannot use another replay verifier"
+    );
+    if record.get("Generator").and_then(Value::as_str)
+        == Some(crate::archive_generation::source_plan_patcher::GENERATOR)
+    {
+        return verify_source_plan_patcher(component, root, options, cancelled);
+    }
+    ensure!(
+        !crate::archive_generation::source_plan_patcher::contains_native(component),
+        "Source-plan native provenance cannot use another draft replay verifier"
+    );
+    if record
+        .get("Generator")
+        .and_then(Value::as_str)
+        .is_some_and(|generator| {
+            generator == crate::archive_generation::source_plan_namespace::GENERATOR
+                || generator == crate::archive_generation::source_plan_namespace::PROGRAM_GENERATOR
+        })
+    {
+        return verify_source_plan_namespace(component, root, options, cancelled);
+    }
+    ensure!(
+        !crate::archive_generation::source_plan_namespace::contains_native(component),
+        "Selected namespace provenance cannot use another replay verifier"
+    );
+    if record.get("Generator").and_then(Value::as_str)
+        == Some(crate::k1_widescreen_recipe::GENERATOR)
+    {
+        return verify_k1_widescreen(component, root, options, cancelled);
+    }
+    if record
+        .get("Generator")
+        .and_then(Value::as_str)
+        .is_some_and(|generator| {
+            generator == crate::archive_generation::reviewed_manual::GENERATOR
+                || generator == crate::archive_generation::reviewed_manual::PATCHER_GENERATOR
+        })
+    {
+        return verify_reviewed_manual(component, root, options, cancelled);
+    }
+    if record.get("Generator").and_then(Value::as_str) == Some(crate::vendor_installer::GENERATOR) {
+        return verify_vendor_derived(component, root, cancelled);
+    }
+    if record.get("Generator").and_then(Value::as_str) == Some("resolved-movie-archives") {
+        return verify_movie_archive_derived(component, root, options, cancelled);
+    }
     ensure!(
         record.get("Generator").and_then(Value::as_str) == Some(GENERATOR),
         "Draft was not generated from resolved archive filenames"
@@ -501,7 +678,286 @@ pub fn verify_archive_derived(
         replay_digest: format!("{:x}", Sha256::digest(serde_json::to_vec(&expected)?)),
     };
     let mut cleared = component.clone();
-    clear_subtree(&mut cleared, &serde_json::to_value(verification)?, 0)?;
+    clear_subtree(&mut cleared, &versioned_verification(&verification)?, 0)?;
+    *component = cleared;
+    Ok(())
+}
+
+fn verify_reviewed_master(
+    component: &mut Component,
+    root: &Path,
+    options: &archive::Options,
+    cancelled: &AtomicBool,
+) -> Result<()> {
+    let record = &component.metadata["DraftReview"];
+    const KEYS: [&str; 4] = ["RequiresReview", "Generator", "Derivations", "Result"];
+    ensure!(
+        record
+            .as_object()
+            .is_some_and(|o| o.len() == KEYS.len() && o.keys().all(|k| KEYS.contains(&k.as_str())))
+            && record["RequiresReview"] == true
+            && !pending_masters(component, 0),
+        "Reviewed master requires exact pending provenance without history or unresolved literals"
+    );
+    let replayed =
+        crate::archive_generation::reviewed_master::replay(component, root, options, cancelled)?;
+    ensure!(
+        serde_json::to_value(&*component)? == serde_json::to_value(&replayed)?,
+        "Complete pending master model differs from fresh replay"
+    );
+    let verification = crate::archive_generation::reviewed_master::verification(&replayed)?;
+    let mut cleared = component.clone();
+    clear_subtree(&mut cleared, &verification, 0)?;
+    *component = cleared;
+    Ok(())
+}
+
+fn verify_source_plan_namespace(
+    component: &mut Component,
+    root: &Path,
+    options: &archive::Options,
+    cancelled: &AtomicBool,
+) -> Result<()> {
+    let record = component
+        .metadata
+        .get("DraftReview")
+        .context("Missing selected namespace generated draft")?;
+    const KEYS: [&str; 4] = ["RequiresReview", "Result", "Generator", "Derivations"];
+    ensure!(
+        record.as_object().is_some_and(|object| {
+            object.len() == KEYS.len() && object.keys().all(|key| KEYS.contains(&key.as_str()))
+        }) && record["RequiresReview"] == true
+            && (record["Generator"] == crate::archive_generation::source_plan_namespace::GENERATOR
+                || record["Generator"]
+                    == crate::archive_generation::source_plan_namespace::PROGRAM_GENERATOR)
+            && !pending_masters(component, 0),
+        "Selected namespace review requires exact pending provenance without resolution history or unresolved masters"
+    );
+    let mut replayed = crate::archive_generation::source_plan_namespace::replay(
+        component, root, options, cancelled,
+    )?;
+    // Only outer selection is adapter-owned; all provenance and nested models
+    // must equal the fresh independent pending derivation before review clears.
+    replayed.is_selected = component.is_selected;
+    ensure!(
+        serde_json::to_value(&*component)? == serde_json::to_value(&replayed)?,
+        "Selected namespace complete pending model differs from independent replay"
+    );
+    let verification = crate::archive_generation::source_plan_namespace::verification(&replayed)?;
+    let mut cleared = component.clone();
+    clear_subtree(&mut cleared, &verification, 0)?;
+    *component = cleared;
+    Ok(())
+}
+
+fn verify_source_plan_patcher(
+    component: &mut Component,
+    root: &Path,
+    options: &archive::Options,
+    cancelled: &AtomicBool,
+) -> Result<()> {
+    let record = component
+        .metadata
+        .get("DraftReview")
+        .context("Missing source-plan native generated draft")?;
+    const KEYS: [&str; 4] = ["RequiresReview", "Result", "Generator", "Derivations"];
+    ensure!(
+        record.as_object().is_some_and(|object| {
+            object.len() == KEYS.len() && object.keys().all(|key| KEYS.contains(&key.as_str()))
+        }) && record["RequiresReview"] == true
+            && record["Generator"] == crate::archive_generation::source_plan_patcher::GENERATOR
+            && !pending_masters(component, 0),
+        "Source-plan native review requires exact pending provenance without resolution history or unresolved masters"
+    );
+    let mut replayed = crate::archive_generation::source_plan_patcher::replay(
+        component, root, options, cancelled,
+    )?;
+    // Only outer selection is adapter-owned; all provenance and nested models
+    // must equal the fresh independent pending derivation before review clears.
+    replayed.is_selected = component.is_selected;
+    ensure!(
+        serde_json::to_value(&*component)? == serde_json::to_value(&replayed)?,
+        "Source-plan native complete pending model differs from independent replay"
+    );
+    let verification = crate::archive_generation::source_plan_patcher::verification(&replayed)?;
+    let mut cleared = component.clone();
+    clear_subtree(&mut cleared, &verification, 0)?;
+    *component = cleared;
+    Ok(())
+}
+
+fn verify_k1_widescreen(
+    component: &mut Component,
+    root: &Path,
+    options: &archive::Options,
+    cancelled: &AtomicBool,
+) -> Result<()> {
+    let record = component
+        .metadata
+        .get("DraftReview")
+        .context("Missing K1 generated draft")?;
+    const KEYS: [&str; 4] = ["RequiresReview", "Result", "Generator", "Derivations"];
+    ensure!(
+        record.as_object().is_some_and(
+            |o| o.len() == KEYS.len() && o.keys().all(|key| KEYS.contains(&key.as_str()))
+        ) && record["RequiresReview"] == true
+            && !pending_masters(component, 0),
+        "K1 dedicated review requires unchanged pending provenance without resolution history"
+    );
+    let replayed = crate::k1_widescreen_recipe::replay(component, root, options, cancelled)?;
+    let verification = crate::k1_widescreen_recipe::verification(&replayed)?;
+    let mut cleared = component.clone();
+    clear_subtree(&mut cleared, &verification, 0)?;
+    *component = cleared;
+    Ok(())
+}
+
+fn verify_reviewed_manual(
+    component: &mut Component,
+    root: &Path,
+    options: &archive::Options,
+    cancelled: &AtomicBool,
+) -> Result<()> {
+    let record = component
+        .metadata
+        .get("DraftReview")
+        .context("Missing reviewed manual draft")?;
+    const KEYS: [&str; 4] = ["RequiresReview", "Result", "Generator", "Derivations"];
+    ensure!(
+        record
+            .as_object()
+            .is_some_and(|object| object.keys().all(|key| KEYS.contains(&key.as_str()))),
+        "Reviewed manual draft carries unsupported resolution history"
+    );
+    ensure!(
+        !pending_masters(component, 0),
+        "Reviewed manual component has unresolved Markdown masters"
+    );
+    let replayed =
+        crate::archive_generation::reviewed_manual::replay(component, root, options, cancelled)?;
+    let (archive_filename, archive_sha256) =
+        crate::archive_generation::reviewed_manual::verification_identity(&component.guid)?;
+    let verification = Verification {
+        reviewer: VERIFIER_NAME.into(),
+        kind: VERIFICATION_KIND.into(),
+        tool_version: concat!("ModSync.rs/", env!("CARGO_PKG_VERSION")).into(),
+        archive_sha256,
+        archive_filename,
+        replay_digest: crate::archive_generation::reviewed_manual::replay_digest(&replayed)?,
+    };
+    let mut cleared = component.clone();
+    clear_subtree(&mut cleared, &versioned_verification(&verification)?, 0)?;
+    *component = cleared;
+    Ok(())
+}
+
+fn verify_vendor_derived(
+    component: &mut Component,
+    root: &Path,
+    cancelled: &AtomicBool,
+) -> Result<()> {
+    let record = component
+        .metadata
+        .get("DraftReview")
+        .context("Missing vendor review")?;
+    const KEYS: [&str; 4] = ["RequiresReview", "Result", "Generator", "Derivations"];
+    ensure!(
+        record
+            .as_object()
+            .is_some_and(|object| object.keys().all(|key| KEYS.contains(&key.as_str()))),
+        "Vendor review carries unsupported resolution history"
+    );
+    ensure!(
+        !pending_masters(component, 0),
+        "Vendor component has unresolved Markdown masters"
+    );
+    let replayed = crate::vendor_installer::replay(component, root, cancelled)?;
+    let verification = Verification {
+        reviewer: VERIFIER_NAME.into(),
+        kind: VERIFICATION_KIND.into(),
+        tool_version: concat!("ModSync.rs/", env!("CARGO_PKG_VERSION")).into(),
+        archive_sha256: crate::vendor_installer::SHA256.into(),
+        archive_filename: crate::vendor_installer::FILENAME.into(),
+        replay_digest: crate::vendor_installer::replay_digest(&replayed)?,
+    };
+    let mut cleared = component.clone();
+    clear_subtree(&mut cleared, &versioned_verification(&verification)?, 0)?;
+    *component = cleared;
+    Ok(())
+}
+
+fn verify_movie_archive_derived(
+    component: &mut Component,
+    root: &Path,
+    options: &archive::Options,
+    cancelled: &AtomicBool,
+) -> Result<()> {
+    let record = component
+        .metadata
+        .get("DraftReview")
+        .context("Missing movie review")?;
+    const KEYS: [&str; 4] = ["RequiresReview", "Result", "Generator", "Derivations"];
+    ensure!(
+        record
+            .as_object()
+            .is_some_and(|object| object.keys().all(|key| KEYS.contains(&key.as_str()))),
+        "Movie draft carries additional review history or resolution records"
+    );
+    let diagnostics: DraftResult = serde_json::from_value(
+        record
+            .get("Result")
+            .cloned()
+            .context("Missing movie diagnostics")?,
+    )?;
+    ensure!(
+        diagnostics
+            .component_guid
+            .eq_ignore_ascii_case(&component.guid)
+            && diagnostics.draft_instruction_count == component.instructions.len()
+            && diagnostics.unparsed_gaps.is_empty()
+            && diagnostics.conditional_drafts.is_empty()
+            && diagnostics.rejected_drafts == 0,
+        "Movie guide directions remain unresolved"
+    );
+    ensure!(
+        !pending_masters(component, 0),
+        "Movie component has unresolved Markdown masters"
+    );
+    let derivations: Vec<Derivation> = serde_json::from_value(
+        record
+            .get("Derivations")
+            .cloned()
+            .context("Missing movie derivations")?,
+    )?;
+    let primary = derivations.first().context("Empty movie derivation set")?;
+    let replayed = crate::archive_generation::resolved::replay_movie_binding(
+        component, root, options, cancelled,
+    )?;
+    let expected = shape(&replayed)?;
+    ensure!(
+        shape(component)? == expected,
+        "Movie instructions or options differ from archive replay"
+    );
+    let binding = replayed
+        .metadata
+        .get("ArchiveMovieBinding")
+        .context("Replay left no movie binding")?;
+    let verification = Verification {
+        reviewer: VERIFIER_NAME.into(),
+        kind: VERIFICATION_KIND.into(),
+        tool_version: concat!("ModSync.rs/", env!("CARGO_PKG_VERSION")).into(),
+        // These legacy summary fields identify the primary archive; the replay
+        // digest below commits to the complete independently verified input set.
+        archive_sha256: primary.sha256.clone(),
+        archive_filename: primary.filename.clone(),
+        replay_digest: format!(
+            "{:x}",
+            Sha256::digest(serde_json::to_vec(&json!({
+            "Shape": expected, "Binding": binding, "Derivations": derivations}))?)
+        ),
+    };
+    let mut cleared = component.clone();
+    clear_subtree(&mut cleared, &versioned_verification(&verification)?, 0)?;
     *component = cleared;
     Ok(())
 }

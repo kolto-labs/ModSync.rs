@@ -687,8 +687,10 @@ impl Store {
                     checkpoint_id: Some(head.checkpoint_id),
                 });
             }
-            if operation.kind == "InstallComponent"
-                && head.checkpoint_id != operation.from_checkpoint_id
+            if matches!(
+                operation.kind.as_str(),
+                "InstallComponent" | "InstallPreparation"
+            ) && head.checkpoint_id != operation.from_checkpoint_id
                 && matches!(verified, Ok(true))
             {
                 self.recover_component_cleanup(operation, &head)?;

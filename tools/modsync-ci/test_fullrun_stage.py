@@ -61,6 +61,25 @@ class StageInputs(unittest.TestCase):
                                   guides=str(guides), cache=str(root/"cache"),
                                   engine=str(root/"engine"), game_dir=str(root/"game"), game="k1", mode="cli")
 
+    def test_cli_defaults_explicitly_request_minimal_cache_first(self):
+        with mock.patch.object(stage, "install") as install:
+            stage.main(["install", "--guides", "guides", "--output", "evidence",
+                        "--engine", "engine", "--cache", "cache", "--work-dir", "work",
+                        "--game-dir", "game", "--game", "k1", "--mode", "cli"])
+        args = install.call_args.args[0]
+        self.assertEqual(args.install_profile, "minimal")
+        self.assertEqual(args.download_mode, "cache-first")
+
+    def test_explicit_profile_rejects_changed_guide_before_acquisition(self):
+        with tempfile.TemporaryDirectory() as root:
+            args = self.arguments(Path(root))
+            args.install_profile = "minimal"
+            args.download_mode = "cache-first"
+            with mock.patch.object(stage, "checked") as checked:
+                with self.assertRaisesRegex(ValueError, "exact complete original source guide"):
+                    stage.install(args)
+            checked.assert_not_called()
+
     def test_successful_process_with_partial_report_still_fails_coverage(self):
         with tempfile.TemporaryDirectory() as root:
             args = self.arguments(Path(root))

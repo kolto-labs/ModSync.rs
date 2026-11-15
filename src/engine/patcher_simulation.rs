@@ -196,14 +196,17 @@ impl Engine {
         base: &Path,
         destination: &Path,
         arguments: &str,
+        contract: Option<&crate::archive_generation::reviewed_manual::NativePatcherContract>,
         emit: &mut impl FnMut(Event),
     ) -> Result<()> {
         ensure!(
             !self.install,
             "Patcher simulation is only available during virtual execution"
         );
-        if self.exact_patcher_prediction {
-            return self.predict_native_patcher(base, destination, arguments, emit);
+        if self.exact_patcher_prediction
+            || contract.is_some_and(|contract| contract.requires_exact_prediction())
+        {
+            return self.predict_native_patcher(base, destination, arguments, contract, emit);
         }
         self.settings.roots.check(base)?;
         self.settings.roots.check(destination)?;

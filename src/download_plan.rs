@@ -342,7 +342,7 @@ impl<'a> SelectionContext<'a> {
         patterns: &mut Vec<String>,
     ) -> Result<()> {
         self.work.visit(0, self.cancelled)?;
-        if instruction.action == "Extract" {
+        if matches!(instruction.action.as_str(), "Extract" | "ExtractTo") {
             *has_extract = true;
             for source in &instruction.source {
                 self.work.name(source, self.cancelled)?;

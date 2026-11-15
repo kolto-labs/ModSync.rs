@@ -1,0 +1,20 @@
+[workspace]
+members = ["crates/bionsscomp", "crates/bionsscomp-cli"]
+resolver = "2"
+
+[workspace.package]
+version = "1.0.0"
+edition = "2021"
+rust-version = "1.77"
+authors = ["arrenkaetris"]
+homepage = "https://github.com/arrenkaetris/BioNSSComp"
+repository = "https://github.com/arrenkaetris/BioNSSComp"
+license = "AGPL-3.0-or-later"
+keywords = ["kotor", "nwscript", "compiler", "modding", "ncs"]
+categories = ["compilers", "game-development"]
+
+[profile.release]
+opt-level = 2
+lto = "thin"
+strip = true
+panic = "unwind"

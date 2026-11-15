@@ -81,7 +81,7 @@ class StageCredentials(unittest.TestCase):
                             ("archives", ("DIAGNOSTICS_ENCRYPTION_KEY",)),
                             ("install", ("CACHE_ENCRYPTION_KEY", "DIAGNOSTICS_ENCRYPTION_KEY")),
                             ("seed", ("DIAGNOSTICS_ENCRYPTION_KEY",))):
-            present = {key: "test-private-value" for key in keys}
+            present = {key: "test-private-value" * 2 for key in keys}
             with self.subTest(stage=stage), mock.patch.dict(os.environ, present, clear=True):
                 self.assertEqual(ci.require_stage_credentials(stage)["status"], "credentials-present")
                 for key in keys:
@@ -94,7 +94,9 @@ class StageCredentials(unittest.TestCase):
         errors = io.StringIO()
         with mock.patch.dict(os.environ, {"CACHE_ENCRYPTION_KEY": "test-private-value"}, clear=True), contextlib.redirect_stderr(errors):
             self.assertEqual(ci.main(["check-credentials", "--stage", "install"]), 1)
-        self.assertIn("DIAGNOSTICS_ENCRYPTION_KEY", errors.getvalue())
+        self.assertIn("missing: DIAGNOSTICS_ENCRYPTION_KEY", errors.getvalue())
+        self.assertIn("shorter than 32 bytes: CACHE_ENCRYPTION_KEY", errors.getvalue())
+        self.assertIn("docs/ci-fullruns.md#minimum-setup", errors.getvalue())
         self.assertNotIn("test-private-value", errors.getvalue())
 
 class CompleteCoverage(unittest.TestCase):

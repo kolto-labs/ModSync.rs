@@ -117,22 +117,26 @@ class Fixture(unittest.TestCase):
 
 
 class RevalidationTests(Fixture):
-    def test_unchanged_file_costs_one_conditional_request_and_no_download(self):
+    def test_default_cache_hit_makes_no_conditional_request(self):
         self.populate()
         site = Site({URL: self.payload})
         with mock.patch.object(cache, "request", site):
             code, report = self.run_main("restore")
         self.assertEqual((code, report["entries"][0]["status"], report["entries"][0]["source"]),
-                         (0, "restored", "revalidated"))
-        self.assertEqual([headers.get("If-None-Match") for _, headers in site.requests], ['"v1"'])
+                         (0, "restored", "local"))
+        self.assertEqual(site.requests, [])
+        self.assertFalse(report["entries"][0]["acquisition"]["provider_attempted"])
         self.assertEqual(self.restored(), self.payload)
 
-    def test_changed_file_is_downloaded_again(self):
+    def test_explicit_refresh_downloads_a_changed_unpinned_file(self):
         self.populate()
         new = zip_bytes("b")
-        with mock.patch.object(cache, "request", Site({URL: new}, etag='"v2"')):
-            code, report = self.run_main("restore")
+        site = Site({URL: new}, etag='"v2"')
+        with mock.patch.object(cache, "request", site):
+            code, report = self.run_main("restore", "--download-mode", "refresh")
         self.assertEqual((code, report["entries"][0]["source"]), (0, "website"))
+        self.assertEqual(len(site.requests), 1)
+        self.assertNotIn("If-None-Match", site.requests[0][1])
         self.assertEqual(self.restored(), new)
         self.assertEqual(self.manifest()["entries"][report["entries"][0]["id"]]["sha256"],
                          hashlib.sha256(new).hexdigest())
@@ -146,45 +150,53 @@ class RevalidationTests(Fixture):
         self.assertEqual((code, report["entries"][0]["source"]), (0, "local"))
         self.assertEqual(self.restored(), self.payload)
 
-    def test_no_validators_older_than_max_age_is_fetched_again(self):
+    def test_old_no_validator_cache_hit_still_makes_no_request(self):
         self.populate()
         self.age(30, etag=None, last_modified=None, status="verified",
                  evidence="download-without-upstream-metadata")
         site = Site({URL: self.payload})
         with mock.patch.object(cache, "request", site):
             code, report = self.run_main("restore")
-        self.assertEqual((code, report["entries"][0]["source"]), (0, "website"))
-        self.assertEqual(len(site.requests), 1)
+        self.assertEqual((code, report["entries"][0]["source"]), (0, "local"))
+        self.assertEqual(site.requests, [])
 
-    def test_unreachable_website_falls_back_to_the_last_cached_copy(self):
+    def test_default_hot_cache_does_not_probe_an_unreachable_website(self):
         self.populate()
         self.age(30)
-        with mock.patch.object(cache, "request", side_effect=ValueError("network request failed")):
+        with mock.patch.object(cache, "request", side_effect=ValueError("network request failed")) as request:
             code, report = self.run_main("restore")
-        self.assertEqual((code, report["entries"][0]["source"]), (0, "stale-local"))
+        request.assert_not_called()
+        self.assertEqual((code, report["entries"][0]["source"]), (0, "local"))
         self.assertEqual(self.restored(), self.payload)
 
-    def test_refresh_falls_back_to_the_last_cached_copy_without_marking_it_checked(self):
+    def test_explicit_refresh_failure_keeps_cached_bytes_and_checked_at(self):
         self.populate()
         self.age(30)
-        before = self.manifest()
-        with mock.patch.object(cache, "request", side_effect=ValueError("network request failed")):
-            code, report = self.run_main("refresh")
-        self.assertEqual((code, report["entries"][0]["source"]), (0, "stale-local"))
-        self.assertEqual(self.manifest(), before)
+        before = self.manifest()["entries"][cache.key_for(URL)]
+        with mock.patch.object(cache, "request", side_effect=ValueError("network request failed")) as request:
+            code, report = self.run_main("refresh", "--download-mode", "refresh")
+        request.assert_called_once()
+        self.assertEqual((code, report["entries"][0]["source"]), (0, "cached-fallback"))
+        after = self.manifest()["entries"][cache.key_for(URL)]
+        prior_fields = {k: value for k, value in before.items() if k != "acquisition"}
+        self.assertEqual({k: after[k] for k in prior_fields}, prior_fields)
+        self.assertTrue(after["acquisition"]["provider_attempted"])
+        self.assertEqual(after["acquisition"]["provider_outcome"], "cached-fallback")
 
-    def test_refresh_with_force_does_not_hide_an_unreachable_website(self):
+    def test_legacy_force_attempts_upstream_then_keeps_verified_cache(self):
         self.populate()
         self.age(30)
-        with mock.patch.object(cache, "request", side_effect=ValueError("network request failed")):
+        with mock.patch.object(cache, "request", side_effect=ValueError("network request failed")) as request:
             code, report = self.run_main("refresh", "--force")
-        self.assertEqual((code, report["entries"][0]["status"]), (1, "unresolved"))
+        request.assert_called_once()
+        self.assertEqual((code, report["entries"][0]["source"]), (0, "cached-fallback"))
+        self.assertTrue(report["entries"][0]["acquisition"]["provider_attempted"])
 
     def test_refresh_without_a_valid_local_copy_stays_unresolved(self):
         self.populate()
         (self.root / "objects" / self.sha).unlink()
         with mock.patch.object(cache, "request", side_effect=ValueError("network request failed")):
-            code, report = self.run_main("refresh")
+            code, report = self.run_main("refresh", "--download-mode", "refresh")
         self.assertEqual((code, report["entries"][0]["status"]), (1, "unresolved"))
 
 
@@ -369,7 +381,7 @@ class RemoteTests(Fixture):
         fake = FakeRclone(self.base)
         with mock.patch.object(cache.subprocess, "run", fake), mock.patch.object(cache, "request", Site({URL: self.payload})):
             code, report = self.run_main("restore", *self.REMOTE)
-        self.assertEqual((code, report["entries"][0]["source"]), (0, "revalidated"))
+        self.assertEqual((code, report["entries"][0]["source"]), (0, "local"))
         self.assertEqual([call[2].rsplit("/", 1)[1] for call in fake.calls], ["manifest.json"])
 
     def test_nothing_is_ever_written_to_the_remote(self):
@@ -405,7 +417,7 @@ class CacheLimitTests(Fixture):
             code, report = self.run_main("refresh", "--cache-limit-bytes", limit)
         self.assertEqual(code, 0)
         self.assertEqual(sorted(entry["status"] for entry in report["entries"]), ["fresh", cache.OVER_LIMIT])
-        self.assertEqual([url for url, _ in site.requests], [URL])
+        self.assertEqual(site.requests, [])
         self.assertEqual(self.objects(), [self.sha])
 
     def test_bik_and_unreferenced_objects_are_never_kept(self):

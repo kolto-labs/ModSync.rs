@@ -231,7 +231,10 @@ impl RunnerSession {
         runner: &ProvidedInstallerRunner,
         executable: &Path,
         roots: &Roots,
+        checkpoint_lock: &recovery::Lock,
+        operation: &crate::checkpoint::OperationIntent,
     ) -> Result<Self> {
+        crate::checkpoint::external_writer::Gate::require_owner(roots, checkpoint_lock, operation)?;
         let requests = fs::canonicalize(&runner.request_dir)?;
         ensure!(
             !requests.join("wine-prefix-active.json").try_exists()?,
@@ -274,6 +277,8 @@ impl RunnerSession {
         let headless = HeadlessServer::start(&runner.xvfb)?;
         let gate = crate::checkpoint::external_writer::Gate::register(
             roots,
+            checkpoint_lock,
+            operation,
             &requests,
             prefix.as_ref().map(|value| value.prefix.as_path()),
         )?;
@@ -438,13 +443,17 @@ impl Engine {
             }
         }
         clear_patcher_logs(&staged_base)?;
-        let checkpoints =
-            crate::checkpoint::Store::open(&self.settings.roots)?.pending_operations()?;
-        ensure!(
-            !checkpoints.is_empty(),
-            "Supplied installer execution requires an active durable checkpoint operation"
-        );
-        let mut session = RunnerSession::start(runner, &staged_executable, &self.settings.roots)?;
+        let (checkpoint_lock, operation) = self.checkpoint_process.as_ref().context(
+            "Supplied installer execution requires its owned Materializing checkpoint operation",
+        )?;
+        let checkpoints = [operation.clone()];
+        let mut session = RunnerSession::start(
+            runner,
+            &staged_executable,
+            &self.settings.roots,
+            checkpoint_lock,
+            operation,
+        )?;
         let headless = &session.headless;
         let request_id = uuid::Uuid::new_v4().to_string();
         let request_path = requests.join(format!("{request_id}.json"));

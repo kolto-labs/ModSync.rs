@@ -34,6 +34,49 @@ use std::{
     time::Duration,
 };
 
+// Keep full receipts in the persistent/copyable report. The progress pane shows
+// verified facts rather than source plans and embedded diagnostic patterns.
+fn progress_log_text(line: &str) -> std::borrow::Cow<'_, str> {
+    let Some((owner, message)) = line.split_once(": ") else {
+        return line.into();
+    };
+    if let Some(body) = message.strip_prefix("K1 deterministic candidate publication: ")
+        && let Ok(value) = serde_json::from_str::<serde_json::Value>(body)
+        && value["Kind"] == "K1WidescreenCandidateMaterializationOnly"
+    {
+        let text = match value["Role"].as_str() {
+            Some("hrmenus") => "Prepared the widescreen menus and executable.",
+            Some("fourgb") | Some("4gb") => "Prepared the executable memory patch.",
+            _ => return line.into(),
+        };
+        return format!("{owner}: {text} Full receipt retained in the report.").into();
+    }
+    if let Some(body) = message.strip_prefix("K1 whole Galaxy Vanilla base then 1920 overlay: ")
+        && let Ok(value) = serde_json::from_str::<serde_json::Value>(body)
+        && value["WholeComponent"] == true
+        && value["Installed"] == true
+        && value["NativeOutcome"]["Contract"] == "native-zero-warnings-changed-game-v1"
+        && ["Warnings", "Errors", "Failed"]
+            .iter()
+            .all(|key| value["NativeOutcome"][*key] == 0)
+    {
+        return format!("{owner}: Installed and verified the Galaxy Map base and widescreen overlay. Full receipt retained in the report.").into();
+    }
+    if let Some(body) = message.strip_prefix("Reviewed native Patcher outcome: ")
+        && let Ok(value) = serde_json::from_str::<serde_json::Value>(body)
+        && value["Contract"] == "native-zero-warnings-changed-game-v1"
+        && ["Warnings", "Errors", "Failed", "Skipped"]
+            .iter()
+            .all(|key| value[*key] == 0)
+        && let Some(configured) = value["Configured"].as_u64()
+        && configured > 0
+        && value["Completed"].as_u64() == Some(configured)
+    {
+        return format!("{owner}: Installed and verified all {configured} configured patches. Full receipt retained in the report.").into();
+    }
+    line.into()
+}
+
 enum Message {
     ShellTerminal(Box<main_window::Finished>),
     DeploymentTerminal(Box<deployment_panel::Finished>),
@@ -166,6 +209,7 @@ pub struct App {
     peer_view: PeerView,
     expanded_budget: String,
     allow_processes: bool,
+    execute_runner: Option<modsync::engine::ProvidedInstallerRunner>,
     guide: Option<Guide>,
     page: usize,
     wizard: Option<Wizard>,
@@ -503,6 +547,7 @@ impl App {
                 &self.fomod_choices,
                 Self::choices_file_stamp(Path::new(&self.fomod_choices)),
                 self.allow_processes,
+                &self.execute_runner,
                 (
                     &self.checkpoints.config,
                     &self.profile_directory,
@@ -794,10 +839,7 @@ impl App {
                 .iter()
                 .filter(|c| {
                     c.is_selected
-                        && c.metadata
-                            .get("WidescreenOnly")
-                            .and_then(serde_json::Value::as_bool)
-                            == Some(true)
+                        && modsync::phase::component_phase(c) == modsync::phase::Phase::Remaining
                 })
                 .count()
         })
@@ -809,10 +851,7 @@ impl App {
                 .iter()
                 .filter(|c| {
                     c.is_selected
-                        && c.metadata
-                            .get("WidescreenOnly")
-                            .and_then(serde_json::Value::as_bool)
-                            != Some(true)
+                        && modsync::phase::component_phase(c) != modsync::phase::Phase::Remaining
                 })
                 .count()
         })
@@ -2068,7 +2107,7 @@ impl App {
                 let mut change = None;
                 let detected = modsync::game::detect(&modsync::game::resolve_install_root(Path::new(&self.game)));
                 if let Some(guide) = &mut self.guide { for (index, c) in guide.components.iter().enumerate() {
-                    if c.metadata.get("WidescreenOnly").and_then(serde_json::Value::as_bool) == Some(true) {
+                    if modsync::phase::component_phase(c) == modsync::phase::Phase::Remaining {
                         let mut selected = c.is_selected;
                         let reason = (self.selection_panel.stamp == self.input_stamp)
                             .then(|| self.selection_panel.availability.reason(&c.guid))
@@ -2099,6 +2138,20 @@ impl App {
             Page::Finished => self.finished_content(ui),
         });
         self.refresh_input_stamp();
+    }
+
+    fn external_program_trust_control(&mut self, ui: &mut egui::Ui) {
+        if ui
+            .checkbox(
+                &mut self.allow_processes,
+                "Trust this guide to run external programs",
+            )
+            .changed()
+        {
+            self.validated = false;
+            self.conflicts = None;
+            validation_page::clear_report(&mut self.validation_report, &mut self.validation_page);
+        }
     }
 
     fn surface(&mut self, ui: &mut egui::Ui, ctx: &egui::Context, surface: usize) {
@@ -2443,10 +2496,8 @@ impl App {
                         g.components
                             .iter()
                             .filter(|c| {
-                                c.metadata
-                                    .get("WidescreenOnly")
-                                    .and_then(serde_json::Value::as_bool)
-                                    != Some(true)
+                                modsync::phase::component_phase(c)
+                                    != modsync::phase::Phase::Remaining
                             })
                             .flat_map(|c| c.category.iter().cloned())
                             .map(|category| (category, false))
@@ -2463,11 +2514,8 @@ impl App {
                 );
                 for (_, indices) in &mut groups {
                     indices.retain(|i| {
-                        g.components[*i]
-                            .metadata
-                            .get("WidescreenOnly")
-                            .and_then(serde_json::Value::as_bool)
-                            != Some(true)
+                        modsync::phase::component_phase(&g.components[*i])
+                            != modsync::phase::Phase::Remaining
                     });
                 }
                 groups.retain(|(_, indices)| !indices.is_empty());
@@ -2626,10 +2674,8 @@ impl App {
                                 .components
                                 .get_mut(self.selected)
                                 .filter(|c| {
-                                    c.metadata
-                                        .get("WidescreenOnly")
-                                        .and_then(serde_json::Value::as_bool)
-                                        != Some(true)
+                                    modsync::phase::component_phase(c)
+                                        != modsync::phase::Phase::Remaining
                                 })
                                 .filter(|c| {
                                     modsync::selection::matches_filters(
@@ -2704,20 +2750,7 @@ impl App {
                 ui.label("Validation simulates file changes. Installation keeps a recovery copy of both folders.");
                 ui.label(format!("Game: {}", self.game));
                 ui.label(format!("Mods: {}", self.mods));
-                if ui
-                    .checkbox(
-                        &mut self.allow_processes,
-                        "Trust this guide to run external programs",
-                    )
-                    .changed()
-                {
-                    self.validated = false;
-                    self.conflicts = None;
-                    validation_page::clear_report(
-                        &mut self.validation_report,
-                        &mut self.validation_page,
-                    );
-                }
+                self.external_program_trust_control(ui);
                 Self::path_row(ui, "FOMOD archive", &mut self.fomod_archive, false);
                 if let Some(component) = self
                     .guide
@@ -3001,6 +3034,7 @@ impl App {
             peer_view: Default::default(),
             expanded_budget: String::new(),
             allow_processes: false,
+            execute_runner: None,
             guide: None,
             page: 0,
             wizard: None,
@@ -3915,6 +3949,7 @@ impl App {
             self.restore_roots = Some(settings.roots.clone());
         }
         settings.allow_processes = self.allow_processes;
+        settings.execute_runner = self.execute_runner.clone();
         settings.patcher_engine = self.patcher_engine;
         settings.patcher = if self.patcher.is_empty() {
             None
@@ -4784,7 +4819,7 @@ impl eframe::App for App {
                         .stick_to_bottom(true)
                         .show(ui, |ui| {
                             for line in &self.logs {
-                                ui.monospace(line);
+                                ui.monospace(progress_log_text(line).as_ref());
                             }
                         });
                 });
@@ -4936,6 +4971,7 @@ impl eframe::App for App {
 }
 
 pub struct LaunchContext {
+    pub execute_runner: Option<modsync::engine::ProvidedInstallerRunner>,
     pub probe: Option<Probe>,
     pub easy_session: Option<PathBuf>,
 }
@@ -4950,6 +4986,7 @@ pub fn launch(
     context: LaunchContext,
 ) -> Result<()> {
     let LaunchContext {
+        execute_runner,
         probe,
         easy_session,
     } = context;
@@ -4960,7 +4997,10 @@ pub fn launch(
     };
     // A probe is always a separate instance: no socket claim and no forwarding, since
     // forwarding carries only protocol text, never probe configuration.
-    let separate = allow_multiple_instances || probe.is_some() || easy_session.is_some();
+    let separate = allow_multiple_instances
+        || probe.is_some()
+        || easy_session.is_some()
+        || execute_runner.is_some();
     let primary = if separate {
         None
     } else {
@@ -4986,6 +5026,8 @@ pub fn launch(
         native,
         Box::new(move |creation| {
             let mut app = App::with_launch(input, game, mods, settings_dir, probe);
+            app.execute_runner = execute_runner;
+            app.refresh_input_stamp();
             app.repaint = Some(creation.egui_ctx.clone());
             #[cfg(target_os = "macos")]
             {

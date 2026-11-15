@@ -6,6 +6,7 @@ mod text;
 pub(crate) mod yaml;
 use anyhow::{Context, Result, bail, ensure};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde_json::Value;
 use std::{
     collections::{BTreeMap, BTreeSet},
     path::Path,
@@ -116,6 +117,54 @@ pub struct Instruction {
     #[serde(default)]
     #[serde(deserialize_with = "strings")]
     pub restrictions: Vec<String>,
+}
+
+fn compact_instruction_defaults(guide: &mut Value) -> Result<()> {
+    fn components(values: &mut [Value], depth: usize) -> Result<()> {
+        ensure!(depth <= 64, "Compact component nesting exceeds 64");
+        for component in values {
+            let object = component
+                .as_object_mut()
+                .context("Invalid compact component")?;
+            if let Some(instructions) = object.get_mut("Instructions").and_then(Value::as_array_mut)
+            {
+                for instruction in instructions {
+                    let original = instruction.clone();
+                    let fields = instruction
+                        .as_object_mut()
+                        .context("Invalid compact instruction")?;
+                    if fields.get("Arguments").and_then(Value::as_str) == Some("") {
+                        fields.remove("Arguments");
+                    }
+                    for key in ["Dependencies", "Restrictions"] {
+                        if fields
+                            .get(key)
+                            .and_then(Value::as_array)
+                            .is_some_and(Vec::is_empty)
+                        {
+                            fields.remove(key);
+                        }
+                    }
+                    let restored: Instruction = serde_json::from_value(instruction.clone())?;
+                    ensure!(
+                        serde_json::to_value(restored)? == original,
+                        "Compact instruction defaults did not restore the complete instruction"
+                    );
+                }
+            }
+            if let Some(options) = object.get_mut("Options").and_then(Value::as_array_mut) {
+                components(options, depth + 1)?;
+            }
+        }
+        Ok(())
+    }
+    components(
+        guide
+            .get_mut("thisMod")
+            .and_then(Value::as_array_mut)
+            .context("Compact guide needs components")?,
+        0,
+    )
 }
 
 impl Guide {
@@ -449,6 +498,29 @@ impl Guide {
     }
 
     pub fn render(&self, format: &str) -> Result<String> {
+        self.render_with_compact_instruction_defaults(format, false)
+    }
+
+    /// Omit only empty instruction fields whose deserialization defaults restore
+    /// the identical instruction. Provenance dictionaries are never traversed.
+    /// The ordinary TOML byte, node and depth limits still apply to the result.
+    pub fn render_with_compact_instruction_defaults(
+        &self,
+        format: &str,
+        compact: bool,
+    ) -> Result<String> {
+        ensure!(
+            !compact || canonical_format(format) == Some("toml"),
+            "Compact instruction defaults require TOML output"
+        );
+        self.validate_native_option_scope()?;
+        // The closed execution exception never rewrites stored source order.
+        crate::k1_widescreen_recipe::execution_order(self)?;
+        let explicit_order = self.source_order()?.is_some();
+        ensure!(
+            !explicit_order || matches!(canonical_format(format), Some("toml" | "json")),
+            "ModSyncSourceOrder is preserved only by TOML and JSON exports"
+        );
         const CONTENT_FIELDS: &[&str] = &[
             "preambleContent",
             "epilogueContent",
@@ -487,6 +559,9 @@ impl Guide {
         Ok(match format {
             "toml" => {
                 let mut value = serde_json::to_value(self)?;
+                if compact {
+                    compact_instruction_defaults(&mut value)?;
+                }
                 for key in CONTENT_FIELDS {
                     value.as_object_mut().unwrap().remove(*key);
                 }
@@ -497,6 +572,7 @@ impl Guide {
                 let mut budget = crate::json_native::ValueBudget::default();
                 crate::json_native::to_toml_pretty(&value, &mut budget)?
             }
+            "json" if explicit_order => serde_json::to_string_pretty(self)?,
             "json" => serde_json::to_string_pretty(&self.components)?,
             "xml" => crate::xml::render(&serde_json::to_value(&self.components)?)?,
             "yaml" => {
@@ -539,6 +615,146 @@ impl Guide {
             .collect()
     }
 
+    /// Explicit exhaustive top-level order. This is guide metadata, never an
+    /// approval or a component edit; legacy guides have no such policy.
+    fn source_order(&self) -> Result<Option<Vec<usize>>> {
+        let Some(value) = self.metadata.get("ModSyncSourceOrder") else {
+            return Ok(None);
+        };
+        let entries = value
+            .as_array()
+            .context("ModSyncSourceOrder must be an array")?;
+        ensure!(
+            !entries.is_empty()
+                && entries.len() <= 10_000
+                && entries.len() == self.components.len(),
+            "ModSyncSourceOrder must exhaustively name 1..10000 top-level components"
+        );
+        let canonical = |text: &str| -> Result<()> {
+            let parsed = uuid::Uuid::parse_str(text)
+                .context("ModSyncSourceOrder requires GUID identities")?;
+            ensure!(
+                parsed.hyphenated().to_string() == text,
+                "ModSyncSourceOrder requires canonical lowercase GUID identities"
+            );
+            Ok(())
+        };
+        let mut inventory = BTreeMap::new();
+        for (index, component) in self.components.iter().enumerate() {
+            canonical(&component.guid)?;
+            ensure!(
+                inventory.insert(component.guid.as_str(), index).is_none(),
+                "Duplicate source-order component identity"
+            );
+        }
+        let mut seen = BTreeSet::new();
+        let mut order = Vec::with_capacity(entries.len());
+        for entry in entries {
+            let guid = entry
+                .as_str()
+                .context("ModSyncSourceOrder entries must be strings")?;
+            canonical(guid)?;
+            ensure!(seen.insert(guid), "Duplicate ModSyncSourceOrder entry");
+            order.push(
+                *inventory
+                    .get(guid)
+                    .context("ModSyncSourceOrder contains an unknown top-level GUID")?,
+            );
+        }
+        Ok(Some(order))
+    }
+
+    fn validate_source_order(&self, order: &[usize]) -> Result<()> {
+        let resolution = self.resolve_dependencies()?;
+        ensure!(
+            resolution.errors.is_empty() && resolution.order.is_some(),
+            "ModSyncSourceOrder has invalid or circular InstallBefore/InstallAfter references: {}",
+            listed_errors(&resolution.errors).join("\n")
+        );
+        let index: BTreeMap<_, _> = self
+            .components
+            .iter()
+            .enumerate()
+            .map(|(i, c)| (crate::guid::key_ascii(&c.guid), i))
+            .collect();
+        let mut positions = vec![0; order.len()];
+        for (position, &index) in order.iter().enumerate() {
+            positions[index] = position;
+        }
+        let mut next = vec![Vec::new(); order.len()];
+        let mut indegree = vec![0usize; order.len()];
+        let mut edge = |from: usize, to: usize| -> Result<()> {
+            if self.components[from].is_selected && self.components[to].is_selected {
+                ensure!(
+                    positions[from] < positions[to],
+                    "ModSyncSourceOrder contradicts a selected dependency/order edge"
+                );
+            }
+            if !next[from].contains(&to) {
+                next[from].push(to);
+                indegree[to] += 1;
+            }
+            Ok(())
+        };
+        for (i, component) in self.components.iter().enumerate() {
+            for dependency in component
+                .dependencies
+                .iter()
+                .chain(&component.install_after)
+            {
+                if let Some(&j) = index.get(&crate::guid::key_ascii(dependency)) {
+                    edge(j, i)?;
+                } else if component.dependencies.contains(dependency) {
+                    // An immediate selected option belongs to its top-level owner.
+                    for (j, owner) in self.components.iter().enumerate() {
+                        if i != j
+                            && owner.options.iter().any(|option| {
+                                option.is_selected
+                                    && crate::guid::key_ascii(&option.guid)
+                                        == crate::guid::key_ascii(dependency)
+                            })
+                        {
+                            edge(j, i)?;
+                        }
+                    }
+                }
+            }
+            for before in &component.install_before {
+                if let Some(&j) = index.get(&crate::guid::key_ascii(before)) {
+                    edge(i, j)?;
+                }
+            }
+        }
+        let mut queue: std::collections::VecDeque<_> =
+            (0..order.len()).filter(|&i| indegree[i] == 0).collect();
+        let mut visited = 0;
+        while let Some(i) = queue.pop_front() {
+            visited += 1;
+            for &j in &next[i] {
+                indegree[j] -= 1;
+                if indegree[j] == 0 {
+                    queue.push_back(j);
+                }
+            }
+        }
+        ensure!(
+            visited == order.len(),
+            "ModSyncSourceOrder contains a dependency/order cycle"
+        );
+        if self.ordering.widescreen_last {
+            let mut remaining = false;
+            for &i in order.iter().filter(|&&i| self.components[i].is_selected) {
+                let widescreen = crate::phase::widescreen(&self.components[i]);
+                ensure!(
+                    !remaining || widescreen,
+                    "ModSyncSourceOrder cannot be represented by Base then Remaining phases"
+                );
+                remaining |= widescreen;
+            }
+        }
+        Ok(())
+    }
+
     /// The order C# installs the selected components in
     /// (`InstallCoordinator.GetOrderedInstallList`): a breadth-first sort of every
     /// top-level component, selected or not, by Dependencies, InstallAfter and
@@ -553,7 +769,20 @@ impl Guide {
     /// `FindComponentFromGuid` looks those up too (not options nested below them): it is
     /// met when the option's and its component's selection flags are set, whether or not
     /// a Choose step runs the option, and it adds no ordering edge, as in C#.
+    fn validate_native_option_scope(&self) -> Result<()> {
+        crate::archive_generation::reviewed_master::validate_guide(self)?;
+        ensure!(
+            !self.components.iter().any(|component| component
+                .options
+                .iter()
+                .any(crate::archive_generation::source_plan_patcher::contains_native,)),
+            "Source-plan native operations cannot occur inside options"
+        );
+        Ok(())
+    }
+
     pub fn ordered(&self) -> Result<Vec<&Component>> {
+        self.validate_native_option_scope()?;
         use crate::guid::key_ascii;
         let Ordering {
             markdown,
@@ -608,6 +837,22 @@ impl Guide {
                     c.name
                 );
             }
+        }
+        if let Some(order) = crate::k1_widescreen_recipe::execution_order(self)? {
+            self.validate_source_order(&order)?;
+            return Ok(order
+                .into_iter()
+                .filter(|&i| chosen(i))
+                .map(|i| &self.components[i])
+                .collect());
+        }
+        if let Some(order) = self.source_order()? {
+            self.validate_source_order(&order)?;
+            return Ok(order
+                .into_iter()
+                .filter(|&i| chosen(i))
+                .map(|i| &self.components[i])
+                .collect());
         }
         if preserve_input_order {
             return Ok(selected);
@@ -712,6 +957,13 @@ impl Guide {
     /// missing references but still refuses a cycle: C# writes an empty guide there.
     /// Returns the warning lines C# logs when `ignore_errors` lets errors through.
     pub fn sort_like_dependency_resolver(&mut self, ignore_errors: bool) -> Result<Vec<String>> {
+        self.validate_native_option_scope()?;
+        let execution = crate::k1_widescreen_recipe::execution_order(self)?;
+        if let Some(order) = self.source_order()? {
+            self.validate_source_order(execution.as_deref().unwrap_or(&order))?;
+            self.reorder(order);
+            return Ok(Vec::new());
+        }
         let Resolution { errors, order } = self.resolve_dependencies()?;
         let listed = listed_errors(&errors);
         ensure!(
@@ -740,6 +992,13 @@ impl Guide {
     /// InstallBefore/InstallAfter reference on any top-level component, selected or not,
     /// stops the run; otherwise the components take the resolver's order, as in convert.
     pub fn sort_for_install(&mut self) -> Result<()> {
+        self.validate_native_option_scope()?;
+        let execution = crate::k1_widescreen_recipe::execution_order(self)?;
+        if let Some(order) = self.source_order()? {
+            self.validate_source_order(execution.as_deref().unwrap_or(&order))?;
+            self.reorder(order);
+            return Ok(());
+        }
         let Resolution { errors, order } = self.resolve_dependencies()?;
         ensure!(
             errors.is_empty(),

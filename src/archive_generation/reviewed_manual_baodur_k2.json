@@ -1,0 +1,250 @@
+{
+  "schema": 1,
+  "source_guide_sha256": "f442bdf574031623ed577609730d887069b9bc8e38e8e2f38ecc43a7e7487d5f",
+  "source_plan_sha256": "0add8c1aeb7cdfad3df4b21761e135c150aa7832cf3fc0edabe01a91245a9258",
+  "recipes": [
+    {
+      "component_guid": "1a7ac764-f51b-882e-ab19-8c1a13bbbcaa",
+      "source_heading": "### Bao-Dur & Heavy Armor",
+      "source_component_index": 104,
+      "plan_step_index": 104,
+      "raw_input_component": {
+        "Guid": "1a7ac764-f51b-882e-ab19-8c1a13bbbcaa",
+        "Name": "Bao-Dur Can Wear Heavy Armor",
+        "Author": "Effix",
+        "Description": "Bao-Dur gets more than a little screwed. He can't wear robes because they never made a model for them with his mechanical arm cutout, and he can't wear heavy armor because they didn't make a model for that, either. Especially with his stat distribution in mind, that makes him kind of garbage. This mod restores the ability to give him heavy armor, at least, which gives him at least a bit better utility.",
+        "Directions": "",
+        "Tier": "2 - Recommended",
+        "Category": [
+          "Bugfix",
+          "Immersion"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/2189-bao-dur-can-wear-heavy-armor/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "1a7ac764-f51b-882e-ab19-8c1a13bbbcaa",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "TSLPatcher Mod",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "Heading": "Bao-Dur & Heavy Armor",
+        "InstallationMethod": "TSLPatcher Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[Bao-Dur Can Wear Heavy Armor](https://deadlystream.com/files/file/2189-bao-dur-can-wear-heavy-armor/)",
+        "WidescreenOnly": false
+      },
+      "canonical_input_component": {
+        "Guid": "1a7ac764-f51b-882e-ab19-8c1a13bbbcaa",
+        "Name": "Bao-Dur Can Wear Heavy Armor",
+        "Author": "Effix",
+        "Description": "Bao-Dur gets more than a little screwed. He can't wear robes because they never made a model for them with his mechanical arm cutout, and he can't wear heavy armor because they didn't make a model for that, either. Especially with his stat distribution in mind, that makes him kind of garbage. This mod restores the ability to give him heavy armor, at least, which gives him at least a bit better utility.",
+        "Directions": "",
+        "Tier": "2 - Recommended",
+        "Category": [
+          "Bugfix",
+          "Immersion"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/2189-bao-dur-can-wear-heavy-armor/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "1a7ac764-f51b-882e-ab19-8c1a13bbbcaa",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "TSLPatcher Mod",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            }
+          }
+        },
+        "Heading": "Bao-Dur & Heavy Armor",
+        "InstallationMethod": "TSLPatcher Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[Bao-Dur Can Wear Heavy Armor](https://deadlystream.com/files/file/2189-bao-dur-can-wear-heavy-armor/)",
+        "WidescreenOnly": false
+      },
+      "canonicalization": {
+        "method": "production-guide-loader",
+        "raw_component_sha256": "736203d574ede4f865d4d9bb7841e6caeeabf1b2233253e2ec479c374045daa3",
+        "canonical_component_sha256": "736203d574ede4f865d4d9bb7841e6caeeabf1b2233253e2ec479c374045daa3",
+        "cli_binary_sha256": "b960f1afabe270f1e012ff39459f85c312d0d09d58f02f4d4cd70d6419e6688d",
+        "raw_export_sha256": "2a0d2edc7fd7f365d1b0c718c206bb085c870852a4ab450917e3491443b80e15",
+        "canonical_export_sha256": "cce6070fd23f45a1dd259fef04a38eae5386be2b46daf2c843a517429dc3478c",
+        "source_separator_changes": 0,
+        "root_trailing_separator_changes": 0
+      },
+      "plan_step": {
+        "id": "step-105",
+        "source_heading": "### Bao-Dur & Heavy Armor",
+        "operations": [
+          {
+            "type": "extract",
+            "source": "{archives}/Bao-Dur_Can_Wear_Heavy_Armor.zip",
+            "destination": "{extract}/step-105/1"
+          },
+          {
+            "type": "gui_patcher",
+            "patcher": "{extract}/step-105/1/Bao-Dur_Can_Wear_Heavy_Armor/Bao-Dur_Can_Wear_Heavy_Armor.exe",
+            "sha256": "013655cd871a71e0f5b50f80ed0d32308912916ba7e12e2a366f42d992a71b16",
+            "argv": [
+              "/usr/bin/wine",
+              "{extract}/step-105/1/Bao-Dur_Can_Wear_Heavy_Armor/Bao-Dur_Can_Wear_Heavy_Armor.exe"
+            ],
+            "cwd": "{extract}/step-105/1/Bao-Dur_Can_Wear_Heavy_Armor",
+            "success_log": "{extract}/step-105/1/Bao-Dur_Can_Wear_Heavy_Armor/installlog.rtf",
+            "success_markers": [
+              "Done. All changes have been applied."
+            ],
+            "failure_regex": [
+              "Error: ",
+              "Warning: ",
+              "Done\\. Some changes may have been applied"
+            ],
+            "expected_changes": "changed_manifest",
+            "wine_registry": [
+              {
+                "key": "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders",
+                "name": "Desktop",
+                "data": "{game_win}"
+              },
+              {
+                "key": "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders",
+                "name": "Desktop",
+                "data": "{game_win}"
+              }
+            ],
+            "actions": [
+              {
+                "wait_window": "^(Bao-Dur Can Wear Heavy Armor)",
+                "timeout": 120
+              },
+              {
+                "sleep": 3
+              },
+              {
+                "click": [
+                  502,
+                  433
+                ],
+                "window": "^(Bao-Dur Can Wear Heavy Armor)"
+              },
+              {
+                "wait_window": "^Browse for Folder$",
+                "timeout": 120
+              },
+              {
+                "sleep": 2
+              },
+              {
+                "click": [
+                  62,
+                  69
+                ],
+                "window": "^Browse for Folder$"
+              },
+              {
+                "sleep": 1
+              },
+              {
+                "click": [
+                  157,
+                  274
+                ],
+                "window": "^Browse for Folder$"
+              },
+              {
+                "wait_log": 600
+              }
+            ]
+          }
+        ]
+      },
+      "archives": [
+        {
+          "filename": "Bao-Dur_Can_Wear_Heavy_Armor.zip",
+          "sha256": "ade6ec5adb97903725048c0faa724206c9dfdf63c35bf5f45ec7029d722f05f8"
+        }
+      ],
+      "native_patcher": {
+        "operation_index": 1,
+        "extract_operation_index": 0,
+        "installer": {
+          "path": "Bao-Dur_Can_Wear_Heavy_Armor/Bao-Dur_Can_Wear_Heavy_Armor.exe",
+          "bytes": 681984,
+          "sha256": "013655cd871a71e0f5b50f80ed0d32308912916ba7e12e2a366f42d992a71b16"
+        },
+        "changes_ini": {
+          "path": "Bao-Dur_Can_Wear_Heavy_Armor/tslpatchdata/changes.ini",
+          "bytes": 1404,
+          "sha256": "72755be52bc2fc62fb88a057dc90b26fb464450dcc14a30130e2888c73891048"
+        },
+        "inventory_sha256": "28e81cec93d308d1d51d23d692f3fb2f91fd45b386c74f0297cc5ffacff597e7",
+        "certificate_sha256": "7c82365fe0f68a8828843cd86cd77289ad5337a2f81ebc43e0dd23cd64503198",
+        "arguments": "changes.ini",
+        "destination": "<<kotorDirectory>>",
+        "success_contract": "native-zero-warnings-changed-game-v1"
+      }
+    }
+  ]
+}

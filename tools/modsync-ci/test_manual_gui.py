@@ -19,8 +19,9 @@ def load(name):
 
 manual = load("manual")
 
-# Each fake tool appends one line per call: its name and arguments, tab separated.
-RECORD = 'printf "%s\\t" "$(basename "$0")" "$@" >> "$FAKE_STATE/calls"; echo >> "$FAKE_STATE/calls"\n'
+# Each fake tool appends one line per call in a single write so concurrent
+# window polling cannot splice a second call between the record and its newline.
+RECORD = 'record_line=$(printf "%s\\t" "${0##*/}" "$@"); printf "%s\\n" "$record_line" >> "$FAKE_STATE/calls"\n'
 
 FAKE_XDOTOOL = """#!/bin/sh
 """ + RECORD + """case "$1" in

@@ -379,22 +379,33 @@ impl Store {
             document.origin == session.origin,
             "Checkpoint/session capability mismatch"
         );
+        if let Some(receipt) = &document.preparation {
+            crate::k2_preparation::validate_receipt(receipt)?;
+        }
         if document.kind == "Baseline" {
             ensure!(
                 document.sequence == 0
                     && document.parent_id.is_none()
                     && document.completed_components == session.initial_completed_components
-                    && document.component.is_none(),
+                    && document.component.is_none()
+                    && (session.parent_session_id.is_some() || document.preparation.is_none()),
                 "Malformed baseline checkpoint"
+            );
+        } else if document.kind == "Preparation" {
+            ensure!(
+                document.sequence == 1
+                    && document.parent_id.is_some()
+                    && document.component.is_none()
+                    && document.completed_components.is_empty()
+                    && document.preparation.is_some(),
+                "Malformed preparation checkpoint"
             );
         } else {
             ensure!(
                 document.kind == "Component"
                     && document.sequence > 0
-                    && document
-                        .sequence
-                        .checked_add(session.initial_completed_components.len() as u64)
-                        == Some(document.completed_components.len() as u64),
+                    && document.completed_components.len()
+                        > session.initial_completed_components.len(),
                 "Malformed component checkpoint sequence"
             );
             id(document

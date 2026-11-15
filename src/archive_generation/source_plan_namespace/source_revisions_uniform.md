@@ -1,0 +1,13 @@
+# Reviewed Uniform source revision
+
+The original K1 guide owner at index 80 is `ed488679-bc04-892d-973b-107511862024`. Its original manual step-081, full original component context, ZIP filename and SHA `0ac82a9a19b137e58d3ed2f3fcc28e2beab40dce09214f852d520b9f90577ab3` remain preserved. The current public 7z is a distinct revision with SHA `231ca858a5c354c3a76f8408b06256376930bcc999e8967491b1bc750547abe0` and 139,261,662 bytes. It is not renamed to the original ZIP or represented by the old digest.
+
+The publisher returns `Heyorange's_Sith Uniform_Reformation_Revised.7z`. Existing verified CI transport uses `Heyorange_s_Sith Uniform_Reformation_Revised.7z`; both current names and their roles are recorded explicitly. The runtime accepts the closed current transport filename, independently verifies the full body, and refuses ambiguity when both original ZIP and current 7z are present.
+
+The guide explicitly directs the Community Patch-compatible option. The pinned current namespace map identifies that as namespace 1, ID `k1cp`, INI `k1cp.ini`, and name `KOTOR Community Patch-Compatible Installation`. The original plan's single Down action in the selector is retained as corroborating historical context. Basic, Korriban and K1R alternatives remain unselected. The original installer digest is unchanged; no installer allowlist is enlarged. The selected CompileList is empty.
+
+The common factory still decodes and hashes the complete package. Measured inventory is 110 members, 109 regular files, and 542,155,537 expanded bytes, with a maximum individual member of 16,496,721 bytes. Only this verified current archive may use that exact expansion bound; the ordinary 128 MiB member ceiling and other source bounds remain in place.
+
+The selected INI contains nine unreachable authored sections; the initial basic INI contains three. One unused equipment template has dangling AddField references. The dedicated graph-analysis helper first proves all active reachability from the actual patch lists, then excludes only those exact unreachable names from conservative graph resource analysis. Raw source bytes, hash evidence and the native configuration remain unchanged. A separate narrow note classifier accounts for the selected INI's exact inactive names. Warnings remain fatal.
+
+The compiled data records publisher acquisition provenance, original program, exact installer, selected and initial INIs, namespace map and author information document. Independent replay/runtime reconstruction remains required. This records a source choice and native translation, not original/current package equivalence, publisher EXE execution, game results, or byte equality with the legacy installer.

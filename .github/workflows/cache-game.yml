@@ -66,7 +66,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           repository: ${{ github.repository }}
-          ref: ${{ github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
 
       - name: Check game-stage credentials before acquisition
@@ -104,12 +104,12 @@ jobs:
         if: ${{ inputs.cache_writer && steps.baseline.outputs.available != 'true' }}
         timeout-minutes: 30
         env:
-          GAME_SEED_URL_K1: ${{ secrets.GAME_SEED_URL_K1 }}
-          GAME_SEED_KEY_K1: ${{ secrets.GAME_SEED_KEY_K1 }}
-          GAME_SEED_SHA256_K1: ${{ secrets.GAME_SEED_SHA256_K1 }}
-          GAME_SEED_URL_K2: ${{ secrets.GAME_SEED_URL_K2 }}
-          GAME_SEED_KEY_K2: ${{ secrets.GAME_SEED_KEY_K2 }}
-          GAME_SEED_SHA256_K2: ${{ secrets.GAME_SEED_SHA256_K2 }}
+          GAME_SEED_URL_K1: ${{ matrix.game == 'k1' && secrets.GAME_SEED_URL_K1 || '' }}
+          GAME_SEED_KEY_K1: ${{ matrix.game == 'k1' && secrets.GAME_SEED_KEY_K1 || '' }}
+          GAME_SEED_SHA256_K1: ${{ matrix.game == 'k1' && (secrets.GAME_SEED_SHA256_K1 || vars.GAME_SEED_SHA256_K1) || '' }}
+          GAME_SEED_URL_K2: ${{ matrix.game == 'k2' && secrets.GAME_SEED_URL_K2 || '' }}
+          GAME_SEED_KEY_K2: ${{ matrix.game == 'k2' && secrets.GAME_SEED_KEY_K2 || '' }}
+          GAME_SEED_SHA256_K2: ${{ matrix.game == 'k2' && (secrets.GAME_SEED_SHA256_K2 || vars.GAME_SEED_SHA256_K2) || '' }}
         run: |
           python - <<'PY_SEED'
           import os, re, sys

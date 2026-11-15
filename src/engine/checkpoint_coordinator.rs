@@ -11,6 +11,21 @@ impl Engine {
         emit: &mut impl FnMut(Event),
         observer: &mut InstallObserver<'_>,
     ) -> Result<()> {
+        // Legacy completion proves a definition/tree match, not a predecessor's
+        // checkpointed execution. Only a verified resume may inherit that
+        // authority for an uninstalled owner with resolved source masters.
+        ensure!(
+            self.completed.is_empty()
+                || resume.is_some()
+                || !ordered.iter().any(|component| {
+                    crate::archive_generation::reviewed_master::contains_resolved(component)
+                        || crate::archive_generation::source_plan_namespace::required_predecessors(
+                            component,
+                        )
+                        .map_or(true, |required| !required.is_empty())
+                }),
+            "Resolved source masters with an inherited completed prefix require verified checkpoint resume; resume from the committed checkpoint"
+        );
         let all = guide.ordered()?;
         let definitions = all
             .iter()
@@ -36,6 +51,19 @@ impl Engine {
                 |_| {},
             )?,
         };
+        // The store verified the current inventory and the exact completed prefix.
+        // Extend this authority only after each component checkpoint commits.
+        self.checkpoint_completed = self.completed.clone();
+        self.completed_source_definitions.clear();
+        self.supplemental_source_guide = Some(guide.clone());
+        if resume.is_some() {
+            for component in all.iter().take(self.completed.len()) {
+                self.completed_source_definitions.insert(
+                    crate::guid::key_ascii(&component.guid),
+                    (*component).clone(),
+                );
+            }
+        }
         observer.current.snapshot_pending = true;
         observer.emit(
             InstallPhase::CreatingSnapshot,
@@ -54,6 +82,29 @@ impl Engine {
                 expected.session_id, expected.checkpoint_id
             ),
         });
+        if let Some(binding) = crate::k2_preparation::verify(guide)? {
+            ensure!(
+                self.managed.is_none(),
+                "K2 preparation cannot use managed deployment"
+            );
+            let inspection = store.inspect(&expected.session_id, Some(&expected.checkpoint_id))?;
+            if let Some(committed) = inspection.checkpoint.preparation.as_ref() {
+                self.prepare_k2(guide, Some(committed), emit)?;
+            } else {
+                let intent =
+                    store.begin_preparation(lock, &expected, &self.settings.cancelled, &binding)?;
+                let intent =
+                    store.mark_component_running(lock, &intent, &self.settings.cancelled)?;
+                self.checkpoint_process = Some((std::sync::Arc::clone(lock), intent.clone()));
+                let result = self.prepare_k2(guide, None, emit);
+                self.checkpoint_process = None;
+                result?;
+                let committed =
+                    store.commit_component(lock, &intent, &self.settings.cancelled, |_| {})?;
+                expected.checkpoint_id = committed.checkpoint_id;
+                expected.generation = committed.generation;
+            }
+        }
         self.selected = selected_guid_keys(guide);
         self.selected_names = guide
             .components
@@ -92,21 +143,17 @@ impl Engine {
                     InstallPhase::InstallingComponent,
                     format!("Installing: {}", component.name),
                 );
-                #[cfg(windows)]
-                {
-                    self.checkpoint_process = Some((std::sync::Arc::clone(lock), intent.clone()));
-                }
+                self.checkpoint_process = Some((std::sync::Arc::clone(lock), intent.clone()));
                 let execution = self.component(component, emit, Some(&mut *observer));
-                #[cfg(windows)]
-                {
-                    self.checkpoint_process = None;
-                }
+                self.checkpoint_process = None;
                 execution?;
                 self.flush_managed()?;
                 let committed =
                     store.commit_component(lock, &intent, &self.settings.cancelled, |_| {})?;
                 expected.checkpoint_id = committed.checkpoint_id;
                 expected.generation = committed.generation;
+                self.checkpoint_completed
+                    .insert(crate::guid::key_ascii(&component.guid));
                 observer.component(component, index + 1);
                 observer.emit(
                     InstallPhase::ComponentCompleted,

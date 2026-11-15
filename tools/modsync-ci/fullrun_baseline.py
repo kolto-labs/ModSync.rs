@@ -158,6 +158,10 @@ def recover(game, seal_dir, game_dir, *, legacy_repository="", local_only=False,
         for namespace, repository, token in namespaces:
             if namespace == "legacy" and selected is not None:
                 break
+            if namespace == "legacy" and not token:
+                print("::warning::Legacy game backups were configured but not checked: "
+                      "set ARTSTORE_READ_TOKEN with Actions read access to the legacy repository.", flush=True)
+                continue
             try:
                 client = _client(repository, token, environ)
                 items = _artifacts(client, game, now)
@@ -173,7 +177,8 @@ def recover(game, seal_dir, game_dir, *, legacy_repository="", local_only=False,
                     if identifier <= 0:
                         raise ValueError("invalid artifact id")
                     download = Path(tempfile.mkdtemp(prefix=namespace + "-", dir=work))
-                    game_backup.fetch(game, identifier, download, client)
+                    with game_backup.verified_zip_reader(client, item, download) as reader:
+                        game_backup.fetch(game, identifier, download, reader)
                     candidate = verify(download / game_backup.RESTORED_SEAL,
                                        "%s artifact %d" % (namespace, identifier))
                     if selected is None:
@@ -233,7 +238,8 @@ def main(argv=None):
             for key, value in result.items():
                 stream.write("%s=%s\n" % (key, str(value).lower() if isinstance(value, bool) else value))
     if failed or (args.required and not result["available"]):
-        print("::error::No verified %s baseline is available." % args.game, flush=True)
+        print("::error::No verified %s baseline is available. Configure a verified encrypted "
+              "source and its matching key; see docs/ci-fullruns.md#minimum-setup." % args.game, flush=True)
         return 1
     return 0
 

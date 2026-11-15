@@ -32,14 +32,29 @@ pub fn read_document(path: &std::path::Path) -> Result<String> {
 
 /// Authored editor/merge input: bounded regular UTF-8 file and no implicit selection.
 pub fn read_guide(path: &std::path::Path) -> Result<crate::Guide> {
-    crate::Guide::parse_preserving_selection(&read_document(path)?, "auto")
+    crate::Guide::parse_preserving_selection(&read_document(path)?, authoring_format(path))
+}
+
+fn authoring_format(path: &std::path::Path) -> &'static str {
+    // JSON is also accepted by the legacy YAML autodetector, which stringifies
+    // unknown nested metadata scalars. Honor an explicit JSON file declaration
+    // so review identities and typed recipe provenance survive authoring reads.
+    if path
+        .extension()
+        .and_then(|extension| extension.to_str())
+        .is_some_and(|extension| extension.eq_ignore_ascii_case("json"))
+    {
+        "json"
+    } else {
+        "auto"
+    }
 }
 
 /// Authoring includes named setup and tail mods omitted by reference import.
 /// The reference importer and its main-list GUIDs remain unchanged.
 pub fn read_authoring_guide(path: &std::path::Path) -> Result<crate::Guide> {
     let text = read_document(path)?;
-    let mut guide = crate::Guide::parse_preserving_selection(&text, "auto")?;
+    let mut guide = crate::Guide::parse_preserving_selection(&text, authoring_format(path))?;
     let intro = guide
         .metadata
         .get("preambleContent")

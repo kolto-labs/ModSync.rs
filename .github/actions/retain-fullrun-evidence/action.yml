@@ -8,8 +8,11 @@ inputs:
     description: Unique artifact name for this stage and attempt
     required: true
   encryption-key:
-    description: Diagnostics encryption secret supplied explicitly by the caller
-    required: true
+    description: Legacy diagnostics secret; optional when encryption-recipient is set
+    required: false
+  encryption-recipient:
+    description: Native age public recipient; its private identity never enters CI
+    required: false
 runs:
   using: composite
   steps:
@@ -19,16 +22,28 @@ runs:
       shell: bash
       env:
         SOURCE_DIR: ${{ inputs.source }}
-        CACHE_ENCRYPTION_KEY: ${{ inputs.encryption-key }}
+        CACHE_ENCRYPTION_KEY: ${{ !inputs.encryption-recipient && inputs.encryption-key || '' }}
+        DIAGNOSTICS_ENCRYPTION_RECIPIENT: ${{ inputs.encryption-recipient }}
       run: |
-        test -n "$CACHE_ENCRYPTION_KEY"
         python -c 'import os,pathlib; p=pathlib.Path(os.environ["SOURCE_DIR"]).resolve(); assert p.is_relative_to(pathlib.Path(os.environ["RUNNER_TEMP"]).resolve())'
         umask 077
         mkdir -p "$SOURCE_DIR"
         sealed_dir=$(mktemp -d "$RUNNER_TEMP/fullrun-encrypted.XXXXXX")
+        options=()
+        if [[ -n "$DIAGNOSTICS_ENCRYPTION_RECIPIENT" ]]; then
+          if ! command -v age >/dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y --no-install-recommends age
+          fi
+          options+=(--recipient "$DIAGNOSTICS_ENCRYPTION_RECIPIENT")
+        else
+          test -n "$CACHE_ENCRYPTION_KEY"
+        fi
+        python "$GITHUB_ACTION_PATH/../../../tools/modsync-ci/evidence_receipt.py" identity --directory "$SOURCE_DIR"
         python "$GITHUB_ACTION_PATH/../../../tools/modsync-ci/seal.py" seal --source "$SOURCE_DIR" \
-          --destination "$sealed_dir/evidence.seal"
-        echo "path=$sealed_dir/evidence.seal" >> "$GITHUB_OUTPUT"
+          --destination "$sealed_dir/evidence.seal" "${options[@]}"
+        python "$GITHUB_ACTION_PATH/../../../tools/modsync-ci/evidence_receipt.py" receipt --directory "$sealed_dir"
+        echo "path=$sealed_dir" >> "$GITHUB_OUTPUT"
     - name: Upload authenticated ciphertext only
       if: ${{ (success() || failure()) && steps.seal.outcome == 'success' }}
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
