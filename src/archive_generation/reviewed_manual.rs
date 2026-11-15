@@ -25,7 +25,7 @@ struct BookSpec {
     kind: &'static str,
     generator: &'static str,
 }
-const BOOKS: [BookSpec; 5] = [
+const BOOKS: [BookSpec; 6] = [
     BookSpec {
         filename: "reviewed_manual_k2.json",
         content: include_str!("reviewed_manual_k2.json"),
@@ -70,6 +70,16 @@ const BOOKS: [BookSpec; 5] = [
         filename: "reviewed_manual_log_delete_k2.json",
         content: include_str!("reviewed_manual_log_delete_k2.json"),
         sha256: "b4850e572859cf4c22616be584a0ca02411fb2ddcd3ae4f23fcb05d7a97af13a",
+        guide_sha256: "f442bdf574031623ed577609730d887069b9bc8e38e8e2f38ecc43a7e7487d5f",
+        plan_sha256: "0add8c1aeb7cdfad3df4b21761e135c150aa7832cf3fc0edabe01a91245a9258",
+        count: 2,
+        kind: "ReviewedManualK2NativePatcher",
+        generator: PATCHER_GENERATOR,
+    },
+    BookSpec {
+        filename: "reviewed_manual_installer_choice_k2.json",
+        content: include_str!("reviewed_manual_installer_choice_k2.json"),
+        sha256: "e50408f7108f9c0a6b1829d9cfa70b1004721de6f9162437271aa46e59df9b9b",
         guide_sha256: "f442bdf574031623ed577609730d887069b9bc8e38e8e2f38ecc43a7e7487d5f",
         plan_sha256: "0add8c1aeb7cdfad3df4b21761e135c150aa7832cf3fc0edabe01a91245a9258",
         count: 2,
@@ -1154,6 +1164,24 @@ pub(crate) fn bind(
     Ok(())
 }
 
+/// Regenerate only from the compiled original, never submitted binding metadata.
+pub(crate) fn regenerate_owner(
+    guid: &str,
+    root: &Path,
+    options: &archive::Options,
+    cancelled: &AtomicBool,
+) -> Result<Component> {
+    let (_, recipe) = find_recipe(guid)?.context("Recipe identity not admitted")?;
+    let mut original: Component = serde_json::from_value(recipe.canonical_input_component)?;
+    let filenames: Vec<_> = recipe
+        .archives
+        .into_iter()
+        .map(|pin| pin.filename)
+        .collect();
+    bind(&mut original, &filenames, root, options, cancelled)?;
+    Ok(original)
+}
+
 /// Regenerate from the compiled reviewed source, real archives and original context.
 /// Approved and pending DraftReview differ only in receipt fields; all other data
 /// and the exact pending diagnostics must be equal before the caller clears review.
@@ -1210,7 +1238,7 @@ pub(crate) fn replay(
 pub(crate) fn replay_digest(component: &Component) -> Result<String> {
     value_digest(&serde_json::to_value(component)?)
 }
-fn value_digest(value: &Value) -> Result<String> {
+pub(crate) fn value_digest(value: &Value) -> Result<String> {
     fn sort(value: &mut Value) {
         match value {
             Value::Object(object) => {
@@ -1240,6 +1268,9 @@ pub(crate) fn verify_runtime(
     options: &archive::Options,
     cancelled: &AtomicBool,
 ) -> Result<()> {
+    if super::reviewed_master::contains_resolved(component) {
+        return super::reviewed_master::verify_runtime(component, root, options, cancelled);
+    }
     let Some(binding) = component.metadata.get(BINDING) else {
         ensure!(
             component

@@ -3,6 +3,7 @@ pub mod archive_map;
 mod merge;
 pub mod resolved;
 pub mod reviewed_manual;
+pub(crate) mod reviewed_master;
 pub(crate) mod source_plan_patcher;
 use crate::{Component, Guide, Instruction, archive};
 use anyhow::{Context, Result, ensure};
@@ -57,8 +58,9 @@ fn vet_archive_name(name: &std::ffi::OsStr) -> Result<()> {
 fn ensure_generic_archive_inference(component: &Component) -> Result<()> {
     ensure!(
         !source_plan_patcher::has_owner(&component.guid)?
-            && !source_plan_patcher::contains_native(component),
-        "Mapped source-plan owners require their compiled binding; generic local archive inference is forbidden"
+            && !source_plan_patcher::contains_native(component)
+            && !reviewed_master::contains_resolved(component),
+        "Mapped source-plan and resolved-master owners require their compiled binding; generic local archive inference is forbidden"
     );
     Ok(())
 }

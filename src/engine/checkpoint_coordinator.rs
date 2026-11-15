@@ -11,6 +11,17 @@ impl Engine {
         emit: &mut impl FnMut(Event),
         observer: &mut InstallObserver<'_>,
     ) -> Result<()> {
+        // Legacy completion proves a definition/tree match, not a predecessor's
+        // checkpointed execution. Only a verified resume may inherit that
+        // authority for an uninstalled owner with resolved source masters.
+        ensure!(
+            self.completed.is_empty()
+                || resume.is_some()
+                || !ordered.iter().any(|component| {
+                    crate::archive_generation::reviewed_master::contains_resolved(component)
+                }),
+            "Resolved source masters with an inherited completed prefix require verified checkpoint resume; resume from the committed checkpoint"
+        );
         let all = guide.ordered()?;
         let definitions = all
             .iter()
@@ -36,6 +47,9 @@ impl Engine {
                 |_| {},
             )?,
         };
+        // The store verified the current inventory and the exact completed prefix.
+        // Extend this authority only after each component checkpoint commits.
+        self.checkpoint_completed = self.completed.clone();
         observer.current.snapshot_pending = true;
         observer.emit(
             InstallPhase::CreatingSnapshot,
@@ -101,6 +115,8 @@ impl Engine {
                     store.commit_component(lock, &intent, &self.settings.cancelled, |_| {})?;
                 expected.checkpoint_id = committed.checkpoint_id;
                 expected.generation = committed.generation;
+                self.checkpoint_completed
+                    .insert(crate::guid::key_ascii(&component.guid));
                 observer.component(component, index + 1);
                 observer.emit(
                     InstallPhase::ComponentCompleted,

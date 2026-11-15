@@ -770,6 +770,7 @@ impl Guide {
     /// met when the option's and its component's selection flags are set, whether or not
     /// a Choose step runs the option, and it adds no ordering edge, as in C#.
     fn validate_native_option_scope(&self) -> Result<()> {
+        crate::archive_generation::reviewed_master::validate_guide(self)?;
         ensure!(
             !self.components.iter().any(|component| component
                 .options

@@ -55,6 +55,7 @@ pub fn mark_reviewed(component: &mut Component) -> anyhow::Result<()> {
     }
     ensure!(
         !crate::archive_generation::source_plan_patcher::contains_native(component)
+            && !crate::archive_generation::reviewed_master::contains_resolved(component)
             && !contains_k1_native(component, 0),
         "Native source-plan and K1 widescreen drafts require dedicated independent replay"
     );

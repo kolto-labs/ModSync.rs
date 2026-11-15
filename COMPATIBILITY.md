@@ -5026,3 +5026,37 @@ movie binding, including later conversion commands. Actual local-inference
 attempts on a mapped original, a held claim and a movie-shaped orphan preserve
 their fatal drafts and emit no instructions. This prevents a failed dedicated
 binding from being replaced by a more permissive generator.
+
+
+Two exact K2 installer-method owners now have a separately compiled native
+book: Prologue Item Recovery and Harbinger Arrival Performance Enhancement.
+Their original Directions and two ExtractTo/Patcher operations remain intact;
+manual-install siblings are not copied. Original public archive/member pins,
+sole adjacent INIs, empty CompileLists and complete inventory certificates
+were verified. Actual production binding and independent replay pass for both;
+installation remains pending the expanded twelve-owner CLI/GUI proof. The
+source-plan factory still refuses these held rows: only their exact GUIDs and
+new compiled book identity may overlap that reservation. Existing books and
+the forty-owner factory admission identity remain unchanged.
+
+NPC Clothing M has a separately compiled resolution of the exact source
+literal "K1 Community Patch" to the prior KOTOR Community Patch GUID. The
+original unresolved literal and complete source definitions remain in its
+provenance; fresh archive replay reconstructs the entire effective owner.
+Binding and independent replay pass with the exact original public archive;
+deselected/changed/reordered prerequisites and extra unresolved masters reject.
+Execution requires an owned component checkpoint and a successfully committed
+Community Patch predecessor. Legacy-only inherited completion cannot satisfy
+this new guard; verified checkpoint resume is required for such a suffix.
+The Community Patch itself remains pending its own native admission, and this
+alias does not imply either mod has been installed. Other unresolved masters
+remain fatal. Generic inference and single-action authoring cannot replace or
+slice a resolved-master recipe.
+
+The first source-plan factory owner, K1 Droid Claw Fix, completed actual CLI
+and GUI installation in run43708600330: one configured/completed native file
+operation, zero skipped/failed/warnings/errors, fresh native logs and owned
+checkpoints. Strict private prediction also passed. This reduced proof does
+not establish all forty mapped owners or full-guide installation. The paired
+K2 source-plan proof stopped at a workflow prerequisite-index assertion;
+TSLRCM is original index1, and the next workflow revision corrects that assertion.

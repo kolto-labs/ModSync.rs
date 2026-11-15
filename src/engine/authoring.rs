@@ -186,8 +186,9 @@ impl Engine {
             .clone();
         ensure!(
             !crate::k1_widescreen_recipe::contains_native(&owner)
-                && !crate::archive_generation::source_plan_patcher::contains_native(&owner),
-            "Native recipe operations require their complete reviewed component and guide schedule"
+                && !crate::archive_generation::source_plan_patcher::contains_native(&owner)
+                && !crate::archive_generation::reviewed_master::contains_resolved(&owner),
+            "Native and resolved-master recipe operations require their complete reviewed component and guide schedule"
         );
         owner.instructions = vec![action];
         self.selected = selected_guid_keys(guide);

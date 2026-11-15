@@ -1608,6 +1608,7 @@ pub fn generate_with_vendor_languages(
         reports.push(report);
     }
     check(cancelled)?;
+    super::reviewed_master::bind_in_guide(&mut candidate)?;
     *guide = candidate;
     Ok(reports)
 }

@@ -405,6 +405,26 @@ fn protocol(
         ini,
     ))
 }
+// The source-plan generator still refuses every held row. These two installer
+// choices have a separate compiled authority preserving their original Directions.
+// This exception grants no admission through this factory or to any other book.
+fn legacy_owner_is_disjoint_or_exact_held(row: &Row) -> Result<bool> {
+    if !super::reviewed_manual::has_recipe(&row.guid)? {
+        return Ok(true);
+    }
+    if row.disposition != "held"
+        || !matches!(
+            row.guid.as_str(),
+            "40840198-65b3-8cbc-aaa1-db49a544e6da" | "4a1e3739-5396-84a6-96c7-5ff99267d498"
+        )
+    {
+        return Ok(false);
+    }
+    let (filename, sha256) = super::reviewed_manual::verification_identity(&row.guid)?;
+    Ok(filename == "reviewed_manual_installer_choice_k2.json"
+        && sha256 == "e50408f7108f9c0a6b1829d9cfa70b1004721de6f9162437271aa46e59df9b9b")
+}
+
 fn load_compiled() -> Result<Compiled> {
     ensure!(
         MAPPING.len() <= 128 * 1024 && sha(MAPPING) == MAPPING_SHA,
@@ -445,7 +465,7 @@ fn load_compiled() -> Result<Compiled> {
                 && row.step_index < plan.steps.len()
                 && row.heading_occurrence > 0
                 && row.heading_occurrence <= 1024
-                && !super::reviewed_manual::has_recipe(&row.guid)?,
+                && legacy_owner_is_disjoint_or_exact_held(&row)?,
             "Duplicate, conflicting or legacy-owned source-plan mapping"
         );
         let original = guide

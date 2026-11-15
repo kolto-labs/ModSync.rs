@@ -603,6 +603,7 @@ pub struct Engine {
     stage_managed_writes: bool,
     selected: BTreeSet<crate::guid::Identity>,
     completed: BTreeSet<crate::guid::Identity>,
+    checkpoint_completed: BTreeSet<crate::guid::Identity>,
     selected_names: BTreeSet<String>,
     conflicts: Option<crate::conflicts::Tracker>,
     validation_target: Option<(String, String, Option<usize>)>,
@@ -820,6 +821,7 @@ impl Engine {
             stage_managed_writes: false,
             selected: BTreeSet::new(),
             completed: BTreeSet::new(),
+            checkpoint_completed: BTreeSet::new(),
             selected_names: BTreeSet::new(),
             conflicts: None,
             validation_target: None,
@@ -2509,14 +2511,14 @@ impl Engine {
         ensure!(
             !self.checkpoint_history_forbidden
                 || !(self.component_checkpoints || runner_checkpoint || continuation_checkpoint),
-            "--no-checkpoint conflicts with required component checkpoints for native K1/source-plan operations, supplied installers or checkpointed phase continuation"
+            "--no-checkpoint conflicts with required component checkpoints for native K1/source-plan operations, resolved source masters, supplied installers or checkpointed phase continuation"
         );
         if (runner_checkpoint || continuation_checkpoint) && !self.component_checkpoints {
             self.component_checkpoints = true;
             emit(Event {
                 component: String::new(),
                 step: 0,
-                message: "Native K1/source-plan operations, supplied installer execution or checkpointed phase continuation require retained component checkpoints for all installation roots".into(),
+                message: "Native K1/source-plan operations, resolved source masters, supplied installer execution or checkpointed phase continuation require retained component checkpoints for all installation roots".into(),
             });
         }
         ensure!(
@@ -2983,6 +2985,9 @@ impl Engine {
                 depth <= 64,
                 "Supplied installer option nesting exceeds bound"
             );
+            if crate::archive_generation::reviewed_master::contains_resolved(component) {
+                return Ok(true);
+            }
             for instruction in &component.instructions {
                 if !applies_with(selected, instruction) {
                     continue;
@@ -3107,6 +3112,24 @@ impl Engine {
         let result: Result<()> = (|| {
             self.validation_target = Some((c.name.clone(), c.guid.clone(), None));
             self.check_component(c)?;
+            if actual_install {
+                let predecessors =
+                    crate::archive_generation::reviewed_master::required_predecessors(c)?;
+                if !predecessors.is_empty() {
+                    ensure!(
+                        self.component_checkpoints && self.checkpoint_process.is_some(),
+                        "Resolved source masters require an owned running component checkpoint"
+                    );
+                    for predecessor in predecessors {
+                        ensure!(
+                            self.checkpoint_completed
+                                .contains(&crate::guid::key_ascii(&predecessor)),
+                            "{} requires a successfully checkpointed predecessor {predecessor}",
+                            c.name
+                        );
+                    }
+                }
+            }
             crate::archive_generation::reviewed_manual::verify_runtime(
                 c,
                 &self.settings.roots.mods,

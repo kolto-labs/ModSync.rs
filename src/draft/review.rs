@@ -177,6 +177,10 @@ pub fn resolve(component: &mut Component, resolution: &Resolution) -> Result<()>
         "Source-plan native owners require their dedicated independent whole-component replay verifier"
     );
     ensure!(
+        !crate::archive_generation::reviewed_master::contains_resolved(component),
+        "Reviewed source masters require dedicated independent archive and relation replay"
+    );
+    ensure!(
         component
             .metadata
             .get("DraftReview")
@@ -462,6 +466,15 @@ pub fn verify_archive_derived(
         "Draft is not awaiting review"
     );
     if record.get("Generator").and_then(Value::as_str)
+        == Some(crate::archive_generation::reviewed_master::GENERATOR)
+    {
+        return verify_reviewed_master(component, root, options, cancelled);
+    }
+    ensure!(
+        !crate::archive_generation::reviewed_master::contains_resolved(component),
+        "Reviewed source master cannot use another replay verifier"
+    );
+    if record.get("Generator").and_then(Value::as_str)
         == Some(crate::archive_generation::source_plan_patcher::GENERATOR)
     {
         return verify_source_plan_patcher(component, root, options, cancelled);
@@ -610,6 +623,35 @@ pub fn verify_archive_derived(
     };
     let mut cleared = component.clone();
     clear_subtree(&mut cleared, &versioned_verification(&verification)?, 0)?;
+    *component = cleared;
+    Ok(())
+}
+
+fn verify_reviewed_master(
+    component: &mut Component,
+    root: &Path,
+    options: &archive::Options,
+    cancelled: &AtomicBool,
+) -> Result<()> {
+    let record = &component.metadata["DraftReview"];
+    const KEYS: [&str; 4] = ["RequiresReview", "Generator", "Derivations", "Result"];
+    ensure!(
+        record
+            .as_object()
+            .is_some_and(|o| o.len() == KEYS.len() && o.keys().all(|k| KEYS.contains(&k.as_str())))
+            && record["RequiresReview"] == true
+            && !pending_masters(component, 0),
+        "Reviewed master requires exact pending provenance without history or unresolved literals"
+    );
+    let replayed =
+        crate::archive_generation::reviewed_master::replay(component, root, options, cancelled)?;
+    ensure!(
+        serde_json::to_value(&*component)? == serde_json::to_value(&replayed)?,
+        "Complete pending master model differs from fresh replay"
+    );
+    let verification = crate::archive_generation::reviewed_master::verification(&replayed)?;
+    let mut cleared = component.clone();
+    clear_subtree(&mut cleared, &verification, 0)?;
     *component = cleared;
     Ok(())
 }
