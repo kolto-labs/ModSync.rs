@@ -5,6 +5,7 @@ mod cleanlist;
 mod k1_widescreen;
 mod managed;
 mod source_resolution;
+mod tomb_shadow_observer;
 pub use managed::{ManagedLiveEdit, ManagedRunReport};
 
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
@@ -2508,14 +2509,14 @@ impl Engine {
         ensure!(
             !self.checkpoint_history_forbidden
                 || !(self.component_checkpoints || runner_checkpoint || continuation_checkpoint),
-            "--no-checkpoint conflicts with required component checkpoints for native K1 operations, supplied installers or checkpointed phase continuation"
+            "--no-checkpoint conflicts with required component checkpoints for native K1/source-plan operations, supplied installers or checkpointed phase continuation"
         );
         if (runner_checkpoint || continuation_checkpoint) && !self.component_checkpoints {
             self.component_checkpoints = true;
             emit(Event {
                 component: String::new(),
                 step: 0,
-                message: "Native K1 operations, supplied installer execution or checkpointed phase continuation require retained component checkpoints for all installation roots".into(),
+                message: "Native K1/source-plan operations, supplied installer execution or checkpointed phase continuation require retained component checkpoints for all installation roots".into(),
             });
         }
         ensure!(
@@ -2989,7 +2990,14 @@ impl Engine {
                 match instruction.action.as_str() {
                     "K1Widescreen" => return Ok(true),
                     "Execute" | "Run" if execute => return Ok(true),
-                    "Patcher" if provided => return Ok(true),
+                    "Patcher"
+                        if provided
+                            || crate::archive_generation::source_plan_patcher::contains_native(
+                                component,
+                            ) =>
+                    {
+                        return Ok(true);
+                    }
                     "Choose" => {
                         for option in Engine::chosen_options(component, instruction)? {
                             if visit(engine, option, selected, provided, execute, depth + 1)? {
@@ -3110,12 +3118,7 @@ impl Engine {
                 .iter()
                 .filter(|instruction| instruction.action == "Patcher")
             {
-                if crate::archive_generation::reviewed_manual::native_patcher_contract(
-                    c,
-                    instruction,
-                )?
-                .is_some()
-                {
+                if self.native_patcher_contract(c, instruction)?.is_some() {
                     ensure!(
                         self.settings.patcher_engine == PatcherEngine::OdyPatcher
                             && self.settings.patcher.is_none()
@@ -3224,6 +3227,29 @@ impl Engine {
         result
     }
 
+    fn native_patcher_contract(
+        &self,
+        component: &Component,
+        instruction: &Instruction,
+    ) -> Result<Option<crate::archive_generation::reviewed_manual::NativePatcherContract>> {
+        let legacy = crate::archive_generation::reviewed_manual::native_patcher_contract(
+            component,
+            instruction,
+        )?;
+        let derived = crate::archive_generation::source_plan_patcher::native_patcher_contract(
+            component,
+            instruction,
+            &self.settings.roots.mods,
+            &self.settings.archive,
+            &self.settings.cancelled,
+        )?;
+        ensure!(
+            legacy.is_none() || derived.is_none(),
+            "Conflicting native Patcher authorities"
+        );
+        Ok(legacy.or(derived))
+    }
+
     fn check_component(&self, c: &Component) -> Result<()> {
         self.check_cancelled()?;
         ensure!(
@@ -3232,6 +3258,12 @@ impl Engine {
             c.name
         );
         crate::k1_widescreen_recipe::verify_runtime(
+            c,
+            &self.settings.roots.mods,
+            &self.settings.archive,
+            &self.settings.cancelled,
+        )?;
+        crate::archive_generation::source_plan_patcher::verify_runtime(
             c,
             &self.settings.roots.mods,
             &self.settings.archive,
@@ -4401,9 +4433,17 @@ impl Engine {
                     .sources
                     .first()
                     .context("Patcher has no resolved binding")?;
-                let contract = crate::archive_generation::reviewed_manual::native_patcher_contract(
-                    component, i,
-                )?;
+                let contract = self.native_patcher_contract(component, i)?;
+                if self.install
+                    && contract
+                        .as_ref()
+                        .is_some_and(|contract| contract.requires_exact_prediction())
+                {
+                    ensure!(
+                        self.component_checkpoints && self.checkpoint_process.is_some(),
+                        "Source-plan native publication requires its owned running component checkpoint and root lock"
+                    );
+                }
                 self.process_path(i, path, &[], contract.as_ref(), emit)?;
             }
             "K1Widescreen" => self.execute_k1_widescreen(component, i, emit)?,
@@ -4875,6 +4915,25 @@ impl Engine {
                 report.errors
             ),
         });
+        if contract.is_some_and(|contract| contract.tomb_shadow_identity_observation()) {
+            // Read-only evidence precedes the strict gate, which remains fatal.
+            // Never turn a failed observation into a warning waiver.
+            let observation = match tomb_shadow_observer::observe(
+                base,
+                destination,
+                &self.settings.cancelled,
+            ) {
+                Ok(value) => value,
+                Err(_) => {
+                    serde_json::json!({"Status":"observation-unavailable","StrictOutcomeRequired":true})
+                }
+            };
+            emit(Event {
+                component: "Patcher".into(),
+                step: 0,
+                message: format!("TOMB script-shadow identity observation: {observation}"),
+            });
+        }
         let outcome = result
             .map_err(|error| anyhow::anyhow!("Built-in OdyPatcher failed: {error}"))
             .and_then(|()| self.check_cancelled())

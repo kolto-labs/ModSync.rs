@@ -627,6 +627,7 @@ pub(crate) fn bind_movie_archives(
     options: &archive::Options,
     cancelled: &AtomicBool,
 ) -> Result<bool> {
+    super::ensure_generic_archive_inference(component)?;
     let Some((context, gaps)) = draft::movie_context(component) else {
         return Ok(false);
     };
@@ -1349,6 +1350,52 @@ pub fn generate_with_vendor_languages(
                     "Reviewed manual recipe requires verified local archives; component unchanged."
                         .into(),
                 );
+            }
+            reports.push(report);
+            continue;
+        }
+        if super::source_plan_patcher::has_owner(&component.guid)? {
+            if resolved
+                .iter()
+                .filter(|other| other.component_guid == group.component_guid)
+                .count()
+                != 1
+            {
+                report.diagnostics.push(
+                    "Source-plan native owner requires one exhaustive resolved filename group; binding remains unresolved.".into(),
+                );
+            } else if let Some(root) = root.as_deref() {
+                match super::source_plan_patcher::bind(
+                    component,
+                    &group.filenames,
+                    root,
+                    options,
+                    cancelled,
+                ) {
+                    Ok(()) => report.instructions_added = component.instructions.len(),
+                    Err(error) => {
+                        check(cancelled)?;
+                        report.diagnostics.push(format!(
+                            "Source-plan native owner remains unresolved: {error:#}"
+                        ));
+                    }
+                }
+            } else {
+                report.diagnostics.push(
+                    "Source-plan native owner requires verified local archives; binding remains unresolved.".into(),
+                );
+            }
+            if !report.diagnostics.is_empty() {
+                review(component, &report.diagnostics)?;
+                component
+                    .metadata
+                    .get_mut("DraftReview")
+                    .and_then(serde_json::Value::as_object_mut)
+                    .context("Missing unresolved source-plan review")?
+                    .insert(
+                        "Generator".into(),
+                        super::source_plan_patcher::GENERATOR.into(),
+                    );
             }
             reports.push(report);
             continue;

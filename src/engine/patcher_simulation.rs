@@ -203,7 +203,9 @@ impl Engine {
             !self.install,
             "Patcher simulation is only available during virtual execution"
         );
-        if self.exact_patcher_prediction {
+        if self.exact_patcher_prediction
+            || contract.is_some_and(|contract| contract.requires_exact_prediction())
+        {
             return self.predict_native_patcher(base, destination, arguments, contract, emit);
         }
         self.settings.roots.check(base)?;

@@ -39,6 +39,25 @@ pub fn requires_review(component: &Component) -> bool {
 
 pub fn mark_reviewed(component: &mut Component) -> anyhow::Result<()> {
     use anyhow::{Context, ensure};
+    fn contains_k1_native(component: &Component, depth: usize) -> bool {
+        depth > 64
+            || component.metadata.contains_key("K1WidescreenBinding")
+            || component
+                .metadata
+                .get("DraftReview")
+                .and_then(|record| record.get("Generator"))
+                .and_then(serde_json::Value::as_str)
+                == Some(crate::k1_widescreen_recipe::GENERATOR)
+            || component
+                .options
+                .iter()
+                .any(|option| contains_k1_native(option, depth + 1))
+    }
+    ensure!(
+        !crate::archive_generation::source_plan_patcher::contains_native(component)
+            && !contains_k1_native(component, 0),
+        "Native source-plan and K1 widescreen drafts require dedicated independent replay"
+    );
     ensure!(
         component
             .metadata

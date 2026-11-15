@@ -4970,3 +4970,59 @@ small public-mod cache before application compilation, so later jobs can avoid
 intermittent empty publisher pages. Ordinary producer saves remain conditional
 on cache-writer mode and the original pinned K1 source. Hosted cache reuse is
 pending verification; game backups and diagnostic artifacts retain encryption.
+
+The closed source-plan factory reconstructs the exact original guides and
+plans from compiled byte pins. Its mapping reserves46 owners:40 have reviewed
+choice-free source semantics, while six retain explicit held dispositions.
+Each binding still requires fresh original archive authentication, the exact
+standard installer, a sole canonical INI, complete bounded inventory and
+classified consumed payload. Namespace choices, alternate installers, stale
+logs and compilation remain unsupported by this initial factory. Held or
+archive-ineligible owners remain fatal drafts and never use generic inference.
+
+The factory derives member pins from the original archive rather than accepting
+expected values from authored JSON. Independent review and runtime repeat
+that derivation and compare the complete owner model. Its private admission
+witness also authenticates the entire actual staged package before normalization.
+INI reference graphs reject dynamic targets, cycles and bounded-expansion
+overflows before typed parsing. Native prediction and installation both require
+fresh strict zero-warning/error/failure results and a changed whole-game
+manifest. Installation forces owned component checkpoints in CLI and GUI;
+recorded single actions and nested options cannot bypass this contract.
+
+All five production checks pass for the checkpoint-enforced factory. Actual
+Droid Claw Fix and Droid Special Weapons binding/replay preserve the other196
+and150 complete original guide models. Instruction/inventory mutations, orphan
+claims and nested ownership remain fenced. Runtime rejects an altered operation
+even after both public review hashes are recomputed and inspection reports it
+reviewed. All six held owners remain unresolved after real binding/replay
+attempts. These are admission/control observations; four hosted focused
+installation lanes and complete full-guide coverage remain pending.
+
+Hosted K1 CLI run43705692752 passed the real four-owner Base/Remaining proof,
+including all81 GUI assets, whole Galaxy installation, final executable/INI
+pins and checkpoints. In failed K2 ten-owner run43704928850, six native owners
+completed in both actual CLI and GUI with zero warnings/errors/failures,
+including Companion19operations,
+HQ Blasters263 and Trandoshans3. The later TOMB owner remains fatal because an
+Override script shadows its module resource; that warning has not been waived.
+These reduced proofs do not establish whole-guide success or gameplay parity.
+
+The Remaining-phase desktop driver now opens the existing validation utility
+view when the phase controls fall below the viewport. It requires a fresh
+validation-start marker after the click and returns to the wizard before
+confirmation. Existing phase, review, selection, snapshot and cumulative
+completion gates remain required; real desktop replay is pending.
+
+For the exact TOMB installer/INI contract, a read-only observer records the
+original pinned staged script and actual Override/module resource identities
+before the strict outcome check. It bounds and authenticates reads, emits
+metadata only and preserves warning/error failure. Source inspection shows
+two intentional copies of the same script, but actual final byte equality
+must be observed in CI before any compatibility correction is justified.
+
+The source-plan ownership fence also runs before generic local inference and
+movie binding, including later conversion commands. Actual local-inference
+attempts on a mapped original, a held claim and a movie-shaped orphan preserve
+their fatal drafts and emit no instructions. This prevents a failed dedicated
+binding from being replaced by a more permissive generator.

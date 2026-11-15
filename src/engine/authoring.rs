@@ -185,8 +185,9 @@ impl Engine {
             .context("Action is out of range")?
             .clone();
         ensure!(
-            !crate::k1_widescreen_recipe::contains_native(&owner),
-            "K1 widescreen operations require their complete guide schedule"
+            !crate::k1_widescreen_recipe::contains_native(&owner)
+                && !crate::archive_generation::source_plan_patcher::contains_native(&owner),
+            "Native recipe operations require their complete reviewed component and guide schedule"
         );
         owner.instructions = vec![action];
         self.selected = selected_guid_keys(guide);

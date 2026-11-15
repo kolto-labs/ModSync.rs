@@ -173,6 +173,10 @@ fn notes(notes: &[String], expected: usize, kind: &str) -> Result<()> {
 /// editor transaction validates the entire resulting guide before publication.
 pub fn resolve(component: &mut Component, resolution: &Resolution) -> Result<()> {
     ensure!(
+        !crate::archive_generation::source_plan_patcher::contains_native(component),
+        "Source-plan native owners require their dedicated independent whole-component replay verifier"
+    );
+    ensure!(
         component
             .metadata
             .get("DraftReview")
@@ -458,6 +462,15 @@ pub fn verify_archive_derived(
         "Draft is not awaiting review"
     );
     if record.get("Generator").and_then(Value::as_str)
+        == Some(crate::archive_generation::source_plan_patcher::GENERATOR)
+    {
+        return verify_source_plan_patcher(component, root, options, cancelled);
+    }
+    ensure!(
+        !crate::archive_generation::source_plan_patcher::contains_native(component),
+        "Source-plan native provenance cannot use another draft replay verifier"
+    );
+    if record.get("Generator").and_then(Value::as_str)
         == Some(crate::k1_widescreen_recipe::GENERATOR)
     {
         return verify_k1_widescreen(component, root, options, cancelled);
@@ -597,6 +610,42 @@ pub fn verify_archive_derived(
     };
     let mut cleared = component.clone();
     clear_subtree(&mut cleared, &versioned_verification(&verification)?, 0)?;
+    *component = cleared;
+    Ok(())
+}
+
+fn verify_source_plan_patcher(
+    component: &mut Component,
+    root: &Path,
+    options: &archive::Options,
+    cancelled: &AtomicBool,
+) -> Result<()> {
+    let record = component
+        .metadata
+        .get("DraftReview")
+        .context("Missing source-plan native generated draft")?;
+    const KEYS: [&str; 4] = ["RequiresReview", "Result", "Generator", "Derivations"];
+    ensure!(
+        record.as_object().is_some_and(|object| {
+            object.len() == KEYS.len() && object.keys().all(|key| KEYS.contains(&key.as_str()))
+        }) && record["RequiresReview"] == true
+            && record["Generator"] == crate::archive_generation::source_plan_patcher::GENERATOR
+            && !pending_masters(component, 0),
+        "Source-plan native review requires exact pending provenance without resolution history or unresolved masters"
+    );
+    let mut replayed = crate::archive_generation::source_plan_patcher::replay(
+        component, root, options, cancelled,
+    )?;
+    // Only outer selection is adapter-owned; all provenance and nested models
+    // must equal the fresh independent pending derivation before review clears.
+    replayed.is_selected = component.is_selected;
+    ensure!(
+        serde_json::to_value(&*component)? == serde_json::to_value(&replayed)?,
+        "Source-plan native complete pending model differs from independent replay"
+    );
+    let verification = crate::archive_generation::source_plan_patcher::verification(&replayed)?;
+    let mut cleared = component.clone();
+    clear_subtree(&mut cleared, &verification, 0)?;
     *component = cleared;
     Ok(())
 }

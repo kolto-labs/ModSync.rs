@@ -214,10 +214,53 @@ fn native_shape(recipe: &Recipe) -> Result<Option<&'static str>> {
 pub(crate) struct NativePatcherContract {
     component_guid: String,
     translation: NativeTranslation,
+    source_plan: Option<Box<super::source_plan_patcher::AdmittedSourcePlan>>,
 }
 impl NativePatcherContract {
+    /// Only the independently readmitted factory can construct this witness.
+    /// Serialized pins or public hashes cannot select this admission path.
+    pub(crate) fn from_source_plan(
+        admitted: super::source_plan_patcher::AdmittedSourcePlan,
+    ) -> Result<Self> {
+        ensure!(
+            super::source_plan_patcher::has_owner(admitted.component_guid())?,
+            "Source-plan native contract lost its compiled owner"
+        );
+        let (path, sha256, bytes) = admitted.installer_identity();
+        let installer = MemberPin {
+            path: path.into(),
+            sha256: sha256.into(),
+            bytes,
+        };
+        let (path, sha256, bytes) = admitted.ini_identity();
+        let changes_ini = MemberPin {
+            path: path.into(),
+            sha256: sha256.into(),
+            bytes,
+        };
+        let translation = NativeTranslation {
+            operation_index: 1,
+            extract_operation_index: 0,
+            installer,
+            changes_ini,
+            inventory_sha256: admitted.inventory_digest().into(),
+            certificate_sha256: admitted.authority_digest().into(),
+            arguments: "changes.ini".into(),
+            destination: "<<kotorDirectory>>".into(),
+            success_contract: "native-zero-warnings-changed-game-v1".into(),
+        };
+        translation.installer_parent()?;
+        Ok(Self {
+            component_guid: admitted.component_guid().into(),
+            translation,
+            source_plan: Some(Box::new(admitted)),
+        })
+    }
     pub(crate) fn component_guid(&self) -> &str {
         &self.component_guid
+    }
+    pub(crate) fn requires_exact_prediction(&self) -> bool {
+        self.source_plan.is_some()
     }
     pub(crate) fn companion_selector_compatibility(&self) -> bool {
         self.component_guid == "f27d4b13-b349-8c56-b9b7-620cdc133579"
@@ -226,7 +269,18 @@ impl NativePatcherContract {
             && self.translation.changes_ini.sha256
                 == "5a2eed7f0ecd47a24f20540f9f231146c1730dc7810df6ed23c77d309c5d72a2"
     }
+    pub(crate) fn tomb_shadow_identity_observation(&self) -> bool {
+        self.source_plan.is_none()
+            && self.component_guid == "ee2b251b-720d-8f69-9d38-5a56310f0bb4"
+            && self.translation.installer.sha256
+                == "1a267454b2efcd61232332be83f4da4ffe88bd6770c5a0df517880062b1a75e8"
+            && self.translation.changes_ini.sha256
+                == "82e88f244110ee54333e7253915f7d4c7eb1f381d213713827fc8de68f53a2fb"
+    }
     pub(crate) fn verify_staged(&self, base: &Path, cancelled: &AtomicBool) -> Result<()> {
+        if let Some(admitted) = &self.source_plan {
+            admitted.verify_staged(base, cancelled)?;
+        }
         let parent = self.translation.installer_parent()?;
         if packaged_native_log(&self.component_guid).is_some() {
             ensure!(
@@ -816,6 +870,7 @@ pub(crate) fn native_patcher_contract(
     Ok(Some(NativePatcherContract {
         component_guid: recipe.component_guid.clone(),
         translation: translation.clone(),
+        source_plan: None,
     }))
 }
 

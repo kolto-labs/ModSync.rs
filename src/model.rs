@@ -513,6 +513,7 @@ impl Guide {
             !compact || canonical_format(format) == Some("toml"),
             "Compact instruction defaults require TOML output"
         );
+        self.validate_native_option_scope()?;
         // The closed execution exception never rewrites stored source order.
         crate::k1_widescreen_recipe::execution_order(self)?;
         let explicit_order = self.source_order()?.is_some();
@@ -768,7 +769,19 @@ impl Guide {
     /// `FindComponentFromGuid` looks those up too (not options nested below them): it is
     /// met when the option's and its component's selection flags are set, whether or not
     /// a Choose step runs the option, and it adds no ordering edge, as in C#.
+    fn validate_native_option_scope(&self) -> Result<()> {
+        ensure!(
+            !self.components.iter().any(|component| component
+                .options
+                .iter()
+                .any(crate::archive_generation::source_plan_patcher::contains_native,)),
+            "Source-plan native operations cannot occur inside options"
+        );
+        Ok(())
+    }
+
     pub fn ordered(&self) -> Result<Vec<&Component>> {
+        self.validate_native_option_scope()?;
         use crate::guid::key_ascii;
         let Ordering {
             markdown,
@@ -943,6 +956,7 @@ impl Guide {
     /// missing references but still refuses a cycle: C# writes an empty guide there.
     /// Returns the warning lines C# logs when `ignore_errors` lets errors through.
     pub fn sort_like_dependency_resolver(&mut self, ignore_errors: bool) -> Result<Vec<String>> {
+        self.validate_native_option_scope()?;
         let execution = crate::k1_widescreen_recipe::execution_order(self)?;
         if let Some(order) = self.source_order()? {
             self.validate_source_order(execution.as_deref().unwrap_or(&order))?;
@@ -977,6 +991,7 @@ impl Guide {
     /// InstallBefore/InstallAfter reference on any top-level component, selected or not,
     /// stops the run; otherwise the components take the resolver's order, as in convert.
     pub fn sort_for_install(&mut self) -> Result<()> {
+        self.validate_native_option_scope()?;
         let execution = crate::k1_widescreen_recipe::execution_order(self)?;
         if let Some(order) = self.source_order()? {
             self.validate_source_order(execution.as_deref().unwrap_or(&order))?;

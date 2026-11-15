@@ -120,6 +120,27 @@ impl Engine {
             contract.verify_staged(&mods, &self.settings.cancelled)?;
         }
         super::patcher_prepare::normalize(&mods, &self.settings.cancelled)?;
+        let strict = if contract.is_some_and(|contract| contract.requires_exact_prediction()) {
+            let session = odypatcher::Session::discover(
+                mods.to_str()
+                    .context("Native prediction path is not UTF-8")?,
+                "changes.ini",
+                "info.rtf",
+            );
+            ensure!(
+                session.blocked_reason().is_none(),
+                "Native prediction configuration is blocked"
+            );
+            let before = super::reviewed_patcher::before(
+                &mods,
+                &game,
+                &session.load_logs,
+                &self.settings.cancelled,
+            )?;
+            Some((session, before))
+        } else {
+            None
+        };
         let mut installer =
             odypatcher::ModInstaller::new(&mods, &game, &ini, Some(odypatcher::PatchLogger::new()))
                 .map_err(|error| anyhow::anyhow!("Prepare native prediction: {error}"))?;
@@ -150,6 +171,25 @@ impl Engine {
             report.errors,
             report.patches_failed
         );
+        if let Some((session, before)) = strict {
+            ensure!(
+                session.write_install_log(&installer.log.all_logs).is_some(),
+                "Strict native prediction did not write its fresh log"
+            );
+            let receipt = super::reviewed_patcher::finish(
+                before,
+                &mods,
+                &game,
+                &report,
+                &installer.log.all_logs,
+                &self.settings.cancelled,
+            )?;
+            emit(Event {
+                component: "Patcher".into(),
+                step: 0,
+                message: format!("Strict native prediction outcome: {receipt}"),
+            });
+        }
         let mut files = BTreeMap::new();
         let mut directories = BTreeMap::new();
         directories.insert(

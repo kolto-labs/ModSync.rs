@@ -3,6 +3,7 @@ pub mod archive_map;
 mod merge;
 pub mod resolved;
 pub mod reviewed_manual;
+pub(crate) mod source_plan_patcher;
 use crate::{Component, Guide, Instruction, archive};
 use anyhow::{Context, Result, ensure};
 pub use archive_map::ArchiveMap;
@@ -49,6 +50,15 @@ fn vet_archive_name(name: &std::ffi::OsStr) -> Result<()> {
     ensure!(
         crate::paths::literal_relative(name)?.components().count() == 1,
         "Unsafe local archive filename"
+    );
+    Ok(())
+}
+
+fn ensure_generic_archive_inference(component: &Component) -> Result<()> {
+    ensure!(
+        !source_plan_patcher::has_owner(&component.guid)?
+            && !source_plan_patcher::contains_native(component),
+        "Mapped source-plan owners require their compiled binding; generic local archive inference is forbidden"
     );
     Ok(())
 }
@@ -146,6 +156,7 @@ pub fn generate_local_with_cancel(
                 component.instructions.is_empty(),
                 "Component already has instructions"
             );
+            ensure_generic_archive_inference(&component)?;
             ensure!(
                 !component.resource_registry.is_empty(),
                 "No mod links available"
@@ -332,6 +343,7 @@ pub fn generate_from_archive(
     options: &archive::Options,
     cancelled: &AtomicBool,
 ) -> Result<bool> {
+    ensure_generic_archive_inference(component)?;
     ensure!(
         !cancelled.load(Ordering::Relaxed),
         "Archive operation cancelled"
