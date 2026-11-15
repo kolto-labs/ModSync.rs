@@ -270,7 +270,7 @@ impl NativePatcherContract {
         &self.component_guid
     }
     pub(crate) fn requires_exact_prediction(&self) -> bool {
-        self.source_plan.is_some()
+        self.source_plan.is_some() || self.tomb_shadow_identity_observation()
     }
     pub(crate) fn companion_selector_compatibility(&self) -> bool {
         self.component_guid == "f27d4b13-b349-8c56-b9b7-620cdc133579"

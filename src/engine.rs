@@ -5,6 +5,7 @@ mod cleanlist;
 mod k1_widescreen;
 mod managed;
 mod source_resolution;
+mod tomb_shadow_compatibility;
 mod tomb_shadow_observer;
 pub use managed::{ManagedLiveEdit, ManagedRunReport};
 
@@ -2999,7 +3000,10 @@ impl Engine {
                         if provided
                             || crate::archive_generation::source_plan_patcher::contains_native(
                                 component,
-                            ) =>
+                            )
+                            || engine
+                                .native_patcher_contract(component, instruction)?
+                                .is_some_and(|contract| contract.requires_exact_prediction()) =>
                     {
                         return Ok(true);
                     }
@@ -4464,7 +4468,7 @@ impl Engine {
                 {
                     ensure!(
                         self.component_checkpoints && self.checkpoint_process.is_some(),
-                        "Source-plan native publication requires its owned running component checkpoint and root lock"
+                        "Reviewed native publication requires its owned running component checkpoint and root lock"
                     );
                 }
                 self.process_path(i, path, &[], contract.as_ref(), emit)?;
@@ -4915,6 +4919,12 @@ impl Engine {
         )
         .map_err(|error| anyhow::anyhow!("Prepare built-in OdyPatcher: {error}"))?;
         companion_selector::adapt(contract, &mut installer)?;
+        let tomb_compatibility = tomb_shadow_compatibility::adapt(
+            contract,
+            &mut installer,
+            base,
+            &self.settings.cancelled,
+        )?;
         installer
             .validate_configured_paths()
             .map_err(|error| anyhow::anyhow!("Unsafe native patch configuration: {error}"))?;
@@ -4969,6 +4979,11 @@ impl Engine {
                     log_path.is_some(),
                     "Built-in OdyPatcher did not write its install log"
                 );
+                let compatibility = tomb_compatibility
+                    .map(|prepared| {
+                        prepared.finish(base, destination, &report, &self.settings.cancelled)
+                    })
+                    .transpose()?;
                 if let Some(before) = strict_before {
                     let mut receipt = reviewed_patcher::finish(
                         before,
@@ -4978,6 +4993,9 @@ impl Engine {
                         &installer.log.all_logs,
                         &self.settings.cancelled,
                     )?;
+                    if let Some(compatibility) = compatibility {
+                        receipt["Compatibility"] = compatibility;
+                    }
                     receipt["ComponentGuid"] = serde_json::json!(
                         contract
                             .context("Reviewed Patcher outcome lost its authority")?

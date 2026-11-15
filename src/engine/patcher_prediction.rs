@@ -145,6 +145,12 @@ impl Engine {
             odypatcher::ModInstaller::new(&mods, &game, &ini, Some(odypatcher::PatchLogger::new()))
                 .map_err(|error| anyhow::anyhow!("Prepare native prediction: {error}"))?;
         super::companion_selector::adapt(contract, &mut installer)?;
+        let tomb_compatibility = super::tomb_shadow_compatibility::adapt(
+            contract,
+            &mut installer,
+            &mods,
+            &self.settings.cancelled,
+        )?;
         installer
             .validate_configured_paths()
             .map_err(|error| anyhow::anyhow!("Unsafe native prediction configuration: {error}"))?;
@@ -171,12 +177,15 @@ impl Engine {
             report.errors,
             report.patches_failed
         );
+        let compatibility = tomb_compatibility
+            .map(|prepared| prepared.finish(&mods, &game, &report, &self.settings.cancelled))
+            .transpose()?;
         if let Some((session, before)) = strict {
             ensure!(
                 session.write_install_log(&installer.log.all_logs).is_some(),
                 "Strict native prediction did not write its fresh log"
             );
-            let receipt = super::reviewed_patcher::finish(
+            let mut receipt = super::reviewed_patcher::finish(
                 before,
                 &mods,
                 &game,
@@ -184,6 +193,9 @@ impl Engine {
                 &installer.log.all_logs,
                 &self.settings.cancelled,
             )?;
+            if let Some(compatibility) = compatibility {
+                receipt["Compatibility"] = compatibility;
+            }
             emit(Event {
                 component: "Patcher".into(),
                 step: 0,

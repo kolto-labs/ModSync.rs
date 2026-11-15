@@ -5060,3 +5060,27 @@ checkpoints. Strict private prediction also passed. This reduced proof does
 not establish all forty mapped owners or full-guide installation. The paired
 K2 source-plan proof stopped at a workflow prerequisite-index assertion;
 TSLRCM is original index1, and the next workflow revision corrects that assertion.
+
+
+Actual TOMB observation in both CLI and GUI lanes of run43708639350 proved
+its staged source, Override copy and unique Modules/711kor.mod NCS resource
+all equal the pinned original40,430-byte script. Both lanes still failed the
+original strict warning gate. The original pinned INI has no OverrideType
+directive; linked OdyPatcher defaults that diagnostic differently from the
+original installer. An exact GUID/EXE/INI compatibility adapter now restores
+the original implicit policy only for that duplicate module copy. It checks
+all24copy/2table/10GFF/1TLK descriptors and preserves37 operations/both writes.
+A mandatory typed verifier requires37completed/zero skipped, failed, warnings
+or errors and freshly reads all three bounded byte identities. Any mismatch
+fails before reviewed success. Exact prediction uses the same adapter and
+postcondition before VFS promotion; actual publication requires owned component
+checkpoints. Raw INI and payloads remain unchanged, and strict log/manifest
+checks are unchanged. All five production checks pass; post-adapter actual
+paired installation remains pending.
+
+The K1 Remaining GUI now reaches actual installation. Its prior driver then
+misclassified a bare quoted original "Error: " regex label in successful
+Galaxy provenance metadata. The driver masks only such empty quoted labels
+followed by a JSON delimiter. Inline actual-metadata/real-error controls pass;
+quoted error messages with details, unquoted errors and all other readiness,
+receipt and full-manifest gates remain effective. Hosted GUI replay is pending.

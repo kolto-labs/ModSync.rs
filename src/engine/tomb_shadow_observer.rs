@@ -1,6 +1,6 @@
-//! Read-only evidence for the exact TOMB copy-to-Override/module shadow warning.
-//! Contract selection belongs to the caller; these observations grant no authority
-//! and never change the install outcome, logger, or filesystem.
+//! Read-only measurement for the exact TOMB duplicate-script contract.
+//! The best-effort observation grants no authority. The separate typed verifier
+//! fails on unequal bytes; neither path changes the logger or filesystem.
 use anyhow::{Result, anyhow, ensure};
 use odypatcher::formats::erf::{ArchiveKind, ErfFile, extension_to_res_type};
 use serde_json::{Value, json};
@@ -23,13 +23,89 @@ const SCRIPT_LIMIT: usize = 1024 * 1024;
 const MODULE_LIMIT: usize = 64 * 1024 * 1024;
 const DIRECTORY_LIMIT: usize = 100_000;
 
-pub(super) fn observe(base: &Path, game: &Path, cancel: &AtomicBool) -> Result<Value> {
-    check_cancelled(cancel)?;
+// Constructed only from fresh bounded snapshots; never deserialized from receipts.
+struct Measurement {
+    source: FileIdentity,
+    loose: FileIdentity,
+    resource: FileIdentity,
+    module: FileIdentity,
+    source_equals_override: bool,
+    source_equals_module: bool,
+    override_equals_module: bool,
+}
+
+#[derive(serde::Serialize)]
+struct FileIdentity {
+    path: &'static str,
+    bytes: usize,
+    sha256: String,
+}
+
+impl Measurement {
+    fn all_equal(&self) -> bool {
+        self.source_equals_override && self.source_equals_module && self.override_equals_module
+    }
+
+    fn receipt(&self, observation_only: bool) -> Value {
+        json!({
+            "schema_version": 1,
+            "observation_only": observation_only,
+            "expected_source": {"path": SOURCE_PATH, "bytes": EXPECTED_BYTES, "sha256": EXPECTED_SHA256},
+            "staged_source": self.source,
+            "override_script": self.loose,
+            "module_resource": self.resource,
+            "module_file": self.module,
+            "source_equals_override": self.source_equals_override,
+            "source_equals_module": self.source_equals_module,
+            "override_equals_module": self.override_equals_module,
+            "all_equal": self.all_equal(),
+        })
+    }
+}
+
+/// Successful mandatory verification, with no public constructor or Deserialize.
+pub(super) struct VerifiedShadow {
+    measured: Measurement,
+}
+
+impl VerifiedShadow {
+    pub(super) fn receipt(&self) -> Value {
+        self.measured.receipt(false)
+    }
+}
+
+pub(super) fn verify_source(base: &Path, cancel: &AtomicBool) -> Result<()> {
+    source_snapshot(base, cancel)?;
+    Ok(())
+}
+
+fn source_snapshot(base: &Path, cancel: &AtomicBool) -> Result<Vec<u8>> {
     let source = read_snapshot(base, SOURCE_PATH, SCRIPT_LIMIT, cancel)?;
     ensure!(
         source.len() == EXPECTED_BYTES && sha256(&source, cancel)? == EXPECTED_SHA256,
         "TOMB staged source differs from the exact original public script member"
     );
+    Ok(source)
+}
+
+pub(super) fn observe(base: &Path, game: &Path, cancel: &AtomicBool) -> Result<Value> {
+    Ok(measure(base, game, cancel)?.receipt(true))
+}
+
+/// Mandatory postcondition. Failure must propagate before any success receipt.
+pub(super) fn verify(base: &Path, game: &Path, cancel: &AtomicBool) -> Result<VerifiedShadow> {
+    let measured = measure(base, game, cancel)?;
+    ensure!(
+        measured.all_equal(),
+        "TOMB original source, Override and module script bytes differ"
+    );
+    check_cancelled(cancel)?;
+    Ok(VerifiedShadow { measured })
+}
+
+fn measure(base: &Path, game: &Path, cancel: &AtomicBool) -> Result<Measurement> {
+    check_cancelled(cancel)?;
+    let source = source_snapshot(base, cancel)?;
     let loose = read_snapshot(game, OVERRIDE_PATH, SCRIPT_LIMIT, cancel)?;
     let module_bytes = read_snapshot(game, MODULE_PATH, MODULE_LIMIT, cancel)?;
     preflight_module(&module_bytes, cancel)?;
@@ -62,19 +138,15 @@ pub(super) fn observe(base: &Path, game: &Path, cancel: &AtomicBool) -> Result<V
     let source_equals_override = source == loose;
     let source_equals_module = source == resource.data;
     let override_equals_module = loose == resource.data;
-    Ok(json!({
-        "schema_version": 1,
-        "observation_only": true,
-        "expected_source": {"path": SOURCE_PATH, "bytes": EXPECTED_BYTES, "sha256": EXPECTED_SHA256},
-        "staged_source": identity(SOURCE_PATH, &source, cancel)?,
-        "override_script": identity(OVERRIDE_PATH, &loose, cancel)?,
-        "module_resource": identity(RESOURCE_PATH, &resource.data, cancel)?,
-        "module_file": identity(MODULE_PATH, &module_bytes, cancel)?,
-        "source_equals_override": source_equals_override,
-        "source_equals_module": source_equals_module,
-        "override_equals_module": override_equals_module,
-        "all_equal": source_equals_override && source_equals_module && override_equals_module,
-    }))
+    Ok(Measurement {
+        source: identity(SOURCE_PATH, &source, cancel)?,
+        loose: identity(OVERRIDE_PATH, &loose, cancel)?,
+        resource: identity(RESOURCE_PATH, &resource.data, cancel)?,
+        module: identity(MODULE_PATH, &module_bytes, cancel)?,
+        source_equals_override,
+        source_equals_module,
+        override_equals_module,
+    })
 }
 
 fn check_cancelled(cancel: &AtomicBool) -> Result<()> {
@@ -85,8 +157,12 @@ fn check_cancelled(cancel: &AtomicBool) -> Result<()> {
     Ok(())
 }
 
-fn identity(path: &str, bytes: &[u8], cancel: &AtomicBool) -> Result<Value> {
-    Ok(json!({"path": path, "bytes": bytes.len(), "sha256": sha256(bytes, cancel)?}))
+fn identity(path: &'static str, bytes: &[u8], cancel: &AtomicBool) -> Result<FileIdentity> {
+    Ok(FileIdentity {
+        path,
+        bytes: bytes.len(),
+        sha256: sha256(bytes, cancel)?,
+    })
 }
 
 fn sha256(bytes: &[u8], cancel: &AtomicBool) -> Result<String> {
