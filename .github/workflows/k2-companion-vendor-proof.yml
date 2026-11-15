@@ -215,7 +215,7 @@ jobs:
           finally:
               Path('/work/namespace-preflight.json').write_text(json.dumps(state,indent=2))
           os.chdir('/work')
-          os.execv('/usr/bin/xvfb-run',['/usr/bin/xvfb-run','-a','-s','-screen 0 1024x768x24','/usr/bin/python3','/reference/worker.py'])
+          os.execv('/usr/bin/xvfb-run',['/usr/bin/xvfb-run','-e','/work/xvfb.log','-a','-s','-screen 0 1024x768x24','/usr/bin/python3','/reference/worker.py'])
           PYCODE
       - name: Run network-isolated original and read actual output metadata
         timeout-minutes: 25
@@ -300,7 +300,7 @@ jobs:
                     '--symlink','usr/lib64','/lib64','--dir','/etc',
                     '--ro-bind','/etc/ld.so.cache','/etc/ld.so.cache','--ro-bind','/etc/fonts','/etc/fonts',
                     '--ro-bind',str(work/'passwd'),'/etc/passwd','--ro-bind',str(work/'group'),'/etc/group',
-                    '--proc','/proc','--dev','/dev','--tmpfs','/tmp','--tmpfs','/run',
+                    '--proc','/proc','--dev','/dev','--perms','1777','--tmpfs','/tmp','--tmpfs','/run',
                     '--dir','/reference','--ro-bind',str(Path('tools/modsync-ci/manual.py').resolve()),'/reference/manual.py',
                     '--ro-bind',str(Path('tools/modsync-ci/fixtures/ci/k2-manual-plan.json').resolve()),'/reference/plan.json',
                     '--ro-bind',str(work/'recipe.json'),'/reference/recipe.json',
@@ -318,6 +318,16 @@ jobs:
                     '/usr/bin/setpriv','--reuid',str(runner_uid),'--regid',str(runner_gid),'--clear-groups',
                     '--bounding-set=-all','--inh-caps=-all','--ambient-caps=-all','--no-new-privs',
                     '/usr/bin/python3','-I','/reference/preflight.py',str(runner_uid),str(runner_gid),*host_ns]
+              # Debian's public command symlinks need only these resolved alternatives,
+              # never the host's complete /etc. Keep every target inside readonly /usr.
+              alternatives=['--dir','/etc/alternatives']
+              for name in ('awk','wine','wineboot','wineserver'):
+                  target=Path('/usr/bin')/name
+                  resolved=target.resolve(strict=True)
+                  assert resolved.is_file() and resolved.is_relative_to('/usr')
+                  alternatives.extend(['--symlink',str(resolved),'/etc/alternatives/'+name])
+              position=args.index('--proc')
+              args[position:position]=alternatives
               # No host home, runner temp, workspace, API credentials or network in the namespace.
               with (work/'sandbox.log').open('wb') as log:
                   p=subprocess.Popen(args,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,start_new_session=True,close_fds=True,env={})
@@ -372,7 +382,7 @@ jobs:
               if original.is_file() and not original.is_symlink() and original.resolve().is_relative_to(work.resolve()) and 0<original.stat().st_size<=1024*1024:
                   (evidence/'original-installlog.rtf').write_bytes(original.read_bytes())
               # Bounded allowlist only. Never retain archives, UTI bytes, game, prefix or screenshots.
-              for name in ('runtime.json','runtime.log','sandbox.log','namespace-preflight.json'):
+              for name in ('runtime.json','runtime.log','sandbox.log','namespace-preflight.json','xvfb.log'):
                   path=work/name
                   if path.is_file() and not path.is_symlink() and path.stat().st_size<=2*1024*1024:
                       (evidence/name).write_bytes(path.read_bytes())
@@ -389,7 +399,7 @@ jobs:
           allowed={'acquisition.log':2*1024*1024,'material-provenance.json':1024*1024,
                    'game-before.json':64*1024*1024,'game-after.json':64*1024*1024,
                    'vendor-witness.json':4*1024*1024,'original-installlog.rtf':1024*1024,
-                   'runtime.json':65536,'runtime.log':2*1024*1024,'sandbox.log':2*1024*1024,'namespace-preflight.json':65536}
+                   'runtime.json':65536,'runtime.log':2*1024*1024,'sandbox.log':2*1024*1024,'namespace-preflight.json':65536,'xvfb.log':2*1024*1024}
           rejected=[]
           for path in evidence.iterdir():
               if path.is_symlink() or not path.is_file() or path.name not in allowed:
