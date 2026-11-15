@@ -111,7 +111,7 @@ jobs:
           umask 077
           mkdir -m 700 "$RUNNER_TEMP/companion-runtime"
           cat >"$RUNNER_TEMP/companion-runtime/worker.py" <<'PY'
-          import json,os,signal,subprocess,sys,time
+          import json,os,re,signal,subprocess,sys,time
           from pathlib import Path
           sys.path.insert(0,'/reference')
           import manual
@@ -162,17 +162,33 @@ jobs:
                           assert image.is_file() and image.stat().st_size<=4*1024*1024
                           text=subprocess.run(['/usr/bin/tesseract',str(image),'stdout','--psm','6'],capture_output=True,check=True,timeout=20).stdout
                           assert len(text)<=8192
-                          observation.append({'title':title,'text':text.decode('utf-8')})
+                          observation.append({'title':title,'window':window,'text':text.decode('utf-8')})
                       finally: image.unlink(missing_ok=True)
               if observation:
                   state.setdefault('dialog_observations',[]).append(observation)
                   assert len(state['dialog_observations'])<=12
                   save()
-              return any(item['title']=='^Information$' for item in observation)
+              return [item for item in observation if item['title']=='^Information$']
           def observed_action(action,operation,roots,tools,action_log,deadline):
               if 'wait_log' in action:
                   time.sleep(2)
-                  if observe_modal(): raise RuntimeError('original installer stopped at observed Information dialog')
+                  dialogs=observe_modal()
+                  if dialogs:
+                      assert len(dialogs)==1
+                      normalized=re.sub('[^a-z]','',dialogs[0]['text'].lower())
+                      # The observed original says it has finished and directs us
+                      # to the progress log. Acknowledge only this known message;
+                      # success still requires the original strict log verdict.
+                      assert 'pleasechecktheprogresslog' in normalized and 'whathasbeendone' in normalized
+                      command(['/usr/bin/xdotool','key','--window',dialogs[0]['window'],'Return'],10)
+                      state['completion_dialog_acknowledged']=True; save()
+                      time.sleep(2)
+                      expected=manual.path_token(operation['success_log'],roots,('extract',))
+                      if not expected.is_file():
+                          found=subprocess.run(['/usr/bin/xdotool','search','--onlyvisible','--name','^Companion Starting Armors$'],capture_output=True,check=True,timeout=10)
+                          windows=found.stdout.decode('ascii').split(); assert len(windows)==1 and windows[0].isdecimal()
+                          command(['/usr/bin/xdotool','windowclose',windows[0]],10)
+                          state['completed_main_window_closed']=True; save()
               result=original_action(action,operation,roots,tools,action_log,deadline)
               if 'click' in action:
                   time.sleep(0.5)
@@ -222,7 +238,14 @@ jobs:
               finally:
                   try:
                       quiesce(state['status']=='failed'); drives(); state['quiescent']=True
-                  finally: save()
+                  finally:
+                      state['installer_log_candidates']=[]
+                      for path in (prefix/'drive_c').rglob('*'):
+                          if path.name.casefold() not in ('installlog.rtf','installlog.txt'): continue
+                          assert not path.is_symlink() and path.is_file() and path.resolve().is_relative_to(prefix)
+                          state['installer_log_candidates'].append({'path':str(path.relative_to(work)),'bytes':path.stat().st_size})
+                          assert len(state['installer_log_candidates'])<=16
+                      save()
           PY
           cat >"$RUNNER_TEMP/companion-runtime/preflight.py" <<'PYCODE'
           import json,os,sys
