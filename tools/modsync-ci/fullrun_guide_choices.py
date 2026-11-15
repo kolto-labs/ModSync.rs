@@ -248,15 +248,33 @@ def verify_alternative(game, archives, restore_report, archive_map, pins_path):
             "acquisition_source": entry["source"], "objects": objects}
 
 
-def declare_source_order(text, expected_guids):
+def declare_source_order(text, expected_guids, *, previous_guids=None):
     """Add explicit order without changing any projected component definition."""
     document = tomllib.loads(text)
     components = document.get("thisMod", document.get("Components", []))
     expected = [identity(guid) for guid in expected_guids]
     observed = [identity(component.get("Guid")) for component in components]
     if (not expected or len(expected) > 10000 or len(set(expected)) != len(expected)
-            or observed != expected or "ModSyncSourceOrder" in document):
+            or observed != expected):
         raise ValueError("source-order projection inventory mismatch")
+    if "ModSyncSourceOrder" in document:
+        previous = [identity(guid) for guid in previous_guids] if previous_guids is not None else None
+        if (not previous or len(previous) > 10000 or len(set(previous)) != len(previous)
+                or document["ModSyncSourceOrder"] != previous
+                or [guid for guid in previous if guid in set(expected)] != expected):
+            raise ValueError("source-order input policy differs from the original inventory")
+        # Native TOML may wrap this scalar array. Remove only its one canonical
+        # root assignment, then compare the entire remaining parsed document.
+        assignments = list(re.finditer(r"(?m)^ModSyncSourceOrder[ \t]*=[ \t]*\[[^\]]*\][ \t]*(?:\n|$)", text))
+        if len(assignments) != 1:
+            raise ValueError("source-order input assignment is ambiguous")
+        assignment = assignments[0]
+        if tomllib.loads(assignment[0]) != {"ModSyncSourceOrder": previous}:
+            raise ValueError("source-order input assignment is not canonical")
+        text = text[:assignment.start()] + text[assignment.end():]
+        document = {key: value for key, value in document.items() if key != "ModSyncSourceOrder"}
+        if tomllib.loads(text) != document:
+            raise ValueError("source-order replacement changed component definitions")
     rewritten = "ModSyncSourceOrder = " + json.dumps(expected) + "\n\n" + text
     updated = tomllib.loads(rewritten)
     if updated.pop("ModSyncSourceOrder") != expected or updated != document:
@@ -361,8 +379,12 @@ def project(guide, converted, archives, restore_report, archive_map, pins_path, 
     projected = project_text(original_bytes.decode("utf-8"), inactive_ids, recipe=recipe).encode("utf-8")
     original_ids = [item["component_guid"] for item in component_map]
     admitted_ids = [item for item in original_ids if item not in inactive_ids]
+    input_source_order = "ModSyncSourceOrder" in document
+    if input_source_order and not source_order:
+        raise ValueError("existing source order requires source-order admission")
     if source_order:
-        projected = declare_source_order(projected.decode("utf-8"), admitted_ids).encode("utf-8")
+        projected = declare_source_order(projected.decode("utf-8"), admitted_ids,
+                                         previous_guids=original_ids if input_source_order else None).encode("utf-8")
     receipt = {"schema_version": 1, "recipe": recipe, "claim": CLAIM, "game": game,
                "source_guide_sha": GUIDE_SHA, "source_guide_sha256": cfg["guide_sha256"],
                "original_input_sha256": hashlib.sha256(original_bytes).hexdigest(),
@@ -374,6 +396,8 @@ def project(guide, converted, archives, restore_report, archive_map, pins_path, 
                "original_component_map": component_map, "inactive": inactive, "selected_alternative": selected}
     if source_order:
         receipt["source_order_policy"] = source_order_policy(admitted_ids)
+    if input_source_order:
+        receipt["input_source_order_policy"] = source_order_policy(original_ids)
     if recipe == ASPYR_RECIPE:
         receipt["baseline_applicability"] = copy.deepcopy(baseline_applicability)
     validate_receipt(receipt)
@@ -539,4 +563,10 @@ def validate_receipt(receipt):
         if (not isinstance(policy, dict) or type(policy.get("version")) is not int
                 or policy != source_order_policy(receipt["admitted_guids"])):
             raise ValueError("source-order policy provenance mismatch")
+    if "input_source_order_policy" in receipt:
+        policy = receipt["input_source_order_policy"]
+        if ("source_order_policy" not in receipt or not isinstance(policy, dict)
+                or type(policy.get("version")) is not int
+                or policy != source_order_policy(receipt["original_guids"])):
+            raise ValueError("input source-order policy provenance mismatch")
     return admitted

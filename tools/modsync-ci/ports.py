@@ -791,6 +791,10 @@ def bound_result(before, after):
     old, new = loaded_components(components_of(before)), loaded_components(components_of(after))
     if [item.get("Guid") for item in old] != [item.get("Guid") for item in new]:
         return 0, "bound_output_components_changed"
+    before_order = tomllib.loads(before.read_text(encoding="utf-8")).get("ModSyncSourceOrder")
+    after_order = tomllib.loads(after.read_text(encoding="utf-8")).get("ModSyncSourceOrder")
+    if before_order != after_order:
+        return 0, "bound_output_source_order_changed"
     new_movies = movie_bindings(new)
     if any(new_movies.get(identity) != binding
            for identity, binding in movie_bindings(old).items()):
@@ -934,8 +938,10 @@ def bind_archives(command, source, guide, converted, archives, archive_map, priv
     plan.write_text(json.dumps(bindings), encoding="utf-8")
     bound, staged = private / "converted-bound.toml", private / "converted-bound-pending.toml"
     compact = ["--compact-instruction-defaults"] if compact_defaults else []
+    binding_input = converted if compact_defaults else guide
+    drafting = [] if compact_defaults else ["--parse-directions"]
     try:
-        run(command + ["convert", str(guide), str(staged), "--format", "toml", "--parse-directions",
+        run(command + ["convert", str(binding_input), str(staged), "--format", "toml"] + drafting + [
                        "--source-path", str(archives), "--resolved-archives", str(plan)] + compact,
             source, private, BIND_STAGE, report, env)
         run(command + ["convert", str(staged), str(bound), "--format", "toml",
@@ -3546,13 +3552,22 @@ def execute(args, report):
         archive_map = []
         if args.archive_map:
             archive_map = ["--archive-map", str(args.archive_map.resolve(strict=True))]
+        complete = getattr(args, "complete_guide", False)
+        local_generation = [] if complete else ["--auto-generate-local"]
         try:
             run(command + ["convert", str(guide), str(converted),
-                           "--format", "toml", "--parse-directions",
-                           "--auto-generate-local", "--source-path", str(archives)] + archive_map,
+                           "--format", "toml", "--parse-directions"] + local_generation
+                + ["--source-path", str(archives)] + archive_map,
                 source, private, "convert", report, env)
         finally:
             record_convert_skips(private / "convert.log", report)
+        if complete:
+            original_guids = [component.get("Guid") for component in components_of(converted)]
+            converted.write_text(fullrun_guide_choices.declare_source_order(
+                converted.read_text(encoding="utf-8"), original_guids), encoding="utf-8")
+            report.setdefault("draft_review", {})["binding_source"] = {
+                "kind": "original-guide-draft-before-local-inference", "sha256": digest(converted),
+                "source_order_policy": fullrun_guide_choices.source_order_policy(original_guids)}
         reviewed = private / "converted-reviewed.toml"
         review_input = bind_archives(command, source, guide, converted, archives,
                                      args.archive_map, private, report, env,

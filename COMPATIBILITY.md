@@ -4847,3 +4847,15 @@ The original plan copies its three TGA files and the inspected readme directs
 extraction to Override. Actual normal acquisition, binding and independent
 approval pass; an unchanged different guide owner cannot reuse the exception.
 There is no general allowance for arbitrary `Readme First.txt` files.
+
+Complete-guide conversion binds reviewed recipes to the original guide draft
+before local archive inference. This avoids treating inferred archive folders
+(such as `__MACOSX`) as authored options that a reviewed recipe must preserve.
+The preservation guard remains strict. Exhaustive source order is declared
+before binding and retained through every conversion. The documented inactive
+partition may replace that policy only after checking the original inventory,
+retained relative order and complete unchanged component definitions. Its input
+and output policies are recorded in the authenticated projection receipt.
+Actual original-source conversion matches all 127 compiled component contexts;
+the K1 partition reloads with identical retained models and four invalid-policy
+controls reject. Hosted complete-guide installation remains unproven.
