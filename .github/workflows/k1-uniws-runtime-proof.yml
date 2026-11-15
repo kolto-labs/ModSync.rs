@@ -72,6 +72,7 @@ jobs:
           from pathlib import Path
           import pyautogui as ui
           import pytesseract
+          from PIL import ImageGrab
           root=Path(os.environ['RUNNER_TEMP'])/'uniws-private'; evidence=root.parent/'uniws-evidence'
           prefix=root/'prefix'; game=root/'disposable-target'; game.mkdir(mode=0o700)
           target=game/'swkotor.exe'; original=(root/'editable-original.bin').read_bytes(); target.write_bytes(original)
@@ -89,7 +90,7 @@ jobs:
           def capture(label):
               global snapshots
               assert snapshots<24; snapshots+=1
-              image=ui.screenshot(); image.save(evidence/(label+'.png'))
+              image=ImageGrab.grab(xdisplay=os.environ['DISPLAY']); image.save(evidence/(label+'.png'))
               data=pytesseract.image_to_data(image,output_type=pytesseract.Output.DICT,timeout=20)
               lines={}
               for i,text in enumerate(data['text']):
