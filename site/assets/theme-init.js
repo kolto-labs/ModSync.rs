@@ -6,12 +6,12 @@
     var saved = localStorage.getItem('modsync-site-theme');
     if (saved === 'light' || saved === 'dark') root.dataset.theme = saved;
     var style = localStorage.getItem('modsync-site-style');
-    if (style === 'kolto' || style === 'classic') root.dataset.siteStyle = style;
+    if (style === 'kolto' || style === 'classic' || style === 'modsync') root.dataset.siteStyle = style;
   } catch (e) {}
-  var classic = root.dataset.siteStyle === 'classic';
+  var current = root.dataset.siteStyle || 'kolto';
   var light = root.dataset.theme === 'light';
-  document.querySelector('meta[name="theme-color"]').content = classic
-    ? (light ? '#f5f0e6' : '#14110d')
-    : (light ? '#edf5f8' : '#03131c');
-  if (classic) document.querySelector('link[rel="icon"]').href = 'assets/modsync-classic.svg';
+  // [dark, light] browser chrome colour per site style (Kolto Labs, Classic, ModSync).
+  var colors = { kolto: ['#03131c', '#edf5f8'], classic: ['#14110d', '#f5f0e6'], modsync: ['#000116', '#f5f5f5'] };
+  document.querySelector('meta[name="theme-color"]').content = colors[current][light ? 1 : 0];
+  if (current === 'classic') document.querySelector('link[rel="icon"]').href = 'assets/modsync-classic.svg';
 })();

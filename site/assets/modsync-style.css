@@ -1,0 +1,102 @@
+/* ModSync style: the ModSync design system (K1 palette in dark, the classic installer
+   Light palette in light). A third site style next to Kolto Labs and Classic; it only
+   changes visual styling, content and controls stay shared. No webfonts: Verdana and
+   Segoe UI are what the desktop app uses. */
+:root[data-site-style='modsync'] {
+  --font-ui: Verdana, 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-display: Verdana, 'Segoe UI', system-ui, sans-serif;
+  --font-mono: Consolas, 'Ubuntu Mono', 'Courier New', ui-monospace, monospace;
+  --radius: 4px;
+  --radius-panel: 8px;
+
+  color-scheme: dark;
+  --canvas: #000116;      /* surface-bg */
+  --surface: #010116;     /* surface-card */
+  --rail: #031332;        /* surface-raised */
+  --sunken: #000110;
+  --line: #062766;        /* border-default */
+  --line-strong: #083388;
+  --ink: #e6f4ff;
+  --text: #9fd2ff;
+  --muted: #8aa2c0;
+  --faint: #6f86a6;
+  --accent: #3aaaff;      /* brand-primary */
+  --accent-ink: #62c6ff;  /* brand-primary-bright */
+  --accent-fg: #000116;   /* text-on-accent */
+  --selected: #06204a;
+  --hover: #020228;       /* surface-hover */
+  --glow: rgba(58, 170, 255, 0.14);
+  --star: rgba(159, 210, 255, 0.45);
+  --ok: #4caf50;          /* success */
+  --warn: #ffa500;        /* warning */
+  --code-bg: #000110;
+  --code-fg: #9fd2ff;
+  --code-muted: #8aa2c0;
+  --code-line: #062766;
+  --action: #a8b348;      /* brand-accent (olive) */
+  --action-ink: #000116;
+}
+:root[data-site-style='modsync'][data-theme='light'] {
+  /* Light: the classic Windows installer palette (Fluent blue on light grey). */
+  color-scheme: light;
+  --font-ui: 'Segoe UI', Ubuntu, Verdana, system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-ui);
+  --canvas: #f5f5f5;
+  --surface: #ffffff;
+  --rail: #f8f8f8;
+  --sunken: #ececec;
+  --line: #d0d0d0;
+  --line-strong: #c0c0c0;
+  --ink: #000000;
+  --text: #1e1e1e;
+  --muted: #5c5c5c;
+  --faint: #6e6e6e;
+  --accent: #0078d4;
+  --accent-ink: #005a9e;
+  --accent-fg: #ffffff;
+  --selected: #e8f0f8;
+  --hover: #f0f4f9;
+  --glow: rgba(0, 120, 212, 0.12);
+  --star: rgba(30, 30, 30, 0.2);
+  --ok: #2e7d32;
+  --warn: #8a5a00;
+  --code-bg: #1e1e1e;
+  --code-fg: #e6e6e6;
+  --code-muted: #a0a0a0;
+  --code-line: #333333;
+  --action: #0078d4;
+  --action-ink: #ffffff;
+}
+
+:root[data-site-style='modsync'] :is(h1, h2, h3) { letter-spacing: 0; font-weight: 700; }
+:root[data-site-style='modsync'] :is(.mp-top, .docs-side) { border-top: 2px solid var(--accent); }
+:root[data-site-style='modsync'] .mp-head h1 {
+  font: 700 clamp(30px, 4vw, 40px)/1.15 var(--font-display);
+  color: var(--accent);
+  text-shadow: none;
+}
+:root[data-site-style='modsync'] .mp-deck {
+  font: 700 clamp(22px, 3vw, 28px)/1.3 var(--font-display);
+  color: var(--action);
+}
+:root[data-site-style='modsync'][data-theme='light'] .mp-deck { color: #2d5a7f; }
+:root[data-site-style='modsync'] .mp-crumbs { text-transform: uppercase; letter-spacing: 0.06em; font-size: 11px; color: var(--muted); }
+:root[data-site-style='modsync'] .mark { font: 700 16px/1.5 var(--font-ui); }
+:root[data-site-style='modsync'] .mp-top nav a { font: 400 13px/1.5 var(--font-ui); }
+:root[data-site-style='modsync'] .logo { border-radius: 6px; }
+:root[data-site-style='modsync'] :is(.card, .btn) { box-shadow: none; }
+:root[data-site-style='modsync'] :is(.card, .mp-stage) { border-radius: var(--radius-panel); border-width: 2px; }
+:root[data-site-style='modsync'] .btn { border-radius: var(--radius); border-width: 2px; }
+:root[data-site-style='modsync'] :is(.btn, .btn.big) { font: 700 13px/1.5 var(--font-ui); }
+:root[data-site-style='modsync'] :is(.mp-body h2, .section-label, .docs-article h2) {
+  font: 700 22px/1.35 var(--font-display);
+  color: var(--action);
+}
+:root[data-site-style='modsync'][data-theme='light'] :is(.mp-body h2, .section-label, .docs-article h2) { color: #2d5a7f; }
+:root[data-site-style='modsync'] .docs-article h1 { font: 700 clamp(28px, 4vw, 38px)/1.12 var(--font-display); color: var(--accent); }
+:root[data-site-style='modsync'] .docs-brand { font: 700 15px/1.5 var(--font-ui); }
+:root[data-site-style='modsync'] pre.code .s { color: #50fa7b; }
+:root[data-site-style='modsync'] pre.code .k { color: #a8b348; }
+@media (max-width: 600px) {
+  :root[data-site-style='modsync'] .mark { font-size: 14px; }
+}

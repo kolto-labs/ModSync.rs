@@ -1,0 +1,52 @@
+/* Marketplace page. The design-system stylesheet (modsync-ds.css) is scoped to .ms-scope
+   so its tokens never leak into the site chrome. Under the ModSync style the Marketplace
+   uses its own K1 / TSL / Light skins; under Kolto Labs and Classic it borrows the site's
+   palette and type so it reads as part of the page. */
+:root {
+  /* Snapshots of the site's fonts, taken where they are still the site's values. */
+  --mk-site-font: var(--font-ui);
+  --mk-site-mono: var(--font-mono);
+}
+:root:not([data-site-style='modsync']) .ms-scope {
+  --font-default: var(--mk-site-font);
+  --font-body: var(--mk-site-font);
+  --font-mono: var(--mk-site-mono);
+  --surface-bg: var(--canvas);
+  --surface-card: var(--surface);
+  --surface-raised: var(--rail);
+  --surface-hover: var(--hover);
+  --border-default: var(--line);
+  --border-hover: var(--accent);
+  --text-primary: var(--text);
+  --text-secondary: var(--muted);
+  --text-heading: var(--ink);
+  --text-on-accent: var(--accent-fg);
+  --brand-primary: var(--accent);
+  --brand-primary-bright: var(--accent-ink);
+  --brand-accent: var(--accent-ink);
+  --selected-bg: var(--selected);
+  --rating-bar-track: var(--sunken);
+  --rating-star-empty: var(--line-strong);
+  --success: var(--ok);
+  --verified: var(--ok);
+  --focus-ring: 0 0 0 2px var(--accent);
+  --radius-sm: var(--radius);
+  --radius-md: var(--radius-panel);
+  --radius-lg: var(--radius-panel);
+}
+
+.mk-page { padding-block: 24px 40px; }
+.mk-intro { max-width: 760px; margin-bottom: 18px; }
+.mk-intro h1 { margin: 0 0 6px; }
+.mk-intro p { margin: 0; color: var(--muted); }
+.mk-stage { height: min(860px, calc(100vh - 140px)); min-height: 640px; }
+.mk-stage > .ms-mk { height: 100%; border-radius: var(--radius-panel); }
+.mk-note { margin-top: 12px; font-size: 13px; color: var(--muted); }
+.mk-fallback { padding: 24px; border: 1px solid var(--line); border-radius: var(--radius-panel); }
+@media (max-width: 1000px) {
+  /* Below this width the three columns stack: rail, list, detail. */
+  .mk-stage { height: auto; }
+  .mk-stage > .ms-mk { grid-template-columns: 1fr; grid-template-rows: auto auto minmax(420px, auto) auto; height: auto; }
+  .mk-stage .ms-mk__side { border-right: 0; border-bottom: 1px solid var(--line); flex-direction: row; flex-wrap: wrap; }
+  .mk-stage .ms-mk__detail { border-left: 0; border-top: 1px solid var(--line); }
+}
