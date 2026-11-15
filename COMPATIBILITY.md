@@ -4829,3 +4829,21 @@ Strict native Patcher outcomes now include the compiled owner GUID and are recor
 The real three-owner native CLI installation completed and its full game manifest verified, but the workflow rejected the default dependency sort's different order. Full-guide projections and focused proofs now declare an exhaustive `ModSyncSourceOrder` at guide scope. Native loading respects that explicit order only after canonical GUID inventory, dependency/restriction/order-edge and cycle checks. Incompatible Base/Remaining order fails before writes. TOML and opt-in JSON object export preserve the policy; other exports refuse to drop it. Ordinary guides retain their previous ordering and JSON array output. Actual approved models retain all three component identities; missing, duplicate, unknown, reversed-dependency and unsupported-export controls reject. This remains a bounded model proof, not a green hosted workflow.
 
 The GUI process-trust checkbox is shared by the regular and wide validation surfaces and still clears prior validation when changed. Hosted evidence had reached the real GUI but could not find that control; the wide surface previously omitted it. The focused rerun retains bounded encrypted screenshots so any remaining layout/OCR failure can be diagnosed without inferring trust from configuration.
+
+The complete-guide CI adapter requests `convert --compact-instruction-defaults`
+for TOML binding, local generation and independent review. This opt-in writer
+omits only empty `Arguments`, `Dependencies` and `Restrictions` from actual
+instruction records, including real option instructions. It restores each
+complete `Instruction` and requires exact equality before writing; provenance
+snapshots are untouched. Existing logical byte, node and depth limits remain
+in force, and ordinary exports retain their previous representation. Actual
+151-component conversion, compact/reload equality, four native-patcher model
+and approval checks, and adapter preservation checks pass. The real full-guide
+capacity result still requires the hosted run; this is no installation claim.
+
+One unusual documentation member is admitted only for the original Mandalorian
+Worn-Out Armour Reskin owner, exact archive SHA256 and complete member path.
+The original plan copies its three TGA files and the inspected readme directs
+extraction to Override. Actual normal acquisition, binding and independent
+approval pass; an unchanged different guide owner cannot reuse the exception.
+There is no general allowance for arbitrary `Readme First.txt` files.

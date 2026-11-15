@@ -863,7 +863,13 @@ fn bind_loose_method(
             !parent.contains('/'),
             "Method archive contains nested payload or variants"
         );
-        if documentation(basename) {
+        if documentation(basename)
+            || super::reviewed_manual::is_reviewed_documentation(
+                &component.guid,
+                &archive_sha256,
+                &entry.path,
+            )
+        {
             excluded_documentation.push(entry.path.clone());
             continue;
         }

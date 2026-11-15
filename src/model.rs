@@ -6,6 +6,7 @@ mod text;
 pub(crate) mod yaml;
 use anyhow::{Context, Result, bail, ensure};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde_json::Value;
 use std::{
     collections::{BTreeMap, BTreeSet},
     path::Path,
@@ -116,6 +117,54 @@ pub struct Instruction {
     #[serde(default)]
     #[serde(deserialize_with = "strings")]
     pub restrictions: Vec<String>,
+}
+
+fn compact_instruction_defaults(guide: &mut Value) -> Result<()> {
+    fn components(values: &mut [Value], depth: usize) -> Result<()> {
+        ensure!(depth <= 64, "Compact component nesting exceeds 64");
+        for component in values {
+            let object = component
+                .as_object_mut()
+                .context("Invalid compact component")?;
+            if let Some(instructions) = object.get_mut("Instructions").and_then(Value::as_array_mut)
+            {
+                for instruction in instructions {
+                    let original = instruction.clone();
+                    let fields = instruction
+                        .as_object_mut()
+                        .context("Invalid compact instruction")?;
+                    if fields.get("Arguments").and_then(Value::as_str) == Some("") {
+                        fields.remove("Arguments");
+                    }
+                    for key in ["Dependencies", "Restrictions"] {
+                        if fields
+                            .get(key)
+                            .and_then(Value::as_array)
+                            .is_some_and(Vec::is_empty)
+                        {
+                            fields.remove(key);
+                        }
+                    }
+                    let restored: Instruction = serde_json::from_value(instruction.clone())?;
+                    ensure!(
+                        serde_json::to_value(restored)? == original,
+                        "Compact instruction defaults did not restore the complete instruction"
+                    );
+                }
+            }
+            if let Some(options) = object.get_mut("Options").and_then(Value::as_array_mut) {
+                components(options, depth + 1)?;
+            }
+        }
+        Ok(())
+    }
+    components(
+        guide
+            .get_mut("thisMod")
+            .and_then(Value::as_array_mut)
+            .context("Compact guide needs components")?,
+        0,
+    )
 }
 
 impl Guide {
@@ -449,6 +498,21 @@ impl Guide {
     }
 
     pub fn render(&self, format: &str) -> Result<String> {
+        self.render_with_compact_instruction_defaults(format, false)
+    }
+
+    /// Omit only empty instruction fields whose deserialization defaults restore
+    /// the identical instruction. Provenance dictionaries are never traversed.
+    /// The ordinary TOML byte, node and depth limits still apply to the result.
+    pub fn render_with_compact_instruction_defaults(
+        &self,
+        format: &str,
+        compact: bool,
+    ) -> Result<String> {
+        ensure!(
+            !compact || canonical_format(format) == Some("toml"),
+            "Compact instruction defaults require TOML output"
+        );
         let explicit_order = self.source_order()?.is_some();
         ensure!(
             !explicit_order || matches!(canonical_format(format), Some("toml" | "json")),
@@ -492,6 +556,9 @@ impl Guide {
         Ok(match format {
             "toml" => {
                 let mut value = serde_json::to_value(self)?;
+                if compact {
+                    compact_instruction_defaults(&mut value)?;
+                }
                 for key in CONTENT_FIELDS {
                     value.as_object_mut().unwrap().remove(*key);
                 }

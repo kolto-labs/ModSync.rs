@@ -723,6 +723,22 @@ def resolved_archive_bindings(converted, mapping, archives, rules=None, vendor_l
 
 def bound_result(before, after):
     """(components bound by the resolved-filename pass, problem): problem names anything `after` lost from `before`."""
+    def loaded_instructions(value):
+        # The explicit compact TOML writer omits only these empty defaults.
+        # Compare complete loaded records, retaining every supplied field/value.
+        if not isinstance(value, list):
+            return value
+        return [{"Arguments": "", "Dependencies": [], "Restrictions": [], **step}
+                if isinstance(step, dict) else step for step in value]
+
+    def loaded_components(values):
+        return [{**component,
+                 **({"Instructions": loaded_instructions(component["Instructions"])}
+                    if "Instructions" in component else {}),
+                 **({"Options": loaded_components(component["Options"])}
+                    if isinstance(component.get("Options"), list) else {})}
+                if isinstance(component, dict) else component for component in values]
+
     def flatten(components, found):
         for component in components:
             record = component.get("DraftReview") or {}
@@ -772,7 +788,7 @@ def bound_result(before, after):
                 option for option in component.get("Options") or [] if isinstance(option, dict)]))
         return found
 
-    old, new = components_of(before), components_of(after)
+    old, new = loaded_components(components_of(before)), loaded_components(components_of(after))
     if [item.get("Guid") for item in old] != [item.get("Guid") for item in new]:
         return 0, "bound_output_components_changed"
     new_movies = movie_bindings(new)
@@ -887,7 +903,7 @@ def record_bind_diagnostics(private, report, names=None):
 
 
 def bind_archives(command, source, guide, converted, archives, archive_map, private, report, env,
-                  rules=None, vendor_languages=None, reviewed_recipes=None):
+                  rules=None, vendor_languages=None, reviewed_recipes=None, compact_defaults=False):
     """Bind method-only loose-file components to their one mapped archive (convert --resolved-archives).
 
     --resolved-archives only touches components without instructions and conflicts with
@@ -917,13 +933,14 @@ def bind_archives(command, source, guide, converted, archives, archive_map, priv
     plan = private / "resolved-archives.json"
     plan.write_text(json.dumps(bindings), encoding="utf-8")
     bound, staged = private / "converted-bound.toml", private / "converted-bound-pending.toml"
+    compact = ["--compact-instruction-defaults"] if compact_defaults else []
     try:
         run(command + ["convert", str(guide), str(staged), "--format", "toml", "--parse-directions",
-                       "--source-path", str(archives), "--resolved-archives", str(plan)],
+                       "--source-path", str(archives), "--resolved-archives", str(plan)] + compact,
             source, private, BIND_STAGE, report, env)
         run(command + ["convert", str(staged), str(bound), "--format", "toml",
                        "--source-path", str(archives), "--auto-generate-local",
-                       "--archive-map", str(archive_map.resolve(strict=True))],
+                       "--archive-map", str(archive_map.resolve(strict=True))] + compact,
             source, private, BIND_GENERATE_STAGE, report, env)
     except Blocked as failure:
         if str(failure) == INTERRUPTED:
@@ -3543,10 +3560,12 @@ def execute(args, report):
                                      vendor_languages=(vendor_language_selection(game, guide, report)
                                                        if getattr(args, "complete_guide", False) else None),
                                      reviewed_recipes=(load_reviewed_manual_recipes(source, guide.parent.name)
-                                                       if getattr(args, "complete_guide", False) else None))
+                                                       if getattr(args, "complete_guide", False) else None),
+                                     compact_defaults=getattr(args, "complete_guide", False))
         try:
             run(command + ["convert", str(review_input), str(reviewed), "--format", "toml",
-                           "--source-path", str(archives), "--review-verified-drafts"],
+                           "--source-path", str(archives), "--review-verified-drafts"]
+                + (["--compact-instruction-defaults"] if getattr(args, "complete_guide", False) else []),
                 source, private, DRAFT_REVIEW_STAGE, report, env)
         finally:
             record_draft_review(private / (DRAFT_REVIEW_STAGE + ".log"), report)

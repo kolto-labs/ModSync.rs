@@ -257,6 +257,15 @@ pub fn allows_literal_filename(guid: &str, filename: &str) -> Result<bool> {
     Ok(find_recipe(guid)?
         .is_some_and(|(_, recipe)| recipe.archives.iter().any(|pin| pin.filename == filename)))
 }
+/// The observed source-plan step042 installs exactly the three TGA members.
+/// Its actual 909-byte readme (SHA256 fa90aca6fddf221388ce8608a2c639e899da3205677e87a6e4cff0eb365267ca)
+/// only directs extraction to Override. Do not generalize its unusual name to
+/// unreviewed packages, or classify arbitrary TXT files as documentation.
+pub(crate) fn is_reviewed_documentation(guid: &str, archive_sha256: &str, member: &str) -> bool {
+    guid == "7b678426-adfb-8f47-a090-bf8e263dc37f"
+        && archive_sha256 == "8b38c3bb158395af5718db3a02f74f4995f06ebb1e93975f90355b330e0e89f8"
+        && member == "Mandalorian Worn-Out Armour Reskin/Readme First.txt"
+}
 fn literal(value: &str) -> Result<String> {
     ensure!(
         !value.is_empty()

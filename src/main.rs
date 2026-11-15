@@ -352,6 +352,9 @@ enum Action {
         /// Draft instructions from prose; generated steps require review before installation.
         #[arg(long)]
         parse_directions: bool,
+        /// Omit empty instruction defaults from TOML, preserving their complete loaded model.
+        #[arg(long)]
+        compact_instruction_defaults: bool,
         /// Mark a component's displayed drafts reviewed (GUID; repeat for multiple components).
         #[arg(long)]
         review_draft: Vec<String>,
@@ -2488,6 +2491,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             output_path,
             stdin,
             format,
+            compact_instruction_defaults,
             parse_directions,
             review_draft,
             review_verified_drafts,
@@ -2552,7 +2556,8 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             }
             let format = format.as_deref().unwrap_or("toml");
             conversion_cancelled(&cancelled)?;
-            let text = guide.render(format)?;
+            let text = guide
+                .render_with_compact_instruction_defaults(format, compact_instruction_defaults)?;
             conversion_cancelled(&cancelled)?;
             if let Some(path) = output_path.as_ref().or(output.as_ref()) {
                 if processing.download
