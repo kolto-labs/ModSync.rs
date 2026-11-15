@@ -72,7 +72,7 @@ jobs:
           from pathlib import Path
           import pyautogui as ui
           import pytesseract
-          from PIL import ImageGrab
+          from PIL import Image,ImageGrab,ImageOps
           root=Path(os.environ['RUNNER_TEMP'])/'uniws-private'; evidence=root.parent/'uniws-evidence'
           prefix=root/'prefix'; game=root/'disposable-target'; game.mkdir(mode=0o700)
           target=game/'swkotor.exe'; original=(root/'editable-original.bin').read_bytes(); target.write_bytes(original)
@@ -145,7 +145,14 @@ jobs:
                   # Retained vendor OCR sees the initial combo value, but omits its Game caption.
                   click(row(rows,r'Dungeon\s+Lords',zone=(0.0,0.0,1.0,0.2)))
                   ui.press('home'); ui.press('down',presses=8,interval=0.12); ui.press('enter'); time.sleep(2)
-                  rows=capture('02-interface'); assert any('1024x768' in r['text'].replace(' ','').lower() and 'kotor' in r['text'].lower() for r in rows)
+                  rows=capture('02-interface')
+                  # The focused combo uses light text on dark gray; read its retained control crop.
+                  with Image.open(evidence/'02-interface.png') as image:
+                      assert image.size==(captured['width']*2,captured['height']*2)
+                      combo=ImageOps.invert(image.crop((24,0,image.width-75,45)).convert('L'))
+                  combo.save(evidence/'02-interface-combo.png')
+                  report['interface_ocr']=' '.join(pytesseract.image_to_string(combo,config='--psm 7',timeout=20).split())
+                  assert report['interface_ocr']==report['interface'], 'Exact selected vendor interface not observed'
                   report['actions'].append('selected exact KOTOR 1024x768 interface, OCR confirmed'); save()
                   # Vendor-owned Find searches only C: prefix and D: disposable target.
                   click(row(rows,r'F?ind\s+it\s+for\s+me\.*'))
