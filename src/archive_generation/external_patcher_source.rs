@@ -377,7 +377,7 @@ fn parser(path: &Path) -> Result<ConfigParser> {
         bytes.len() <= 2 * 1024 * 1024,
         "Original namespace map exceeds bound"
     );
-    let text = odypatcher::patcher::encoding::decode_bytes_with_fallbacks(&bytes)
+    let text = super::source_plan_namespace::decode_ini_bytes(&bytes)
         .map_err(|e| anyhow::anyhow!("Original namespace decode: {e}"))?;
     ConfigParser::read_string(text.trim_start_matches('\u{feff}'), OptionXform::Identity)
         .map_err(|e| anyhow::anyhow!("Original namespace map: {e}"))
@@ -424,7 +424,9 @@ fn selection(slot: &Slot, executable: &str, namespace: Option<usize>) -> Result<
             .items()
             .nth(index)
             .context("Original namespace index absent")?;
-        let ini = field(&parser, id, "IniName").context("Original namespace INI absent")?;
+        let ini = field(&parser, id, "IniName")
+            .filter(|value| !value.trim().is_empty())
+            .unwrap_or(odypatcher::patcher::namespaces::PatcherNamespace::DEFAULT_INI_FILENAME);
         let data = field(&parser, id, "DataPath")
             .unwrap_or("")
             .replace('\\', "/");
