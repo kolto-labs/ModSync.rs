@@ -433,7 +433,7 @@ def interact(request, game):
         deadline = time.monotonic() + DEADLINE_SECONDS
         namespace_done = data.get('namespaceIndex') is None
         namespace_submitted = False
-        install_clicked = folder_selected = False
+        install_clicked = folder_selected = exit_clicked = False
         frames = 0
         last_snapshot = None
         while time.monotonic() < deadline:
@@ -444,8 +444,22 @@ def interact(request, game):
                 report['engine_status'] = current.get('status')
                 if not install_clicked or not folder_selected:
                     raise ValueError('packaged_ui_engine_finished_before_selection')
+                process = current.get('processReceipt') or {}
+                if (current.get('status') != 'processAndLogVerified'
+                        or type(process.get('exitCode')) is not int or process['exitCode'] != 0
+                        or process.get('cancelled') is not False
+                        or process.get('processGroupQuiescent') is not True
+                        or process.get('noChildStarted') is not False
+                        or process.get('failure') is not None
+                        or current.get('writerQuiescenceVerified') is not True):
+                    raise ValueError('packaged_ui_engine_did_not_verify_installation')
                 report['ok'] = True
                 break
+            if exit_clicked:
+                # ModSync closes the owned display while checking process/log
+                # completion. Await that authenticated outcome without using X.
+                time.sleep(0.1)
+                continue
             snapshot = control('list')
             if snapshot != last_snapshot:
                 if frames >= 40:
@@ -540,6 +554,7 @@ def interact(request, game):
                              and item['text'].replace('&', '').lower() == 'exit' and item['enabled'] == '1']
                     if len(exits) == 1 and not buttons:
                         act('click', exits[0]['handle'])
+                        exit_clicked = True
             time.sleep(0.5)
         else:
             raise ValueError('packaged_ui_interaction_deadline')
@@ -607,13 +622,15 @@ def driver(requestdir, game):
     finally:
         stopped.set()
         thread.join(timeout=3)
-        for process in children.values():
+        for name, process in children.items():
             try:
                 process.wait(timeout=15)
             except subprocess.TimeoutExpired:
                 process.terminate()
                 process.wait(timeout=5)
                 failures.append('interaction_incomplete')
+            if process.returncode != 0 and name not in failures:
+                failures.append(name)
         if failures:
             raise RuntimeError('packaged_patcher_ui_failed ' + ','.join(failures[:8]))
 

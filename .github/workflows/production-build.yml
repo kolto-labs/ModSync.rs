@@ -1,5 +1,11 @@
 name: Exact-head production application builds
 on:
+  workflow_call:
+    inputs:
+      feature_sha: {type: string, required: true}
+      modes: {type: string, default: '["cli","gui"]'}
+    secrets:
+      CACHE_ENCRYPTION_KEY: {required: true}
   workflow_dispatch:
     inputs:
       feature_sha:
@@ -8,15 +14,16 @@ on:
         type: string
 permissions: {contents: read, actions: read}
 concurrency:
-  group: production-build-${{ github.repository }}-${{ github.ref }}
+  group: production-build-${{ github.repository }}-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   production:
     name: production-${{ matrix.mode }}
-    if: github.repository == 'kolto-labs/ModSync.rs' && (github.ref == 'refs/heads/fix/fullrun-ci-credentials' || github.ref == 'refs/heads/feat/ci-fullruns-testing' || github.ref == 'refs/heads/main')
+    if: github.repository == 'kolto-labs/ModSync.rs'
     strategy:
       fail-fast: false
-      matrix: {mode: [cli, gui]}
+      matrix:
+        mode: ${{ fromJSON(inputs.modes || '["cli","gui"]') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 55
     steps:
@@ -26,9 +33,15 @@ jobs:
           DISPATCH_SHA: ${{ inputs.feature_sha }}
         run: |
           [[ "$FEATURE_SHA" =~ ^[0-9a-f]{40}$ ]]
-          test "$FEATURE_SHA" = "$GITHUB_SHA"
-          test "$GITHUB_WORKFLOW_SHA" = "$GITHUB_SHA"
-          if [[ "$GITHUB_EVENT_NAME" == workflow_dispatch ]]; then test "$DISPATCH_SHA" = "$GITHUB_SHA"; fi
+          source_sha="$GITHUB_SHA"
+          if [[ "$GITHUB_EVENT_NAME" == pull_request ]]; then
+            source_sha=$(python -c 'import json,os; p=json.load(open(os.environ["GITHUB_EVENT_PATH"])); assert p["pull_request"]["head"]["repo"]["full_name"]==os.environ["GITHUB_REPOSITORY"]; print(p["pull_request"]["head"]["sha"])')
+          fi
+          test "$FEATURE_SHA" = "$source_sha"
+          if [[ "$GITHUB_WORKFLOW_REF" == */production-build.yml@* ]]; then
+            test "$GITHUB_WORKFLOW_SHA" = "$GITHUB_SHA"
+            test "$DISPATCH_SHA" = "$GITHUB_SHA"
+          fi
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           ref: ${{ inputs.feature_sha || github.sha }}
@@ -52,6 +65,7 @@ jobs:
             GITHUB_RUN_ID="$GITHUB_RUN_ID" GITHUB_RUN_ATTEMPT="$GITHUB_RUN_ATTEMPT" GITHUB_JOB="$GITHUB_JOB" \
             GITHUB_WORKFLOW_REF="$GITHUB_WORKFLOW_REF" GITHUB_WORKFLOW_SHA="$GITHUB_WORKFLOW_SHA" \
             GITHUB_EVENT_NAME="$GITHUB_EVENT_NAME" GITHUB_OUTPUT="$GITHUB_OUTPUT" \
+            GITHUB_EVENT_PATH="$GITHUB_EVENT_PATH" \
             python tools/modsync-ci/production_build.py produce --mode "$MODE" --output "$RUNNER_TEMP/production-publish"
       - name: Seal only application binary and provenance after credential-free build
         env:

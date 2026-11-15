@@ -25,20 +25,20 @@ All counterpart revisions must be 40 lowercase hexadecimal characters. Update th
 
 Defaults live in `FULLRUN_DEFAULTS` in `.github/workflows/fullrun.yml`, without required policy variables. Ordinary trusted PRs use **Full** with **cache-first**. A PR targeting `main` or `master`, whose head starts with `release/` or `release-please--`, or carrying `release` or `release-candidate` is a release candidate: it requires **Exhaustive** with **refresh**, including downloader-attempt evidence. Those release requirements cannot be downgraded by dispatch inputs. This is a PR gate, not a release-publication trigger.
 
-Manual dispatch defaults to operation `full`, profile **Minimal**, download mode **cache-first**, both games and both CLI/GUI routes. Profile and operation are separate: operation `full` composes the pipeline; profile **Full** defines its selected mods. Manual production builds remain separate. Dispatch can select:
+Manual dispatch defaults to operation `full`, profile **Minimal**, download mode **cache-first**, both games and both CLI/GUI routes. Profile and operation are separate: operation `full` composes the pipeline; profile **Full** defines its selected mods. Full/install scopes build each requested application mode once inside the same workflow run, then verify and reuse those exact binaries across patcher backends. Quick checks do not compile the application. Standalone manual production builds remain optional. Dispatch can select:
 
 | operation | Required stages | Side effects |
 | --- | --- | --- |
 | check | Plan + tooling | Public contract-only plan/verdict |
-| full | Plan + tooling + games + archives + install matrix + P2P device proof | Explicitly admitted acquisition/install; optional producer cache writes |
+| full | Plan + tooling + application builds + games + archives + install matrix + six-way comparisons + P2P device proof | Explicitly admitted acquisition/install; optional producer cache writes |
 | games | Plan + tooling + baseline preparation/verification | Optional verified sealed-cache and encrypted-backup publication |
 | archives | Plan + tooling + archive preparation | Optional bounded public-mod cache save |
-| install | Plan + tooling + requested install lanes | Consume existing verified inputs; producers intentionally skipped |
+| install | Plan + tooling + application builds + requested install lanes and comparisons | Consume existing verified game/archive inputs; game/archive producers skipped |
 | seed | Plan + tooling + reviewed staged import | Dry-run by default; explicit import uses the seed environment |
 | retain-inputs | Plan + tooling + verified K1 auxiliary retention | Explicit ciphertext publication and independent restore verification; no game installation |
 | p2p | Plan + tooling + production two-device seeding | Isolated device-to-device transfer, wrong-hash rejection and reverse seeding through ModSync |
 
-Select K1/TSL/both and CLI/GUI/both. Install matrices use `fail-fast: false`; valid lanes still attempt recovery when another producer/lane fails. The final collector requires every job in the requested scope to succeed and preserves a failed verdict. Skipped, cancelled, absent and incomplete required work fails that scope. Nonproducer operations ignore the shared producer-write checkbox.
+Select K1/TSL/both and CLI/GUI/both. Install matrices use `fail-fast: false`; valid lanes still attempt recovery when another producer/lane fails. Each selected game has independent six-way comparison reporting, so a failure in the other game cannot suppress its evidence. The final collector requires every job in the requested scope to succeed and preserves a failed verdict. Skipped, cancelled, absent and incomplete required work fails that scope. Nonproducer operations ignore the shared producer-write checkbox.
 
 Cancellation has separate `quick`, `installation` and explicit `retention` scopes per branch. A quick push cannot cancel the same commit's required PR installation; newer runs still cancel older runs within their own scope (`cancel-in-progress: true`).
 

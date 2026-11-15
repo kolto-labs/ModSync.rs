@@ -224,7 +224,7 @@ def require_complete(report, mode, expected_guide_sha256=None, install_profile=N
             "cross_lane_parity": "unverified"}
 
 
-def aggregate(operation, results, require_downloader=False, require_comparison=False):
+def aggregate(operation, results, require_downloader=False, require_comparison=False, require_production=False):
     required = {"check": ("plan", "toolkit"), "full": ("plan", "toolkit", "games", "archives", "install", "p2p"),
                 "games": ("plan", "toolkit", "games"), "archives": ("plan", "toolkit", "archives"),
                 "install": ("plan", "toolkit", "install"), "seed": ("plan", "toolkit", "seed"),
@@ -234,6 +234,10 @@ def aggregate(operation, results, require_downloader=False, require_comparison=F
         raise ValueError("unknown requested coverage")
     if require_comparison:
         required[operation] += ("comparison",)
+    if require_production:
+        if operation not in ("full", "install"):
+            raise ValueError("production builds require an installation operation")
+        required[operation] += ("production",)
     missing = [name for name in required[operation]
                if not isinstance(results.get(name), dict) or results[name].get("result") != "success"]
     if missing:
@@ -347,7 +351,8 @@ def main(argv=None):
         else:
             value = aggregate(args.operation, json.loads(os.environ.get("NEEDS_JSON", "{}")),
                               require_downloader=os.environ.get("REQUIRE_DOWNLOADER", "false") == "true",
-                              require_comparison=os.environ.get("REQUIRE_COMPARISON", "false") == "true")
+                              require_comparison=os.environ.get("REQUIRE_COMPARISON", "false") == "true",
+                              require_production=os.environ.get("REQUIRE_PRODUCTION", "false") == "true")
         if args.command != "check-credentials":
             write_json(args.output, value)
         print(json.dumps(value, sort_keys=True))

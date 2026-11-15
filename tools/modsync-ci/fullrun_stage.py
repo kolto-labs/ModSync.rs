@@ -56,9 +56,12 @@ def production_build_capability(engine, mode, output):
         return None
     import production_build
     # Actions executes PRs at a merge ref, while the owned producer builds the
-    # authenticated same-repository head. Keep its existing branch allowlist.
+    # authenticated same-repository head. Reusable full runs admit valid owned
+    # source branches; separate manual producers retain their legacy allowlist.
     source_identity = evidence_receipt.source_identity(os.environ)
-    if source_identity["source_ref"] not in production_build.REFS:
+    if not production_build.source_admitted({"repository": source_identity["source_repository"],
+                                            "ref": source_identity["source_ref"],
+                                            "head_sha": source_identity["source_sha"]}):
         return None
     engine = Path(engine).resolve(strict=True)
     if not (engine / ".git").exists():
