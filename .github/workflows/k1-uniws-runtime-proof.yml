@@ -5,6 +5,9 @@ on:
     paths: [.github/workflows/k1-uniws-runtime-proof.yml]
   workflow_dispatch:
 permissions: {contents: read}
+concurrency:
+  group: k1-uniws-runtime-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   vendor:
     if: github.repository == 'kolto-labs/ModSync.rs' && github.ref == 'refs/heads/fix/fullrun-ci-credentials'

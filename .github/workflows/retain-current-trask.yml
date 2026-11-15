@@ -5,11 +5,14 @@ on:
     branches: [fix/fullrun-ci-credentials]
     paths: [.github/workflows/retain-current-trask.yml]
 permissions: {contents: read, actions: read}
-concurrency: {group: fullrun-mod-cache-writer, cancel-in-progress: false}
+concurrency:
+  group: retain-current-trask-${{ github.ref }}
+  cancel-in-progress: true
 env:
   TRASK_SHA: 39d1da3da9476dafaa86e2568adae522ee95686b9adb51bff5e5d98c9c9e83ee
 jobs:
   publish:
+    concurrency: {group: fullrun-mod-cache-writer, cancel-in-progress: false}
     if: ${{ github.repository == 'kolto-labs/ModSync.rs' && github.ref == 'refs/heads/fix/fullrun-ci-credentials' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 35

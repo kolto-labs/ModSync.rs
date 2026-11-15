@@ -12,8 +12,8 @@ on:
         default: ''
 permissions: {contents: read, actions: read}
 concurrency:
-  group: bootstrap-legacy-artifacts
-  cancel-in-progress: false
+  group: bootstrap-legacy-artifacts-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   plan:
     if: github.repository == 'kolto-labs/ModSync.rs'
@@ -271,6 +271,8 @@ jobs:
           retention-days: 90
           if-no-files-found: error
   publish-index:
+    # Merge the latest cumulative index under the same lock as other writers.
+    concurrency: {group: fullrun-mod-cache-writer, cancel-in-progress: false}
     needs: [plan, transfer]
     runs-on: ubuntu-24.04
     timeout-minutes: 10

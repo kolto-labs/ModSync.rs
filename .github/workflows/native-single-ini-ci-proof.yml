@@ -10,6 +10,9 @@ on:
         required: true
         type: string
 permissions: {contents: read, actions: read}
+concurrency:
+  group: native-single-ini-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   component:
     if: github.repository == 'kolto-labs/ModSync.rs' && github.ref == 'refs/heads/fix/fullrun-ci-credentials'
