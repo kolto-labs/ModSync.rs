@@ -4859,3 +4859,16 @@ and output policies are recorded in the authenticated projection receipt.
 Actual original-source conversion matches all 127 compiled component contexts;
 the K1 partition reloads with identical retained models and four invalid-policy
 controls reject. Hosted complete-guide installation remains unproven.
+
+
+Bao-Dur Can Wear Heavy Armor has a separate one-recipe compiled native book,
+leaving the original four native recipes and all123 file-effect pins unchanged.
+Its exact archive contains one installer inside a wrapper directory and one
+canonical adjacent INI. Binding checks the original installer cwd; staging
+strips only that validated installer parent from both pinned member paths.
+Sole-INI, absent-namespace, raw byte pins and strict native outcomes remain
+mandatory. Real archive binding and dedicated replay clear the draft without
+changing the151-component source order; destination and archive-byte mutation
+controls retain the review requirement. Formatting, lib/bin builds and strict
+Clippy pass with and without default features. Actual CLI/GUI installation
+remains pending the eight-owner hosted proof and full-guide coverage.

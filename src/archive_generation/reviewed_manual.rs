@@ -25,7 +25,7 @@ struct BookSpec {
     kind: &'static str,
     generator: &'static str,
 }
-const BOOKS: [BookSpec; 3] = [
+const BOOKS: [BookSpec; 4] = [
     BookSpec {
         filename: "reviewed_manual_k2.json",
         content: include_str!("reviewed_manual_k2.json"),
@@ -53,6 +53,16 @@ const BOOKS: [BookSpec; 3] = [
         guide_sha256: "f442bdf574031623ed577609730d887069b9bc8e38e8e2f38ecc43a7e7487d5f",
         plan_sha256: "0add8c1aeb7cdfad3df4b21761e135c150aa7832cf3fc0edabe01a91245a9258",
         count: 4,
+        kind: "ReviewedManualK2NativePatcher",
+        generator: PATCHER_GENERATOR,
+    },
+    BookSpec {
+        filename: "reviewed_manual_baodur_k2.json",
+        content: include_str!("reviewed_manual_baodur_k2.json"),
+        sha256: "f71e9fbf5c3e0bcf300d604c453b44fcdb9f98c8ff82c6f5f568a06a07fad577",
+        guide_sha256: "f442bdf574031623ed577609730d887069b9bc8e38e8e2f38ecc43a7e7487d5f",
+        plan_sha256: "0add8c1aeb7cdfad3df4b21761e135c150aa7832cf3fc0edabe01a91245a9258",
+        count: 1,
         kind: "ReviewedManualK2NativePatcher",
         generator: PATCHER_GENERATOR,
     },
@@ -101,6 +111,21 @@ struct NativeTranslation {
     destination: String,
     success_contract: String,
 }
+impl NativeTranslation {
+    /// Archive-relative pins remain exact even when the installer has a wrapper
+    /// directory. The engine stages that directory, not the extraction root.
+    fn installer_parent(&self) -> Result<std::path::PathBuf> {
+        let installer = literal(&self.installer.path)?;
+        let parent = Path::new(&installer)
+            .parent()
+            .context("Native installer parent absent")?;
+        ensure!(
+            Path::new(&literal(&self.changes_ini.path)?) == parent.join("tslpatchdata/changes.ini"),
+            "Native translation requires the installer's canonical sole INI"
+        );
+        Ok(parent.to_path_buf())
+    }
+}
 /// Cannot be constructed from authored JSON. Issued only for a known, cleared
 /// compiled recipe and its exact native instruction.
 pub(crate) struct NativePatcherContract {
@@ -112,14 +137,17 @@ impl NativePatcherContract {
         &self.component_guid
     }
     pub(crate) fn verify_staged(&self, base: &Path, cancelled: &AtomicBool) -> Result<()> {
+        let parent = self.translation.installer_parent()?;
         ensure!(
             !base.join("tslpatchdata/namespaces.ini").exists(),
             "Reviewed Patcher forbids namespaces"
         );
         for member in [&self.translation.installer, &self.translation.changes_ini] {
             ensure!(
-                hash(&base.join(literal(&member.path)?), cancelled)?
-                    == (member.sha256.clone(), member.bytes),
+                hash(
+                    &base.join(Path::new(&literal(&member.path)?).strip_prefix(&parent)?),
+                    cancelled,
+                )? == (member.sha256.clone(), member.bytes),
                 "Reviewed Patcher staged bytes differ"
             );
         }
@@ -523,9 +551,10 @@ fn verify_native_members(
         .as_ref()
         .context("Missing native translation")?;
     ensure!(
-        recipe.archives.len() == 1 && translation.changes_ini.path == "tslpatchdata/changes.ini",
+        recipe.archives.len() == 1,
         "Native translation requires one archive and canonical sole INI"
     );
+    translation.installer_parent()?;
     let pin = &recipe.archives[0];
     let mut bounded = options.clone();
     bounded.max_expanded_bytes = Some(
@@ -756,13 +785,12 @@ pub(crate) fn bind(
                     "Unsupported native Patcher translation"
                 );
                 let (slot, member) = extraction_source(patcher, &slots)?;
+                let original_patcher = token(patcher, "extract")?;
+                let original_cwd = token(cwd, "extract")?;
                 ensure!(
                     member == translation.installer.path
                         && sha256 == &translation.installer.sha256
-                        && token(cwd, "extract")?
-                            == token(patcher, "extract")?
-                                .strip_suffix(&format!("/{member}"))
-                                .context("Installer parent absent")?
+                        && Path::new(&original_patcher).parent() == Some(Path::new(&original_cwd))
                         && slot.files.contains(&member),
                     "Native Patcher source differs from original recipe"
                 );

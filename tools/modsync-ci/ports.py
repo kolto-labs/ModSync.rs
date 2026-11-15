@@ -542,7 +542,8 @@ MANUAL_BOOK_SHA256 = "f85240122267d088f7b52c1746c2edb2fdb8795846889f4158dcf59b4f
 MANUAL_BOOKS = {
     "k1": [("reviewed_manual_k1.json", "b04b7331b5001f81698feb5571460ea9e2e486d032956abb22967d704254c338", 66)],
     "k2": [("reviewed_manual_k2.json", MANUAL_BOOK_SHA256, 57),
-           ("reviewed_manual_single_ini_k2.json", "2eee9ca0321722919306743903b18a872c1be1954c547963b3a737a270679fbe", 4)],
+           ("reviewed_manual_single_ini_k2.json", "2eee9ca0321722919306743903b18a872c1be1954c547963b3a737a270679fbe", 4),
+           ("reviewed_manual_baodur_k2.json", "f71e9fbf5c3e0bcf300d604c453b44fcdb9f98c8ff82c6f5f568a06a07fad577", 1)],
 }
 BIND_SUFFIXES = (".zip", ".7z", ".rar")
 BIND_UNSAFE_NAME = re.compile(r"[/\\*?\[\]\x00-\x1f\x7f]")

@@ -1,4 +1,4 @@
-name: Prove four native single-INI K2 recipes
+name: Prove five native single-INI K2 recipes
 on:
   push:
     branches: [fix/fullrun-ci-credentials]
@@ -62,7 +62,7 @@ jobs:
             CARGO_PROFILE_RELEASE_OVERFLOW_CHECKS=true CARGO_PROFILE_RELEASE_DEBUG_ASSERTIONS=true \
             cargo build --locked --release --lib --bin modsync -j2 "${flags[@]}" \
             >"$RUNNER_TEMP/single-ini-evidence/build.log" 2>&1
-      - name: Recover verified own-repository baseline and seven exact reviewed inputs
+      - name: Recover verified own-repository baseline and eight exact reviewed inputs
         timeout-minutes: 35
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -95,15 +95,18 @@ jobs:
               {'component_guid':'9c5bbc49-daa8-89be-8f27-8428d8fa24b8','filename':'Silent Sion Restoration.zip','sha256':'b3e5c90f8001a299fdc3464ff74edc98c9e19a11e7759a8095a0cef508782789','size':12852},
               {'component_guid':'e8501df3-9a84-8f60-988c-15f30ca01af7','filename':'KOTOR2-Citadel-Station-Backdrop_v2.0.0_4k.zip','sha256':'ddaae12569dd7cf29d9097f7ff15a773b55cb2b80237b01310b27bc49c4dccbd','size':2887658},
           ]
-          book_path=Path('src/archive_generation/reviewed_manual_single_ini_k2.json')
-          assert digest(book_path)=='2eee9ca0321722919306743903b18a872c1be1954c547963b3a737a270679fbe'
-          book=json.loads(book_path.read_text()); assert len(book['recipes'])==4
-          for recipe in book['recipes']:
-              assert len(recipe['archives'])==1
-              pin=recipe['archives'][0]; record=index['blobs'][pin['sha256']]
-              assert 0<record['size']<=50*1024*1024
-              selected.append({'component_guid':recipe['component_guid'],'filename':pin['filename'],
-                               'sha256':pin['sha256'],'size':record['size']})
+          books=[('reviewed_manual_single_ini_k2.json','2eee9ca0321722919306743903b18a872c1be1954c547963b3a737a270679fbe',4),
+                 ('reviewed_manual_baodur_k2.json','f71e9fbf5c3e0bcf300d604c453b44fcdb9f98c8ff82c6f5f568a06a07fad577',1)]
+          for filename,sha,count in books:
+              book_path=Path('src/archive_generation')/filename
+              assert digest(book_path)==sha
+              book=json.loads(book_path.read_text()); assert len(book['recipes'])==count
+              for recipe in book['recipes']:
+                  assert len(recipe['archives'])==1
+                  pin=recipe['archives'][0]; record=index['blobs'][pin['sha256']]
+                  assert 0<record['size']<=50*1024*1024
+                  selected.append({'component_guid':recipe['component_guid'],'filename':pin['filename'],
+                                   'sha256':pin['sha256'],'size':record['size']})
           archives=root/'archives'; archives.mkdir(mode=0o700)
           material=[]; packs={}
           for item in selected:
@@ -117,7 +120,7 @@ jobs:
           result.update(installer=material[0]['blob'],component_materials=material,packs=packs)
           (evidence/'material-provenance.json').write_text(json.dumps(result,indent=2))
           PY
-      - name: Run actual seven-component binding, independent replay and native installation
+      - name: Run actual eight-component binding, independent replay and native installation
         timeout-minutes: 30
         run: |
           env -i PATH="$PATH" HOME="$HOME" RUNNER_TEMP="$RUNNER_TEMP" MODE="$MODE" FEATURE_SHA="$FEATURE_SHA" \
@@ -130,7 +133,7 @@ jobs:
           binary=Path('target/release/modsync').resolve(); game=root/'game'; archives=root/'archives'
           guids=['bee5a72b-d748-8f83-8261-81758a9bfc56','9c5bbc49-daa8-89be-8f27-8428d8fa24b8','e8501df3-9a84-8f60-988c-15f30ca01af7']; guide=Path('guide-input/content/k2/full.md')
           native_guids=['f88f9af8-050f-811c-814b-706cb9466483','b83b224a-3c42-83d5-85f4-c89df4a263ae',
-                        'f27d4b13-b349-8c56-b9b7-620cdc133579','ee2b251b-720d-8f69-9d38-5a56310f0bb4']
+                        'f27d4b13-b349-8c56-b9b7-620cdc133579','ee2b251b-720d-8f69-9d38-5a56310f0bb4','1a7ac764-f51b-882e-ab19-8c1a13bbbcaa']
           guids += native_guids
 
           def digest(path):
@@ -138,7 +141,7 @@ jobs:
               with path.open('rb') as f:
                   for data in iter(lambda:f.read(4*1024*1024),b''): h.update(data)
               return h.hexdigest()
-          report={'scope':'four single-INI native translations plus TSLRCM and two file-effect predecessors, in original guide order; not a full-guide or merge proof','mode':os.environ['MODE'],
+          report={'scope':'five single-INI native translations plus TSLRCM and two file-effect predecessors, in original guide order; not a full-guide or merge proof','mode':os.environ['MODE'],
                   'engine_sha':os.environ['FEATURE_SHA'],'binary_sha256':digest(binary),'stages':[],'status':'running'}
           def save(): (evidence/'native-proof.json').write_text(json.dumps(report,indent=2))
           def run(label,command,timeout=1200):
@@ -152,7 +155,7 @@ jobs:
               if isinstance(values,dict):
                   assert values['ModSyncSourceOrder']==guids
                   values=values['thisMod']
-              assert isinstance(values,list) and len(values)==7
+              assert isinstance(values,list) and len(values)==8
               assert [component['Guid'] for component in values]==guids
               return values
           try:
@@ -165,7 +168,7 @@ jobs:
               whole=evidence/'whole.json'; projected=evidence/'component.json'; bound=evidence/'bound.json'; reviewed=evidence/'reviewed.json'; model=evidence/'reviewed.toml'
               run('whole-convert',[binary,'convert',guide,whole,'--format','json','--parse-directions'])
               components=json.loads(whole.read_text()); matches=[(i,c) for i,c in enumerate(components) if c['Guid'] in guids]
-              assert len(components)==151 and len(matches)==7 and {c['Guid'] for i,c in matches}==set(guids)
+              assert len(components)==151 and len(matches)==8 and {c['Guid'] for i,c in matches}==set(guids)
               guids=[c['Guid'] for i,c in matches]
               assert guids[0]=='bee5a72b-d748-8f83-8261-81758a9bfc56'
               selected=[copy.deepcopy(c) for i,c in matches]
@@ -179,7 +182,8 @@ jobs:
               assert selected[0]==vendor_raw
               assert {k:v for k,v in admitted[0].items() if k!='Language'}=={k:v for k,v in selected[0].items() if k!='Language'}
               specs=[('reviewed_manual_k2.json','f85240122267d088f7b52c1746c2edb2fdb8795846889f4158dcf59b4fd91d60'),
-                     ('reviewed_manual_single_ini_k2.json','2eee9ca0321722919306743903b18a872c1be1954c547963b3a737a270679fbe')]
+                     ('reviewed_manual_single_ini_k2.json','2eee9ca0321722919306743903b18a872c1be1954c547963b3a737a270679fbe'),
+                     ('reviewed_manual_baodur_k2.json','f71e9fbf5c3e0bcf300d604c453b44fcdb9f98c8ff82c6f5f568a06a07fad577')]
               recipes={}; book_identities={}
               for filename,sha in specs:
                   book_path=Path('src/archive_generation')/filename
@@ -286,7 +290,7 @@ jobs:
                               assert receipt_bytes[guid]==raw, 'conflicting duplicate native outcome'
                               continue
                           receipt_bytes[guid]=raw; outcomes.append(receipt)
-              assert len(outcomes)==4
+              assert len(outcomes)==5
               assert [outcome['ComponentGuid'] for outcome in outcomes]==[guid for guid in guids if guid in native_guids]
               for outcome in outcomes:
                   assert outcome['Contract']=='native-zero-warnings-changed-game-v1'
