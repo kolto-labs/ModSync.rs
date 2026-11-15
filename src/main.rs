@@ -1489,7 +1489,12 @@ fn load_resolved_archives(
             ensure!(
                 !filename.is_empty()
                     && filename.len() <= 255
-                    && !filename.contains(['/', '\\', '*', '?', '[', ']'])
+                    && !filename.contains(['/', '\\', '*', '?'])
+                    && (!filename.contains(['[', ']'])
+                        || modsync::archive_generation::reviewed_manual::allows_literal_filename(
+                            &binding.component_guid,
+                            filename,
+                        )?)
                     && !filename.chars().any(char::is_control)
                     && modsync::paths::relative(filename, false)?
                         .components()

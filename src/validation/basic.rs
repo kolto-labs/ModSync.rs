@@ -349,6 +349,15 @@ impl ContextState<'_> {
             is_valid: true,
             ..Default::default()
         };
+        if instructions(component)
+            .any(|instruction| matches!(instruction.action.as_str(), "ExtractTo" | "CopyFile"))
+        {
+            outcome.is_valid = false;
+            outcome.errors.push(
+                "ExtractTo and CopyFile require root-aware engine validation; basic validation has no install roots or future filesystem".into(),
+            );
+            return Ok(outcome);
+        }
         let mut archives = Vec::new();
         for instruction in instructions(component) {
             check_cancelled(self.cancelled)?;

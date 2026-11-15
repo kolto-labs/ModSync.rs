@@ -27,6 +27,14 @@ pub struct Resolution {
 /// only when one exists, so receipts without it keep their earlier identity
 /// while any edit to a verification record re-fences its component.
 pub fn identity(component: &Component) -> Result<String> {
+    let modern = component
+        .metadata
+        .get("DraftReview")
+        .and_then(|review| review.get("Verification"))
+        .filter(|verification| verification.get("IdentityVersion").is_some())
+        .map(parse_verification)
+        .transpose()?
+        .is_some_and(|(_, version)| version == Some(2));
     fn strip_receipts(value: &mut Value, depth: usize, folds: &mut Vec<Vec<u8>>) -> Result<()> {
         ensure!(depth <= 64, "Draft option nesting exceeds 64 levels");
         let object = value
@@ -36,7 +44,7 @@ pub fn identity(component: &Component) -> Result<String> {
             .get("DraftReview")
             .and_then(|review| review.get("Verification"))
         {
-            folds.push(verification_digest(verification));
+            folds.push(verification_digest(verification)?);
         }
         object.remove("DraftReview");
         if let Some(options) = object.get_mut("Options").and_then(Value::as_array_mut) {
@@ -57,6 +65,9 @@ pub fn identity(component: &Component) -> Result<String> {
         .as_object_mut()
         .context("Component must be an object")?
         .remove("IsSelected");
+    if modern {
+        canonical_keys(&mut value);
+    }
     let mut digest = Sha256::new();
     digest.update(serde_json::to_vec(&value)?);
     for fold in folds {
@@ -65,11 +76,64 @@ pub fn identity(component: &Component) -> Result<String> {
     Ok(format!("{:x}", digest.finalize()))
 }
 
-fn verification_digest(value: &Value) -> Vec<u8> {
-    match serde_json::from_value::<Verification>(value.clone()) {
-        Ok(record) => Sha256::digest(serde_json::to_vec(&record).unwrap_or_default()).to_vec(),
-        Err(_) => Sha256::digest(b"invalid-verification").to_vec(),
+fn verification_digest(value: &Value) -> Result<Vec<u8>> {
+    if value.get("IdentityVersion").is_some() {
+        let (record, version) = parse_verification(value)?;
+        ensure!(version == Some(2), "Unknown review identity version");
+        return Ok(Sha256::digest(serde_json::to_vec(&versioned_verification(&record)?)?).to_vec());
     }
+    // Preserve the original unversioned verification digest bit for bit.
+    Ok(
+        match serde_json::from_value::<Verification>(value.clone()) {
+            Ok(record) => Sha256::digest(serde_json::to_vec(&record).unwrap_or_default()).to_vec(),
+            Err(_) => Sha256::digest(b"invalid-verification").to_vec(),
+        },
+    )
+}
+
+fn canonical_keys(value: &mut Value) {
+    match value {
+        Value::Object(object) => {
+            let mut entries: Vec<_> = std::mem::take(object).into_iter().collect();
+            entries.sort_by(|a, b| a.0.cmp(&b.0));
+            for (key, mut child) in entries {
+                canonical_keys(&mut child);
+                object.insert(key, child);
+            }
+        }
+        Value::Array(items) => items.iter_mut().for_each(canonical_keys),
+        _ => {}
+    }
+}
+
+/// The public six-field Verification API and unversioned receipt bytes remain
+/// unchanged. Only new verified receipts select the canonical object-key hash.
+fn versioned_verification(record: &Verification) -> Result<Value> {
+    let mut value = serde_json::to_value(record)?;
+    value["IdentityVersion"] = 2.into();
+    Ok(value)
+}
+
+fn parse_verification(value: &Value) -> Result<(Verification, Option<u64>)> {
+    let mut value = value.clone();
+    let object = value
+        .as_object_mut()
+        .context("Invalid verification object")?;
+    let version = object.remove("IdentityVersion");
+    let version = version
+        .map(|value| -> Result<u64> {
+            ensure!(value.as_u64() == Some(2), "Unknown review identity version");
+            Ok(2)
+        })
+        .transpose()?;
+    let record: Verification = serde_json::from_value(value)?;
+    if version == Some(2) {
+        ensure!(
+            record.reviewer == VERIFIER_NAME && record.kind == VERIFICATION_KIND,
+            "Versioned identity requires an owned verified replay receipt"
+        );
+    }
+    Ok((record, version))
 }
 
 pub fn original_diagnostics(component: &Component) -> Result<DraftResult> {
@@ -174,8 +238,8 @@ pub(super) fn receipt_matches(component: &Component, review: &Value) -> bool {
                 return false;
             }
             if let Some(verification) = review.get("Verification")
-                && !serde_json::from_value::<Verification>(verification.clone())
-                    .is_ok_and(|record| record.kind == VERIFICATION_KIND)
+                && !parse_verification(verification)
+                    .is_ok_and(|(record, _)| record.kind == VERIFICATION_KIND)
             {
                 return false;
             }
@@ -383,6 +447,11 @@ pub fn verify_archive_derived(
         record.get("RequiresReview").and_then(Value::as_bool) == Some(true),
         "Draft is not awaiting review"
     );
+    if record.get("Generator").and_then(Value::as_str)
+        == Some(crate::archive_generation::reviewed_manual::GENERATOR)
+    {
+        return verify_reviewed_manual(component, root, options, cancelled);
+    }
     if record.get("Generator").and_then(Value::as_str) == Some(crate::vendor_installer::GENERATOR) {
         return verify_vendor_derived(component, root, cancelled);
     }
@@ -507,7 +576,44 @@ pub fn verify_archive_derived(
         replay_digest: format!("{:x}", Sha256::digest(serde_json::to_vec(&expected)?)),
     };
     let mut cleared = component.clone();
-    clear_subtree(&mut cleared, &serde_json::to_value(verification)?, 0)?;
+    clear_subtree(&mut cleared, &versioned_verification(&verification)?, 0)?;
+    *component = cleared;
+    Ok(())
+}
+
+fn verify_reviewed_manual(
+    component: &mut Component,
+    root: &Path,
+    options: &archive::Options,
+    cancelled: &AtomicBool,
+) -> Result<()> {
+    let record = component
+        .metadata
+        .get("DraftReview")
+        .context("Missing reviewed manual draft")?;
+    const KEYS: [&str; 4] = ["RequiresReview", "Result", "Generator", "Derivations"];
+    ensure!(
+        record
+            .as_object()
+            .is_some_and(|object| object.keys().all(|key| KEYS.contains(&key.as_str()))),
+        "Reviewed manual draft carries unsupported resolution history"
+    );
+    ensure!(
+        !pending_masters(component, 0),
+        "Reviewed manual component has unresolved Markdown masters"
+    );
+    let replayed =
+        crate::archive_generation::reviewed_manual::replay(component, root, options, cancelled)?;
+    let verification = Verification {
+        reviewer: VERIFIER_NAME.into(),
+        kind: VERIFICATION_KIND.into(),
+        tool_version: concat!("ModSync.rs/", env!("CARGO_PKG_VERSION")).into(),
+        archive_sha256: crate::archive_generation::reviewed_manual::databook_digest(),
+        archive_filename: "reviewed_manual_k2.json".into(),
+        replay_digest: crate::archive_generation::reviewed_manual::replay_digest(&replayed)?,
+    };
+    let mut cleared = component.clone();
+    clear_subtree(&mut cleared, &versioned_verification(&verification)?, 0)?;
     *component = cleared;
     Ok(())
 }
@@ -542,7 +648,7 @@ fn verify_vendor_derived(
         replay_digest: crate::vendor_installer::replay_digest(&replayed)?,
     };
     let mut cleared = component.clone();
-    clear_subtree(&mut cleared, &serde_json::to_value(verification)?, 0)?;
+    clear_subtree(&mut cleared, &versioned_verification(&verification)?, 0)?;
     *component = cleared;
     Ok(())
 }
@@ -618,7 +724,7 @@ fn verify_movie_archive_derived(
         ),
     };
     let mut cleared = component.clone();
-    clear_subtree(&mut cleared, &serde_json::to_value(verification)?, 0)?;
+    clear_subtree(&mut cleared, &versioned_verification(&verification)?, 0)?;
     *component = cleared;
     Ok(())
 }

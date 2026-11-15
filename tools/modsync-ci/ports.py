@@ -536,6 +536,8 @@ BIND_GENERATE_STAGE = "bind_generate_local"
 BIND_GENERATOR = "resolved-filenames"
 MOVIE_BIND_GENERATOR = "resolved-movie-archives"
 VENDOR_BIND_GENERATOR = "resolved-vendor-installer"
+MANUAL_BIND_GENERATOR = "reviewed-manual-file-effects"
+MANUAL_BOOK_SHA256 = "f85240122267d088f7b52c1746c2edb2fdb8795846889f4158dcf59b4fd91d60"
 BIND_SUFFIXES = (".zip", ".7z", ".rar")
 BIND_UNSAFE_NAME = re.compile(r"[/\\*?\[\]\x00-\x1f\x7f]")
 INTERRUPTED = "command_interrupted_or_timed_out"
@@ -619,7 +621,34 @@ def declared_archive(component, counts, rules, archives):
     return rule["files"][0]
 
 
-def resolved_archive_bindings(converted, mapping, archives, rules=None, vendor_languages=None):
+def load_reviewed_manual_recipes(source):
+    path = source / "src/archive_generation/reviewed_manual_k2.json"
+    if path.is_symlink() or not path.is_file() or path.stat().st_size > 16 * 1024 * 1024:
+        raise Blocked("reviewed_manual_databook_missing_or_unsafe")
+    if digest(path) != MANUAL_BOOK_SHA256:
+        raise Blocked("reviewed_manual_databook_identity_changed")
+    book = json.loads(path.read_text(encoding="utf-8"))
+    if book.get("schema") != 1 or len(book.get("recipes", [])) != 57:
+        raise Blocked("reviewed_manual_databook_scope_changed")
+    recipes = {recipe["component_guid"]: recipe for recipe in book["recipes"]}
+    if len(recipes) != 57:
+        raise Blocked("reviewed_manual_databook_duplicate_component")
+    return recipes
+
+
+def mapped_archive_groups(path):
+    groups = {}
+    for link, value in json.loads(path.read_text(encoding="utf-8")).items():
+        names = [value] if isinstance(value, str) else value
+        names = tuple(names) if isinstance(names, list) and all(
+            isinstance(name, str) and name for name in names) else ()
+        key = canonical_link(link)
+        groups[key] = names if groups.get(key, names) == names else ()
+    return groups
+
+
+def resolved_archive_bindings(converted, mapping, archives, rules=None, vendor_languages=None,
+                              reviewed_recipes=None, archive_groups=None):
     """--resolved-archives entries for components whose links map to exactly one archive present in `archives`.
 
     A component the map cannot resolve falls back to its reviewed `archive_aliases` rule
@@ -637,6 +666,31 @@ def resolved_archive_bindings(converted, mapping, archives, rules=None, vendor_l
     bindings = []
     for component in components:
         guid, name = component.get("Guid"), component_archive(component, mapping)
+        recipe = (reviewed_recipes or {}).get(guid)
+        if recipe is not None and seen.get(guid) == 1:
+            pins = recipe["archives"]
+            selected = {filename for link in component.get("ResourceRegistry", {})
+                        for filename in (archive_groups or {}).get(canonical_link(link), ())}
+            names = [pin["filename"] for pin in pins]
+            if len(set(names)) != len(names) or not set(names) <= selected:
+                continue
+            group = []
+            for pin in pins:
+                filename = pin["filename"]
+                if (not 0 < len(filename) <= 255
+                        or re.search(r"[/\\*?\x00-\x1f\x7f]", filename)
+                        or not filename.lower().endswith(BIND_SUFFIXES)):
+                    break
+                path = archives / filename
+                if path.is_symlink() or not path.is_file() or digest(path) != pin["sha256"]:
+                    break
+                group.append(filename)
+            if len(group) == len(pins):
+                binding = {"componentGuid": guid, "filenames": group}
+                if len(group) == 1:
+                    binding.update(sha256=pins[0]["sha256"], sizeBytes=(archives / group[0]).stat().st_size)
+                bindings.append(binding)
+            continue
         if name is None and by_key:
             name = declared_archive(component, counts, by_key, archives)
         vendor = (guid == "bee5a72b-d748-8f83-8261-81758a9bfc56"
@@ -698,10 +752,11 @@ def bound_result(before, after):
     def vendor_bindings(components):
         found = {}
         for component in components:
-            if (component.get("DraftReview") or {}).get("Generator") == VENDOR_BIND_GENERATOR:
+            if (component.get("DraftReview") or {}).get("Generator") in {
+                    VENDOR_BIND_GENERATOR, MANUAL_BIND_GENERATOR}:
                 found[str(component.get("Guid", "")).lower()] = {
                     key: component.get(key) for key in
-                    ("Instructions", "Options", "VendorInstallerBinding", "DraftReview")}
+                    ("Instructions", "Options", "VendorInstallerBinding", "AuthoredRecipeBinding", "DraftReview")}
             found.update(vendor_bindings([
                 option for option in component.get("Options") or [] if isinstance(option, dict)]))
         return found
@@ -729,7 +784,7 @@ def bound_result(before, after):
             return 0, "bound_output_drops_instructions_or_drafts"
     return sum(1 for item in new
                if (item.get("DraftReview") or {}).get("Generator") in
-               (BIND_GENERATOR, MOVIE_BIND_GENERATOR, VENDOR_BIND_GENERATOR)), None
+               (BIND_GENERATOR, MOVIE_BIND_GENERATOR, VENDOR_BIND_GENERATOR, MANUAL_BIND_GENERATOR)), None
 
 
 BIND_DIAGNOSTICS_KEY = "bind_diagnostics"
@@ -820,7 +875,7 @@ def record_bind_diagnostics(private, report, names=None):
 
 
 def bind_archives(command, source, guide, converted, archives, archive_map, private, report, env,
-                  rules=None, vendor_languages=None):
+                  rules=None, vendor_languages=None, reviewed_recipes=None):
     """Bind method-only loose-file components to their one mapped archive (convert --resolved-archives).
 
     --resolved-archives only touches components without instructions and conflicts with
@@ -836,7 +891,8 @@ def bind_archives(command, source, guide, converted, archives, archive_map, priv
     try:
         bindings = resolved_archive_bindings(
             converted, mapped_archives(archive_map.resolve(strict=True)), archives, rules,
-            vendor_languages=vendor_languages)
+            vendor_languages=vendor_languages, reviewed_recipes=reviewed_recipes,
+            archive_groups=mapped_archive_groups(archive_map.resolve(strict=True)))
     except (OSError, ValueError, AttributeError):
         review["bind_failed"] = "archive_map_unreadable"
         return converted
@@ -3473,6 +3529,8 @@ def execute(args, report):
                                      args.archive_map, private, report, env,
                                      load_archive_aliases(guide.parent.name),
                                      vendor_languages=(vendor_language_selection(game, guide, report)
+                                                       if getattr(args, "complete_guide", False) else None),
+                                     reviewed_recipes=(load_reviewed_manual_recipes(source)
                                                        if getattr(args, "complete_guide", False) else None))
         try:
             run(command + ["convert", str(review_input), str(reviewed), "--format", "toml",

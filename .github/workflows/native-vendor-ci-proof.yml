@@ -1,4 +1,4 @@
-name: Prove one native TSLRCM English component
+name: Prove native reviewed K2 components
 on:
   push:
     branches: [fix/fullrun-ci-credentials]
@@ -59,7 +59,7 @@ jobs:
             CARGO_PROFILE_RELEASE_OVERFLOW_CHECKS=true CARGO_PROFILE_RELEASE_DEBUG_ASSERTIONS=true \
             cargo build --locked --release --lib --bin modsync -j2 "${flags[@]}" \
             >"$RUNNER_TEMP/vendor-evidence/build.log" 2>&1
-      - name: Recover verified own-repository baseline and exact retained installer
+      - name: Recover verified own-repository baseline and three exact reviewed inputs
         timeout-minutes: 35
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -87,16 +87,25 @@ jobs:
           baseline_metadata=[a for a in client.list_artifacts() if int(a['id'])==baseline_id]
           assert len(baseline_metadata)==1
           result['baseline_artifact']=baseline_metadata[0]
-          sha='94c99c4807da4b304de6e0efed1be55e0f43d13cc5a274582ed3323ac0e2f1a6'
-          record=index['blobs'][sha]; assert record['size']==137947655
+          selected=[
+              {'component_guid':'bee5a72b-d748-8f83-8261-81758a9bfc56','filename':'tslrcm2022.exe','sha256':'94c99c4807da4b304de6e0efed1be55e0f43d13cc5a274582ed3323ac0e2f1a6','size':137947655},
+              {'component_guid':'9c5bbc49-daa8-89be-8f27-8428d8fa24b8','filename':'Silent Sion Restoration.zip','sha256':'b3e5c90f8001a299fdc3464ff74edc98c9e19a11e7759a8095a0cef508782789','size':12852},
+              {'component_guid':'e8501df3-9a84-8f60-988c-15f30ca01af7','filename':'KOTOR2-Citadel-Station-Backdrop_v2.0.0_4k.zip','sha256':'ddaae12569dd7cf29d9097f7ff15a773b55cb2b80237b01310b27bc49c4dccbd','size':2887658},
+          ]
           archives=root/'archives'; archives.mkdir(mode=0o700)
-          destination=archives/'tslrcm2022.exe'
-          assert artstore.fetch(sha,destination,client=client,index=index,workdir=root/'parts')
-          assert destination.stat().st_size==137947655 and digest(destination)==sha
-          result.update(installer=record,packs={p['pack']:index['packs'][p['pack']] for p in record['parts']})
+          material=[]; packs={}
+          for item in selected:
+              sha=item['sha256']; record=index['blobs'][sha]; assert record['size']==item['size']
+              destination=archives/item['filename']
+              assert artstore.fetch(sha,destination,client=client,index=index,workdir=root/'parts')
+              assert destination.is_file() and not destination.is_symlink()
+              assert destination.stat().st_size==item['size'] and digest(destination)==sha
+              material.append({**item,'blob':record})
+              packs.update({part['pack']:index['packs'][part['pack']] for part in record['parts']})
+          result.update(installer=material[0]['blob'],component_materials=material,packs=packs)
           (evidence/'material-provenance.json').write_text(json.dumps(result,indent=2))
           PY
-      - name: Run actual component binding, independent replay and native installation
+      - name: Run actual three-component binding, independent replay and native installation
         timeout-minutes: 30
         run: |
           env -i PATH="$PATH" HOME="$HOME" RUNNER_TEMP="$RUNNER_TEMP" MODE="$MODE" FEATURE_SHA="$FEATURE_SHA" \
@@ -107,13 +116,13 @@ jobs:
           import gui_rust
           root=Path(os.environ['RUNNER_TEMP']); evidence=root/'vendor-evidence'
           binary=Path('target/release/modsync').resolve(); game=root/'game'; archives=root/'archives'
-          guid='bee5a72b-d748-8f83-8261-81758a9bfc56'; guide=Path('guide-input/content/k2/full.md')
+          guids=['bee5a72b-d748-8f83-8261-81758a9bfc56','9c5bbc49-daa8-89be-8f27-8428d8fa24b8','e8501df3-9a84-8f60-988c-15f30ca01af7']; guide=Path('guide-input/content/k2/full.md')
           def digest(path):
               h=hashlib.sha256()
               with path.open('rb') as f:
                   for data in iter(lambda:f.read(4*1024*1024),b''): h.update(data)
               return h.hexdigest()
-          report={'scope':'one immutable guide component only; not a full-guide or merge proof','mode':os.environ['MODE'],
+          report={'scope':'three reviewed K2 components in original guide order; not a full-guide or merge proof','mode':os.environ['MODE'],
                   'engine_sha':os.environ['FEATURE_SHA'],'binary_sha256':digest(binary),'stages':[],'status':'running'}
           def save(): (evidence/'native-proof.json').write_text(json.dumps(report,indent=2))
           def run(label,command,timeout=1200):
@@ -122,9 +131,10 @@ jobs:
                   p=subprocess.run(list(map(str,command)),stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,timeout=timeout)
               report['stages'].append({'name':label,'exit_code':p.returncode,'seconds':time.monotonic()-start}); save()
               assert p.returncode==0,label
-          def one(path):
-              values=json.loads(path.read_text()); assert isinstance(values,list) and len(values)==1
-              return values[0]
+          def three(path):
+              values=json.loads(path.read_text()); assert isinstance(values,list) and len(values)==3
+              assert [component['Guid'] for component in values]==guids
+              return values
           try:
               assert digest(guide)=='f442bdf574031623ed577609730d887069b9bc8e38e8e2f38ecc43a7e7487d5f'
               report['guide_sha256']=digest(guide)
@@ -134,24 +144,55 @@ jobs:
               report['baseline_dialog_sha256']=digest(game/'dialog.tlk')
               whole=evidence/'whole.json'; projected=evidence/'component.json'; bound=evidence/'bound.json'; reviewed=evidence/'reviewed.json'; model=evidence/'reviewed.toml'
               run('whole-convert',[binary,'convert',guide,whole,'--format','json','--parse-directions'])
-              components=json.loads(whole.read_text()); matches=[(i,c) for i,c in enumerate(components) if c['Guid']==guid]
-              assert len(matches)==1
-              i,component=matches[0]; projected.write_text(json.dumps([copy.deepcopy(component)],indent=2)); assert one(projected)==component
-              report.update(original_component_index=i,full_component_count=len(components),component_guid=guid,projection_sha256=digest(projected))
+              components=json.loads(whole.read_text()); matches=[(i,c) for i,c in enumerate(components) if c['Guid'] in guids]
+              assert len(components)==151 and len(matches)==3 and [c['Guid'] for i,c in matches]==guids
+              selected=[copy.deepcopy(c) for i,c in matches]
+              projected.write_text(json.dumps(selected,indent=2)); assert three(projected)==selected
+              report.update(original_component_indices=[i for i,c in matches],full_component_count=len(components),component_guids=guids,projection_sha256=digest(projected))
               canonical=evidence/'component-canonical.json'
               run('canonical-input-export',[binary,'convert',projected,canonical,'--format','json'])
-              admitted=one(canonical)
-              assert {k:v for k,v in admitted.items() if k!='Language'}=={k:v for k,v in component.items() if k!='Language'}
+              admitted=three(canonical)
+              assert {k:v for k,v in admitted[0].items() if k!='Language'}=={k:v for k,v in selected[0].items() if k!='Language'}
+              book_path=Path('src/archive_generation/reviewed_manual_k2.json')
+              assert digest(book_path)=='f85240122267d088f7b52c1746c2edb2fdb8795846889f4158dcf59b4fd91d60'
+              book=json.loads(book_path.read_text()); assert book['source_guide_sha256']==digest(guide)
+              recipes={recipe['component_guid']:recipe for recipe in book['recipes'] if recipe['component_guid'] in guids[1:]}
+              assert set(recipes)==set(guids[1:])
+              for original,loaded in zip(selected[1:],admitted[1:]):
+                  recipe=recipes[original['Guid']]
+                  assert original==recipe['raw_input_component'] and loaded==recipe['canonical_input_component']
               report['canonical_component_sha256']=digest(canonical)
-              plan=evidence/'resolved.json'; plan.write_text(json.dumps([{'componentGuid':guid,'filenames':['tslrcm2022.exe'],'sha256':'94c99c4807da4b304de6e0efed1be55e0f43d13cc5a274582ed3323ac0e2f1a6','sizeBytes':137947655,'vendorLanguage':'english'}]))
+              groups=[{'componentGuid':guids[0],'filenames':['tslrcm2022.exe'],'sha256':'94c99c4807da4b304de6e0efed1be55e0f43d13cc5a274582ed3323ac0e2f1a6','sizeBytes':137947655,'vendorLanguage':'english'}]
+              for guid in guids[1:]:
+                  recipe=recipes[guid]; names=[item['filename'] for item in recipe['archives']]
+                  assert len(names)==1
+                  path=archives/names[0]
+                  assert digest(path)==recipe['archives'][0]['sha256']
+                  groups.append({'componentGuid':guid,'filenames':names,'sha256':digest(path),'sizeBytes':path.stat().st_size})
+              plan=evidence/'resolved.json'; plan.write_text(json.dumps(groups,indent=2))
               run('bind',[binary,'convert',projected,bound,'--format','json','--source-path',archives,'--resolved-archives',plan])
-              generated=one(bound); assert generated['DraftReview']['RequiresReview'] is True
-              assert generated['VendorInstallerBinding']['InputComponent']==admitted and len(generated['Instructions'])==1
+              generated=three(bound)
+              assert all(component['DraftReview']['RequiresReview'] is True for component in generated)
+              assert generated[0]['VendorInstallerBinding']['InputComponent']==admitted[0] and len(generated[0]['Instructions'])==1
+              for component,context in zip(generated[1:],admitted[1:]):
+                  binding=component['AuthoredRecipeBinding']
+                  assert binding['InputComponent']==context and binding['Recipe']==recipes[component['Guid']]
+                  assert binding['DatabookSha256']==digest(book_path)
               run('independent-replay',[binary,'convert',bound,reviewed,'--format','json','--source-path',archives,'--review-verified-drafts'])
-              final=one(reviewed); assert final['DraftReview']['RequiresReview'] is False
-              assert final['DraftReview']['Verification']['Reviewer']=='modsync-ci-tool'
-              assert {k:v for k,v in final.items() if k!='DraftReview'}=={k:v for k,v in generated.items() if k!='DraftReview'}
+              final=three(reviewed)
+              for component,original in zip(final,generated):
+                  assert component['DraftReview']['RequiresReview'] is False
+                  verification=component['DraftReview']['Verification']
+                  assert verification['Reviewer']=='modsync-ci-tool' and verification['IdentityVersion']==2
+                  assert {k:v for k,v in component.items() if k!='DraftReview'}=={k:v for k,v in original.items() if k!='DraftReview'}
               run('native-model-export',[binary,'convert',reviewed,model,'--format','toml'])
+              report['toml_reload_review_controls']=[]
+              for index,guid in enumerate(guids):
+                  label='toml-draft-review-'+str(index)
+                  run(label,[binary,'guide-draft-review',model,guid])
+                  control=json.loads((evidence/(label+'.log')).read_text())
+                  assert control['requiresReview'] is False
+                  report['toml_reload_review_controls'].append({'component_guid':guid,'requires_review':False})
               requests=root/'execute-requests'; requests.mkdir(mode=0o700); prefix=requests/'wine-prefix'; prefix.mkdir(mode=0o700)
               runner=['--execute-request-dir',str(requests),'--execute-wine-prefix',str(prefix)]
               for flag,program in [('execute-xvfb','Xvfb'),('execute-wine','wine'),('execute-wineserver','wineserver')]:
@@ -163,11 +204,14 @@ jobs:
                   run('native-gui',[sys.executable,'tools/modsync-ci/gui_rust.py','--binary',binary,'--input',model,'--game-dir',game,'--archives',archives,'--work-dir',root/'gui-work','--report',evidence/'gui-report.json','--timeout','1500','--complete-guide',*runner],1550)
               # Existing production receipt verifier checks every game byte and full file set.
               from types import SimpleNamespace
-              receipt={}; gui_rust.verify_receipt(SimpleNamespace(game_dir=game,archives=archives),receipt,lambda:None,[guid])
+              receipt={}; gui_rust.verify_receipt(SimpleNamespace(game_dir=game,archives=archives),receipt,lambda:None,guids)
+              state=game.parent/('.modsync-'+hashlib.sha256(os.fsencode(str(game))).hexdigest()[:16])
+              completion=json.loads((state/'completion.json').read_text())
+              assert [component['Guid'].lower() for component in completion['components']]==guids
               report['completion']=receipt
               expected={'dialog.tlk':(10171056,'e501c665f7763bf9c63ac44e3a034a6969abbc6f0023096d8e137a400aa23e25'),'modules/003ebo.mod':(3853307,'575d7a5cb502d3e5e1ed07803e47968f66f91ddb83094f887c7597d74edd0013')}
               for name,(size,sha) in expected.items(): assert (game/name).stat().st_size==size and digest(game/name)==sha
-              report.update(status='installed',expected_outputs=expected,review=final['DraftReview'],binding=final['VendorInstallerBinding'])
+              report.update(status='installed',expected_outputs=expected,component_reviews={component['Guid']:component['DraftReview'] for component in final},vendor_binding=final[0]['VendorInstallerBinding'],authored_recipe_bindings={component['Guid']:component['AuthoredRecipeBinding'] for component in final[1:]})
           except BaseException as error:
               report.update(status='failed',failure_category=type(error).__name__); raise
           finally:

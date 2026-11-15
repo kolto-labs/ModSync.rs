@@ -210,6 +210,41 @@ impl Content {
     }
 }
 
+fn same_regular_file(left: &fs::File, right: &fs::File) -> Result<bool> {
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::MetadataExt;
+        let (left, right) = (left.metadata()?, right.metadata()?);
+        Ok(left.dev() == right.dev() && left.ino() == right.ino())
+    }
+    #[cfg(windows)]
+    {
+        use std::os::windows::io::AsRawHandle;
+        use windows_sys::Win32::Storage::FileSystem::{
+            BY_HANDLE_FILE_INFORMATION, GetFileInformationByHandle,
+        };
+        let identity = |file: &fs::File| -> Result<(u32, u32, u32)> {
+            let mut info: BY_HANDLE_FILE_INFORMATION = unsafe { std::mem::zeroed() };
+            ensure!(
+                unsafe { GetFileInformationByHandle(file.as_raw_handle(), &mut info) } != 0,
+                "Could not verify CopyFile object identity: {}",
+                std::io::Error::last_os_error()
+            );
+            Ok((
+                info.dwVolumeSerialNumber,
+                info.nFileIndexHigh,
+                info.nFileIndexLow,
+            ))
+        };
+        Ok(identity(left)? == identity(right)?)
+    }
+    #[cfg(not(any(unix, windows)))]
+    {
+        let _ = (left, right);
+        bail!("CopyFile object identity is unsupported on this platform")
+    }
+}
+
 /// Whether an authored Source of this action also matches every file under it as
 /// a folder. The reference binds file-action Sources with
 /// `PathHelper.EnumerateFilesWithWildcards`, which returns files only, so a folder
@@ -218,7 +253,15 @@ impl Content {
 pub(crate) fn authored_descendants(action: &str) -> bool {
     !matches!(
         action,
-        "Copy" | "Move" | "Rename" | "Delete" | "CleanList" | "Execute" | "Run"
+        "Copy"
+            | "CopyFile"
+            | "ExtractTo"
+            | "Move"
+            | "Rename"
+            | "Delete"
+            | "CleanList"
+            | "Execute"
+            | "Run"
     )
 }
 
@@ -913,7 +956,8 @@ impl Engine {
         owners(&guide.components, &mut components);
         let mut failures = Vec::new();
         let mut inspected_stamps = BTreeMap::<PathBuf, String>::new();
-        let mut archives = BTreeMap::<String, std::result::Result<BTreeSet<String>, String>>::new();
+        let mut archives =
+            BTreeMap::<(String, String), std::result::Result<BTreeSet<String>, String>>::new();
         for component in components {
             self.check_cancelled()?;
             let mut candidate = guide.clone();
@@ -947,7 +991,7 @@ impl Engine {
                 instructions(candidate_root, &selected, &mut checked_instructions)?;
                 let mut projected = BTreeSet::<String>::new();
                 for instruction in checked_instructions {
-                    if instruction.action != "Extract" {
+                    if !matches!(instruction.action.as_str(), "Extract" | "ExtractTo") {
                         continue;
                     }
                     category = crate::selection::ExclusionCategory::InvalidInstruction;
@@ -957,7 +1001,11 @@ impl Engine {
                     );
                     for source in &instruction.source {
                         category = crate::selection::ExclusionCategory::InvalidInstruction;
-                        let matches = self.matches(std::slice::from_ref(source), true)?;
+                        let matches = self.extraction_sources(
+                            instruction,
+                            std::slice::from_ref(source),
+                            true,
+                        )?;
                         if matches.is_empty() {
                             let (_, pattern) = self.source_pattern(source)?;
                             // Nested archives produced by an earlier Extract are validated
@@ -971,13 +1019,14 @@ impl Engine {
                         for archive_path in matches {
                             self.check_cancelled()?;
                             let key = self.path_policy.key(&archive_path);
-                            if !archives.contains_key(&key) {
+                            let destination = self.extraction_target(&archive_path, instruction)?;
+                            let cache_key = (key.clone(), self.path_policy.key(&destination));
+                            if !archives.contains_key(&cache_key) {
                                 let path = self.files[&key].1.path()?;
                                 let before = selection_file_stamp(path)?;
                                 // Distinguish access failures before a decoder can flatten them.
                                 drop(fs::File::open(path)?);
                                 let inspected = (|| -> Result<BTreeSet<String>> {
-                                    let destination = extraction_destination(&archive_path);
                                     self.settings.roots.check(&destination)?;
                                     let (entries, _) = archive::list_original_with_size(
                                         self.files[&key].1.path()?,
@@ -1009,12 +1058,12 @@ impl Engine {
                                 };
                                 inspected_stamps.insert(path.to_owned(), before);
                                 archives.insert(
-                                    key.clone(),
+                                    cache_key.clone(),
                                     inspected.map_err(|error| format!("{error:#}")),
                                 );
                             }
                             category = crate::selection::ExclusionCategory::InvalidArchive;
-                            let members = archives[&key]
+                            let members = archives[&cache_key]
                                 .as_ref()
                                 .map_err(|error| anyhow::anyhow!(error.clone()))?;
                             projected.extend(members.iter().cloned());
@@ -1210,7 +1259,7 @@ impl Engine {
                 for (n, instruction) in owner.instructions.iter().enumerate() {
                     if matches!(
                         instruction.action.as_str(),
-                        "Copy" | "Move" | "CleanList" | "DelDuplicate"
+                        "Copy" | "CopyFile" | "ExtractTo" | "Move" | "CleanList" | "DelDuplicate"
                     ) && invalid_destination(&instruction.destination)
                         && applies_with(&selected, instruction)
                         && self.path(&instruction.destination, false).is_ok()
@@ -1250,7 +1299,7 @@ impl Engine {
     fn archive_source_gate(&self, guide: &Guide) -> Result<()> {
         let mut selected = selected_guid_keys(guide);
         selected.extend(self.completed.iter().cloned());
-        let mut listed: BTreeMap<String, Option<BTreeSet<String>>> = BTreeMap::new();
+        let mut listed: BTreeMap<(String, String), Option<BTreeSet<String>>> = BTreeMap::new();
         for component in guide.components.iter().filter(|component| {
             component.is_selected
                 && !self
@@ -1265,21 +1314,29 @@ impl Engine {
                         .map(|option| (Some(&option.name), option)),
                 )
                 .collect();
-            let mut archives: Vec<PathBuf> = Vec::new();
+            let mut archives: Vec<(PathBuf, PathBuf)> = Vec::new();
             let mut runs_missing = false;
             for (instruction, runs) in Self::archive_check_instructions(component, &selected) {
                 self.check_cancelled()?;
-                if instruction.action != "Extract" || instruction.source.is_empty() {
+                if !matches!(instruction.action.as_str(), "Extract" | "ExtractTo")
+                    || instruction.source.is_empty()
+                {
                     continue;
                 }
                 for source in &instruction.source {
-                    if runs && self.matches(std::slice::from_ref(source), true)?.is_empty() {
+                    if runs
+                        && self
+                            .extraction_sources(instruction, std::slice::from_ref(source), true)?
+                            .is_empty()
+                    {
                         runs_missing = true;
                     }
                 }
-                for archive in self.matches(&instruction.source, true)? {
-                    if !archives.contains(&archive) {
-                        archives.push(archive);
+                for archive in self.extraction_sources(instruction, &instruction.source, true)? {
+                    let destination = self.extraction_target(&archive, instruction)?;
+                    let projection = (archive, destination);
+                    if !archives.contains(&projection) {
+                        archives.push(projection);
                     }
                 }
             }
@@ -1293,10 +1350,13 @@ impl Engine {
                     }
                     self.check_archive_sources(component, instruction, |prefix, pattern| {
                         let mut unknown = false;
-                        for archive in &archives {
-                            let key = self.path_policy.key(archive);
+                        for (archive, destination) in &archives {
+                            let key = (
+                                self.path_policy.key(archive),
+                                self.path_policy.key(destination),
+                            );
                             if !listed.contains_key(&key) {
-                                let members = self.listed_members(archive)?;
+                                let members = self.listed_members(archive, destination)?;
                                 listed.insert(key.clone(), members);
                             }
                             match &listed[&key] {
@@ -1830,6 +1890,13 @@ impl Engine {
         for (instruction, _) in instructions {
             self.check_cancelled()?;
             match instruction.action.as_str() {
+                "ExtractTo" => {
+                    let source = self.extension_source_path(instruction)?;
+                    self.extraction_target(&source, instruction)?;
+                }
+                "CopyFile" => {
+                    self.copy_file_destination(instruction)?;
+                }
                 "Copy" | "Move" | "CleanList" | "DelDuplicate"
                     if instruction.destination.is_empty() =>
                 {
@@ -1967,7 +2034,7 @@ impl Engine {
         };
         for &(instruction, runs) in instructions {
             self.check_cancelled()?;
-            if instruction.action != "Extract" {
+            if !matches!(instruction.action.as_str(), "Extract" | "ExtractTo") {
                 continue;
             }
             // An Extract with no Source names no archive to inspect.
@@ -1976,21 +2043,24 @@ impl Engine {
                 continue;
             }
             for source in &instruction.source {
-                if self.matches(std::slice::from_ref(source), true)?.is_empty() {
+                if self
+                    .extraction_sources(instruction, std::slice::from_ref(source), true)?
+                    .is_empty()
+                {
                     found.missing.push(instruction);
                     break;
                 }
             }
-            for source in self.matches(&instruction.source, true)? {
+            for source in self.extraction_sources(instruction, &instruction.source, true)? {
                 found.has_archives = true;
+                let dest = self.extraction_target(&source, instruction)?;
                 if !runs {
-                    match self.listed_members(&source)? {
+                    match self.listed_members(&source, &dest)? {
                         Some(members) => found.members.extend(members),
                         None => found.unknown = true,
                     }
                     continue;
                 }
-                let dest = extraction_destination(&source);
                 self.settings.roots.check(&dest)?;
                 ensure!(
                     !self.files.contains_key(&self.path_policy.key(&dest)),
@@ -2030,7 +2100,7 @@ impl Engine {
     ) -> Result<()> {
         if matches!(
             instruction.action.as_str(),
-            "Choose" | "DelDuplicate" | "Extract"
+            "Choose" | "DelDuplicate" | "Extract" | "ExtractTo"
         ) || crate::unicode_case::ordinal_eq(&component.name, "Improved AI")
         {
             return Ok(());
@@ -2053,9 +2123,8 @@ impl Engine {
     /// after it), or `None` when Rust cannot list it (a corrupt archive, or one its
     /// admission rules refuse, such as a link or a case-duplicate entry, which C#
     /// opens). Only cancellation is an error.
-    fn listed_members(&self, archive: &Path) -> Result<Option<BTreeSet<String>>> {
+    fn listed_members(&self, archive: &Path, dest: &Path) -> Result<Option<BTreeSet<String>>> {
         let listed = (|| -> Result<BTreeSet<String>> {
-            let dest = extraction_destination(archive);
             let (entries, _) = archive::list_original_with_size(
                 self.files[&self.path_policy.key(archive)].1.path()?,
                 archive,
@@ -2287,7 +2356,9 @@ impl Engine {
         }
         for component in &scope {
             for instruction in &component.instructions {
-                if instruction.action != "Extract" || !self.instruction_applies(instruction) {
+                if !matches!(instruction.action.as_str(), "Extract" | "ExtractTo")
+                    || !self.instruction_applies(instruction)
+                {
                     continue;
                 }
                 // Missing generic Extract inputs belong to archive validation and
@@ -2295,7 +2366,7 @@ impl Engine {
                 if instruction.source.is_empty() {
                     continue;
                 }
-                for source in self.matches(&instruction.source, true)? {
+                for source in self.extraction_sources(instruction, &instruction.source, true)? {
                     // Any applying Extract of this path is an install route, FOMOD or not.
                     routes.insert(self.path_policy.key(&source));
                     if checked.contains(&(self.path_policy.key(&source), component.guid.clone())) {
@@ -2896,6 +2967,11 @@ impl Engine {
         let result: Result<()> = (|| {
             self.validation_target = Some((c.name.clone(), c.guid.clone(), None));
             self.check_component(c)?;
+            crate::archive_generation::reviewed_manual::verify_runtime(
+                c,
+                &self.settings.roots.mods,
+                &self.settings.cancelled,
+            )?;
             let vendor_proof = crate::vendor_installer::before(
                 c,
                 &self.settings.roots,
@@ -2947,7 +3023,7 @@ impl Engine {
                 self.stage_managed_writes = self.install
                     && matches!(
                         instruction.action.as_str(),
-                        "Extract" | "Copy" | "Move" | "Rename"
+                        "Extract" | "ExtractTo" | "Copy" | "CopyFile" | "Move" | "Rename"
                     );
                 if let Some(managed) = &mut self.managed {
                     managed.action = instruction.action.clone();
@@ -3130,6 +3206,98 @@ impl Engine {
             .context("Path outside install roots")?;
         self.path_policy
             .check_spelling(root, &path, &self.settings.cancelled)?;
+        Ok(path)
+    }
+
+    /// Explicit extensions bind one literal file; they never enter heuristic
+    /// source recovery, folder expansion, or implicit archive extraction.
+    fn extension_source_path(&self, instruction: &Instruction) -> Result<PathBuf> {
+        ensure!(
+            instruction.source.len() == 1 && instruction.arguments.is_empty(),
+            "{} requires one literal Source and empty Arguments",
+            instruction.action
+        );
+        let path = self.actual(&self.literal_source_path(&instruction.source[0])?);
+        self.settings.roots.check(&path)?;
+        Ok(path)
+    }
+
+    fn extraction_sources(
+        &self,
+        instruction: &Instruction,
+        sources: &[String],
+        missing_ok: bool,
+    ) -> Result<Vec<PathBuf>> {
+        if instruction.action == "ExtractTo" {
+            let path = self.extension_source_path(instruction)?;
+            ensure!(
+                path.starts_with(&self.settings.roots.mods),
+                "ExtractTo Source must be in the mod directory"
+            );
+            return self.matches_scoped(sources, missing_ok, false);
+        }
+        self.matches(sources, missing_ok)
+    }
+
+    /// Read-only projection: freshness belongs to actual execution, not archive
+    /// membership checks that may already project a future slot's members.
+    fn extraction_target(&self, source: &Path, instruction: &Instruction) -> Result<PathBuf> {
+        if instruction.action != "ExtractTo" {
+            return Ok(extraction_destination(source));
+        }
+        self.extension_source_path(instruction)?;
+        let path = self
+            .settings
+            .roots
+            .resolve_literal(&instruction.destination)?;
+        self.settings.roots.check(&path)?;
+        ensure!(
+            path.parent() == Some(self.settings.roots.mods.as_path()),
+            "ExtractTo requires one direct child of the mod directory"
+        );
+        let name = path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .context("ExtractTo requires a named slot")?;
+        let (owner, slot) = name
+            .strip_prefix(".modsync-reviewed-")
+            .and_then(|name| name.rsplit_once("-slot"))
+            .context("ExtractTo requires .modsync-reviewed-<component GUID>-slot<n>")?;
+        let guid = crate::guid::try_parse(owner)
+            .context("ExtractTo slot has an invalid component GUID")?;
+        let number: usize = slot.parse().context("ExtractTo slot number is invalid")?;
+        ensure!(
+            owner == guid.to_string() && number < 4096 && slot == number.to_string(),
+            "ExtractTo slot must have a canonical GUID and number in 0..4096"
+        );
+        Ok(path)
+    }
+
+    fn copy_file_destination(&self, instruction: &Instruction) -> Result<PathBuf> {
+        self.extension_source_path(instruction)?;
+        let requested = self
+            .settings
+            .roots
+            .resolve_literal(&instruction.destination)?;
+        let path = self.actual(&requested);
+        self.settings.roots.check(&path)?;
+        ensure!(
+            !self.settings.roots.is_root(&path) && path.file_name().is_some(),
+            "CopyFile requires an exact destination filename"
+        );
+        ensure!(
+            !invalid_destination(&instruction.destination),
+            "CopyFile Destination is invalid"
+        );
+        ensure!(
+            !self.directories.contains_key(&self.path_policy.key(&path)),
+            "CopyFile Destination is a directory"
+        );
+        ensure!(
+            path.parent()
+                .is_some_and(|parent| self.folder_creatable(parent)),
+            "File blocks CopyFile Destination parent"
+        );
         Ok(path)
     }
 
@@ -3586,8 +3754,8 @@ impl Engine {
                     result.map_err(OptionalInstallFailed::wrap)?;
                 }
             }
-            "Extract" => {
-                if !i.destination.is_empty() {
+            "Extract" | "ExtractTo" => {
+                if i.action == "Extract" && !i.destination.is_empty() {
                     // Still refused when unsafe (fail closed), though never used.
                     self.path(&i.destination, false)?;
                     emit(Event {
@@ -3604,15 +3772,54 @@ impl Engine {
                 self.publish_resolution(&mut resolution)?;
                 for source in resolution.sources {
                     let content = self.files[&self.path_policy.key(&source)].1.clone();
-                    let dest = extraction_destination(&source);
+                    let dest = self.extraction_target(&source, i)?;
+                    if i.action == "ExtractTo" {
+                        let owner = crate::guid::try_parse(&component.guid)
+                            .context("ExtractTo owner has an invalid GUID")?;
+                        let prefix = format!(".modsync-reviewed-{owner}-slot");
+                        ensure!(
+                            dest.file_name()
+                                .and_then(|name| name.to_str())
+                                .is_some_and(|name| name.starts_with(&prefix)),
+                            "ExtractTo slot belongs to another component"
+                        );
+                        ensure!(
+                            !self.files.contains_key(&self.path_policy.key(&dest))
+                                && !self.directories.contains_key(&self.path_policy.key(&dest)),
+                            "ExtractTo slot is not fresh in the current filesystem"
+                        );
+                        match fs::symlink_metadata(&dest) {
+                            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+                            Err(error) => return Err(error.into()),
+                            Ok(_) => bail!("ExtractTo requires a physically fresh owned slot"),
+                        }
+                    }
                     let entries = archive::unpack(
                         content.path()?,
                         &source,
                         &self.settings.archive,
                         &self.settings.cancelled,
                     )?;
-                    let configured = if let Some(mut module) =
-                        crate::fomod::inspect_entries_with_cancel(
+                    if i.action == "ExtractTo" {
+                        ensure!(
+                            !entries.is_empty(),
+                            "ExtractTo cannot publish an empty directory tree"
+                        );
+                        self.check_cancelled()?;
+                        if self.install {
+                            // Exclusive creation after full archive admission. Never
+                            // merge with, clear, or reuse any pre-existing directory.
+                            self.settings.roots.check(&dest)?;
+                            fs::create_dir(&dest)?;
+                            self.settings.roots.check(&dest)?;
+                        }
+                        self.directories
+                            .insert(self.path_policy.key(&dest), dest.clone());
+                    }
+                    // ExtractTo is raw extraction only. The legacy action retains
+                    // its automatic configured FOMOD copies without alteration.
+                    let configured = if i.action == "Extract"
+                        && let Some(mut module) = crate::fomod::inspect_entries_with_cancel(
                             &entries,
                             &self.settings.cancelled,
                         )? {
@@ -3667,6 +3874,36 @@ impl Engine {
                         self.execute(component, &copy, emit)?;
                     }
                 }
+            }
+            "CopyFile" => {
+                let resolution = self.resolve_instruction(component, i)?;
+                let source = resolution
+                    .sources
+                    .first()
+                    .context("CopyFile has no source")?;
+                let target = self.copy_file_destination(i)?;
+                ensure!(
+                    self.path_policy.key(source) != self.path_policy.key(&target),
+                    "CopyFile Source equals Destination"
+                );
+                let content = self.files[&self.path_policy.key(source)].1.clone();
+                let input = crate::paths::open_regular_read(content.path()?)?;
+                match fs::symlink_metadata(&target) {
+                    Ok(metadata) => {
+                        ensure!(
+                            metadata.is_file() && !metadata.file_type().is_symlink(),
+                            "CopyFile Destination is not a regular file"
+                        );
+                        let existing = crate::paths::open_regular_read(&target)?;
+                        ensure!(
+                            !same_regular_file(&input, &existing)?,
+                            "CopyFile Source and Destination identify the same file"
+                        );
+                    }
+                    Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+                    Err(error) => return Err(error.into()),
+                }
+                self.put(&target, content, i.overwrite)?;
             }
             "Copy" | "Move" | "Rename" => {
                 let dest = if i.action == "Rename" {

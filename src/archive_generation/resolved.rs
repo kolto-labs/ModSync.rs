@@ -1312,6 +1312,41 @@ pub fn generate_with_vendor_languages(
             instructions_added: 0,
             diagnostics: Vec::new(),
         };
+        if super::reviewed_manual::has_recipe(&component.guid)? {
+            if resolved
+                .iter()
+                .filter(|other| other.component_guid == group.component_guid)
+                .count()
+                != 1
+            {
+                report.diagnostics.push(
+                    "Reviewed manual recipe requires one exhaustive resolved filename group; component unchanged.".into(),
+                );
+            } else if let Some(root) = root.as_deref() {
+                match super::reviewed_manual::bind(
+                    component,
+                    &group.filenames,
+                    root,
+                    options,
+                    cancelled,
+                ) {
+                    Ok(()) => report.instructions_added = component.instructions.len(),
+                    Err(error) => {
+                        check(cancelled)?;
+                        report.diagnostics.push(format!(
+                            "Reviewed manual file effects remain unresolved: {error:#}"
+                        ));
+                    }
+                }
+            } else {
+                report.diagnostics.push(
+                    "Reviewed manual recipe requires verified local archives; component unchanged."
+                        .into(),
+                );
+            }
+            reports.push(report);
+            continue;
+        }
         if let Some(language) = vendor_languages.get(&group.component_guid) {
             ensure!(
                 group.component_guid == crate::vendor_installer::GUID

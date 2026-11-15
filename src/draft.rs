@@ -45,8 +45,11 @@ pub fn mark_reviewed(component: &mut Component) -> anyhow::Result<()> {
             .get("DraftReview")
             .and_then(|record| record.get("Generator"))
             .and_then(serde_json::Value::as_str)
-            != Some(crate::vendor_installer::GENERATOR),
-        "Vendor installer drafts require independent verified replay"
+            .is_none_or(|generator| {
+                generator != crate::vendor_installer::GENERATOR
+                    && generator != crate::archive_generation::reviewed_manual::GENERATOR
+            }),
+        "Bound vendor and reviewed manual drafts require independent verified replay"
     );
     let reviewed_identity = review::identity(component)?;
     if let Some(record) = component.metadata.get("DraftReview") {
@@ -159,6 +162,7 @@ pub(crate) fn validate_raw_review_aliases(value: &serde_json::Value) -> anyhow::
                     "ArchiveSha256",
                     "ArchiveFilename",
                     "ReplayDigest",
+                    "IdentityVersion",
                 ],
             )?;
         }

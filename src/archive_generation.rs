@@ -2,6 +2,7 @@
 pub mod archive_map;
 mod merge;
 pub mod resolved;
+pub mod reviewed_manual;
 use crate::{Component, Guide, Instruction, archive};
 use anyhow::{Context, Result, ensure};
 pub use archive_map::ArchiveMap;

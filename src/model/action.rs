@@ -34,6 +34,16 @@ pub(super) fn deserialize<'de, D: Deserializer<'de>>(d: D) -> Result<String, D::
         .map_err(serde::de::Error::custom)
 }
 pub(super) fn intake(value: &Value) -> Result<Intake> {
+    // Rust extensions are explicit scalar names, never extra legacy enum values.
+    // Appending enum indices would activate old numeric/comma-OR combinations.
+    if let Value::String(name) = value
+        && matches!(name.as_str(), "ExtractTo" | "CopyFile")
+    {
+        return Ok(Intake {
+            raw_choose: false,
+            canonical: name.clone(),
+        });
+    }
     let text = getter_text(value)?;
     let raw_choose = text
         .as_deref()
