@@ -1,8 +1,5 @@
 name: Prove four focused native K1 widescreen owners
 on:
-  push:
-    branches: [fix/fullrun-ci-credentials]
-    paths: [.github/workflows/native-k1-widescreen-ci-proof.yml]
   workflow_dispatch:
     inputs:
       feature_sha:
@@ -20,7 +17,7 @@ jobs:
       fail-fast: false
       matrix: {mode: [cli, gui]}
     runs-on: ubuntu-24.04
-    timeout-minutes: 150
+    timeout-minutes: 220
     env:
       MODE: ${{ matrix.mode }}
       FEATURE_SHA: ${{ inputs.feature_sha || github.sha }}
@@ -87,7 +84,7 @@ jobs:
           import k1_widescreen_inputs
           assert os.environ['ARTSTORE_REPOSITORY']==os.environ['GITHUB_REPOSITORY']=='kolto-labs/ModSync.rs'
           root=Path(os.environ['RUNNER_TEMP'])
-          result=k1_widescreen_inputs.ensure(root/'archives',root/'mod-cache',root/'k1-focused-evidence'/'public-input-provenance.json')
+          result=k1_widescreen_inputs.ensure(root/'archives',root/'mod-cache',root/'k1-focused-evidence'/'public-input-provenance.json', download_mode='cache-first')
           assert result['ok'] is True and len(result['entries'])==6
           auxiliary=root/'mod-cache'/'k1-widescreen-inputs'
           expected={entry['sha256']:entry['bytes'] for entry in result['entries']}
@@ -103,15 +100,6 @@ jobs:
         with:
           path: ${{ runner.temp }}/mod-cache/k1-widescreen-inputs
           key: ${{ steps.k1-public-key.outputs.key }}
-      - name: Build production application with no acquisition credentials
-        timeout-minutes: 40
-        run: |
-          flags=()
-          if [[ "$MODE" == cli ]]; then flags+=(--no-default-features); fi
-          env -i PATH="$PATH" HOME="$HOME" RUSTUP_TOOLCHAIN=1.95.0 \
-            CARGO_PROFILE_RELEASE_OVERFLOW_CHECKS=true CARGO_PROFILE_RELEASE_DEBUG_ASSERTIONS=true \
-            cargo build --locked --release --lib --bin modsync -j2 "${flags[@]}" \
-            >"$RUNNER_TEMP/k1-focused-evidence/build.log" 2>&1
       - name: Recover genuine pristine K1 and exact predecessor from owned artifacts
         timeout-minutes: 35
         env:
@@ -164,6 +152,38 @@ jobs:
           finally:
               (evidence/'material-provenance.json').write_text(json.dumps(report,indent=2))
           PY
+      - name: Acquire authenticated encrypted exact-head production binary
+        id: production-build
+        timeout-minutes: 60
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          CACHE_ENCRYPTION_KEY: ${{ secrets.CACHE_ENCRYPTION_KEY }}
+        run: |
+          umask 077
+          status=0
+          python tools/modsync-ci/production_build.py fetch --mode "$MODE" \
+            --destination target/release/modsync --wait-seconds 3300 \
+            --receipt "$RUNNER_TEMP/k1-focused-evidence/production-build-provenance.json" \
+            >"$RUNNER_TEMP/k1-focused-evidence/production-build.log" 2>&1 || status=$?
+          if [[ "$status" == 0 ]]; then
+            echo 'reused=true' >>"$GITHUB_OUTPUT"
+          elif [[ "$status" == 3 ]]; then
+            echo 'reused=false' >>"$GITHUB_OUTPUT"
+          else
+            exit "$status"
+          fi
+      - name: Build production application with no acquisition credentials
+        if: ${{ steps.production-build.outputs.reused == 'false' }}
+        timeout-minutes: 40
+        run: |
+          flags=()
+          if [[ "$MODE" == cli ]]; then flags+=(--no-default-features); fi
+          env -i PATH="$PATH" HOME="$HOME" RUSTUP_TOOLCHAIN=1.95.0 \
+            CARGO_PROFILE_RELEASE_OVERFLOW_CHECKS=true CARGO_PROFILE_RELEASE_DEBUG_ASSERTIONS=true \
+            cargo build --locked --release --lib --bin modsync -j2 "${flags[@]}" \
+            >"$RUNNER_TEMP/k1-focused-evidence/build.log" 2>&1
+          printf '%s\n' '{"schema_version":1,"source":"local-build-fallback","reason":"exact-head producer unavailable"}' \
+            >"$RUNNER_TEMP/k1-focused-evidence/production-build-selection.json"
       - name: Bind, independently review and execute actual Base then Remaining
         timeout-minutes: 65
         run: |

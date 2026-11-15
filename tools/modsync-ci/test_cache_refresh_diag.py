@@ -216,23 +216,25 @@ class RefreshDiagnosticsTests(sources.Fixture):
         self.age(30)
         failure = cache.network_error(TimeoutError("slow"))
         with mock.patch.object(cache, "request", side_effect=failure):
-            code, report, errors = self.refresh()
-        self.assertEqual((code, report["entries"][0]["source"]), (0, "stale-local"))
+            code, report, errors = self.refresh("--download-mode", "refresh")
+        self.assertEqual((code, report["entries"][0]["source"]), (0, "cached-fallback"))
         self.assertIn("(ValueError network request failed cause=TimeoutError)", errors)
         table = self.summary.read_text(encoding="utf-8")
-        self.assertIn("| %s | stale-local |" % cache.key_for(sources.URL)[:8], table)
+        self.assertIn("| %s | cached-fallback |" % cache.key_for(sources.URL)[:8], table)
         self.assertIn("cause=TimeoutError", table)
 
-    def test_a_forced_refresh_that_cannot_reach_upstream_names_the_status_and_marks_stale_unknown(self):
+    def test_a_forced_refresh_reports_failure_without_downgrading_verified_cache(self):
         self.populate()
         self.age(30)
         with mock.patch.object(cache, "request", side_effect=ValueError("HTTP 403")):
             code, report, errors = self.refresh("--force")
         short = cache.key_for(sources.URL)[:8]
-        self.assertEqual(self.manifest()["entries"][cache.key_for(sources.URL)]["status"], "stale-unknown")
-        self.assertIn("cache: stale-unknown %s host=" % short, errors)
-        self.assertIn("reason=ValueError HTTP 403", errors)
-        self.assertIn("| %s | stale-unknown |" % short, self.summary.read_text(encoding="utf-8"))
+        self.assertEqual((code, report["entries"][0]["source"]), (0, "cached-fallback"))
+        self.assertEqual(self.manifest()["entries"][cache.key_for(sources.URL)]["status"], "fresh")
+        self.assertTrue(report["entries"][0]["acquisition"]["provider_attempted"])
+        self.assertIn("provider attempt failed for %s" % short, errors)
+        self.assertIn("ValueError HTTP 403", errors)
+        self.assertIn("| %s | cached-fallback |" % short, self.summary.read_text(encoding="utf-8"))
         self.assertNotIn(sources.URL, errors)
 
     def test_a_bik_archive_is_never_cached_or_left_in_the_manifest(self):

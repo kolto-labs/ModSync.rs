@@ -1319,6 +1319,52 @@ pub fn generate_with_vendor_languages(
             instructions_added: 0,
             diagnostics: Vec::new(),
         };
+        if super::source_plan_namespace::has_owner(&component.guid)? {
+            if resolved
+                .iter()
+                .filter(|other| other.component_guid == group.component_guid)
+                .count()
+                != 1
+            {
+                report.diagnostics.push(
+                    "Source-plan selected namespace owner requires one exhaustive resolved filename group; binding remains unresolved.".into(),
+                );
+            } else if let Some(root) = root.as_deref() {
+                match super::source_plan_namespace::bind(
+                    component,
+                    &group.filenames,
+                    root,
+                    options,
+                    cancelled,
+                ) {
+                    Ok(()) => report.instructions_added = component.instructions.len(),
+                    Err(error) => {
+                        check(cancelled)?;
+                        report.diagnostics.push(format!(
+                            "Source-plan selected namespace owner remains unresolved: {error:#}"
+                        ));
+                    }
+                }
+            } else {
+                report.diagnostics.push(
+                    "Source-plan selected namespace owner requires verified local archives; binding remains unresolved.".into(),
+                );
+            }
+            if !report.diagnostics.is_empty() {
+                review(component, &report.diagnostics)?;
+                component
+                    .metadata
+                    .get_mut("DraftReview")
+                    .and_then(serde_json::Value::as_object_mut)
+                    .context("Missing unresolved source-plan review")?
+                    .insert(
+                        "Generator".into(),
+                        super::source_plan_namespace::GENERATOR.into(),
+                    );
+            }
+            reports.push(report);
+            continue;
+        }
         if super::reviewed_manual::has_recipe(&component.guid)? {
             if resolved
                 .iter()
@@ -1375,9 +1421,31 @@ pub fn generate_with_vendor_languages(
                     Ok(()) => report.instructions_added = component.instructions.len(),
                     Err(error) => {
                         check(cancelled)?;
-                        report.diagnostics.push(format!(
-                            "Source-plan native owner remains unresolved: {error:#}"
-                        ));
+                        if super::source_plan_namespace::eligible_for_fallback(&component.guid)? {
+                            match super::source_plan_namespace::bind(
+                                component,
+                                &group.filenames,
+                                root,
+                                options,
+                                cancelled,
+                            ) {
+                                Ok(()) => {
+                                    report.instructions_added = component.instructions.len();
+                                    // Report-only context: changing the independently derived model would invalidate replay.
+                                    let cause =
+                                        format!("{error:#}").chars().take(2048).collect::<String>();
+                                    report.diagnostics.push(format!("Original pinned program compiler bound successfully after compatibility admission declined: {cause}"));
+                                }
+                                Err(fallback) => {
+                                    check(cancelled)?;
+                                    report.diagnostics.push(format!("Source-plan native owner remains unresolved: compatibility admission: {error:#}; original program admission: {fallback:#}"));
+                                }
+                            }
+                        } else {
+                            report.diagnostics.push(format!(
+                                "Source-plan native owner remains unresolved: {error:#}"
+                            ));
+                        }
                     }
                 }
             } else {
@@ -1385,7 +1453,7 @@ pub fn generate_with_vendor_languages(
                     "Source-plan native owner requires verified local archives; binding remains unresolved.".into(),
                 );
             }
-            if !report.diagnostics.is_empty() {
+            if report.instructions_added == 0 && !report.diagnostics.is_empty() {
                 review(component, &report.diagnostics)?;
                 component
                     .metadata
@@ -1609,6 +1677,7 @@ pub fn generate_with_vendor_languages(
     }
     check(cancelled)?;
     super::reviewed_master::bind_in_guide(&mut candidate)?;
+    super::duplicate_cleanup::bind_guide(&mut candidate, cancelled)?;
     *guide = candidate;
     Ok(reports)
 }

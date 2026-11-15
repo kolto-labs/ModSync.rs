@@ -1,8 +1,5 @@
 name: Observe pinned UniWS K1 vendor differential
 on:
-  push:
-    branches: [fix/fullrun-ci-credentials]
-    paths: [.github/workflows/k1-uniws-runtime-proof.yml]
   workflow_dispatch:
 permissions: {contents: read}
 concurrency:

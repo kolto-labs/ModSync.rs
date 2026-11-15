@@ -1,8 +1,5 @@
 name: Inspect original K2 baseline and pinned 3C-FD candidate metadata
 on:
-  push:
-    branches: [fix/fullrun-ci-credentials]
-    paths: [.github/workflows/k2-3cfd-input-metadata.yml]
   workflow_dispatch:
     inputs:
       engine_sha:

@@ -9,12 +9,24 @@ use std::{
     collections::{BTreeMap, BTreeSet},
     io::Read,
     path::Path,
-    sync::atomic::{AtomicBool, Ordering},
+    sync::{
+        OnceLock,
+        atomic::{AtomicBool, Ordering},
+    },
 };
 
 pub(crate) const GENERATOR: &str = "reviewed-manual-file-effects";
 pub(crate) const PATCHER_GENERATOR: &str = "reviewed-manual-native-patcher";
 const BINDING: &str = "AuthoredRecipeBinding";
+const CP1: &str = "6fb1971d-5775-85e5-9e77-ecc68a896e84";
+const CP2: &str = "216eb8b6-3076-8a92-bd7d-012862b10b32";
+const CP1_BOOK: &str = "923c0a5ebe52615247717bd3bab6ce48bad98cc664825a840465025b2b7e1fbc";
+const CP2_BOOK: &str = "c8f3877165f3da1adc8d5d76cc86ef8e803cc5d2a012aa22ef1f1fb25723db74";
+const CP_EXPANDED: u64 = 384 * 1024 * 1024;
+const CP_MANIFEST_POLICY: &str = "cp-raw-staged-package-v1";
+fn community_guid(guid: &str) -> bool {
+    matches!(guid, CP1 | CP2)
+}
 struct BookSpec {
     filename: &'static str,
     content: &'static str,
@@ -25,7 +37,17 @@ struct BookSpec {
     kind: &'static str,
     generator: &'static str,
 }
-const BOOKS: [BookSpec; 6] = [
+const BOOKS: [BookSpec; 9] = [
+    BookSpec {
+        filename: "reviewed_manual_raw_inputs_k1.json",
+        content: include_str!("reviewed_manual_raw_inputs_k1.json"),
+        sha256: "f3dadc5ad04f7c501753ca38bf50492e067c54b8ed1df401910780d3ca836d93",
+        guide_sha256: "44067788c6cb7a83b38d468817f273ce5cc901cd5e000c0f9ff65f8af15fc6ed",
+        plan_sha256: "1b402ba085625c4863795069eaacaef0f53e8ea7179e56a5bd150d88eb9c0a74",
+        count: 2,
+        kind: "ReviewedManualK1LooseInputs",
+        generator: GENERATOR,
+    },
     BookSpec {
         filename: "reviewed_manual_k2.json",
         content: include_str!("reviewed_manual_k2.json"),
@@ -83,6 +105,26 @@ const BOOKS: [BookSpec; 6] = [
         guide_sha256: "f442bdf574031623ed577609730d887069b9bc8e38e8e2f38ecc43a7e7487d5f",
         plan_sha256: "0add8c1aeb7cdfad3df4b21761e135c150aa7832cf3fc0edabe01a91245a9258",
         count: 2,
+        kind: "ReviewedManualK2NativePatcher",
+        generator: PATCHER_GENERATOR,
+    },
+    BookSpec {
+        filename: "reviewed_manual_community_patch_k1.json",
+        content: include_str!("reviewed_manual_community_patch_k1.json"),
+        sha256: CP1_BOOK,
+        guide_sha256: "44067788c6cb7a83b38d468817f273ce5cc901cd5e000c0f9ff65f8af15fc6ed",
+        plan_sha256: "1b402ba085625c4863795069eaacaef0f53e8ea7179e56a5bd150d88eb9c0a74",
+        count: 1,
+        kind: "ReviewedManualK1NativePatcher",
+        generator: PATCHER_GENERATOR,
+    },
+    BookSpec {
+        filename: "reviewed_manual_community_patch_k2.json",
+        content: include_str!("reviewed_manual_community_patch_k2.json"),
+        sha256: CP2_BOOK,
+        guide_sha256: "f442bdf574031623ed577609730d887069b9bc8e38e8e2f38ecc43a7e7487d5f",
+        plan_sha256: "0add8c1aeb7cdfad3df4b21761e135c150aa7832cf3fc0edabe01a91245a9258",
+        count: 1,
         kind: "ReviewedManualK2NativePatcher",
         generator: PATCHER_GENERATOR,
     },
@@ -157,14 +199,41 @@ fn packaged_native_log(guid: &str) -> Option<&'static str> {
     }
 }
 
-/// Admit exactly the existing two-operation shape or either closed three-step
-/// source plan. No other action, deletion, slot, optional deletion or owner is
-/// admitted by extending the Patcher operation index.
+/// Admit the existing two-operation shape, either closed log-delete plan, or
+/// the two exact compiled CP plans. K1 CLI/two-archive admission is confined to
+/// its complete reconstructed four-operation source, never an index-only rule.
 fn native_shape(recipe: &Recipe) -> Result<Option<&'static str>> {
     let translation = recipe
         .native_patcher
         .as_ref()
         .context("Missing native translation")?;
+    if community_guid(&recipe.component_guid) {
+        community_source(recipe)?;
+        let k1 = recipe.component_guid == CP1;
+        ensure!(
+            translation.extract_operation_index == 0
+                && translation.operation_index == if k1 { 2 } else { 1 }
+                && recipe.archives.len() == if k1 { 2 } else { 1 }
+                && recipe.plan_step.operations.len() == if k1 { 4 } else { 2 }
+                && translation.installer.path == "INSTALL.exe"
+                && translation.changes_ini.path == "tslpatchdata/changes.ini"
+                && translation.arguments == "changes.ini"
+                && translation.destination == "<<kotorDirectory>>"
+                && translation.success_contract == "native-zero-warnings-changed-game-v1"
+                && matches!(
+                    recipe.plan_step.operations.first(),
+                    Some(Operation::Extract { .. })
+                )
+                && if k1 {
+                    matches!(recipe.plan_step.operations[2], Operation::Patcher { .. })
+                } else {
+                    matches!(recipe.plan_step.operations[1], Operation::GuiPatcher { .. })
+                },
+            "Community Patch closed original operation/member shape differs"
+        );
+        translation.installer_parent()?;
+        return Ok(None);
+    }
     ensure!(
         translation.extract_operation_index == 0 && recipe.archives.len() == 1,
         "Native translation requires one extraction and one archive"
@@ -225,6 +294,7 @@ pub(crate) struct NativePatcherContract {
     component_guid: String,
     translation: NativeTranslation,
     source_plan: Option<Box<super::source_plan_patcher::AdmittedSourcePlan>>,
+    source_namespace: Option<Box<super::source_plan_namespace::AdmittedNamespace>>,
 }
 impl NativePatcherContract {
     /// Only the independently readmitted factory can construct this witness.
@@ -264,13 +334,115 @@ impl NativePatcherContract {
             component_guid: admitted.component_guid().into(),
             translation,
             source_plan: Some(Box::new(admitted)),
+            source_namespace: None,
         })
+    }
+    /// Issued only by the independent original-source/whole-package choice factory.
+    pub(crate) fn from_source_namespace(
+        admitted: super::source_plan_namespace::AdmittedNamespace,
+    ) -> Result<Self> {
+        ensure!(
+            super::source_plan_namespace::has_owner(admitted.component_guid())?
+                || super::source_plan_namespace::eligible_for_fallback(admitted.component_guid())?,
+            "Selected namespace contract lost its compiled source owner"
+        );
+        let (path, sha256, bytes) = admitted.installer_identity();
+        let installer = MemberPin {
+            path: path.into(),
+            sha256: sha256.into(),
+            bytes,
+        };
+        let (path, sha256, bytes) = admitted.ini_identity();
+        let changes_ini = MemberPin {
+            path: path.into(),
+            sha256: sha256.into(),
+            bytes,
+        };
+        let translation = NativeTranslation {
+            operation_index: admitted.patch_index(),
+            extract_operation_index: 0,
+            installer,
+            changes_ini,
+            inventory_sha256: admitted.inventory_digest()?,
+            certificate_sha256: admitted.authority_digest().into(),
+            arguments: admitted
+                .namespace()
+                .map(|index| index.to_string())
+                .unwrap_or_else(|| "changes.ini".into()),
+            destination: "<<kotorDirectory>>".into(),
+            success_contract: "native-zero-warnings-changed-game-v1".into(),
+        };
+        Ok(Self {
+            component_guid: admitted.component_guid().into(),
+            translation,
+            source_plan: None,
+            source_namespace: Some(Box::new(admitted)),
+        })
+    }
+    /// Present only for a run issued by the complete original ordered program.
+    pub(crate) fn original_program_run(&self) -> Option<&Value> {
+        self.source_namespace
+            .as_ref()
+            .and_then(|run| run.original_program_run())
     }
     pub(crate) fn component_guid(&self) -> &str {
         &self.component_guid
     }
+    pub(crate) fn expected_game(&self) -> Option<odypatcher::Game> {
+        self.source_namespace
+            .as_ref()
+            .map(|admitted| admitted.expected_game())
+            .or_else(|| {
+                self.source_plan
+                    .as_ref()
+                    .map(|admitted| admitted.expected_game())
+            })
+    }
+    pub(crate) fn destination_resources(
+        &self,
+    ) -> Option<&[super::source_plan_patcher::DestinationResourceRequirement]> {
+        self.source_namespace
+            .as_ref()
+            .map(|admitted| admitted.destination_resources())
+            .or_else(|| {
+                self.source_plan
+                    .as_ref()
+                    .map(|admitted| admitted.destination_resources())
+            })
+    }
+    pub(crate) fn certified_nss(&self) -> Option<&super::source_plan_patcher::CertifiedNssInputs> {
+        self.source_plan
+            .as_ref()
+            .and_then(|admitted| admitted.certified_nss())
+    }
     pub(crate) fn requires_exact_prediction(&self) -> bool {
-        self.source_plan.is_some() || self.tomb_shadow_identity_observation()
+        self.source_namespace.is_some()
+            || self.source_plan.is_some()
+            || self.tomb_shadow_identity_observation()
+            || (self.source_plan.is_none() && community_guid(&self.component_guid))
+    }
+    /// The original CP protocols here admit only their reviewed English lane.
+    /// Other source-language instructions require a separate reviewed contract.
+    pub(crate) fn requires_english_game(&self) -> bool {
+        self.source_plan.is_none()
+            && self.translation.installer.path == "INSTALL.exe"
+            && self.translation.changes_ini.path == "tslpatchdata/changes.ini"
+            && matches!(
+                (
+                    self.component_guid.as_str(),
+                    self.translation.installer.sha256.as_str(),
+                    self.translation.changes_ini.sha256.as_str()
+                ),
+                (
+                    CP1,
+                    "5cc9fc7aeafefb8b18cd584de0ad530f5c7a057e4b0a1308ed7bc6a9e4bc3fbe",
+                    "5ca192565cd425db03667364ab871273bacbd32da6a5760bd220729662bf3202"
+                ) | (
+                    CP2,
+                    "1a267454b2efcd61232332be83f4da4ffe88bd6770c5a0df517880062b1a75e8",
+                    "caa72cb34e8180a27e0464cf6e4fae29d9ce8e68417f1efc713b563293629b1d"
+                )
+            )
     }
     pub(crate) fn companion_selector_compatibility(&self) -> bool {
         self.component_guid == "f27d4b13-b349-8c56-b9b7-620cdc133579"
@@ -288,8 +460,14 @@ impl NativePatcherContract {
                 == "82e88f244110ee54333e7253915f7d4c7eb1f381d213713827fc8de68f53a2fb"
     }
     pub(crate) fn verify_staged(&self, base: &Path, cancelled: &AtomicBool) -> Result<()> {
+        if let Some(admitted) = &self.source_namespace {
+            return admitted.verify_staged(base, cancelled);
+        }
         if let Some(admitted) = &self.source_plan {
             admitted.verify_staged(base, cancelled)?;
+        }
+        if self.source_plan.is_none() && community_guid(&self.component_guid) {
+            verify_community_staged(base, &self.translation, cancelled)?;
         }
         let parent = self.translation.installer_parent()?;
         if packaged_native_log(&self.component_guid).is_some() {
@@ -312,6 +490,81 @@ impl NativePatcherContract {
                 "Reviewed Patcher staged bytes differ"
             );
         }
+        Ok(())
+    }
+    pub(crate) fn selected_namespace(&self) -> Option<usize> {
+        self.source_namespace
+            .as_ref()
+            .and_then(|admitted| admitted.namespace())
+    }
+    pub(crate) fn certified_program_nss(
+        &self,
+    ) -> Option<&super::source_plan_namespace::CertifiedProgramNss> {
+        self.source_namespace
+            .as_ref()
+            .and_then(|admitted| admitted.certified_program_nss())
+    }
+    pub(crate) fn selected_ini_relative_path(&self) -> Option<&str> {
+        self.source_namespace
+            .as_ref()
+            .and_then(|admitted| admitted.selected_ini_relative_path())
+    }
+    pub(crate) fn selected_ini_name(&self) -> Option<&str> {
+        self.source_namespace
+            .as_ref()
+            .and_then(|admitted| admitted.selected_ini_name())
+    }
+    /// Keep legacy/CP canonical-INI strictness; only a fresh opaque choice witness
+    /// can bind a positional namespace and a different selected INI/data subtree.
+    pub(crate) fn verify_selected_configuration(
+        &self,
+        base: &Path,
+        namespace: Option<usize>,
+        actual_ini: &Path,
+        cancelled: &AtomicBool,
+    ) -> Result<()> {
+        ensure!(
+            namespace == self.selected_namespace(),
+            "Reviewed native namespace index differs from its private witness"
+        );
+        if let Some(admitted) = &self.source_namespace {
+            return admitted.verify_selected_configuration(base, namespace, actual_ini, cancelled);
+        }
+        self.verify_selected_path(base, namespace, actual_ini, cancelled)?;
+        ensure!(
+            hash(actual_ini, cancelled)?
+                == (
+                    self.translation.changes_ini.sha256.clone(),
+                    self.translation.changes_ini.bytes
+                ),
+            "Reviewed native Patcher selected INI bytes differ"
+        );
+        Ok(())
+    }
+    /// Selection-only guard after trusted private normalization; original raw
+    /// INI bytes must have passed verify_selected_configuration beforehand.
+    pub(crate) fn verify_selected_path(
+        &self,
+        base: &Path,
+        namespace: Option<usize>,
+        actual_ini: &Path,
+        cancelled: &AtomicBool,
+    ) -> Result<()> {
+        if let Some(admitted) = &self.source_namespace {
+            return admitted.verify_selected_path(base, namespace, actual_ini, cancelled);
+        }
+        check(cancelled)?;
+        ensure!(
+            namespace.is_none(),
+            "Reviewed native Patcher forbids unbound namespace selection"
+        );
+        let parent = self.translation.installer_parent()?;
+        let expected = base
+            .join(Path::new(&literal(&self.translation.changes_ini.path)?).strip_prefix(parent)?);
+        ensure!(
+            expected.canonicalize()? == actual_ini.canonicalize()?,
+            "Reviewed native Patcher selected a different INI"
+        );
         Ok(())
     }
 }
@@ -345,6 +598,18 @@ struct Pin {
 #[derive(Deserialize, Serialize)]
 #[serde(tag = "type", rename_all = "snake_case", deny_unknown_fields)]
 enum Operation {
+    // Exact original HoloPatcher CLI provenance. Only CP1's compiled mixed
+    // recipe can translate it; this is never an external command dispatcher.
+    Patcher {
+        patcher: String,
+        sha256: String,
+        argv: Vec<String>,
+        cwd: String,
+        success_log: String,
+        success_markers: Vec<String>,
+        failure_regex: Vec<String>,
+        expected_changes: String,
+    },
     GuiPatcher {
         patcher: String,
         sha256: String,
@@ -382,6 +647,8 @@ struct Inventory {
     expanded_bytes: u64,
     files: BTreeSet<String>,
     directories: BTreeSet<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    source_kind: Option<String>,
 }
 struct Slot {
     native: String,
@@ -433,18 +700,229 @@ fn find_recipe(guid: &str) -> Result<Option<(&'static BookSpec, Recipe)>> {
     Ok(selected)
 }
 pub(crate) fn has_recipe(guid: &str) -> Result<bool> {
-    Ok(find_recipe(guid)?.is_some())
+    // The books are immutable compiled inputs. Validate their scope once while
+    // routing the complete source profile, rather than reparsing every book for
+    // each candidate owner. Runtime archive verification remains uncached.
+    static IDENTITIES: OnceLock<std::result::Result<BTreeSet<String>, String>> = OnceLock::new();
+    let identities = IDENTITIES
+        .get_or_init(|| {
+            (|| -> Result<BTreeSet<String>> {
+                let mut identities = BTreeSet::new();
+                for spec in &BOOKS {
+                    for recipe in load_book(spec)?.recipes {
+                        ensure!(
+                            identities.insert(recipe.component_guid),
+                            "Duplicate recipe identity across compiled books"
+                        );
+                    }
+                }
+                Ok(identities)
+            })()
+            .map_err(|e| e.to_string())
+        })
+        .as_ref()
+        .map_err(|e| anyhow::anyhow!(e.clone()))?;
+    Ok(identities.contains(guid))
 }
 /// Verification identity belongs to the exact compiled book admitting this GUID.
+/// Dependency definition only, never proof of execution or installed state.
+/// Dependent effects separately require runtime replay and owned checkpoints.
+pub(crate) fn declared_original_definition(component: &Component) -> Result<Option<Component>> {
+    let Some(binding) = component.metadata.get(BINDING) else {
+        return Ok(None);
+    };
+    let (spec, recipe) =
+        find_recipe(&component.guid)?.context("Unknown recipe origin declaration")?;
+    ensure!(
+        binding["Schema"] == 1
+            && binding["DatabookSha256"] == spec.sha256
+            && binding.get("Recipe") == Some(&serde_json::to_value(&recipe)?)
+            && binding.get("InputComponent") == Some(&recipe.canonical_input_component),
+        "Original recipe definition declaration changed"
+    );
+    Ok(Some(serde_json::from_value(
+        recipe.canonical_input_component.clone(),
+    )?))
+}
+
 pub(crate) fn verification_identity(guid: &str) -> Result<(String, String)> {
     let (spec, _) = find_recipe(guid)?.context("Recipe identity not admitted")?;
     Ok((spec.filename.into(), spec.sha256.into()))
+}
+
+struct CommunitySource {
+    raw: Value,
+    canonical: Component,
+    step: Value,
+    archives: Value,
+}
+static CP1_SOURCE: OnceLock<std::result::Result<CommunitySource, String>> = OnceLock::new();
+static CP2_SOURCE: OnceLock<std::result::Result<CommunitySource, String>> = OnceLock::new();
+
+// Reconstruct original authority without ordering, binding, master resolution or
+// archive access. In particular this cannot recurse through the NPC alias guard.
+fn community_source(recipe: &Recipe) -> Result<&'static CommunitySource> {
+    let (cache, guide, plan, index, count, guide_sha, plan_sha) =
+        match recipe.component_guid.as_str() {
+            CP1 => (
+                &CP1_SOURCE,
+                include_bytes!("source_plan_k1.md").as_slice(),
+                include_bytes!("../../tools/modsync-ci/fixtures/ci/k1-manual-plan.json").as_slice(),
+                5,
+                197,
+                "44067788c6cb7a83b38d468817f273ce5cc901cd5e000c0f9ff65f8af15fc6ed",
+                "1b402ba085625c4863795069eaacaef0f53e8ea7179e56a5bd150d88eb9c0a74",
+            ),
+            CP2 => (
+                &CP2_SOURCE,
+                include_bytes!("source_plan_k2.md").as_slice(),
+                include_bytes!("../../tools/modsync-ci/fixtures/ci/k2-manual-plan.json").as_slice(),
+                8,
+                151,
+                "f442bdf574031623ed577609730d887069b9bc8e38e8e2f38ecc43a7e7487d5f",
+                "0add8c1aeb7cdfad3df4b21761e135c150aa7832cf3fc0edabe01a91245a9258",
+            ),
+            _ => anyhow::bail!("Not a compiled Community Patch owner"),
+        };
+    let source = cache.get_or_init(|| (|| -> Result<CommunitySource> {
+        ensure!(guide.len() <= 1024 * 1024 && plan.len() <= 8 * 1024 * 1024
+            && format!("{:x}", Sha256::digest(guide)) == guide_sha
+            && format!("{:x}", Sha256::digest(plan)) == plan_sha,
+            "Compiled Community Patch original source bytes differ");
+        let mut guide = Guide::parse(std::str::from_utf8(guide)?, "md")?;
+        draft::generate(&mut guide);
+        ensure!(guide.components.len() == count, "Community Patch original source inventory differs");
+        let raw = serde_json::to_value(&guide.components[index])?;
+        let canonical = Guide::parse_preserving_selection(&serde_json::to_string(&guide)?, "json")?;
+        let canonical = canonical.components[index].clone();
+        let plan: Value = serde_json::from_slice(plan)?;
+        ensure!(plan["guide_sha256"] == guide_sha, "Community Patch original plan guide differs");
+        let step = plan["steps"][index].clone();
+        let operations = step["operations"].as_array().context("Community Patch source operations absent")?;
+        let mut archives = Vec::new();
+        for op in operations.iter().filter(|op| op["type"] == "extract") {
+            let path = op["source"].as_str().context("Community Patch extract source absent")?;
+            archives.push(json!({"filename":token(path,"archives")?,"sha256":plan["archive_sha256"][path]}));
+        }
+        Ok(CommunitySource { raw, canonical, step, archives: json!(archives) })
+    })().map_err(|error| format!("{error:#}")))
+        .as_ref().map_err(|error| anyhow::anyhow!("{error}"))?;
+    ensure!(
+        recipe.source_component_index == index
+            && recipe.plan_step_index == index
+            && recipe.component_guid == source.canonical.guid
+            && recipe.raw_input_component == source.raw
+            && recipe.canonical_input_component == serde_json::to_value(&source.canonical)?
+            && serde_json::to_value(&recipe.plan_step)? == source.step
+            && source.step["source_heading"].as_str() == Some(recipe.source_heading.as_str())
+            && serde_json::to_value(&recipe.archives)? == source.archives,
+        "Community Patch recipe differs from freshly reconstructed complete original source"
+    );
+    Ok(source)
+}
+
+fn community_manifest(
+    files: &BTreeMap<String, (u64, String)>,
+    directories: &BTreeSet<String>,
+) -> Result<String> {
+    value_digest(&json!({"Policy":CP_MANIFEST_POLICY,"Files":files,"Directories":directories}))
+}
+fn add_parents(path: &str, directories: &mut BTreeSet<String>) {
+    for (position, _) in path.match_indices('/') {
+        directories.insert(path[..position].into());
+    }
+}
+fn community_metadata(path: &Path) -> Result<std::fs::Metadata> {
+    let meta = std::fs::symlink_metadata(path)?;
+    ensure!(
+        !meta.file_type().is_symlink() && (meta.is_dir() || meta.is_file()),
+        "Community Patch package contains a link or special file"
+    );
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::MetadataExt;
+        ensure!(
+            meta.file_attributes() & 0x400 == 0,
+            "Community Patch package contains a reparse point"
+        );
+    }
+    Ok(meta)
+}
+fn verify_community_staged(
+    base: &Path,
+    translation: &NativeTranslation,
+    cancelled: &AtomicBool,
+) -> Result<()> {
+    ensure!(
+        community_metadata(base)?.is_dir(),
+        "Community Patch staged root is not a directory"
+    );
+    let mut pending = vec![base.to_path_buf()];
+    let mut files = BTreeMap::new();
+    let mut directories = BTreeSet::new();
+    let mut aliases = BTreeSet::new();
+    let mut total = 0u64;
+    while let Some(parent) = pending.pop() {
+        for entry in std::fs::read_dir(parent)? {
+            check(cancelled)?;
+            let path = entry?.path();
+            let relative = literal(
+                path.strip_prefix(base)?
+                    .to_str()
+                    .context("Non-UTF8 Community Patch package")?
+                    .replace('\\', "/")
+                    .as_str(),
+            )?;
+            ensure!(
+                aliases.len() < 10000
+                    && aliases.insert(crate::unicode_case::ordinal_key(&relative)),
+                "Community Patch package exceeds bound or contains aliases"
+            );
+            let meta = community_metadata(&path)?;
+            if meta.is_dir() {
+                directories.insert(relative);
+                pending.push(path);
+            } else {
+                ensure!(
+                    meta.len() <= 64 * 1024 * 1024,
+                    "Community Patch staged member exceeds bound"
+                );
+                total = total
+                    .checked_add(meta.len())
+                    .context("Community Patch size overflow")?;
+                ensure!(
+                    total <= CP_EXPANDED,
+                    "Community Patch staged package exceeds bound"
+                );
+                let (sha256, bytes) = community_member_hash(&path, cancelled)?;
+                files.insert(relative, (bytes, sha256));
+            }
+        }
+    }
+    ensure!(
+        community_manifest(&files, &directories)? == translation.inventory_sha256,
+        "Community Patch complete raw staged package differs from compiled authority"
+    );
+    check(cancelled)
 }
 /// Filename admission exception for an exact compiled recipe/archive pair only.
 /// This grants neither recipe approval nor permission to skip byte verification.
 pub fn allows_literal_filename(guid: &str, filename: &str) -> Result<bool> {
     Ok(find_recipe(guid)?
-        .is_some_and(|(_, recipe)| recipe.archives.iter().any(|pin| pin.filename == filename)))
+        .is_some_and(|(_, recipe)| recipe.archives.iter().any(|pin| pin.filename == filename))
+        || super::source_plan_patcher::allows_literal_filename(guid, filename)?
+        || super::source_plan_namespace::allows_literal_filename(guid, filename)?)
+}
+
+/// Only the two compiled whole-file source pins may cross the archive-only CLI
+/// transport. This does not approve them or bypass the subsequent byte replay.
+pub fn allows_raw_input(guid: &str, filename: &str) -> Result<bool> {
+    Ok(find_recipe(guid)?.is_some_and(|(_, recipe)| {
+        recipe
+            .archives
+            .iter()
+            .any(|pin| pin.filename == filename && reviewed_raw_pin(pin))
+    }))
 }
 /// The observed source-plan step042 installs exactly the three TGA members.
 /// Its actual 909-byte readme (SHA256 fa90aca6fddf221388ce8608a2c639e899da3205677e87a6e4cff0eb365267ca)
@@ -479,8 +957,24 @@ fn token(value: &str, root: &str) -> Result<String> {
     )
 }
 fn hash(path: &Path, cancelled: &AtomicBool) -> Result<(String, u64)> {
+    hash_impl(path, cancelled, false)
+}
+// A pinned full-package inventory may contain legitimate empty source members.
+// Archive/installer/INI hashing retains its original nonempty contract.
+fn community_member_hash(path: &Path, cancelled: &AtomicBool) -> Result<(String, u64)> {
+    hash_impl(path, cancelled, true)
+}
+fn hash_impl(
+    path: &Path,
+    cancelled: &AtomicBool,
+    allow_empty_member: bool,
+) -> Result<(String, u64)> {
     let mut file = crate::paths::open_regular_read(path)?;
     let expected = file.metadata()?.len();
+    ensure!(
+        !allow_empty_member || expected <= 64 * 1024 * 1024,
+        "Community Patch member exceeds its hash-read bound"
+    );
     let mut hash = Sha256::new();
     let mut bytes = 0u64;
     let mut buffer = [0u8; 65536];
@@ -497,12 +991,15 @@ fn hash(path: &Path, cancelled: &AtomicBool) -> Result<(String, u64)> {
         hash.update(&buffer[..count]);
     }
     ensure!(
-        bytes == expected && bytes > 0,
+        bytes == expected && (bytes > 0 || allow_empty_member),
         "Archive changed or is empty"
     );
     Ok((format!("{:x}", hash.finalize()), bytes))
 }
 fn canonical_context(recipe: &Recipe, component: &Component) -> Result<Component> {
+    if community_guid(&recipe.component_guid) {
+        community_source(recipe)?;
+    }
     let guide = Guide::parse_preserving_selection(
         &serde_json::to_string(&recipe.raw_input_component)?,
         "json",
@@ -573,6 +1070,24 @@ fn canonical_context(recipe: &Recipe, component: &Component) -> Result<Component
     }
     let mut raw = recipe.raw_input_component.clone();
     normalize(&mut raw, &value)?;
+    // This exact witnessed original owner also undergoes the loader's comma
+    // splitting of Language. Never discard or normalize arbitrary source fields.
+    if recipe.component_guid == CP1 {
+        community_source(recipe)?;
+        ensure!(
+            raw["Language"]
+                == json!([
+                    "YES for Russian and French only, follow the instructions on the mod page to use"
+                ])
+                && value["Language"]
+                    == json!([
+                        "YES for Russian and French only",
+                        "follow the instructions on the mod page to use"
+                    ]),
+            "Community Patch original language normalization differs"
+        );
+        raw["Language"] = value["Language"].clone();
+    }
     ensure!(raw == value, "Recipe has unsupported loader normalization");
     let mut actual = serde_json::to_value(component)?;
     // Accept only the complete stored raw context or its complete loader form.
@@ -594,6 +1109,19 @@ fn canonical_context(recipe: &Recipe, component: &Component) -> Result<Component
     );
     Ok(canonical.clone())
 }
+fn reviewed_raw_pin(pin: &Pin) -> bool {
+    matches!(
+        (pin.filename.as_str(), pin.sha256.as_str()),
+        (
+            "N_DarthMalak01.tga",
+            "04160ed9e2eef2c88a3ed644ec2be24e5cd765f67a7cca35106be062e20358cd"
+        ) | (
+            "tar02_duelorg021.dlg",
+            "6ebb0b909c4ac7496971e3cc1320ce14b04fc67aec167f0feeb0e332181aff57"
+        )
+    )
+}
+
 fn inspect(
     pin: &Pin,
     root: &Path,
@@ -611,11 +1139,32 @@ fn inspect(
         "Invalid archive pin"
     );
     let path = root.join(&filename);
+    let raw_input = reviewed_raw_pin(pin);
+    if raw_input {
+        ensure!(
+            crate::paths::open_regular_read(&path)?.metadata()?.len() <= 128 * 1024 * 1024,
+            "Reviewed loose input exceeds bound"
+        );
+    }
     let (sha256, bytes) = hash(&path, cancelled)?;
     ensure!(
         sha256 == pin.sha256,
         "Reviewed archive hash mismatch: {filename}"
     );
+    if raw_input {
+        // These original guide inputs are already individual game resources.
+        // Their whole-file hash is the payload certificate; no archive decoder
+        // or inferred extraction tree participates in this source role.
+        return Ok(Inventory {
+            filename,
+            sha256,
+            bytes,
+            expanded_bytes: 0,
+            files: BTreeSet::new(),
+            directories: BTreeSet::new(),
+            source_kind: Some("reviewed-loose-file-v1".into()),
+        });
+    }
     let (entries, expanded_bytes) =
         archive::list_original_with_size(&path, &path, options, cancelled)?;
     let mut files = BTreeSet::new();
@@ -660,6 +1209,7 @@ fn inspect(
         expanded_bytes,
         files,
         directories,
+        source_kind: None,
     })
 }
 fn extraction_source<'a>(
@@ -701,6 +1251,186 @@ fn instruction(
     }
 }
 
+fn expected_native_instructions(
+    component: &Component,
+    recipe: &Recipe,
+) -> Result<Vec<Instruction>> {
+    let translation = recipe
+        .native_patcher
+        .as_ref()
+        .context("Missing native translation")?;
+    let packaged_log = native_shape(recipe)?;
+    let slot = format!(
+        "<<modDirectory>>/.modsync-reviewed-{}-slot0",
+        component.guid
+    );
+    let mut result = vec![instruction(
+        component,
+        0,
+        "ExtractTo",
+        format!("<<modDirectory>>/{}", recipe.archives[0].filename),
+        slot.clone(),
+        false,
+    )];
+    if recipe.component_guid == CP1 {
+        let patch_slot = format!(
+            "<<modDirectory>>/.modsync-reviewed-{}-slot1",
+            component.guid
+        );
+        result.push(instruction(
+            component,
+            1,
+            "ExtractTo",
+            format!("<<modDirectory>>/{}", recipe.archives[1].filename),
+            patch_slot,
+            false,
+        ));
+    } else if let Some(member) = packaged_log {
+        result.push(instruction(
+            component,
+            1,
+            "Delete",
+            format!("{slot}/{member}"),
+            String::new(),
+            true,
+        ));
+    }
+    let mut patcher = instruction(
+        component,
+        translation.operation_index,
+        "Patcher",
+        format!("{slot}/{}", translation.installer.path),
+        translation.destination.clone(),
+        false,
+    );
+    patcher.arguments = translation.arguments.clone();
+    result.push(patcher);
+    if recipe.component_guid == CP1 {
+        for (index, leaf) in ["n_fatcomm.mdl", "n_fatcomm.mdx"].iter().enumerate() {
+            result.push(instruction(
+                component,
+                index + 3,
+                "CopyFile",
+                format!(
+                    "<<modDirectory>>/.modsync-reviewed-{}-slot1/K1CP Patch/{leaf}",
+                    component.guid
+                ),
+                format!("<<kotorDirectory>>/override/{leaf}"),
+                true,
+            ));
+        }
+    }
+    Ok(result)
+}
+
+fn community_expected_pending(
+    component: &Component,
+    spec: &BookSpec,
+    recipe: &Recipe,
+) -> Result<Component> {
+    let source = community_source(recipe)?;
+    let inventories_value = component
+        .metadata
+        .get(BINDING)
+        .and_then(|v| v.get("Archives"))
+        .context("Community Patch inventories absent")?;
+    let expected_inventory = if recipe.component_guid == CP1 {
+        ensure!(spec.sha256 == CP1_BOOK, "Community Patch K1 book differs");
+        "263cee781263cf889f390cc38d7c6db1105832553f36f71eff0b921792980398"
+    } else {
+        ensure!(spec.sha256 == CP2_BOOK, "Community Patch K2 book differs");
+        "67e76dabee35e95dcf17e1ec6727441ba2916e95bc983994eb885e6c34b973af"
+    };
+    ensure!(
+        value_digest(inventories_value)? == expected_inventory,
+        "Community Patch complete bound resource inventory differs from compiled authority"
+    );
+    let inventories: Vec<Inventory> = serde_json::from_value(inventories_value.clone())?;
+    let mut expected = source.canonical.clone();
+    expected.is_selected = component.is_selected;
+    expected.instructions = expected_native_instructions(&expected, recipe)?;
+    let binding = json!({"Schema":1,"Kind":spec.kind,"DatabookSha256":spec.sha256,
+        "SourceGuideSha256":spec.guide_sha256,"SourcePlanSha256":spec.plan_sha256,"Recipe":recipe,
+        "InputComponent":serde_json::to_value(&source.canonical)?,"Archives":inventories_value});
+    let derivations: Vec<_> = inventories
+        .iter()
+        .map(|item| json!({"Filename":item.filename,"Sha256":item.sha256,"Bytes":item.bytes}))
+        .collect();
+    expected.metadata.insert(BINDING.into(), binding);
+    expected.metadata.insert("DraftReview".into(), json!({"RequiresReview":true,"Generator":PATCHER_GENERATOR,
+        "Derivations":derivations,"Result":draft::DraftResult {component_guid:expected.guid.clone(),
+        draft_instruction_count:expected.instructions.len(),unparsed_gaps:vec![],conditional_drafts:vec![],rejected_drafts:0}}));
+    let mut actual_value = serde_json::to_value(component)?;
+    let mut expected_value = serde_json::to_value(&expected)?;
+    actual_value
+        .as_object_mut()
+        .context("Invalid Community Patch component")?
+        .remove("DraftReview");
+    expected_value
+        .as_object_mut()
+        .context("Invalid Community Patch model")?
+        .remove("DraftReview");
+    ensure!(
+        actual_value == expected_value,
+        "Community Patch complete effective context, instructions or resource binding differs"
+    );
+    Ok(expected)
+}
+
+/// Pure source-origin evidence only, with private fields and no deserialization.
+/// Archive/runtime approval and an owned successful checkpoint remain separate.
+pub(crate) struct CommunityPatchOrigin {
+    original: Component,
+}
+impl CommunityPatchOrigin {
+    pub(crate) fn original(&self) -> &Component {
+        &self.original
+    }
+}
+fn community_review(component: &Component, expected: &Component, spec: &BookSpec) -> Result<()> {
+    let actual = component
+        .metadata
+        .get("DraftReview")
+        .context("Community Patch origin review absent")?;
+    if actual == &expected.metadata["DraftReview"] {
+        return Ok(());
+    }
+    let mut approved = expected.metadata["DraftReview"].clone();
+    approved["RequiresReview"] = json!(false);
+    approved["Verification"] = json!({"Reviewer":draft::review::VERIFIER_NAME,"Kind":draft::review::VERIFICATION_KIND,
+        "ToolVersion":concat!("ModSync.rs/",env!("CARGO_PKG_VERSION")),"ArchiveSha256":spec.sha256,
+        "ArchiveFilename":spec.filename,"ReplayDigest":replay_digest(expected)?,"IdentityVersion":2});
+    approved["ReviewedIdentity"] = json!(draft::review::identity(component)?);
+    ensure!(
+        actual == &approved,
+        "Community Patch origin requires the exact pending or approved review transition"
+    );
+    Ok(())
+}
+pub(crate) fn community_patch_origin(
+    component: &Component,
+) -> Result<Option<CommunityPatchOrigin>> {
+    if component.guid != CP1 {
+        return Ok(None);
+    }
+    let record = component.metadata.get("DraftReview");
+    let claimed = component.metadata.contains_key(BINDING)
+        || record
+            .and_then(|v| v.get("Generator"))
+            .and_then(Value::as_str)
+            == Some(PATCHER_GENERATOR);
+    if !claimed {
+        return Ok(None);
+    }
+    let (spec, recipe) =
+        find_recipe(CP1)?.context("Compiled Community Patch source owner absent")?;
+    let expected = community_expected_pending(component, spec, &recipe)?;
+    community_review(component, &expected, spec)?;
+    Ok(Some(CommunityPatchOrigin {
+        original: community_source(&recipe)?.canonical.clone(),
+    }))
+}
+
 fn verify_native_members(
     recipe: &Recipe,
     root: &Path,
@@ -712,7 +1442,7 @@ fn verify_native_members(
         .as_ref()
         .context("Missing native translation")?;
     ensure!(
-        recipe.archives.len() == 1,
+        recipe.archives.len() == 1 || (recipe.component_guid == CP1 && recipe.archives.len() == 2),
         "Native translation requires one archive and canonical sole INI"
     );
     translation.installer_parent()?;
@@ -720,12 +1450,13 @@ fn verify_native_members(
     let mut packaged_log_found = false;
     let pin = &recipe.archives[0];
     let mut bounded = options.clone();
-    bounded.max_expanded_bytes = Some(
-        options
-            .max_expanded_bytes
-            .unwrap_or(64 * 1024 * 1024)
-            .min(64 * 1024 * 1024),
-    );
+    let community = community_guid(&recipe.component_guid);
+    let limit = if community {
+        CP_EXPANDED
+    } else {
+        64 * 1024 * 1024
+    };
+    bounded.max_expanded_bytes = Some(options.max_expanded_bytes.unwrap_or(limit).min(limit));
     let entries = archive::unpack(
         &root.join(&pin.filename),
         Path::new(&pin.filename),
@@ -734,6 +1465,9 @@ fn verify_native_members(
     )?;
     let mut found = BTreeSet::new();
     let mut ini_count = 0;
+    let mut package_files = BTreeMap::new();
+    let mut package_directories = BTreeSet::new();
+    let mut package_bytes = 0u64;
     for entry in entries {
         check(cancelled)?;
         let name = entry
@@ -742,6 +1476,28 @@ fn verify_native_members(
             .context("Non-UTF8 native member")?
             .replace('\\', "/");
         let lower = name.to_lowercase();
+        if community {
+            literal(&name)?;
+            ensure!(
+                package_files.len() < 10000,
+                "Community Patch raw member count exceeds bound"
+            );
+            let (sha256, bytes) = community_member_hash(entry.file.path(), cancelled)?;
+            package_bytes = package_bytes
+                .checked_add(bytes)
+                .context("Community Patch raw size overflow")?;
+            ensure!(
+                bytes <= 64 * 1024 * 1024 && package_bytes <= CP_EXPANDED,
+                "Community Patch raw package exceeds bound"
+            );
+            ensure!(
+                package_files
+                    .insert(name.clone(), (bytes, sha256))
+                    .is_none(),
+                "Duplicate Community Patch raw member"
+            );
+            add_parents(&name, &mut package_directories);
+        }
         if packaged_log == Some(name.as_str()) {
             ensure!(!packaged_log_found, "Duplicate native packaged log member");
             packaged_log_found = true;
@@ -752,6 +1508,34 @@ fn verify_native_members(
         );
         if lower.ends_with("/changes.ini") || lower == "changes.ini" {
             ini_count += 1;
+            if community {
+                ensure!(
+                    entry.file.as_file().metadata()?.len() <= 2 * 1024 * 1024,
+                    "Community Patch INI exceeds bound"
+                );
+                let body = std::fs::read(entry.file.path())?;
+                let text = std::str::from_utf8(&body)?.trim_start_matches('\u{feff}');
+                let mut in_compile = false;
+                let mut compile_sections = 0;
+                for line in text.lines().map(str::trim) {
+                    if line.is_empty() || line.starts_with(';') {
+                        continue;
+                    }
+                    if line.starts_with('[') && line.ends_with(']') {
+                        in_compile = line.eq_ignore_ascii_case("[CompileList]");
+                        compile_sections += usize::from(in_compile);
+                    } else {
+                        ensure!(
+                            !in_compile,
+                            "Community Patch requires its original empty CompileList"
+                        );
+                    }
+                }
+                ensure!(
+                    compile_sections == 1,
+                    "Community Patch CompileList identity differs"
+                );
+            }
         }
         for member in [&translation.installer, &translation.changes_ini] {
             if name == member.path {
@@ -768,6 +1552,13 @@ fn verify_native_members(
         ini_count == 1 && found.len() == 2 && (packaged_log.is_none() || packaged_log_found),
         "Native translation requires exact installer, sole INI and any declared packaged log"
     );
+    if community {
+        ensure!(
+            community_manifest(&package_files, &package_directories)?
+                == translation.inventory_sha256,
+            "Community Patch complete raw archive package differs from compiled manifest"
+        );
+    }
     ensure!(
         hash(&root.join(&pin.filename), cancelled)?.0 == pin.sha256,
         "Archive changed during native translation inspection"
@@ -802,10 +1593,9 @@ pub(crate) fn native_patcher_contract(
         );
         return Ok(None);
     };
-    let packaged_log = native_shape(&recipe)?;
+    native_shape(&recipe)?;
     ensure!(
-        spec.generator == PATCHER_GENERATOR
-            && component.instructions.len() == recipe.plan_step.operations.len(),
+        spec.generator == PATCHER_GENERATOR,
         "Native Patcher recipe instruction shape changed"
     );
     let binding = component
@@ -829,44 +1619,16 @@ pub(crate) fn native_patcher_contract(
             && binding.get("InputComponent") == Some(&recipe.canonical_input_component),
         "Native Patcher catalog provenance differs"
     );
-    let native = format!(
-        "<<modDirectory>>/.modsync-reviewed-{}-slot0",
-        component.guid
-    );
-    let expected_extract = instruction(
-        component,
-        0,
-        "ExtractTo",
-        format!("<<modDirectory>>/{}", recipe.archives[0].filename),
-        native.clone(),
-        false,
-    );
-    let mut expected_instructions = vec![expected_extract];
-    if let Some(member) = packaged_log {
-        expected_instructions.push(instruction(
-            component,
-            1,
-            "Delete",
-            format!("{native}/{member}"),
-            String::new(),
-            true,
-        ));
-    }
-    let mut expected_patcher = instruction(
-        component,
-        translation.operation_index,
-        "Patcher",
-        format!("{native}/{}", translation.installer.path),
-        translation.destination.clone(),
-        false,
-    );
-    expected_patcher.arguments = translation.arguments.clone();
-    expected_instructions.push(expected_patcher);
+    let expected_instructions = expected_native_instructions(component, &recipe)?;
     ensure!(
         serde_json::to_value(&component.instructions)?
             == serde_json::to_value(expected_instructions)?,
         "Native Patcher complete instruction model differs from catalog"
     );
+    if community_guid(&component.guid) {
+        let expected = community_expected_pending(component, spec, &recipe)?;
+        community_review(component, &expected, spec)?;
+    }
     let expected = &component.instructions[translation.operation_index];
     ensure!(
         expected.action == "Patcher"
@@ -881,6 +1643,7 @@ pub(crate) fn native_patcher_contract(
         component_guid: recipe.component_guid.clone(),
         translation: translation.clone(),
         source_plan: None,
+        source_namespace: None,
     }))
 }
 
@@ -929,10 +1692,19 @@ pub(crate) fn bind(
         "Resolved archive set differs from complete reviewed recipe"
     );
     let mut inventories = BTreeMap::new();
+    let mut inspection_options = options.clone();
+    if community_guid(&recipe.component_guid) {
+        inspection_options.max_expanded_bytes = Some(
+            options
+                .max_expanded_bytes
+                .unwrap_or(CP_EXPANDED)
+                .min(CP_EXPANDED),
+        );
+    }
     for pin in &recipe.archives {
         inventories.insert(
             pin.filename.clone(),
-            inspect(pin, &root, options, cancelled)?,
+            inspect(pin, &root, &inspection_options, cancelled)?,
         );
     }
     let packaged_log = if recipe.native_patcher.is_some() {
@@ -947,7 +1719,14 @@ pub(crate) fn bind(
     for (operation_index, operation) in recipe.plan_step.operations.iter().enumerate() {
         check(cancelled)?;
         match operation {
-            Operation::GuiPatcher {
+            Operation::Patcher {
+                patcher,
+                sha256,
+                cwd,
+                expected_changes,
+                ..
+            }
+            | Operation::GuiPatcher {
                 patcher,
                 sha256,
                 cwd,
@@ -962,7 +1741,7 @@ pub(crate) fn bind(
                     spec.generator == PATCHER_GENERATOR
                         && operation_index == translation.operation_index
                         && translation.extract_operation_index == 0
-                        && recipe.archives.len() == 1
+                        && (recipe.archives.len() == 1 || recipe.component_guid == CP1)
                         && translation.arguments == "changes.ini"
                         && translation.destination == "<<kotorDirectory>>"
                         && translation.success_contract == "native-zero-warnings-changed-game-v1"
@@ -1159,6 +1938,9 @@ pub(crate) fn bind(
     bound.metadata.insert("DraftReview".into(), json!({"RequiresReview":true,"Generator":spec.generator,
         "Derivations":derivations,"Result":draft::DraftResult { component_guid:bound.guid.clone(),
             draft_instruction_count:bound.instructions.len(),unparsed_gaps:vec![],conditional_drafts:vec![],rejected_drafts:0 }}));
+    if community_guid(&bound.guid) {
+        community_expected_pending(&bound, spec, &recipe)?;
+    }
     check(cancelled)?;
     *component = bound;
     Ok(())
@@ -1172,7 +1954,11 @@ pub(crate) fn regenerate_owner(
     cancelled: &AtomicBool,
 ) -> Result<Component> {
     let (_, recipe) = find_recipe(guid)?.context("Recipe identity not admitted")?;
-    let mut original: Component = serde_json::from_value(recipe.canonical_input_component)?;
+    let mut original: Component = if community_guid(guid) {
+        community_source(&recipe)?.canonical.clone()
+    } else {
+        serde_json::from_value(recipe.canonical_input_component)?
+    };
     let filenames: Vec<_> = recipe
         .archives
         .into_iter()
@@ -1195,13 +1981,17 @@ pub(crate) fn replay(
         .metadata
         .get(BINDING)
         .context("Missing authored recipe binding")?;
-    let mut original: Component = serde_json::from_value(
-        binding
-            .get("InputComponent")
-            .cloned()
-            .context("Missing recipe input context")?,
-    )?;
     let (_, recipe) = find_recipe(&component.guid)?.context("Recipe identity not admitted")?;
+    let mut original: Component = if community_guid(&component.guid) {
+        community_source(&recipe)?.canonical.clone()
+    } else {
+        serde_json::from_value(
+            binding
+                .get("InputComponent")
+                .cloned()
+                .context("Missing recipe input context")?,
+        )?
+    };
     let filenames: Vec<_> = recipe
         .archives
         .iter()
@@ -1268,6 +2058,16 @@ pub(crate) fn verify_runtime(
     options: &archive::Options,
     cancelled: &AtomicBool,
 ) -> Result<()> {
+    if crate::k2_preparation::contains_master(component) {
+        return crate::k2_preparation::verify_master_runtime(component, root, options, cancelled);
+    }
+    if super::source_plan_namespace::contains_native(component) {
+        super::source_plan_namespace::verify_runtime(component, root, options, cancelled)?;
+        return Ok(());
+    }
+    if super::duplicate_cleanup::contains(component) {
+        return super::duplicate_cleanup::verify_runtime(component, cancelled);
+    }
     if super::reviewed_master::contains_resolved(component) {
         return super::reviewed_master::verify_runtime(component, root, options, cancelled);
     }

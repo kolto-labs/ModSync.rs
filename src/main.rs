@@ -683,6 +683,9 @@ struct ConversionProcessing {
     /// Bind the pinned K1 widescreen profile to its three original guide owners.
     #[arg(long, requires_all = ["source_path", "k1_source_guide", "k1_galaxy_namespace"])]
     k1_widescreen_profile: Option<String>,
+    /// Explicit source-derived Steam 3C-FD preparation before the complete K2 ModList.
+    #[arg(long, value_parser = ["steam-windows-source-3cfd-v1"])]
+    k2_preparation_profile: Option<String>,
     /// Original pinned K1 Markdown guide used to reconstruct complete source context.
     #[arg(long, requires = "k1_widescreen_profile")]
     k1_source_guide: Option<PathBuf>,
@@ -1460,6 +1463,9 @@ fn process_conversion_inner(
             eprintln!("Warning: {warning}");
         }
     }
+    if let Some(profile) = &options.k2_preparation_profile {
+        modsync::k2_preparation::bind_guide(guide, profile)?;
+    }
     conversion_cancelled(cancelled)?;
     Ok(())
 }
@@ -1539,6 +1545,10 @@ fn load_resolved_archives(
             );
             ensure!(
                 reviewed_vendor
+                    || modsync::archive_generation::reviewed_manual::allows_raw_input(
+                        &binding.component_guid,
+                        filename,
+                    )?
                     || matches!(
                         std::path::Path::new(filename)
                             .extension()

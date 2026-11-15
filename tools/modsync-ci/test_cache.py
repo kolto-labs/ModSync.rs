@@ -360,10 +360,9 @@ class RestoreBoundTests(sources.Fixture):
         with mock.patch.object(cache, "request", site), mock.patch.object(cache, "budget_spent", return_value=True), \
                 mock.patch.object(cache, "warn") as warn:
             code, report = self.run_main("restore", "--no-artstore")
-        self.assertEqual((code, report["entries"][0]["source"], site.requests), (0, "stale-local", []))
+        self.assertEqual((code, report["entries"][0]["source"], site.requests), (0, "local", []))
         self.assertEqual(self.restored(), self.payload)
-        self.assertEqual(warn.call_count, 1)
-        self.assertIn("budget", warn.call_args.args[0])
+        warn.assert_not_called()
 
     def test_a_spent_budget_still_fetches_an_archive_that_has_no_local_copy(self):
         self.populate()
@@ -378,13 +377,13 @@ class RestoreBoundTests(sources.Fixture):
         self.populate()
         site = sources.Site({sources.URL: self.payload})
         with mock.patch.object(cache, "request", site), mock.patch.object(cache, "say") as say:
-            code, report = self.run_main("restore", "--no-artstore")
+            code, report = self.run_main("restore", "--no-artstore", "--download-mode", "refresh")
         lines = [call.args[0] for call in say.call_args_list]
         self.assertEqual(code, 0, report)
-        self.assertTrue(any("restore 1/1" in line and "revalidated" in line for line in lines), lines)
+        self.assertTrue(any("restore 1/1" in line and "website" in line for line in lines), lines)
         self.assertTrue(any("finished 1/1" in line for line in lines), lines)
 
-    def test_the_revalidation_asks_with_a_short_timeout_and_one_retry(self):
+    def test_explicit_refresh_uses_requested_timeout_and_retries(self):
         self.populate()
         seen = []
 
@@ -393,8 +392,9 @@ class RestoreBoundTests(sources.Fixture):
             return sources.Site({sources.URL: self.payload})(url, args, headers)
 
         with mock.patch.object(cache, "request", request):
-            code, _ = self.run_main("restore", "--no-artstore", "--timeout", "30", "--retries", "5")
-        self.assertEqual((code, seen), (0, [(cache.REVALIDATE_TIMEOUT_SECONDS, 1)]))
+            code, _ = self.run_main("restore", "--no-artstore", "--timeout", "30", "--retries", "5",
+                                    "--download-mode", "refresh")
+        self.assertEqual((code, seen), (0, [(30, 5)]))
 
     def test_bad_worker_and_budget_values_are_rejected(self):
         for flags in (("--workers", "0"), ("--workers", str(cache.MAX_WORKERS + 1)),
@@ -406,7 +406,7 @@ class RestoreBoundTests(sources.Fixture):
 class HostBreakerTests(sources.Fixture):
     URLS = tuple("https://files.example.com/pack_%s.zip" % each for each in "abcd")
 
-    def test_a_host_that_keeps_failing_is_not_asked_again_this_run(self):
+    def test_explicit_refresh_attempts_every_source_after_repeated_host_failures(self):
         self.populate({url: sources.zip_bytes(label) for url, label in zip(self.URLS, "abcd")})
         asked = []
 
@@ -415,10 +415,10 @@ class HostBreakerTests(sources.Fixture):
             raise ValueError("network request failed")
 
         with mock.patch.object(cache, "request", down), mock.patch.object(cache, "warn"):
-            code, report = self.run_main("restore", "--workers", "1")
+            code, report = self.run_main("restore", "--workers", "1", "--download-mode", "refresh")
         self.assertEqual(code, 0, report)
-        self.assertEqual(len(asked), cache.HOST_FAIL_LIMIT)
-        self.assertEqual(report["sources"], {"stale-local": 4})
+        self.assertEqual(len(asked), len(self.URLS))
+        self.assertEqual(report["sources"], {"cached-fallback": 4})
 
     def test_a_missing_file_is_not_a_down_host(self):
         self.populate({url: sources.zip_bytes(label) for url, label in zip(self.URLS, "abcd")})
@@ -429,7 +429,7 @@ class HostBreakerTests(sources.Fixture):
             raise ValueError("HTTP 404")
 
         with mock.patch.object(cache, "request", gone), mock.patch.object(cache, "warn"):
-            code, report = self.run_main("restore", "--workers", "1")
+            code, report = self.run_main("restore", "--workers", "1", "--download-mode", "refresh")
         self.assertEqual((code, len(asked)), (0, 4))
 
     def test_failure_classification(self):

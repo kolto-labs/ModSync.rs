@@ -2091,14 +2091,14 @@ class StageOnlyTests(artstore_tests.Fixture):
             code, report = self.run_main("refresh", "--cache-limit-bytes", self.limit)
         self.assertEqual(code, 0, report)
         self.assertEqual(self.by_url(report)[artstore_tests.sources.BIG_URL]["status"], self.module.OVER_LIMIT)
-        self.assertEqual(self.site.requests, [(artstore_tests.sources.URL, mock.ANY)])
+        self.assertEqual(self.site.requests, [])
         self.assertFalse(self.stage_dir.exists())
 
     def test_per_object_cap_is_respected(self):
         code, report = self.refresh("--stage-max-bytes", str(len(self.big) - 1))
         self.assertEqual(code, 0, report)
         self.assertEqual(self.by_url(report)[artstore_tests.sources.BIG_URL]["status"], self.module.OVER_LIMIT)
-        self.assertEqual([url for url, _ in self.site.requests], [artstore_tests.sources.URL])
+        self.assertEqual(self.site.requests, [])
         self.assertEqual(set(self.staged()), {self.sha})
         self.assertFalse(self.stage_dir.exists())
 
@@ -2112,7 +2112,7 @@ class StageOnlyTests(artstore_tests.Fixture):
         code, report = self.refresh(store=artstore_tests.FakeStore(live=[self.big_sha]))
         self.assertEqual(code, 0, report)
         self.assertEqual(self.by_url(report)[artstore_tests.sources.BIG_URL]["status"], self.module.OVER_LIMIT)
-        self.assertEqual([url for url, _ in self.site.requests], [artstore_tests.sources.URL])
+        self.assertEqual(self.site.requests, [])
         self.assertEqual(set(self.staged()), {self.sha})
 
     def test_bik_is_refused(self):

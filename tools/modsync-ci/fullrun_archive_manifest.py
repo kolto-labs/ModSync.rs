@@ -101,6 +101,9 @@ def validate_manifest(document, guide_root, games):
     items = {item["id"]: item for item in cache.discover(
         [str(Path(guide_root) / "content" / game / "full.md") for game in games])}
     pins = cache.load_pins()
+    original_entries = cache.original_guide_inputs.selected_entries(
+        list(items.values()),
+        [str(Path(guide_root) / "content" / game / "full.md") for game in games], document["entries"])
     selected = {}
     for identity, entry in document["entries"].items():
         if not isinstance(identity, str) or not cache.SHA256.fullmatch(identity) or not isinstance(entry, dict):
@@ -123,9 +126,13 @@ def validate_manifest(document, guide_root, games):
         if identity not in items:
             continue
         item = items[identity]
+        original_descriptor = original_entries.get(identity)
+        legacy_menu = (original_descriptor is not None
+                       and cache.original_guide_inputs.authenticated_legacy_menu_association(
+                           item, entry, original_descriptor))
         if (cache.key_for(item["url"]) != identity
                 or "url" in entry and entry["url"] not in (item["url"], cache.clean_url(item["url"]))
-                or not cache.objects_match_selection(item, entry)):
+                or not cache.objects_match_selection(item, entry) and not legacy_menu):
             raise ValueError("Archive association does not match current guide URL selection")
         if identity in pins:
             fields = ("sha256", "size", "extension", "archive_name")
@@ -150,6 +157,18 @@ def validate_manifest(document, guide_root, games):
                     "evidence": "operator-seed" if identity in pins else "legacy-manifest-association"}
         selected[identity] = ({**metadata, "objects": safe_objects, "size": sum(each["size"] for each in safe_objects)}
                               if "objects" in entry else {**metadata, **safe_objects[0]})
+        if legacy_menu:
+            # recover() already authenticated the sealed source manifest and
+            # provenance. Preserve that association while scheduling the exact
+            # missing compiled inputs; no body has been restored by this step.
+            selected[identity] = {**original_descriptor, "status": "required-input",
+                                  "legacy_manifest_association": {
+                                      "evidence": "authenticated-legacy-manifest-association",
+                                      "association_id": identity,
+                                      "entry_sha256": hashlib.sha256(json.dumps(
+                                          entry, sort_keys=True, separators=(",", ":")).encode()).hexdigest(),
+                                      "objects": safe_objects}}
+
     if not selected:
         raise ValueError("Archive manifest has no current guide associations")
     return {"schema": 1, "entries": selected}

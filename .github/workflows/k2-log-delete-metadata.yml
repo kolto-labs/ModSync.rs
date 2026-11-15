@@ -1,8 +1,5 @@
 name: Certify two original K2 log-delete ZIP inventories
 on:
-  push:
-    branches: [fix/fullrun-ci-credentials]
-    paths: [.github/workflows/k2-log-delete-metadata.yml]
   workflow_dispatch:
 permissions: {contents: read, actions: read}
 concurrency:

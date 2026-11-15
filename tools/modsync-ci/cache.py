@@ -31,6 +31,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import parse_qs, parse_qsl, unquote, urlencode, urljoin, urlsplit, urlunsplit
 from urllib.request import HTTPCookieProcessor, Request, build_opener
 import zipfile
+import original_guide_inputs
 
 
 MEGA_FRAGMENT_ROOT = "/modsync-fragment/"
@@ -1002,6 +1003,25 @@ def load_pins(path=None):
     return pins
 
 
+def reviewed_pin_matches(item, entry, pins):
+    """Compare reviewed body identities independently of mutable status/evidence tags."""
+    pin = (pins or {}).get(item.get("id"))
+    if pin is None:
+        return True
+    if pin.get("provider") != item.get("provider") or pin.get("url") != item.get("url"):
+        return False
+    objects = entry_objects(entry)
+    if (not objects or any(not isinstance(stored, dict)
+            or not isinstance(stored.get("archive_name"), str)
+            or not isinstance(stored.get("sha256"), str)
+            or not isinstance(stored.get("size"), int) or isinstance(stored.get("size"), bool)
+            or not isinstance(stored.get("extension"), str) for stored in objects)):
+        return False
+    fields = ("archive_name", "sha256", "size", "extension")
+    return (sorted(tuple(stored[field] for field in fields) for stored in objects)
+            == sorted(tuple(stored[field] for field in fields) for stored in pin["objects"]))
+
+
 def is_pinned(item, entry, pins=None):
     if not isinstance(entry, dict) or entry.get("status") != "pinned" or entry.get("evidence") != "operator-seed":
         return False
@@ -1016,7 +1036,7 @@ def is_pinned(item, entry, pins=None):
     objects = entry_objects(entry)
     if not objects:
         return False
-    if {each.get("sha256") for each in objects} != {each["sha256"] for each in pin["objects"]}:
+    if not reviewed_pin_matches(item, entry, {item["id"]: pin}):
         return False
     return objects_match_selection(item, entry)
 
@@ -1651,7 +1671,7 @@ def report_failures(entries, failures):
         "Mod cache refresh: upstream check failures (%d)" % len(rows),
         [(row["id"], row["outcome"], row["status"], row["host"], row["reason"]) for row in rows],
         ("Archive", "Outcome", "Status", "Host", "Reason"),
-        "The last cached copy was kept for stale-unknown archives; the next refresh asks upstream again."))
+        "Verified cached fallbacks remain available. Use --download-mode refresh to retry selected providers explicitly."))
     return rows
 
 
@@ -2142,47 +2162,92 @@ def revalidation_args(args):
     return limited
 
 
-def acquire(item, old, root, args, pins):
-    """Return (entry, source): a verified local copy of one archive, downloading only what changed.
+def verified_selection(item, entry, root, args, pins=None):
+    """Whole bytes, format and reviewed selection must agree before a cache hit."""
+    return (bool(entry_objects(entry)) and objects_match_selection(item, entry)
+            and original_guide_inputs.required_matches(item, entry, entry)
+            and reviewed_pin_matches(item, entry, pins)
+            and local_valid(root, entry)
+            and all(verified_object(item, stored, root, args) for stored in entry_objects(entry)))
 
-    Valid local object: reused when pinned, or when it has no validators and was checked inside
-    --max-age-days; otherwise one conditional request (304 reuses it). A missing, corrupt or changed
-    object comes from the artifact store, the optional remote, then P2P (all only for a hash the manifest
-    knows; source "artstore" or "recovered"), then the website. When the website cannot be reached (restore and refresh alike, unless --force), the
-    last valid local copy is returned unchanged with source "stale-local": its manifest entry keeps
-    its old checked_at and validators, so the next run asks the website again. Restore bounds the optional work:
-    once the restore time budget (--restore-budget-seconds) is spent, or a host failed HOST_FAIL_LIMIT checks in a
-    row, a valid local copy is used as "stale-local" without asking the website. A missing copy is still fetched.
+
+def acquisition_receipt(entry, mode, attempted, outcome, reason=None):
+    result = copy.deepcopy(entry)
+    if result.get("status") == "required-input":
+        result["status"] = "verified"
+    for stored in result.get("objects", []):
+        if stored.get("status") == "required-input":
+            stored["status"] = "verified"
+    result["acquisition"] = {"download_mode": mode, "provider_attempted": attempted,
+                             "provider_outcome": outcome}
+    if reason is not None:
+        result["acquisition"]["fallback_reason"] = reason
+    return result
+
+
+class AcquisitionFailure(ValueError):
+    def __init__(self, reason, mode, attempted, outcome):
+        super().__init__(reason)
+        self.acquisition = {"download_mode": mode, "provider_attempted": attempted,
+                            "provider_outcome": outcome}
+
+
+def acquire(item, old, root, args, pins):
+    """Cache-first by default; explicit refresh always attempts the provider.
+
+    Recovery tiers are queried only for known content identities. A provider
+    failure or incompatible required version can fall back only to a freshly
+    verified cache selection. Provider freshness never replaces a pinned guide's
+    distinct required input with a different version.
     """
-    if not (local_valid(root, old) and objects_match_selection(item, old)):
-        source = recover_objects(item, old, root, args, pins)
-        if source and objects_match_selection(item, old):
-            return old, source
-        return download(item, old, root, args), "website"
-    if is_pinned(item, old, pins) or (
-            not args.force and not has_validators(old) and upstream_current(old, args.max_age_days)):
-        return old, "local"
-    host = upstream_host(item)
-    if not args.force:
-        if budget_spent(args):
-            warn_once("budget", "restore time budget spent; archives not yet checked use their last cached copy")
-            return old, "stale-local"
-        if host_down(host):
-            warn_once("host:" + host, "upstream host unreachable earlier in this run; "
-                      "its remaining archives use their last cached copy")
-            return old, "stale-local"
+    mode = getattr(args, "download_mode", None) or "cache-first"
+    if mode not in ("cache-first", "refresh"):
+        raise ValueError("download mode must be cache-first or refresh")
+    cache_only = bool(getattr(args, "cache_only", False))
+    if item.get("id") in pins and not reviewed_pin_matches(item, old, pins):
+        # A manifest's newer object cannot displace an explicit reviewed source
+        # pin. Recover that exact known body before accepting any fallback.
+        old = pin_as_entry(pins[item["id"]])
+    valid = verified_selection(item, old, root, args, pins)
+    cache_source = "local" if valid else ""
+    recovery_attempted = False
+    if not valid and (mode == "cache-first" or cache_only):
+        recovery_attempted = True
+        cache_source = recover_objects(item, old, root, args, pins)
+        valid = bool(cache_source) and verified_selection(item, old, root, args, pins)
+    if cache_only:
+        if valid:
+            return acquisition_receipt(old, mode, False, "cache-only-hit"), cache_source
+        raise AcquisitionFailure("cache-only: no verified local or recoverable known archive object",
+                                 mode, False, "cache-only-miss")
+    if mode == "cache-first" and valid:
+        return acquisition_receipt(old, mode, False, "cache-hit"), cache_source
     try:
-        result = download(item, old, root, revalidation_args(args))
+        # Refresh means an actual provider attempt for every selected source,
+        # including validator-bearing cache hits. Do not short-circuit by age,
+        # host budget, seed status, or a prior upstream failure in this mode.
+        provider_old = {} if mode == "refresh" else old
+        result = download(item, provider_old, root, args)
+        if not reviewed_pin_matches(item, result, pins):
+            raise ValueError("provider input differs from the required reviewed seed pin")
+        if not original_guide_inputs.required_matches(item, old, result):
+            raise ValueError("provider input differs from the required original guide version")
+        result = original_guide_inputs.retain_provenance(item, old, result)
     except (ValueError, OSError, HTTPException, subprocess.SubprocessError, zipfile.BadZipFile) as error:
-        if args.force:
-            raise
-        note_host(host, not network_failure(error))
+        if not valid and not recovery_attempted:
+            recovery_attempted = True
+            cache_source = recover_objects(item, old, root, args, pins)
+            valid = bool(cache_source) and verified_selection(item, old, root, args, pins)
+        if not valid or not verified_selection(item, old, root, args, pins):
+            raise AcquisitionFailure(safe_reason(error), mode, True, "failed-no-valid-cache") from None
         reason = failure_reason(error)
-        warn("upstream could not be checked for " + item["id"][:8] + " (" + reason + "); using the last cached copy")
-        record_failure(item, "stale-local", reason=reason, echo=False)
-        return old, "stale-local"
-    note_host(host, True)
-    return result, "revalidated" if result.get("evidence") == "conditional-304" else "website"
+        record_failure(item, "cached-fallback", reason=reason, echo=False)
+        warn("provider attempt failed for " + item["id"][:8] + " (" + reason
+             + "); using the verified cached selection")
+        fallback = acquisition_receipt(old, mode, True, "cached-fallback", reason)
+        fallback["acquisition"]["cache_source"] = cache_source
+        return fallback, "cached-fallback"
+    return acquisition_receipt(result, mode, True, "downloaded"), "website"
 
 
 class Runner:
@@ -2265,7 +2330,7 @@ def kept_objects(manifest, limit):
             if (isinstance(stored.get("sha256"), str) and SHA256.fullmatch(stored["sha256"])
                     and isinstance(stored.get("size"), int) and not is_bik(stored)):
                 sizes[stored["sha256"]] = stored["size"]
-                if entry.get("status") == "pinned":
+                if entry.get("status") == "pinned" or entry.get("provenance") == original_guide_inputs.PROVENANCE:
                     pinned.add(stored["sha256"])
     keep, total = set(), 0
     for sha, size in sorted(sizes.items(), key=lambda pair: (pair[0] not in pinned, pair[1])):
@@ -2294,6 +2359,8 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("command", choices=("discover", "refresh", "restore", "import-existing"))
     parser.add_argument("--guide", action="append", help="repeatable full.md path (default both games)")
+    parser.add_argument("--source-id", action="append", default=[], metavar="SHA256",
+                        help="repeatable exact discovered source identity; full guides are parsed first; unknown identities fail")
     parser.add_argument("--cache-dir", type=Path, default=Path(".modsync-cache"))
     parser.add_argument("--destination", type=Path, help="archive directory for either installer")
     parser.add_argument("--resource-index", type=Path, help="resource index for import-existing")
@@ -2330,15 +2397,18 @@ def main(argv=None):
                              "(pinned first, then smallest) and skip links whose objects do not; sized for the "
                              "10 GB Actions cache. Lanes fetch what is not kept; with --emit-stage-manifest "
                              "such objects are still fetched into --stage-dir to be staged")
-    parser.add_argument("--force", action="store_true", help="refresh even inside freshness interval")
+    parser.add_argument("--download-mode", choices=("cache-first", "refresh"), default=None,
+                        help="default cache-first: reuse verified cache tiers; refresh attempts every provider then falls back to verified cache")
+    parser.add_argument("--cache-only", action="store_true",
+                        help="only verified local/known-object cache recovery; never request a provider")
+    parser.add_argument("--force", action="store_true", help="legacy alias for refresh when --download-mode is not explicitly supplied")
     parser.add_argument("--max-age-days", type=float, default=14)
     parser.add_argument("--timeout", type=float, default=30, help="socket timeout seconds")
     parser.add_argument("--download-timeout", type=float, default=1800)
     parser.add_argument("--integrity-timeout", type=float, default=300)
     parser.add_argument("--backend-timeout", type=float, default=1800)
     parser.add_argument("--restore-budget-seconds", type=float, default=RESTORE_BUDGET_SECONDS,
-                        help="restore only: total time for optional work; after it, archives with a valid local "
-                             "copy skip the upstream check and use it (stale-local, with a warning). 0 disables")
+                        help="restore only: budget for optional cache recovery; explicit refresh still attempts every selected provider; 0 disables")
     parser.add_argument("--workers", type=int, default=RESTORE_WORKERS,
                         help="restore only: archives acquired concurrently (1..%d)" % MAX_WORKERS)
     parser.add_argument("--retries", type=int, default=2)
@@ -2354,6 +2424,7 @@ def main(argv=None):
                              "reference to it is inside a '###' step; those steps are listed in the report's "
                              "unavailable_steps for ports.py to deselect")
     args = parser.parse_args(argv)
+    args.download_mode = args.download_mode or ("refresh" if args.force else "cache-first")
     if args.deselect_unavailable and args.command != "restore":
         parser.error("--deselect-unavailable is only valid with restore")
     if args.allow_uncached_by_policy and args.command != "restore":
@@ -2405,7 +2476,20 @@ def main(argv=None):
     items = discover(guides)
     if not items:
         raise ValueError("no HTTP Markdown links discovered")
-    report = {"schema": 1, "command": args.command, "entries": []}
+    discovered_count = len(items)
+    selected_source_ids = set(args.source_id)
+    if any(not SHA256.fullmatch(identity) for identity in selected_source_ids):
+        raise ValueError("source-id must be an exact discovered SHA-256 source identity")
+    if selected_source_ids - {item["id"] for item in items}:
+        raise ValueError("source-id is absent from the complete supplied guides")
+    if selected_source_ids:
+        items = [item for item in items if item["id"] in selected_source_ids]
+
+    report = {"schema": 1, "command": args.command, "entries": [],
+              "source_selection": {"complete_guide_source_count": discovered_count,
+                                   "selected_source_count": len(items),
+                                   "source_ids": sorted(selected_source_ids) if selected_source_ids else None},
+              "download_mode": args.download_mode, "cache_only": args.cache_only}
     if args.command == "discover":
         report["entries"] = [{**item, "url": clean_url(item["url"])} for item in items]
     elif args.command == "import-existing":
@@ -2455,14 +2539,22 @@ def main(argv=None):
             pins = load_pins()
         except (ValueError, OSError):
             pins = {}
-        losers = sibling_name_losers(items, manifest["entries"], pins) if args.command == "restore" else {}
+        original_entries = original_guide_inputs.selected_entries(items, guides, manifest["entries"])
+        selected_entries = {**manifest["entries"], **original_entries}
+        # Persist known input descriptors, never a claim that their bytes exist.
+        # This also lets cache budget selection protect the required originals
+        # before another source's pruning pass runs.
+        if original_entries:
+            manifest["entries"].update(original_entries)
+            atomic_json(manifest_path, manifest)
+        losers = sibling_name_losers(items, selected_entries, pins) if args.command == "restore" else {}
         limit = args.cache_limit_bytes if args.command == "refresh" else None
         keep = kept_objects(manifest, limit) if limit is not None else None
         stage_dir = (args.stage_dir or root.parent / (root.name + ".stage-only")).resolve()
         stage_on = keep is not None and bool(args.emit_stage_manifest)
         stage = {"hold": set(), "left": args.stage_total_bytes}
         if stage_on:
-            items = prioritise_deferred(items, manifest["entries"], deferred_shas())
+            items = prioritise_deferred(items, selected_entries, deferred_shas())
         RUN_STATE.update(p2p_missed=set(), host_failures={}, warned=set(), failures=[])
         restoring = args.command == "restore"
         args.deadline = (time.monotonic() + args.restore_budget_seconds
@@ -2471,10 +2563,10 @@ def main(argv=None):
         acquisitions = Acquisitions(root, args, pins, tracker, args.workers if restoring else 1)
         for item in items if restoring else ():
             if not uncached_reason(item):
-                acquisitions.submit(item, manifest["entries"].get(item["id"]) or (
+                acquisitions.submit(item, selected_entries.get(item["id"]) or (
                     pin_as_entry(pins[item["id"]]) if item["id"] in pins else {}))
         for item in items:
-            old = manifest["entries"].get(item["id"]) or (
+            old = selected_entries.get(item["id"]) or (
                 pin_as_entry(pins[item["id"]]) if item["id"] in pins else {})
             entry = {"id": item["id"], "url": clean_url(item["url"]), "provider": item["provider"]}
             policy = uncached_reason(item)
@@ -2498,7 +2590,7 @@ def main(argv=None):
                 continue
             reserved = {}
             try:
-                if keep is not None and entry_objects(old) and not all(
+                if keep is not None and args.download_mode != "refresh" and entry_objects(old) and not all(
                         each.get("sha256") in keep for each in entry_objects(old)):
                     reserved = reserve_stage(old, keep, args, stage) if stage_on else None
                     if not reserved:
@@ -2508,6 +2600,11 @@ def main(argv=None):
                 before = manifest["entries"].get(item["id"])
                 old, source = acquisitions.result(item, old)
                 entry["source"] = source
+                if isinstance(old.get("acquisition"), dict):
+                    entry["acquisition"] = copy.deepcopy(old["acquisition"])
+                if old.get("provenance") == original_guide_inputs.PROVENANCE:
+                    entry["provenance"] = old["provenance"]
+                    entry["reviewed_original_guide_input"] = copy.deepcopy(old["reviewed_original_guide_input"])
                 if args.command == "refresh" and any(is_bik(each) for each in entry_objects(old)):
                     for each in entry_objects(old):
                         if re.fullmatch(r"[a-f0-9]{64}", str(each.get("sha256", ""))):
@@ -2552,17 +2649,20 @@ def main(argv=None):
                 if limit is not None:
                     prune(root, manifest, limit, stage["hold"], stage_dir)
             except (ValueError, OSError, HTTPException, subprocess.SubprocessError, zipfile.BadZipFile) as error:
+                if isinstance(getattr(error, "acquisition", None), dict):
+                    entry["acquisition"] = copy.deepcopy(error.acquisition)
                 if args.command == "refresh":
                     record_failure(item, "stage-fetch-failed" if reserved else (
                         "stale-unknown" if old and not is_pinned(item, old, pins) else "unresolved"), error)
-                if reserved:
+                if reserved and not getattr(args, "cache_only", False):
                     release_stage(reserved, stage)
                     entry.update(status=OVER_LIMIT, reason="stage-only fetch failed: " + safe_reason(error))
                     report["entries"].append(entry)
                     prune(root, manifest, limit, stage["hold"], stage_dir)
                     continue
                 entry.update(status="unresolved", reason=safe_reason(error))
-                if args.command == "restore" and args.deselect_unavailable:
+                if (args.command == "restore" and args.deselect_unavailable
+                        and not args.cache_only):
                     mark_unavailable(entry, item, report)
                 if args.command == "refresh" and old and not is_pinned(item, old, pins):
                     manifest["entries"][item["id"]] = {**old, "status": "stale-unknown"}

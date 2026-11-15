@@ -1,0 +1,4227 @@
+{
+  "schema": 1,
+  "policy": "closed-original-source-selected-namespace-v1",
+  "source_guides": {
+    "k1": "44067788c6cb7a83b38d468817f273ce5cc901cd5e000c0f9ff65f8af15fc6ed",
+    "k2": "f442bdf574031623ed577609730d887069b9bc8e38e8e2f38ecc43a7e7487d5f"
+  },
+  "source_plans": {
+    "k1": "1b402ba085625c4863795069eaacaef0f53e8ea7179e56a5bd150d88eb9c0a74",
+    "k2": "0add8c1aeb7cdfad3df4b21761e135c150aa7832cf3fc0edabe01a91245a9258"
+  },
+  "rows": [
+    {
+      "game": "k1",
+      "component_index": 34,
+      "guid": "0c2079ec-5d23-8e69-8106-cbed77b3a58d",
+      "source_heading": "### Better Twi'lek Heads",
+      "step_index": 34,
+      "step_id": "step-035",
+      "source_choice": "Source allows slim or original necks; original positional0 explicitly selects Option A Slim Necks. This is recorded chosen preference, not an inferred default.",
+      "archive": {
+        "filename": "K1 Twi_lek Heads v1.3.3.7z",
+        "sha256": "f4f670d319c9e69f76c044ebf6b6a0130a7e725d186f1ee8c5683417262f1ed7",
+        "bytes": 13486213
+      },
+      "installer": {
+        "path": "Installer.exe",
+        "sha256": "2a108d0ba866867da4726dedf6b17efdb23db4cbf3809856adbadf4a366cecb6",
+        "bytes": 9518185
+      },
+      "ini": {
+        "path": "tslpatchdata/1 - Slim Necks/changes_1.ini",
+        "sha256": "2c436590a8d3a8652e41d57bf2d48464d86a1c88eba332bc1ab58721d3cef3e7",
+        "bytes": 1505
+      },
+      "namespace": {
+        "index": 0,
+        "key": "Namespace1",
+        "id": "Option 1",
+        "map": {
+          "path": "tslpatchdata/namespaces.ini",
+          "sha256": "e35f830d50d5473ab7567f8c420ce59e77d60b0c27b967930176f149875cff64",
+          "bytes": 1050
+        },
+        "ini_name": "changes_1.ini",
+        "data_path": "1 - Slim Necks"
+      },
+      "members": [
+        {
+          "path": "Installer.exe",
+          "directory": false,
+          "bytes": 9518185,
+          "sha256": "2a108d0ba866867da4726dedf6b17efdb23db4cbf3809856adbadf4a366cecb6"
+        },
+        {
+          "path": "Preview_A.png",
+          "directory": false,
+          "bytes": 1752726,
+          "sha256": "ee5662da0820852ff22b358520325edc2ad145649061cddab8e7254428a68554"
+        },
+        {
+          "path": "Preview_B.png",
+          "directory": false,
+          "bytes": 1572298,
+          "sha256": "6e5667594786357998304fb19e8a098c44846f5e880608fc186c93c129b8fd61"
+        },
+        {
+          "path": "readme.rtf",
+          "directory": false,
+          "bytes": 3000,
+          "sha256": "73185becf0502018431782c2f433aafae7e448c82d63793efa5e4c01ed41510c"
+        },
+        {
+          "path": "tslpatchdata",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks/changes_1.ini",
+          "directory": false,
+          "bytes": 1505,
+          "sha256": "2c436590a8d3a8652e41d57bf2d48464d86a1c88eba332bc1ab58721d3cef3e7"
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks/info_1.rtf",
+          "directory": false,
+          "bytes": 631,
+          "sha256": "68910606da889bf7a8fbf4c4627cd56eacc65350638e9d80e90ddf74ba78d099"
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks/n_komadh.mdl",
+          "directory": false,
+          "bytes": 103974,
+          "sha256": "727f34a1b551380f7767664c8f6ecb2e1731bb31c37f7271b94445b833954532"
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks/n_komadh.mdx",
+          "directory": false,
+          "bytes": 114880,
+          "sha256": "308188ab0ced0c50e47ac85be562cabe09da9837c9129d70f2d269d2032c1761"
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks/n_komadh.tpc",
+          "directory": false,
+          "bytes": 174970,
+          "sha256": "e918f019b8bb9bd4d80c4071083f183403b0fa2d5b8758d98f6003489edcc349"
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks/n_xorh.mdl",
+          "directory": false,
+          "bytes": 103972,
+          "sha256": "d5e7c3064a16817a8a66980d34999ddecb61cf805c3e82cfe5151c62e72c7e3e"
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks/n_xorh.mdx",
+          "directory": false,
+          "bytes": 114880,
+          "sha256": "308188ab0ced0c50e47ac85be562cabe09da9837c9129d70f2d269d2032c1761"
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks/n_xorh.tpc",
+          "directory": false,
+          "bytes": 174970,
+          "sha256": "fa574734997fa2639abf5c2f3c1ce1c769d28cdbb662ba755324a20b5899706d"
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks/n_zharh.mdl",
+          "directory": false,
+          "bytes": 103973,
+          "sha256": "2f84f21ce9c2c2122aee22c18f6747a13030bd6775581d3b36f54db3e1b2b385"
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks/n_zharh.mdx",
+          "directory": false,
+          "bytes": 114880,
+          "sha256": "308188ab0ced0c50e47ac85be562cabe09da9837c9129d70f2d269d2032c1761"
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks/n_zharh.tpc",
+          "directory": false,
+          "bytes": 174970,
+          "sha256": "325373865b92943029b0922966b2c82dcfe77b2fd9ec295a0b23ec87a142cf62"
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks/twilek_m.mdl",
+          "directory": false,
+          "bytes": 103974,
+          "sha256": "1b342160e3e68926ab1e7eebfc543965fe30c64dd36ec0f2123ae6a8f29dd016"
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks/twilek_m.mdx",
+          "directory": false,
+          "bytes": 114880,
+          "sha256": "308188ab0ced0c50e47ac85be562cabe09da9837c9129d70f2d269d2032c1761"
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks/twilek_m01.tpc",
+          "directory": false,
+          "bytes": 174970,
+          "sha256": "cb91c8ba4c85e4e3095f2262d6eb0536e810a13025af99d3ec404f4e76232c31"
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks/twilek_m01b.tpc",
+          "directory": false,
+          "bytes": 174943,
+          "sha256": "6de6d761c5d982c2ccea9ee48e2c9d467dc5d865ff6857f161be2fb0d9170576"
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks/twilek_m02.mdl",
+          "directory": false,
+          "bytes": 103976,
+          "sha256": "d8f4dc0c50d96639ae52a83341d2b06fe38ba97c053b86ac5b14a80751e75151"
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks/twilek_m02.mdx",
+          "directory": false,
+          "bytes": 114880,
+          "sha256": "308188ab0ced0c50e47ac85be562cabe09da9837c9129d70f2d269d2032c1761"
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks/twilek_m02.tpc",
+          "directory": false,
+          "bytes": 174970,
+          "sha256": "e33e7b9ef85916d6877b925fa11cc66da2cb4446fae3992ba198fbe386f40ff5"
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks/twilek_m03.mdl",
+          "directory": false,
+          "bytes": 103976,
+          "sha256": "288957226f9315b58bd16078f44e7f376b1cc61bee2f57de99d587a98e0ad9ca"
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks/twilek_m03.mdx",
+          "directory": false,
+          "bytes": 114880,
+          "sha256": "308188ab0ced0c50e47ac85be562cabe09da9837c9129d70f2d269d2032c1761"
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks/twilek_m03.tpc",
+          "directory": false,
+          "bytes": 174970,
+          "sha256": "59179dce4e526717fab33c9d183cb29e1f76f57585b1a897fcb863a2aae2dabc"
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks/twilek_m05.mdl",
+          "directory": false,
+          "bytes": 103976,
+          "sha256": "e32954c9fdcb0d145a1dbfbd413e4dabd6d9d6af2eed5af3f6f5562a0243fd4a"
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks/twilek_m05.mdx",
+          "directory": false,
+          "bytes": 114880,
+          "sha256": "308188ab0ced0c50e47ac85be562cabe09da9837c9129d70f2d269d2032c1761"
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks/twilek_m05.tpc",
+          "directory": false,
+          "bytes": 699258,
+          "sha256": "fc764f9c89d7a669f1bcb745770398d9b55a3f4e7fc47fdd6b79affb57005840"
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks/changes_2.ini",
+          "directory": false,
+          "bytes": 1509,
+          "sha256": "a8f180aac54a1934e7ea24880708ffca3c4e41b84914fdd9f109baa31dcc32f4"
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks/info_2.rtf",
+          "directory": false,
+          "bytes": 708,
+          "sha256": "f899e45c630be6ef2f78e296621592fd1a80cb2d936bf55ad376c2f1e4aae28b"
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks/n_komadh.mdl",
+          "directory": false,
+          "bytes": 105354,
+          "sha256": "d942a04106355a8c1e2a1f2fc3c8516757052018e5442d5a34d7d1c868fcc3a9"
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks/n_komadh.mdx",
+          "directory": false,
+          "bytes": 108916,
+          "sha256": "9a3010ca9114e1a0791df79f7b1333ffe32d869d6a17818936110492840350c2"
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks/n_komadh.tpc",
+          "directory": false,
+          "bytes": 174970,
+          "sha256": "e918f019b8bb9bd4d80c4071083f183403b0fa2d5b8758d98f6003489edcc349"
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks/n_xorh.mdl",
+          "directory": false,
+          "bytes": 105352,
+          "sha256": "af5837dc8b0b4eac2946f6d972302cbf7c89190c30ea1de316648214b9792391"
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks/n_xorh.mdx",
+          "directory": false,
+          "bytes": 108916,
+          "sha256": "9a3010ca9114e1a0791df79f7b1333ffe32d869d6a17818936110492840350c2"
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks/n_xorh.tpc",
+          "directory": false,
+          "bytes": 174970,
+          "sha256": "fa574734997fa2639abf5c2f3c1ce1c769d28cdbb662ba755324a20b5899706d"
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks/n_zharh.mdl",
+          "directory": false,
+          "bytes": 105353,
+          "sha256": "f3f4e5aaea9c4b8a9aed1086d528f58646ea59a107fc61d9817c3fbb4f6fe576"
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks/n_zharh.mdx",
+          "directory": false,
+          "bytes": 108916,
+          "sha256": "9a3010ca9114e1a0791df79f7b1333ffe32d869d6a17818936110492840350c2"
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks/n_zharh.tpc",
+          "directory": false,
+          "bytes": 174970,
+          "sha256": "325373865b92943029b0922966b2c82dcfe77b2fd9ec295a0b23ec87a142cf62"
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks/twilek_m.mdl",
+          "directory": false,
+          "bytes": 105354,
+          "sha256": "400b7aeafcf103f77984501180703f2cc062cfeaaaa28cd20d2823fb80821223"
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks/twilek_m.mdx",
+          "directory": false,
+          "bytes": 108916,
+          "sha256": "9a3010ca9114e1a0791df79f7b1333ffe32d869d6a17818936110492840350c2"
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks/twilek_m01.tpc",
+          "directory": false,
+          "bytes": 174970,
+          "sha256": "cb91c8ba4c85e4e3095f2262d6eb0536e810a13025af99d3ec404f4e76232c31"
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks/twilek_m01b.tpc",
+          "directory": false,
+          "bytes": 174943,
+          "sha256": "6de6d761c5d982c2ccea9ee48e2c9d467dc5d865ff6857f161be2fb0d9170576"
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks/twilek_m02.mdl",
+          "directory": false,
+          "bytes": 105356,
+          "sha256": "c83a874d977e871bd116956aec37382e4b1363a9460e5967d0a4afbc7463f22a"
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks/twilek_m02.mdx",
+          "directory": false,
+          "bytes": 108916,
+          "sha256": "9a3010ca9114e1a0791df79f7b1333ffe32d869d6a17818936110492840350c2"
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks/twilek_m02.tpc",
+          "directory": false,
+          "bytes": 174970,
+          "sha256": "e33e7b9ef85916d6877b925fa11cc66da2cb4446fae3992ba198fbe386f40ff5"
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks/twilek_m03.mdl",
+          "directory": false,
+          "bytes": 105356,
+          "sha256": "ee21bc12240d668ebf9b0695354359f4fc07420e33f2967811c6195a032bcb9e"
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks/twilek_m03.mdx",
+          "directory": false,
+          "bytes": 108916,
+          "sha256": "9a3010ca9114e1a0791df79f7b1333ffe32d869d6a17818936110492840350c2"
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks/twilek_m03.tpc",
+          "directory": false,
+          "bytes": 174970,
+          "sha256": "59179dce4e526717fab33c9d183cb29e1f76f57585b1a897fcb863a2aae2dabc"
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks/twilek_m05.mdl",
+          "directory": false,
+          "bytes": 105356,
+          "sha256": "22b8f9b459be7e986338638ab62763835bc0daadd8817268f622764a0bde154e"
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks/twilek_m05.mdx",
+          "directory": false,
+          "bytes": 108916,
+          "sha256": "9a3010ca9114e1a0791df79f7b1333ffe32d869d6a17818936110492840350c2"
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks/twilek_m05.tpc",
+          "directory": false,
+          "bytes": 699258,
+          "sha256": "fc764f9c89d7a669f1bcb745770398d9b55a3f4e7fc47fdd6b79affb57005840"
+        },
+        {
+          "path": "tslpatchdata/namespaces.ini",
+          "directory": false,
+          "bytes": 1050,
+          "sha256": "e35f830d50d5473ab7567f8c420ce59e77d60b0c27b967930176f149875cff64"
+        }
+      ],
+      "raw_component": {
+        "Guid": "0c2079ec-5d23-8e69-8106-cbed77b3a58d",
+        "Name": "Better Twi'lek Heads",
+        "Author": "Ashton Scorpius",
+        "Description": "Unlike female Twi'lek, male Twi'lek are supposed to have ears. Operative word: *supposed* to. Their ears are barely visible at all in KOTOR, which this mod fixes using TOR ear geometry.",
+        "Directions": "Choose whether to use the slim or original necks; your preference.",
+        "Tier": "3 - Suggested",
+        "Category": [
+          "Appearance Change"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/1430-k1-better-twilek-male-heads/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "0c2079ec-5d23-8e69-8106-cbed77b3a58d",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults.",
+              "Choose whether to use the slim or original necks"
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "HoloPatcher Mod",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "InstallationMethod": "HoloPatcher Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[Better Twi'lek Heads](https://deadlystream.com/files/file/1430-k1-better-twilek-male-heads/)",
+        "WidescreenOnly": false
+      },
+      "canonical_component": {
+        "Guid": "0c2079ec-5d23-8e69-8106-cbed77b3a58d",
+        "Name": "Better Twi'lek Heads",
+        "Author": "Ashton Scorpius",
+        "Description": "Unlike female Twi'lek, male Twi'lek are supposed to have ears. Operative word: *supposed* to. Their ears are barely visible at all in KOTOR, which this mod fixes using TOR ear geometry.",
+        "Directions": "Choose whether to use the slim or original necks; your preference.",
+        "Tier": "3 - Suggested",
+        "Category": [
+          "Appearance Change"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/1430-k1-better-twilek-male-heads/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "0c2079ec-5d23-8e69-8106-cbed77b3a58d",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults.",
+              "Choose whether to use the slim or original necks"
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "HoloPatcher Mod",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "InstallationMethod": "HoloPatcher Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[Better Twi'lek Heads](https://deadlystream.com/files/file/1430-k1-better-twilek-male-heads/)",
+        "WidescreenOnly": false
+      },
+      "original_step": {
+        "id": "step-035",
+        "source_heading": "### Better Twi'lek Heads",
+        "operations": [
+          {
+            "type": "extract",
+            "source": "{archives}/K1 Twi_lek Heads v1.3.3.7z",
+            "destination": "{extract}/step-035/1"
+          },
+          {
+            "type": "patcher",
+            "patcher": "{extract}/step-035/1/Installer.exe",
+            "sha256": "2a108d0ba866867da4726dedf6b17efdb23db4cbf3809856adbadf4a366cecb6",
+            "argv": [
+              "/usr/bin/wine",
+              "{extract}/step-035/1/Installer.exe",
+              "--game-dir",
+              "{game}",
+              "--tslpatchdata",
+              "{extract}/step-035/1",
+              "--namespace-option-index",
+              "0",
+              "--install"
+            ],
+            "cwd": "{extract}/step-035/1",
+            "success_log": "{extract}/step-035/1/installlog.txt",
+            "success_markers": [
+              "The installation is complete with 0 errors and 0 warnings."
+            ],
+            "failure_regex": [
+              "^\\[Error\\]",
+              "^\\[Warning\\]"
+            ],
+            "expected_changes": "changed_manifest"
+          }
+        ]
+      },
+      "disabled_lookup_game_hint": false
+    },
+    {
+      "game": "k1",
+      "component_index": 60,
+      "guid": "634e72d7-59ff-8a55-acd2-d5ac6885b0be",
+      "source_heading": "### K2 Swoops to K1",
+      "step_index": 60,
+      "step_id": "step-061",
+      "source_choice": "Original positional0 explicitly chooses K1 Vanilla with K2 shield; no extra prose choice. Preserve original later operations.",
+      "archive": {
+        "filename": "[K1] Swoop from K2 to K1.rar",
+        "sha256": "048b837e0d55fa86477ce4aff31371a4af43abc49dc16bd166f699c255634c44",
+        "bytes": 53109841
+      },
+      "installer": {
+        "path": "[K1] Swoop from K2 to K1/Swoops from K2 to K1.exe",
+        "sha256": "2a108d0ba866867da4726dedf6b17efdb23db4cbf3809856adbadf4a366cecb6",
+        "bytes": 9518185
+      },
+      "ini": {
+        "path": "[K1] Swoop from K2 to K1/tslpatchdata/K1 Vanilla with K2 shield/changes.ini",
+        "sha256": "08ae3eae0b1fb47fd7dbe25692a61dfc30802cafc34a596173f09b9b69139d61",
+        "bytes": 1015
+      },
+      "namespace": {
+        "index": 0,
+        "key": "Namespace1",
+        "id": "1",
+        "map": {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/namespaces.ini",
+          "sha256": "ca33409126c40378c227ab071f5d6ccf8a946aa42db460284f6800e1422a5583",
+          "bytes": 1416
+        },
+        "ini_name": "changes.ini",
+        "data_path": "K1 Vanilla with K2 shield"
+      },
+      "members": [
+        {
+          "path": "[K1] Swoop from K2 to K1",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/Readme.txt",
+          "directory": false,
+          "bytes": 1205,
+          "sha256": "14a2bd1dc883abea22c41ec30e8cfa5f345300dc39029e57a47747f21df719b7"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/Screens for K2 skins",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/Screens for K2 skins/Skin1.jpg",
+          "directory": false,
+          "bytes": 885336,
+          "sha256": "f01ebf09153f73d5498cbed20223cd2dcf449860b34ac62e57dbff560c15d965"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/Screens for K2 skins/skin2.jpg",
+          "directory": false,
+          "bytes": 885255,
+          "sha256": "fb687f2edd6c4303812984c94e7a8685140becc30bccd8d75b9d493c5e21ce1c"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/Screens for K2 skins/skin3.jpg",
+          "directory": false,
+          "bytes": 893664,
+          "sha256": "f17b2b7b835b2454e925cd2026342c69d3ae02ab9cb4b07036b6b4ca8cc3cd84"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/Swoops from K2 to K1.exe",
+          "directory": false,
+          "bytes": 9518185,
+          "sha256": "2a108d0ba866867da4726dedf6b17efdb23db4cbf3809856adbadf4a366cecb6"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/backup",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/backup/2025-04-29_00.30.40",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/backup/2025-04-29_00.30.40/override",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/backup/2025-04-29_00.30.40/override/k2_shield1.tpc",
+          "directory": false,
+          "bytes": 22019,
+          "sha256": "60df30779da26fe04b5208bd027aca7b51c8fc2623ee979637dd6e9bca698324"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/backup/2025-04-29_00.30.40/override/lmg_jet01.tpc",
+          "directory": false,
+          "bytes": 87559,
+          "sha256": "f2f670f919a9a9fdad373e2065e853eee63ade481f5accb294072e797c73211b"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/backup/2025-04-29_00.30.40/override/lmg_jet02.tpc",
+          "directory": false,
+          "bytes": 87559,
+          "sha256": "da7c135ab625797154e4662ac0221ee89099f58765fcb14ac70eb956a8059796"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/backup/2025-04-29_00.30.40/override/lmg_jet03.tpc",
+          "directory": false,
+          "bytes": 87553,
+          "sha256": "9c8245b5befb7cb26dc16370b391114bf276ed0dce845e67e926a7694567d975"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/backup/2025-04-29_00.30.40/override/v_rider01.tpc",
+          "directory": false,
+          "bytes": 11064,
+          "sha256": "a67b5d7e2d43c5ed4d2d6863404ad4b5243f14f28ade61949070cce5e16212b9"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/backup/2025-04-29_00.30.40/override/v_superbike.mdl",
+          "directory": false,
+          "bytes": 735625,
+          "sha256": "45aa183ec2e343a7658926a647e5283f5d3057762a8c8ac4d673373cb25da1b1"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/backup/2025-04-29_00.30.40/override/v_superbike.mdx",
+          "directory": false,
+          "bytes": 406944,
+          "sha256": "6e66f2a535205167329a2b3f788240e6a639e96eeda2b9e0974d22714f3fb0eb"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/backup/2025-04-29_00.30.40/override/v_suprtrike01.tpc",
+          "directory": false,
+          "bytes": 349735,
+          "sha256": "a8bd9c68b7b4a7d1f6a2f3570b98a99c67de2e5cc81b64ef842b0569189a8a44"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/installlog.txt",
+          "directory": false,
+          "bytes": 2448,
+          "sha256": "5cc758ca8fe0875ed413fdd83608dd1a16fc214d5f60ed532328fc75950905c1"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K1 Vanilla with K2 shield",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K1 Vanilla with K2 shield/K1 Vanilla with K2 shield.exe",
+          "directory": false,
+          "bytes": 9518185,
+          "sha256": "2a108d0ba866867da4726dedf6b17efdb23db4cbf3809856adbadf4a366cecb6"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K1 Vanilla with K2 shield/changes.ini",
+          "directory": false,
+          "bytes": 1015,
+          "sha256": "08ae3eae0b1fb47fd7dbe25692a61dfc30802cafc34a596173f09b9b69139d61"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K1 Vanilla with K2 shield/info.rtf",
+          "directory": false,
+          "bytes": 6341,
+          "sha256": "3d0e7c2b52b8ae4401985a092f87e76107809bb21ce23d342067a03dc4f4d888"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K1 Vanilla with K2 shield/k2_shield1.tpc",
+          "directory": false,
+          "bytes": 22019,
+          "sha256": "60df30779da26fe04b5208bd027aca7b51c8fc2623ee979637dd6e9bca698324"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K1 Vanilla with K2 shield/v_superbike.mdl",
+          "directory": false,
+          "bytes": 649952,
+          "sha256": "9a3ff8789aa4b772a1d82e2a1933c27f160235a5597d47c250d06439d2e74c5a"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K1 Vanilla with K2 shield/v_superbike.mdx",
+          "directory": false,
+          "bytes": 367536,
+          "sha256": "f34aeb7230e1d9dcf3b7045412ce65eb7dc181be2a131a06f1adec06f0c322d7"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K2 Swoop skin 1",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K2 Swoop skin 1/K2 Swoop skin 1.exe",
+          "directory": false,
+          "bytes": 9518185,
+          "sha256": "2a108d0ba866867da4726dedf6b17efdb23db4cbf3809856adbadf4a366cecb6"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K2 Swoop skin 1/changes.ini",
+          "directory": false,
+          "bytes": 1139,
+          "sha256": "60426a724e3082fd247e39b0737da71971af66c7c655e447361e7e6a5ac4c779"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K2 Swoop skin 1/info.rtf",
+          "directory": false,
+          "bytes": 6104,
+          "sha256": "76cc71ad32bbd607757423cf2909d7a1d3bbe6de37052f0feab3e18252c8aa64"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K2 Swoop skin 1/k2_shield1.tpc",
+          "directory": false,
+          "bytes": 22019,
+          "sha256": "60df30779da26fe04b5208bd027aca7b51c8fc2623ee979637dd6e9bca698324"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K2 Swoop skin 1/lmg_jet01.tpc",
+          "directory": false,
+          "bytes": 87559,
+          "sha256": "f2f670f919a9a9fdad373e2065e853eee63ade481f5accb294072e797c73211b"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K2 Swoop skin 1/lmg_jet02.tpc",
+          "directory": false,
+          "bytes": 87559,
+          "sha256": "da7c135ab625797154e4662ac0221ee89099f58765fcb14ac70eb956a8059796"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K2 Swoop skin 1/lmg_jet03.tpc",
+          "directory": false,
+          "bytes": 87553,
+          "sha256": "9c8245b5befb7cb26dc16370b391114bf276ed0dce845e67e926a7694567d975"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K2 Swoop skin 1/v_rider01.tpc",
+          "directory": false,
+          "bytes": 11064,
+          "sha256": "a67b5d7e2d43c5ed4d2d6863404ad4b5243f14f28ade61949070cce5e16212b9"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K2 Swoop skin 1/v_superbike.mdl",
+          "directory": false,
+          "bytes": 735625,
+          "sha256": "45aa183ec2e343a7658926a647e5283f5d3057762a8c8ac4d673373cb25da1b1"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K2 Swoop skin 1/v_superbike.mdx",
+          "directory": false,
+          "bytes": 406944,
+          "sha256": "6e66f2a535205167329a2b3f788240e6a639e96eeda2b9e0974d22714f3fb0eb"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K2 Swoop skin 1/v_suprtrike01.tpc",
+          "directory": false,
+          "bytes": 349735,
+          "sha256": "a8bd9c68b7b4a7d1f6a2f3570b98a99c67de2e5cc81b64ef842b0569189a8a44"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K2 Swoop skin 2",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K2 Swoop skin 2/K2 Swoop skin 2.exe",
+          "directory": false,
+          "bytes": 9518185,
+          "sha256": "2a108d0ba866867da4726dedf6b17efdb23db4cbf3809856adbadf4a366cecb6"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K2 Swoop skin 2/changes.ini",
+          "directory": false,
+          "bytes": 1139,
+          "sha256": "60426a724e3082fd247e39b0737da71971af66c7c655e447361e7e6a5ac4c779"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K2 Swoop skin 2/info.rtf",
+          "directory": false,
+          "bytes": 3812,
+          "sha256": "d98c26c7fe6543f28e6bea33add3d8c6a2e1a73b1a93c9df565e73198b77ca92"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K2 Swoop skin 2/k2_shield1.tpc",
+          "directory": false,
+          "bytes": 22019,
+          "sha256": "60df30779da26fe04b5208bd027aca7b51c8fc2623ee979637dd6e9bca698324"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K2 Swoop skin 2/lmg_jet01.tpc",
+          "directory": false,
+          "bytes": 87559,
+          "sha256": "f2f670f919a9a9fdad373e2065e853eee63ade481f5accb294072e797c73211b"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K2 Swoop skin 2/lmg_jet02.tpc",
+          "directory": false,
+          "bytes": 87559,
+          "sha256": "da7c135ab625797154e4662ac0221ee89099f58765fcb14ac70eb956a8059796"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K2 Swoop skin 2/lmg_jet03.tpc",
+          "directory": false,
+          "bytes": 87553,
+          "sha256": "9c8245b5befb7cb26dc16370b391114bf276ed0dce845e67e926a7694567d975"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K2 Swoop skin 2/v_rider01.tpc",
+          "directory": false,
+          "bytes": 11064,
+          "sha256": "a67b5d7e2d43c5ed4d2d6863404ad4b5243f14f28ade61949070cce5e16212b9"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K2 Swoop skin 2/v_superbike.mdl",
+          "directory": false,
+          "bytes": 735625,
+          "sha256": "45aa183ec2e343a7658926a647e5283f5d3057762a8c8ac4d673373cb25da1b1"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K2 Swoop skin 2/v_superbike.mdx",
+          "directory": false,
+          "bytes": 406944,
+          "sha256": "6e66f2a535205167329a2b3f788240e6a639e96eeda2b9e0974d22714f3fb0eb"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K2 Swoop skin 2/v_suprtrike01.tpc",
+          "directory": false,
+          "bytes": 349735,
+          "sha256": "ea092cbc4865e7e474553f332ac129bbe8e2bc6d8f57e8d799da4faa873401f8"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K2 Swoop skin 3",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K2 Swoop skin 3/K2 Swoop skin 3.exe",
+          "directory": false,
+          "bytes": 9518185,
+          "sha256": "2a108d0ba866867da4726dedf6b17efdb23db4cbf3809856adbadf4a366cecb6"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K2 Swoop skin 3/changes.ini",
+          "directory": false,
+          "bytes": 1139,
+          "sha256": "60426a724e3082fd247e39b0737da71971af66c7c655e447361e7e6a5ac4c779"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K2 Swoop skin 3/info.rtf",
+          "directory": false,
+          "bytes": 3812,
+          "sha256": "de74fd07e7256331ff16df07070c1c748f67ec2467415d5cca6a16ee5cd787e3"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K2 Swoop skin 3/k2_shield1.tpc",
+          "directory": false,
+          "bytes": 22019,
+          "sha256": "60df30779da26fe04b5208bd027aca7b51c8fc2623ee979637dd6e9bca698324"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K2 Swoop skin 3/lmg_jet01.tpc",
+          "directory": false,
+          "bytes": 87559,
+          "sha256": "f2f670f919a9a9fdad373e2065e853eee63ade481f5accb294072e797c73211b"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K2 Swoop skin 3/lmg_jet02.tpc",
+          "directory": false,
+          "bytes": 87559,
+          "sha256": "da7c135ab625797154e4662ac0221ee89099f58765fcb14ac70eb956a8059796"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K2 Swoop skin 3/lmg_jet03.tpc",
+          "directory": false,
+          "bytes": 87553,
+          "sha256": "9c8245b5befb7cb26dc16370b391114bf276ed0dce845e67e926a7694567d975"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K2 Swoop skin 3/v_rider01.tpc",
+          "directory": false,
+          "bytes": 11064,
+          "sha256": "a67b5d7e2d43c5ed4d2d6863404ad4b5243f14f28ade61949070cce5e16212b9"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K2 Swoop skin 3/v_superbike.mdl",
+          "directory": false,
+          "bytes": 735625,
+          "sha256": "45aa183ec2e343a7658926a647e5283f5d3057762a8c8ac4d673373cb25da1b1"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K2 Swoop skin 3/v_superbike.mdx",
+          "directory": false,
+          "bytes": 406944,
+          "sha256": "6e66f2a535205167329a2b3f788240e6a639e96eeda2b9e0974d22714f3fb0eb"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/K2 Swoop skin 3/v_suprtrike01.tpc",
+          "directory": false,
+          "bytes": 349735,
+          "sha256": "117f4af0f230f18e2bb07632f5f456642f550fd50c3cfed4942afdcc8e1aef87"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/tslpatchdata/namespaces.ini",
+          "directory": false,
+          "bytes": 1416,
+          "sha256": "ca33409126c40378c227ab071f5d6ccf8a946aa42db460284f6800e1422a5583"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/uninstall",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/uninstall/uninstall.ps1",
+          "directory": false,
+          "bytes": 4616,
+          "sha256": "9bad6137e95c4cdde4686f821752eaa79c1c6883721132603f68ff273b601a62"
+        },
+        {
+          "path": "[K1] Swoop from K2 to K1/uninstall/uninstall.sh",
+          "directory": false,
+          "bytes": 3136,
+          "sha256": "d6587e56bd5625219494da1ea72c0c684fa1b49a50cd00dd8eab3f164f351efe"
+        }
+      ],
+      "raw_component": {
+        "Guid": "634e72d7-59ff-8a55-acd2-d5ac6885b0be",
+        "Name": "K2 Swoops to K1",
+        "Author": "CaptainSpoque",
+        "Description": "This mod ports the \"shield effect\" that pops up when your swoop takes damage from K2 to K1. It also lets you port the KOTOR 2 swoop model to K1, although I have to be honest that I don't know why you would do that.",
+        "Directions": "",
+        "Tier": "3 - Suggested",
+        "Category": [
+          "Graphics Improvement"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/2729-k1-k2-swoops-to-k1/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "634e72d7-59ff-8a55-acd2-d5ac6885b0be",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "HoloPatcher Mod",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "InstallationMethod": "HoloPatcher Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[K2 Swoops to K1](https://deadlystream.com/files/file/2729-k1-k2-swoops-to-k1/)",
+        "WidescreenOnly": false
+      },
+      "canonical_component": {
+        "Guid": "634e72d7-59ff-8a55-acd2-d5ac6885b0be",
+        "Name": "K2 Swoops to K1",
+        "Author": "CaptainSpoque",
+        "Description": "This mod ports the \"shield effect\" that pops up when your swoop takes damage from K2 to K1. It also lets you port the KOTOR 2 swoop model to K1, although I have to be honest that I don't know why you would do that.",
+        "Directions": "",
+        "Tier": "3 - Suggested",
+        "Category": [
+          "Graphics Improvement"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/2729-k1-k2-swoops-to-k1/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "634e72d7-59ff-8a55-acd2-d5ac6885b0be",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "HoloPatcher Mod",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "InstallationMethod": "HoloPatcher Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[K2 Swoops to K1](https://deadlystream.com/files/file/2729-k1-k2-swoops-to-k1/)",
+        "WidescreenOnly": false
+      },
+      "original_step": {
+        "id": "step-061",
+        "source_heading": "### K2 Swoops to K1",
+        "operations": [
+          {
+            "type": "extract",
+            "source": "{archives}/[K1] Swoop from K2 to K1.rar",
+            "destination": "{extract}/step-061/1"
+          },
+          {
+            "type": "delete",
+            "path": "{extract}/step-061/1/[K1] Swoop from K2 to K1/installlog.txt"
+          },
+          {
+            "type": "patcher",
+            "patcher": "{extract}/step-061/1/[K1] Swoop from K2 to K1/Swoops from K2 to K1.exe",
+            "sha256": "2a108d0ba866867da4726dedf6b17efdb23db4cbf3809856adbadf4a366cecb6",
+            "argv": [
+              "/usr/bin/wine",
+              "{extract}/step-061/1/[K1] Swoop from K2 to K1/Swoops from K2 to K1.exe",
+              "--game-dir",
+              "{game}",
+              "--tslpatchdata",
+              "{extract}/step-061/1/[K1] Swoop from K2 to K1",
+              "--namespace-option-index",
+              "0",
+              "--install"
+            ],
+            "cwd": "{extract}/step-061/1/[K1] Swoop from K2 to K1",
+            "success_log": "{extract}/step-061/1/[K1] Swoop from K2 to K1/installlog.txt",
+            "success_markers": [
+              "The installation is complete with 0 errors and 0 warnings."
+            ],
+            "failure_regex": [
+              "^\\[Error\\]",
+              "^\\[Warning\\]"
+            ],
+            "expected_changes": "changed_manifest"
+          }
+        ]
+      },
+      "disabled_lookup_game_hint": false
+    },
+    {
+      "game": "k1",
+      "component_index": 110,
+      "guid": "1684fafe-9547-8a4e-b743-c9fb94064f76",
+      "source_heading": "### Senni Vek Mod",
+      "step_index": 110,
+      "step_id": "step-111",
+      "source_choice": "Original positional1 resolves Senni Vek Ambush, matching the source recommended Ambush branch over Restoration.",
+      "archive": {
+        "filename": "SVR1.2.7z",
+        "sha256": "5ffb09fda12de70d589acc63356776aad2c21e638a66bff9abf321b8ea3c803b",
+        "bytes": 9271897
+      },
+      "installer": {
+        "path": "SVR1.2/HoloPatcher.exe",
+        "sha256": "2a108d0ba866867da4726dedf6b17efdb23db4cbf3809856adbadf4a366cecb6",
+        "bytes": 9518185
+      },
+      "ini": {
+        "path": "SVR1.2/tslpatchdata/hulas/changes.ini",
+        "sha256": "caca87f1cd28d3a4de9f3ffe6d90d813cce8397988e7298b4cfe2373523d3784",
+        "bytes": 3350
+      },
+      "namespace": {
+        "index": 1,
+        "key": "Namespace2",
+        "id": "2",
+        "map": {
+          "path": "SVR1.2/tslpatchdata/namespaces.ini",
+          "sha256": "f30a307ea21cff6c5d192de5e754d3e6072e00805ad97007f2c5fc2547f2c5be",
+          "bytes": 1301
+        },
+        "ini_name": "changes.ini",
+        "data_path": "hulas"
+      },
+      "members": [
+        {
+          "path": "SVR1.2",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "SVR1.2/HoloPatcher.exe",
+          "directory": false,
+          "bytes": 9518185,
+          "sha256": "2a108d0ba866867da4726dedf6b17efdb23db4cbf3809856adbadf4a366cecb6"
+        },
+        {
+          "path": "SVR1.2/Readme.txt",
+          "directory": false,
+          "bytes": 3294,
+          "sha256": "5bd34494a94d3c57db2ab1be624fa8e49fe4308666333edc64f9fa2a47da2a4f"
+        },
+        {
+          "path": "SVR1.2/tslpatchdata",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "SVR1.2/tslpatchdata/hulas",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "SVR1.2/tslpatchdata/hulas/append.tlk",
+          "directory": false,
+          "bytes": 3276,
+          "sha256": "9dcda5ce3ee824ad2e12077600aa2b1b17189ecb79c010f3a6706f4a42e5bf4c"
+        },
+        {
+          "path": "SVR1.2/tslpatchdata/hulas/changes.ini",
+          "directory": false,
+          "bytes": 3350,
+          "sha256": "caca87f1cd28d3a4de9f3ffe6d90d813cce8397988e7298b4cfe2373523d3784"
+        },
+        {
+          "path": "SVR1.2/tslpatchdata/hulas/info.rtf",
+          "directory": false,
+          "bytes": 39922,
+          "sha256": "48d46380a6d49318cd0871dad727b08b84183de7c9cac595d13af02bc4adf069"
+        },
+        {
+          "path": "SVR1.2/tslpatchdata/hulas/n_gmtwilek_angm.lip",
+          "directory": false,
+          "bytes": 481,
+          "sha256": "473583bd9612969ff6b9d59b8498f611e66174fe9bd1c42868191fc9da8e11b6"
+        },
+        {
+          "path": "SVR1.2/tslpatchdata/hulas/n_gmtwilek_angs.lip",
+          "directory": false,
+          "bytes": 296,
+          "sha256": "6faf5e159609b13ac0959c25b0e1aa62a368e09b330fb2227b2e1779fac368df"
+        },
+        {
+          "path": "SVR1.2/tslpatchdata/hulas/n_gmtwilek_coml1.lip",
+          "directory": false,
+          "bytes": 631,
+          "sha256": "443144725f4047cbdda7dbea7d133b5c7f24cc6ad31614b6388091f5df05fe99"
+        },
+        {
+          "path": "SVR1.2/tslpatchdata/hulas/n_gmtwilek_comm3.lip",
+          "directory": false,
+          "bytes": 451,
+          "sha256": "25cd5ce46d59f0bc3bc6fb0c3d6cc9b8b9a53c7ab76e74f2d3aa0a33fa4855ca"
+        },
+        {
+          "path": "SVR1.2/tslpatchdata/hulas/n_gmtwilek_coms2.lip",
+          "directory": false,
+          "bytes": 181,
+          "sha256": "3d6d2f95346e0171a014a4484450dfda5a0d1fa64b88bb38585423d383fa40eb"
+        },
+        {
+          "path": "SVR1.2/tslpatchdata/hulas/n_gmtwilek_grts.lip",
+          "directory": false,
+          "bytes": 266,
+          "sha256": "5380e1056541c59a87f1d1c2307e27b62c16eb2895a4458d6457b1030770fb4c"
+        },
+        {
+          "path": "SVR1.2/tslpatchdata/hulas/n_gmtwilek_lghm.lip",
+          "directory": false,
+          "bytes": 451,
+          "sha256": "25cd5ce46d59f0bc3bc6fb0c3d6cc9b8b9a53c7ab76e74f2d3aa0a33fa4855ca"
+        },
+        {
+          "path": "SVR1.2/tslpatchdata/hulas/n_gmtwilek_quel.lip",
+          "directory": false,
+          "bytes": 636,
+          "sha256": "f0459009bc8404025b85d22d9a4077fd38eb6e6a9afe54ce655931a1d3c04f2f"
+        },
+        {
+          "path": "SVR1.2/tslpatchdata/hulas/n_gmtwilek_sadm.lip",
+          "directory": false,
+          "bytes": 451,
+          "sha256": "ced0ed5b7ea8e4f2f7f6f32baaac2a9847f0e7a6c08c13c44087de703c1cc0f5"
+        },
+        {
+          "path": "SVR1.2/tslpatchdata/hulas/tat18_hulas.dlg",
+          "directory": false,
+          "bytes": 15589,
+          "sha256": "2eb5652c9c3696dfc33c6b09d1d6ba30e35d8548913edf0cd408d3f33feb5767"
+        },
+        {
+          "path": "SVR1.2/tslpatchdata/namespaces.ini",
+          "directory": false,
+          "bytes": 1301,
+          "sha256": "f30a307ea21cff6c5d192de5e754d3e6072e00805ad97007f2c5fc2547f2c5be"
+        },
+        {
+          "path": "SVR1.2/tslpatchdata/restore",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "SVR1.2/tslpatchdata/restore/changes.ini",
+          "directory": false,
+          "bytes": 1585,
+          "sha256": "5a97c79a9a55a5f7a9c3c41aac8b57cf93a6b9265fbd5e0a884bc85fdaee7859"
+        },
+        {
+          "path": "SVR1.2/tslpatchdata/restore/info.rtf",
+          "directory": false,
+          "bytes": 39922,
+          "sha256": "48d46380a6d49318cd0871dad727b08b84183de7c9cac595d13af02bc4adf069"
+        }
+      ],
+      "raw_component": {
+        "Guid": "1684fafe-9547-8a4e-b743-c9fb94064f76",
+        "Name": "Senni Vek Mod",
+        "Author": "N-DReW25",
+        "Description": "The second option of this mod, the Senni Vek Restoration, restores the initial character who leads you to the Geno'Haradan as one of Hulas's henchmen for the showdown on Tatooine, and is fully vanilla-friendly. The default install, Senni Vek's Ambush, removes Hulas from the final confrontation entirely and replaces him with Senni Vek, featuring altered dialogue which implies that Hulas played you for the entire game and has vanished into the shadows to consolidate his control of the Geno'Haradan.",
+        "Directions": "For realism I personally recommend the \"Senni Vek's Ambush\" install, but if you'd like to remain as close to vanilla as possible, choose the Senni Vek Restoration instead.",
+        "Tier": "3 - Suggested",
+        "Category": [
+          "Added",
+          "Restored Content"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/1090-senni-vek-mod/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "1684fafe-9547-8a4e-b743-c9fb94064f76",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "HoloPatcher Mod",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "InstallationMethod": "HoloPatcher Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[Senni Vek Mod](https://deadlystream.com/files/file/1090-senni-vek-mod/)",
+        "WidescreenOnly": false
+      },
+      "canonical_component": {
+        "Guid": "1684fafe-9547-8a4e-b743-c9fb94064f76",
+        "Name": "Senni Vek Mod",
+        "Author": "N-DReW25",
+        "Description": "The second option of this mod, the Senni Vek Restoration, restores the initial character who leads you to the Geno'Haradan as one of Hulas's henchmen for the showdown on Tatooine, and is fully vanilla-friendly. The default install, Senni Vek's Ambush, removes Hulas from the final confrontation entirely and replaces him with Senni Vek, featuring altered dialogue which implies that Hulas played you for the entire game and has vanished into the shadows to consolidate his control of the Geno'Haradan.",
+        "Directions": "For realism I personally recommend the \"Senni Vek's Ambush\" install, but if you'd like to remain as close to vanilla as possible, choose the Senni Vek Restoration instead.",
+        "Tier": "3 - Suggested",
+        "Category": [
+          "Added",
+          "Restored Content"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/1090-senni-vek-mod/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "1684fafe-9547-8a4e-b743-c9fb94064f76",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "HoloPatcher Mod",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "InstallationMethod": "HoloPatcher Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[Senni Vek Mod](https://deadlystream.com/files/file/1090-senni-vek-mod/)",
+        "WidescreenOnly": false
+      },
+      "original_step": {
+        "id": "step-111",
+        "source_heading": "### Senni Vek Mod",
+        "operations": [
+          {
+            "type": "extract",
+            "source": "{archives}/SVR1.2.7z",
+            "destination": "{extract}/step-111/1"
+          },
+          {
+            "type": "patcher",
+            "patcher": "{extract}/step-111/1/SVR1.2/HoloPatcher.exe",
+            "sha256": "2a108d0ba866867da4726dedf6b17efdb23db4cbf3809856adbadf4a366cecb6",
+            "argv": [
+              "/usr/bin/wine",
+              "{extract}/step-111/1/SVR1.2/HoloPatcher.exe",
+              "--game-dir",
+              "{game}",
+              "--tslpatchdata",
+              "{extract}/step-111/1/SVR1.2",
+              "--namespace-option-index",
+              "1",
+              "--install"
+            ],
+            "cwd": "{extract}/step-111/1/SVR1.2",
+            "success_log": "{extract}/step-111/1/SVR1.2/installlog.txt",
+            "success_markers": [
+              "The installation is complete with 0 errors and 0 warnings."
+            ],
+            "failure_regex": [
+              "^\\[Error\\]",
+              "^\\[Warning\\]"
+            ],
+            "expected_changes": "changed_manifest"
+          }
+        ]
+      },
+      "disabled_lookup_game_hint": false
+    },
+    {
+      "game": "k1",
+      "component_index": 151,
+      "guid": "865b0833-e5a3-8cc7-8d5c-f9cbb26108bb",
+      "source_heading": "### Swoop Platform Repair",
+      "step_index": 151,
+      "step_id": "step-152",
+      "source_choice": "Source permits Full/Lite/UltraLite preference; original positional0 explicitly selects FULL including player swoop. Record this preference.",
+      "archive": {
+        "filename": "[K1] Swoop platform models repairs.rar",
+        "sha256": "78ad904fc30c56112531dd328fddd16b501a23523c5ca37d33d0283ec6089996",
+        "bytes": 131298749
+      },
+      "installer": {
+        "path": "[K1] Swoop platform models repairs/K1 Swoop platform repairs.exe",
+        "sha256": "2a108d0ba866867da4726dedf6b17efdb23db4cbf3809856adbadf4a366cecb6",
+        "bytes": 9518185
+      },
+      "ini": {
+        "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform FULL/changes.ini",
+        "sha256": "ed3c7ea8b1c9bcf4f32f80df124d053c9e452e1a89aded69b15aa76456406148",
+        "bytes": 1499
+      },
+      "namespace": {
+        "index": 0,
+        "key": "Namespace1",
+        "id": "1",
+        "map": {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/namespaces.ini",
+          "sha256": "fd46d245ba61e5418d73d140f6f0649b83d4b1cd87bab7b05ab5e2db6d4b5069",
+          "bytes": 1209
+        },
+        "ini_name": "changes.ini",
+        "data_path": "Swoop platform FULL"
+      },
+      "members": [
+        {
+          "path": "[K1] Swoop platform models repairs",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/K1 Swoop platform repairs.exe",
+          "directory": false,
+          "bytes": 9518185,
+          "sha256": "2a108d0ba866867da4726dedf6b17efdb23db4cbf3809856adbadf4a366cecb6"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/Readme.txt",
+          "directory": false,
+          "bytes": 1409,
+          "sha256": "7574566265105efa5f176573fa56b3390cf5905847cf95351a94bcceac00f724"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform FULL",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform FULL/Swoop platform FULL.exe",
+          "directory": false,
+          "bytes": 9518185,
+          "sha256": "2a108d0ba866867da4726dedf6b17efdb23db4cbf3809856adbadf4a366cecb6"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform FULL/changes.ini",
+          "directory": false,
+          "bytes": 1499,
+          "sha256": "ed3c7ea8b1c9bcf4f32f80df124d053c9e452e1a89aded69b15aa76456406148"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform FULL/info.rtf",
+          "directory": false,
+          "bytes": 9313,
+          "sha256": "769bd555fba237392992411d7f8f7b04386a0a681007aca39aa8da563273f9ba"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform FULL/lts_swoop.tga",
+          "directory": false,
+          "bytes": 16777234,
+          "sha256": "6e1ddc0b6fafcc456c4457f19642a8d34836513f2a1a6d0afaa68dac9912a5f5"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform FULL/lts_swoop.txi",
+          "directory": false,
+          "bytes": 26,
+          "sha256": "4b9307b430891abb901f228ca9a9f56ead0ca77db83f58cf6c78873ed04b50ec"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform FULL/lts_swoop1.tga",
+          "directory": false,
+          "bytes": 16777234,
+          "sha256": "e1a27ecc838e40b777e49406eabc58fdde8cf95562cbd9edee6a2f36f8990d29"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform FULL/lts_swoop1.txi",
+          "directory": false,
+          "bytes": 26,
+          "sha256": "4b9307b430891abb901f228ca9a9f56ead0ca77db83f58cf6c78873ed04b50ec"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform FULL/lts_swpg.tga",
+          "directory": false,
+          "bytes": 16777234,
+          "sha256": "54bbf6da5d674ade44d24a80efd57b98ad4e19aef604b8c14d29803633a7adfe"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform FULL/lts_swpg1.tga",
+          "directory": false,
+          "bytes": 16777234,
+          "sha256": "068254d0c8442127e33496a8bddd170ad3d36e73927aed68e14cd9a3909b09b2"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform FULL/m03af.git",
+          "directory": false,
+          "bytes": 15975,
+          "sha256": "b5ec8d629959d77ace77d19ff951c3e4cb32fb24a71cc1a377f131038bcee1be"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform FULL/m03af.lyt",
+          "directory": false,
+          "bytes": 415,
+          "sha256": "df254e1e9e7d39c3983306f97fca3fe765be0c08aeda49de8a793b88fc83cd5b"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform FULL/m03af.vis",
+          "directory": false,
+          "bytes": 208,
+          "sha256": "8ca83f02be37cecbc540248165784f98199184d4704e38b203b5ceb8f23e7808"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform FULL/m03af_01a.mdl",
+          "directory": false,
+          "bytes": 1057632,
+          "sha256": "7f75f390c215448a64f983a19a1a92951db085af9bfd8d76910e11cbba8767b5"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform FULL/m03af_01a.mdx",
+          "directory": false,
+          "bytes": 1277400,
+          "sha256": "e2992c6526cf2614e072a1c7ce1df31b8721f1d4e7e94c9a41c6f728da103122"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform FULL/m03af_01a.wok",
+          "directory": false,
+          "bytes": 16904,
+          "sha256": "b56395499f5c56ffc3ae767bdcbdcce89436abeccb58dfbe63191ec3fa9999c1"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform FULL/m03af_02a.mdl",
+          "directory": false,
+          "bytes": 512968,
+          "sha256": "66353be611e69755f46c5ce7696a67aa9ea7844dbab3b6414141c4211a13b171"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform FULL/m03af_02a.mdx",
+          "directory": false,
+          "bytes": 670744,
+          "sha256": "e089b4757b6843eb46f7910ef8cea9ab9c8f338110607d6c597cb3b87d1d1c60"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform FULL/m03af_02a.wok",
+          "directory": false,
+          "bytes": 136,
+          "sha256": "9f558b1d1dd848aa5067f5152d18f1724e4a85301235af013ba269d40722386d"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform FULL/m03af_03a.mdl",
+          "directory": false,
+          "bytes": 1041651,
+          "sha256": "d3e2b770339a74de047c3a7151be0032454ea95f913449622d3de9765e400ab0"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform FULL/m03af_03a.mdx",
+          "directory": false,
+          "bytes": 1189592,
+          "sha256": "85a8f6c31a1757e1d6f35e812ba297ea2c83e5b86e3503eb58612cac29e5b2f2"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform FULL/m03af_03a.wok",
+          "directory": false,
+          "bytes": 136,
+          "sha256": "9f558b1d1dd848aa5067f5152d18f1724e4a85301235af013ba269d40722386d"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform FULL/m03af_04a.mdl",
+          "directory": false,
+          "bytes": 355674,
+          "sha256": "89ca20c470d1bff4c8d84dac953c0b4cc969af67c00319d8491ad8d54ff24cc7"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform FULL/m03af_04a.mdx",
+          "directory": false,
+          "bytes": 464376,
+          "sha256": "65182c7ebcd315cc300998fccb3333cf7c31fe26d9adcd6690ab24c0bc895eed"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform FULL/m03af_04a.wok",
+          "directory": false,
+          "bytes": 136,
+          "sha256": "9f558b1d1dd848aa5067f5152d18f1724e4a85301235af013ba269d40722386d"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform LIGHT",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform LIGHT/Swoop platform LIGHT.exe",
+          "directory": false,
+          "bytes": 9518185,
+          "sha256": "2a108d0ba866867da4726dedf6b17efdb23db4cbf3809856adbadf4a366cecb6"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform LIGHT/changes.ini",
+          "directory": false,
+          "bytes": 1499,
+          "sha256": "ed3c7ea8b1c9bcf4f32f80df124d053c9e452e1a89aded69b15aa76456406148"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform LIGHT/info.rtf",
+          "directory": false,
+          "bytes": 9313,
+          "sha256": "769bd555fba237392992411d7f8f7b04386a0a681007aca39aa8da563273f9ba"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform LIGHT/lts_swoop.tga",
+          "directory": false,
+          "bytes": 16777234,
+          "sha256": "6e1ddc0b6fafcc456c4457f19642a8d34836513f2a1a6d0afaa68dac9912a5f5"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform LIGHT/lts_swoop.txi",
+          "directory": false,
+          "bytes": 26,
+          "sha256": "4b9307b430891abb901f228ca9a9f56ead0ca77db83f58cf6c78873ed04b50ec"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform LIGHT/lts_swoop1.tga",
+          "directory": false,
+          "bytes": 16777234,
+          "sha256": "e1a27ecc838e40b777e49406eabc58fdde8cf95562cbd9edee6a2f36f8990d29"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform LIGHT/lts_swoop1.txi",
+          "directory": false,
+          "bytes": 26,
+          "sha256": "4b9307b430891abb901f228ca9a9f56ead0ca77db83f58cf6c78873ed04b50ec"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform LIGHT/lts_swpg.tga",
+          "directory": false,
+          "bytes": 16777234,
+          "sha256": "54bbf6da5d674ade44d24a80efd57b98ad4e19aef604b8c14d29803633a7adfe"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform LIGHT/lts_swpg1.tga",
+          "directory": false,
+          "bytes": 16777234,
+          "sha256": "068254d0c8442127e33496a8bddd170ad3d36e73927aed68e14cd9a3909b09b2"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform LIGHT/m03af.git",
+          "directory": false,
+          "bytes": 15869,
+          "sha256": "10a1112cf640dff17d4861954b4d25b729fbf27788176aef5643e78462293073"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform LIGHT/m03af.lyt",
+          "directory": false,
+          "bytes": 415,
+          "sha256": "df254e1e9e7d39c3983306f97fca3fe765be0c08aeda49de8a793b88fc83cd5b"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform LIGHT/m03af.vis",
+          "directory": false,
+          "bytes": 208,
+          "sha256": "8ca83f02be37cecbc540248165784f98199184d4704e38b203b5ceb8f23e7808"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform LIGHT/m03af_01a.mdl",
+          "directory": false,
+          "bytes": 505746,
+          "sha256": "73d3d12de99e317f928c443fa6b0e3c419c450ae51c6a591aea5b46a2b4f8d1b"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform LIGHT/m03af_01a.mdx",
+          "directory": false,
+          "bytes": 555944,
+          "sha256": "76a8d59fb97595c75feb0b87079a4e18fa5aa3b8e65dd0227d002578196ff504"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform LIGHT/m03af_01a.wok",
+          "directory": false,
+          "bytes": 16904,
+          "sha256": "b56395499f5c56ffc3ae767bdcbdcce89436abeccb58dfbe63191ec3fa9999c1"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform LIGHT/m03af_02a.mdl",
+          "directory": false,
+          "bytes": 512968,
+          "sha256": "66353be611e69755f46c5ce7696a67aa9ea7844dbab3b6414141c4211a13b171"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform LIGHT/m03af_02a.mdx",
+          "directory": false,
+          "bytes": 670744,
+          "sha256": "e089b4757b6843eb46f7910ef8cea9ab9c8f338110607d6c597cb3b87d1d1c60"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform LIGHT/m03af_02a.wok",
+          "directory": false,
+          "bytes": 136,
+          "sha256": "9f558b1d1dd848aa5067f5152d18f1724e4a85301235af013ba269d40722386d"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform LIGHT/m03af_03a.mdl",
+          "directory": false,
+          "bytes": 1041651,
+          "sha256": "d3e2b770339a74de047c3a7151be0032454ea95f913449622d3de9765e400ab0"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform LIGHT/m03af_03a.mdx",
+          "directory": false,
+          "bytes": 1189592,
+          "sha256": "85a8f6c31a1757e1d6f35e812ba297ea2c83e5b86e3503eb58612cac29e5b2f2"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform LIGHT/m03af_03a.wok",
+          "directory": false,
+          "bytes": 136,
+          "sha256": "9f558b1d1dd848aa5067f5152d18f1724e4a85301235af013ba269d40722386d"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform LIGHT/m03af_04a.mdl",
+          "directory": false,
+          "bytes": 355674,
+          "sha256": "89ca20c470d1bff4c8d84dac953c0b4cc969af67c00319d8491ad8d54ff24cc7"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform LIGHT/m03af_04a.mdx",
+          "directory": false,
+          "bytes": 464376,
+          "sha256": "65182c7ebcd315cc300998fccb3333cf7c31fe26d9adcd6690ab24c0bc895eed"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform LIGHT/m03af_04a.wok",
+          "directory": false,
+          "bytes": 136,
+          "sha256": "9f558b1d1dd848aa5067f5152d18f1724e4a85301235af013ba269d40722386d"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform ULTRA LIGHT",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform ULTRA LIGHT/Swoop platform ULTRA LIGHT.exe",
+          "directory": false,
+          "bytes": 9518185,
+          "sha256": "2a108d0ba866867da4726dedf6b17efdb23db4cbf3809856adbadf4a366cecb6"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform ULTRA LIGHT/changes.ini",
+          "directory": false,
+          "bytes": 1499,
+          "sha256": "ed3c7ea8b1c9bcf4f32f80df124d053c9e452e1a89aded69b15aa76456406148"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform ULTRA LIGHT/info.rtf",
+          "directory": false,
+          "bytes": 9313,
+          "sha256": "769bd555fba237392992411d7f8f7b04386a0a681007aca39aa8da563273f9ba"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform ULTRA LIGHT/lts_swoop.tga",
+          "directory": false,
+          "bytes": 16777234,
+          "sha256": "6e1ddc0b6fafcc456c4457f19642a8d34836513f2a1a6d0afaa68dac9912a5f5"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform ULTRA LIGHT/lts_swoop.txi",
+          "directory": false,
+          "bytes": 26,
+          "sha256": "4b9307b430891abb901f228ca9a9f56ead0ca77db83f58cf6c78873ed04b50ec"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform ULTRA LIGHT/lts_swoop1.tga",
+          "directory": false,
+          "bytes": 16777234,
+          "sha256": "e1a27ecc838e40b777e49406eabc58fdde8cf95562cbd9edee6a2f36f8990d29"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform ULTRA LIGHT/lts_swoop1.txi",
+          "directory": false,
+          "bytes": 26,
+          "sha256": "4b9307b430891abb901f228ca9a9f56ead0ca77db83f58cf6c78873ed04b50ec"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform ULTRA LIGHT/lts_swpg.tga",
+          "directory": false,
+          "bytes": 16777234,
+          "sha256": "54bbf6da5d674ade44d24a80efd57b98ad4e19aef604b8c14d29803633a7adfe"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform ULTRA LIGHT/lts_swpg1.tga",
+          "directory": false,
+          "bytes": 16777234,
+          "sha256": "068254d0c8442127e33496a8bddd170ad3d36e73927aed68e14cd9a3909b09b2"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform ULTRA LIGHT/m03af.git",
+          "directory": false,
+          "bytes": 15083,
+          "sha256": "6d05ef097e918d695c92b73470ea9909f3caab327a37efd2b966fe51088b0a40"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform ULTRA LIGHT/m03af.lyt",
+          "directory": false,
+          "bytes": 415,
+          "sha256": "df254e1e9e7d39c3983306f97fca3fe765be0c08aeda49de8a793b88fc83cd5b"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform ULTRA LIGHT/m03af.vis",
+          "directory": false,
+          "bytes": 208,
+          "sha256": "8ca83f02be37cecbc540248165784f98199184d4704e38b203b5ceb8f23e7808"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform ULTRA LIGHT/m03af_01a.mdl",
+          "directory": false,
+          "bytes": 505746,
+          "sha256": "73d3d12de99e317f928c443fa6b0e3c419c450ae51c6a591aea5b46a2b4f8d1b"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform ULTRA LIGHT/m03af_01a.mdx",
+          "directory": false,
+          "bytes": 555944,
+          "sha256": "76a8d59fb97595c75feb0b87079a4e18fa5aa3b8e65dd0227d002578196ff504"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform ULTRA LIGHT/m03af_01a.wok",
+          "directory": false,
+          "bytes": 16904,
+          "sha256": "b56395499f5c56ffc3ae767bdcbdcce89436abeccb58dfbe63191ec3fa9999c1"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform ULTRA LIGHT/m03af_02a.mdl",
+          "directory": false,
+          "bytes": 512968,
+          "sha256": "66353be611e69755f46c5ce7696a67aa9ea7844dbab3b6414141c4211a13b171"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform ULTRA LIGHT/m03af_02a.mdx",
+          "directory": false,
+          "bytes": 670744,
+          "sha256": "e089b4757b6843eb46f7910ef8cea9ab9c8f338110607d6c597cb3b87d1d1c60"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform ULTRA LIGHT/m03af_02a.wok",
+          "directory": false,
+          "bytes": 136,
+          "sha256": "9f558b1d1dd848aa5067f5152d18f1724e4a85301235af013ba269d40722386d"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform ULTRA LIGHT/m03af_03a.mdl",
+          "directory": false,
+          "bytes": 1041651,
+          "sha256": "d3e2b770339a74de047c3a7151be0032454ea95f913449622d3de9765e400ab0"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform ULTRA LIGHT/m03af_03a.mdx",
+          "directory": false,
+          "bytes": 1189592,
+          "sha256": "85a8f6c31a1757e1d6f35e812ba297ea2c83e5b86e3503eb58612cac29e5b2f2"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform ULTRA LIGHT/m03af_03a.wok",
+          "directory": false,
+          "bytes": 136,
+          "sha256": "9f558b1d1dd848aa5067f5152d18f1724e4a85301235af013ba269d40722386d"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform ULTRA LIGHT/m03af_04a.mdl",
+          "directory": false,
+          "bytes": 355674,
+          "sha256": "89ca20c470d1bff4c8d84dac953c0b4cc969af67c00319d8491ad8d54ff24cc7"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform ULTRA LIGHT/m03af_04a.mdx",
+          "directory": false,
+          "bytes": 464376,
+          "sha256": "65182c7ebcd315cc300998fccb3333cf7c31fe26d9adcd6690ab24c0bc895eed"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/Swoop platform ULTRA LIGHT/m03af_04a.wok",
+          "directory": false,
+          "bytes": 136,
+          "sha256": "9f558b1d1dd848aa5067f5152d18f1724e4a85301235af013ba269d40722386d"
+        },
+        {
+          "path": "[K1] Swoop platform models repairs/tslpatchdata/namespaces.ini",
+          "directory": false,
+          "bytes": 1209,
+          "sha256": "fd46d245ba61e5418d73d140f6f0649b83d4b1cd87bab7b05ab5e2db6d4b5069"
+        }
+      ],
+      "raw_component": {
+        "Guid": "865b0833-e5a3-8cc7-8d5c-f9cbb26108bb",
+        "Name": "Swoop Platform Model Repair",
+        "Author": "CaptainSpoque",
+        "Description": "This mod fixes several issues and oversights with the swoop track area on Taris.",
+        "Directions": "Which of the three versions is used is up to your preference. Full is the entire package, lite is without the player swoop displayed on the race platform, and ultra lite is without the doors fix.",
+        "Tier": "3 - Suggested",
+        "Category": [
+          "Bugfix"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/2723-k1-swoop-platform-model-repairs/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "865b0833-e5a3-8cc7-8d5c-f9cbb26108bb",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "HoloPatcher Mod",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "Heading": "Swoop Platform Repair",
+        "InstallationMethod": "HoloPatcher Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[Swoop Platform Model Repair](https://deadlystream.com/files/file/2723-k1-swoop-platform-model-repairs/)",
+        "WidescreenOnly": false
+      },
+      "canonical_component": {
+        "Guid": "865b0833-e5a3-8cc7-8d5c-f9cbb26108bb",
+        "Name": "Swoop Platform Model Repair",
+        "Author": "CaptainSpoque",
+        "Description": "This mod fixes several issues and oversights with the swoop track area on Taris.",
+        "Directions": "Which of the three versions is used is up to your preference. Full is the entire package, lite is without the player swoop displayed on the race platform, and ultra lite is without the doors fix.",
+        "Tier": "3 - Suggested",
+        "Category": [
+          "Bugfix"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/2723-k1-swoop-platform-model-repairs/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "865b0833-e5a3-8cc7-8d5c-f9cbb26108bb",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "HoloPatcher Mod",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "Heading": "Swoop Platform Repair",
+        "InstallationMethod": "HoloPatcher Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[Swoop Platform Model Repair](https://deadlystream.com/files/file/2723-k1-swoop-platform-model-repairs/)",
+        "WidescreenOnly": false
+      },
+      "original_step": {
+        "id": "step-152",
+        "source_heading": "### Swoop Platform Repair",
+        "operations": [
+          {
+            "type": "extract",
+            "source": "{archives}/[K1] Swoop platform models repairs.rar",
+            "destination": "{extract}/step-152/1"
+          },
+          {
+            "type": "patcher",
+            "patcher": "{extract}/step-152/1/[K1] Swoop platform models repairs/K1 Swoop platform repairs.exe",
+            "sha256": "2a108d0ba866867da4726dedf6b17efdb23db4cbf3809856adbadf4a366cecb6",
+            "argv": [
+              "/usr/bin/wine",
+              "{extract}/step-152/1/[K1] Swoop platform models repairs/K1 Swoop platform repairs.exe",
+              "--game-dir",
+              "{game}",
+              "--tslpatchdata",
+              "{extract}/step-152/1/[K1] Swoop platform models repairs",
+              "--namespace-option-index",
+              "0",
+              "--install"
+            ],
+            "cwd": "{extract}/step-152/1/[K1] Swoop platform models repairs",
+            "success_log": "{extract}/step-152/1/[K1] Swoop platform models repairs/installlog.txt",
+            "success_markers": [
+              "The installation is complete with 0 errors and 0 warnings."
+            ],
+            "failure_regex": [
+              "^\\[Error\\]",
+              "^\\[Warning\\]"
+            ],
+            "expected_changes": "changed_manifest"
+          }
+        ]
+      },
+      "disabled_lookup_game_hint": false
+    },
+    {
+      "game": "k2",
+      "component_index": 6,
+      "guid": "5a13dbf0-ca35-87ea-b27f-181905adc656",
+      "source_heading": "### Classic Class Attack",
+      "step_index": 6,
+      "step_id": "step-007",
+      "source_choice": "Original source recommends standard over Weaker Consulars; source plan names CK-Classic Class Attack Bonus.zip and its sole Classic Class Attack Bonus installer. Certified archive has one branch and 10 explicit classes.2da attackbonustable changes, including Consular row4=CLS_ATK_2. This actual choice is recorded instead of inferred from GUI actions.",
+      "archive": {
+        "filename": "CK-Classic Class Attack Bonus.zip",
+        "sha256": "a37f98d5e91262a74d728b786769d6934f7257fa55f9c81f442ac1da0a351e56",
+        "bytes": 333804
+      },
+      "installer": {
+        "path": "Classic Class Attack Bonus/INSTALL.exe",
+        "sha256": "1a267454b2efcd61232332be83f4da4ffe88bd6770c5a0df517880062b1a75e8",
+        "bytes": 686080
+      },
+      "ini": {
+        "path": "Classic Class Attack Bonus/tslpatchdata/changes.ini",
+        "sha256": "2e9d8e23fe487176459790a98dcc5d6245d686dc28bb06307215ad7676e3cd9d",
+        "bytes": 1560
+      },
+      "namespace": null,
+      "members": [
+        {
+          "path": "Classic Class Attack Bonus",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "Classic Class Attack Bonus/INSTALL.exe",
+          "directory": false,
+          "bytes": 686080,
+          "sha256": "1a267454b2efcd61232332be83f4da4ffe88bd6770c5a0df517880062b1a75e8"
+        },
+        {
+          "path": "Classic Class Attack Bonus/tslpatchdata",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "Classic Class Attack Bonus/tslpatchdata/changes.ini",
+          "directory": false,
+          "bytes": 1560,
+          "sha256": "2e9d8e23fe487176459790a98dcc5d6245d686dc28bb06307215ad7676e3cd9d"
+        },
+        {
+          "path": "Classic Class Attack Bonus/tslpatchdata/classes.2da",
+          "directory": false,
+          "bytes": 2220,
+          "sha256": "68e2b94f01ba30d33dd8cced60e84f2eb94ef27ecebc1ac1423ea575dd1d408f"
+        },
+        {
+          "path": "Classic Class Attack Bonus/tslpatchdata/info.rtf",
+          "directory": false,
+          "bytes": 781,
+          "sha256": "bb011c81ec9b1c6faec922fcc0d8e40b89c692798cde874b45cf1e5860641207"
+        }
+      ],
+      "raw_component": {
+        "Guid": "5a13dbf0-ca35-87ea-b27f-181905adc656",
+        "Name": "Classic Class Attack Bonus",
+        "Author": "Crimson Knight",
+        "Description": "In the original KOTOR, Soldier and Guardian classes had a 1:1 attack bonus; they gained +1 attack for every 1 level. For every other class, this ratio was 0.75:1, which made classes feel different ingame and contributed to a difficulty scale. For unknown reasons, KOTOR 2 did away with this differentiation and gave every class a 1:1 ratio. This mod reverts this, giving classes which aren't explicitly melee-focused the 0.75:1 ratio back, restoring a bit of difficulty to what is otherwise a *very* easy game.",
+        "Directions": "Strongly recommend downloading the standard option. Weaker Consulars can be extremely punishing, so if you choose this option be aware that you're in for a rough time at some places!",
+        "Tier": "1 - Essential",
+        "Category": [
+          "Mechanics Change"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/2812-classic-class-attack-bonus/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "5a13dbf0-ca35-87ea-b27f-181905adc656",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 1
+          },
+          "MethodContext": {
+            "Method": "TSLPatcher Mod",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "Heading": "Classic Class Attack",
+        "InstallationMethod": "TSLPatcher Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[Classic Class Attack Bonus](https://deadlystream.com/files/file/2812-classic-class-attack-bonus/)",
+        "WidescreenOnly": false
+      },
+      "canonical_component": {
+        "Guid": "5a13dbf0-ca35-87ea-b27f-181905adc656",
+        "Name": "Classic Class Attack Bonus",
+        "Author": "Crimson Knight",
+        "Description": "In the original KOTOR, Soldier and Guardian classes had a 1:1 attack bonus; they gained +1 attack for every 1 level. For every other class, this ratio was 0.75:1, which made classes feel different ingame and contributed to a difficulty scale. For unknown reasons, KOTOR 2 did away with this differentiation and gave every class a 1:1 ratio. This mod reverts this, giving classes which aren't explicitly melee-focused the 0.75:1 ratio back, restoring a bit of difficulty to what is otherwise a *very* easy game.",
+        "Directions": "Strongly recommend downloading the standard option. Weaker Consulars can be extremely punishing, so if you choose this option be aware that you're in for a rough time at some places!",
+        "Tier": "1 - Essential",
+        "Category": [
+          "Mechanics Change"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/2812-classic-class-attack-bonus/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "5a13dbf0-ca35-87ea-b27f-181905adc656",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 1
+          },
+          "MethodContext": {
+            "Method": "TSLPatcher Mod",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "Heading": "Classic Class Attack",
+        "InstallationMethod": "TSLPatcher Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[Classic Class Attack Bonus](https://deadlystream.com/files/file/2812-classic-class-attack-bonus/)",
+        "WidescreenOnly": false
+      },
+      "original_step": {
+        "id": "step-007",
+        "source_heading": "### Classic Class Attack",
+        "operations": [
+          {
+            "type": "extract",
+            "source": "{archives}/CK-Classic Class Attack Bonus.zip",
+            "destination": "{extract}/step-007/1"
+          },
+          {
+            "type": "gui_patcher",
+            "patcher": "{extract}/step-007/1/Classic Class Attack Bonus/INSTALL.exe",
+            "sha256": "1a267454b2efcd61232332be83f4da4ffe88bd6770c5a0df517880062b1a75e8",
+            "argv": [
+              "/usr/bin/wine",
+              "{extract}/step-007/1/Classic Class Attack Bonus/INSTALL.exe"
+            ],
+            "cwd": "{extract}/step-007/1/Classic Class Attack Bonus",
+            "success_log": "{extract}/step-007/1/Classic Class Attack Bonus/installlog.rtf",
+            "success_markers": [
+              "Done. All changes have been applied."
+            ],
+            "failure_regex": [
+              "Error: ",
+              "Warning: ",
+              "Done\\. Some changes may have been applied"
+            ],
+            "expected_changes": "changed_manifest",
+            "wine_registry": [
+              {
+                "key": "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders",
+                "name": "Desktop",
+                "data": "{game_win}"
+              },
+              {
+                "key": "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders",
+                "name": "Desktop",
+                "data": "{game_win}"
+              }
+            ],
+            "actions": [
+              {
+                "wait_window": "^(\"Classic Class Attack Bonus\" by Crimson)",
+                "timeout": 120
+              },
+              {
+                "sleep": 3
+              },
+              {
+                "click": [
+                  502,
+                  433
+                ],
+                "window": "^(\"Classic Class Attack Bonus\" by Crimson)"
+              },
+              {
+                "wait_window": "^Browse for Folder$",
+                "timeout": 120
+              },
+              {
+                "sleep": 2
+              },
+              {
+                "click": [
+                  62,
+                  69
+                ],
+                "window": "^Browse for Folder$"
+              },
+              {
+                "sleep": 1
+              },
+              {
+                "click": [
+                  157,
+                  274
+                ],
+                "window": "^Browse for Folder$"
+              },
+              {
+                "wait_log": 600
+              }
+            ]
+          }
+        ]
+      },
+      "disabled_lookup_game_hint": true
+    },
+    {
+      "game": "k2",
+      "component_index": 36,
+      "guid": "1d93e291-aa7d-8c1b-992d-510c349bb926",
+      "source_heading": "### Better Twi'lek Heads",
+      "step_index": 36,
+      "step_id": "step-037",
+      "source_choice": "Source allows slim/original necks; original positional0 chooses Slim Necks. M4-78 compatibility namespace remains unselected.",
+      "archive": {
+        "filename": "TSL Twi_lek Heads v1.3.2.7z",
+        "sha256": "c7c9242db696579a87107353d0fa8055175e1bc61aa3f1281c930f8597d892bc",
+        "bytes": 13726319
+      },
+      "installer": {
+        "path": "Installer.exe",
+        "sha256": "2a108d0ba866867da4726dedf6b17efdb23db4cbf3809856adbadf4a366cecb6",
+        "bytes": 9518185
+      },
+      "ini": {
+        "path": "tslpatchdata/1 - Slim Necks/changes_1.ini",
+        "sha256": "c9d74da90597b83d65c8b7d42c37be671ef54337848c7b2e7adb1313521d0686",
+        "bytes": 1237
+      },
+      "namespace": {
+        "index": 0,
+        "key": "Namespace1",
+        "id": "Option 1",
+        "map": {
+          "path": "tslpatchdata/namespaces.ini",
+          "sha256": "bb88ee32fcc5c4680b8121a5f947411511e2678ef201909edb9328909a15306e",
+          "bytes": 1295
+        },
+        "ini_name": "changes_1.ini",
+        "data_path": "1 - Slim Necks"
+      },
+      "members": [
+        {
+          "path": "Installer.exe",
+          "directory": false,
+          "bytes": 9518185,
+          "sha256": "2a108d0ba866867da4726dedf6b17efdb23db4cbf3809856adbadf4a366cecb6"
+        },
+        {
+          "path": "Preview_A.png",
+          "directory": false,
+          "bytes": 1607014,
+          "sha256": "2b18c1953e12f26866c3ce24129523c36170c724d134cb46fdd0fe5e225eabe9"
+        },
+        {
+          "path": "Preview_B.png",
+          "directory": false,
+          "bytes": 1625413,
+          "sha256": "83618f4e3938fe16048dc2bc3364095b10925d105812f403ae70cab2b7e1ba05"
+        },
+        {
+          "path": "readme.rtf",
+          "directory": false,
+          "bytes": 2912,
+          "sha256": "7a901d1212f628a3e6ee333ea15d24b01f5eff761402c6d157c72e82b63bac04"
+        },
+        {
+          "path": "tslpatchdata",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks/changes_1.ini",
+          "directory": false,
+          "bytes": 1237,
+          "sha256": "c9d74da90597b83d65c8b7d42c37be671ef54337848c7b2e7adb1313521d0686"
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks/info_1.rtf",
+          "directory": false,
+          "bytes": 628,
+          "sha256": "7416bae76e26535e18538a41241035a3317e98930f7730d7d4a01cb0fb293bb8"
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks/n_komadh.tpc",
+          "directory": false,
+          "bytes": 174970,
+          "sha256": "e918f019b8bb9bd4d80c4071083f183403b0fa2d5b8758d98f6003489edcc349"
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks/n_xorh.tpc",
+          "directory": false,
+          "bytes": 174970,
+          "sha256": "fa574734997fa2639abf5c2f3c1ce1c769d28cdbb662ba755324a20b5899706d"
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks/n_zharh.tpc",
+          "directory": false,
+          "bytes": 174970,
+          "sha256": "325373865b92943029b0922966b2c82dcfe77b2fd9ec295a0b23ec87a142cf62"
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks/twilek_m.mdl",
+          "directory": false,
+          "bytes": 103774,
+          "sha256": "19b3ae475c75708a5db77e37e0a1c008442a52b351fbed5adc6204ff058140a2"
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks/twilek_m.mdx",
+          "directory": false,
+          "bytes": 115904,
+          "sha256": "4ef202e9a1e7125d3e79c3eaaf1773cc42924deb54ea2ff8f3e6df3f8640fdcd"
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks/twilek_m01.tpc",
+          "directory": false,
+          "bytes": 174970,
+          "sha256": "cb91c8ba4c85e4e3095f2262d6eb0536e810a13025af99d3ec404f4e76232c31"
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks/twilek_m01b.tpc",
+          "directory": false,
+          "bytes": 174943,
+          "sha256": "6de6d761c5d982c2ccea9ee48e2c9d467dc5d865ff6857f161be2fb0d9170576"
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks/twilek_m02.tpc",
+          "directory": false,
+          "bytes": 174970,
+          "sha256": "e33e7b9ef85916d6877b925fa11cc66da2cb4446fae3992ba198fbe386f40ff5"
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks/twilek_m03.tpc",
+          "directory": false,
+          "bytes": 174970,
+          "sha256": "59179dce4e526717fab33c9d183cb29e1f76f57585b1a897fcb863a2aae2dabc"
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks/twilek_m04.tpc",
+          "directory": false,
+          "bytes": 699258,
+          "sha256": "58bdc4f08e6a74c6305e014dd312cfcfbe8e43cfa19e73db4c22dccbc7152347"
+        },
+        {
+          "path": "tslpatchdata/1 - Slim Necks/twilek_m05.tpc",
+          "directory": false,
+          "bytes": 699258,
+          "sha256": "fc764f9c89d7a669f1bcb745770398d9b55a3f4e7fc47fdd6b79affb57005840"
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks/changes_2.ini",
+          "directory": false,
+          "bytes": 1200,
+          "sha256": "60ee610ee06afe49c24f0e9edfd9d8a120b369e1cd35083a6b2307310013c249"
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks/info_2.rtf",
+          "directory": false,
+          "bytes": 709,
+          "sha256": "2924bdca62c58cedc652ea0c050521110e0c977bb90b5822055103a3371bf078"
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks/n_komadh.tpc",
+          "directory": false,
+          "bytes": 174970,
+          "sha256": "e918f019b8bb9bd4d80c4071083f183403b0fa2d5b8758d98f6003489edcc349"
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks/n_xorh.tpc",
+          "directory": false,
+          "bytes": 174970,
+          "sha256": "fa574734997fa2639abf5c2f3c1ce1c769d28cdbb662ba755324a20b5899706d"
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks/n_zharh.tpc",
+          "directory": false,
+          "bytes": 174970,
+          "sha256": "325373865b92943029b0922966b2c82dcfe77b2fd9ec295a0b23ec87a142cf62"
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks/twilek_m.mdl",
+          "directory": false,
+          "bytes": 105562,
+          "sha256": "bd8f3f7db112b792e9354754b1a209515e25ef0befd2fa808b2fec314ad0ffca"
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks/twilek_m.mdx",
+          "directory": false,
+          "bytes": 117300,
+          "sha256": "501bb7da88e4f79c0906361f2cef64a8619dea62bccebbd0a1aa5ac82aa70d5e"
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks/twilek_m01.tpc",
+          "directory": false,
+          "bytes": 174970,
+          "sha256": "cb91c8ba4c85e4e3095f2262d6eb0536e810a13025af99d3ec404f4e76232c31"
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks/twilek_m01b.tpc",
+          "directory": false,
+          "bytes": 174943,
+          "sha256": "6de6d761c5d982c2ccea9ee48e2c9d467dc5d865ff6857f161be2fb0d9170576"
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks/twilek_m02.tpc",
+          "directory": false,
+          "bytes": 174970,
+          "sha256": "e33e7b9ef85916d6877b925fa11cc66da2cb4446fae3992ba198fbe386f40ff5"
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks/twilek_m03.tpc",
+          "directory": false,
+          "bytes": 174970,
+          "sha256": "59179dce4e526717fab33c9d183cb29e1f76f57585b1a897fcb863a2aae2dabc"
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks/twilek_m04.tpc",
+          "directory": false,
+          "bytes": 699258,
+          "sha256": "58bdc4f08e6a74c6305e014dd312cfcfbe8e43cfa19e73db4c22dccbc7152347"
+        },
+        {
+          "path": "tslpatchdata/2 - Original Necks/twilek_m05.tpc",
+          "directory": false,
+          "bytes": 699258,
+          "sha256": "fc764f9c89d7a669f1bcb745770398d9b55a3f4e7fc47fdd6b79affb57005840"
+        },
+        {
+          "path": "tslpatchdata/3 - M4-78 EP Compatibility Patch",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "tslpatchdata/3 - M4-78 EP Compatibility Patch/changes_3.ini",
+          "directory": false,
+          "bytes": 1026,
+          "sha256": "f6bb949fdf21f12740dfcf85a07a86e5d5c169372863a735a6ad54190666729d"
+        },
+        {
+          "path": "tslpatchdata/3 - M4-78 EP Compatibility Patch/info_3.rtf",
+          "directory": false,
+          "bytes": 725,
+          "sha256": "61d090ebe49ca6decd0156194c49658087160b2e5db152746c31b93c97b9b04d"
+        },
+        {
+          "path": "tslpatchdata/3 - M4-78 EP Compatibility Patch/n_kaah01.tga",
+          "directory": false,
+          "bytes": 395894,
+          "sha256": "d95fc36a2d1f8fa53bcd4e81adf8d3dacfe71f03e90b6eaa80b1a676dbe5140e"
+        },
+        {
+          "path": "tslpatchdata/3 - M4-78 EP Compatibility Patch/n_kaah01.txi",
+          "directory": false,
+          "bytes": 26,
+          "sha256": "55946d79df3905005ced84f39905ce3de73e3d8e11b5d85a1e13b2729e089ab9"
+        },
+        {
+          "path": "tslpatchdata/namespaces.ini",
+          "directory": false,
+          "bytes": 1295,
+          "sha256": "bb88ee32fcc5c4680b8121a5f947411511e2678ef201909edb9328909a15306e"
+        }
+      ],
+      "raw_component": {
+        "Guid": "1d93e291-aa7d-8c1b-992d-510c349bb926",
+        "Name": "Better Twi'lek Heads",
+        "Author": "Ashton Scorpius",
+        "Description": "Unlike female Twi'lek, male Twi'lek are supposed to have ears. Operative word: *supposed* to. Their ears are barely visible at all in KOTOR, which this mod fixes using TOR ear geometry.",
+        "Directions": "Choose whether to use the slim or original necks; your preference.",
+        "Tier": "3 - Suggested",
+        "Category": [
+          "Appearance Change"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/1432-tsl-better-male-twilek-heads/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "1d93e291-aa7d-8c1b-992d-510c349bb926",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults.",
+              "Choose whether to use the slim or original necks"
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "HoloPatcher Mod",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "InstallationMethod": "HoloPatcher Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[Better Twi'lek Heads](https://deadlystream.com/files/file/1432-tsl-better-male-twilek-heads/)",
+        "WidescreenOnly": false
+      },
+      "canonical_component": {
+        "Guid": "1d93e291-aa7d-8c1b-992d-510c349bb926",
+        "Name": "Better Twi'lek Heads",
+        "Author": "Ashton Scorpius",
+        "Description": "Unlike female Twi'lek, male Twi'lek are supposed to have ears. Operative word: *supposed* to. Their ears are barely visible at all in KOTOR, which this mod fixes using TOR ear geometry.",
+        "Directions": "Choose whether to use the slim or original necks; your preference.",
+        "Tier": "3 - Suggested",
+        "Category": [
+          "Appearance Change"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/1432-tsl-better-male-twilek-heads/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "1d93e291-aa7d-8c1b-992d-510c349bb926",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults.",
+              "Choose whether to use the slim or original necks"
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "HoloPatcher Mod",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "InstallationMethod": "HoloPatcher Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[Better Twi'lek Heads](https://deadlystream.com/files/file/1432-tsl-better-male-twilek-heads/)",
+        "WidescreenOnly": false
+      },
+      "original_step": {
+        "id": "step-037",
+        "source_heading": "### Better Twi'lek Heads",
+        "operations": [
+          {
+            "type": "extract",
+            "source": "{archives}/TSL Twi_lek Heads v1.3.2.7z",
+            "destination": "{extract}/step-037/1"
+          },
+          {
+            "type": "patcher",
+            "patcher": "{extract}/step-037/1/Installer.exe",
+            "sha256": "2a108d0ba866867da4726dedf6b17efdb23db4cbf3809856adbadf4a366cecb6",
+            "argv": [
+              "/usr/bin/wine",
+              "{extract}/step-037/1/Installer.exe",
+              "--game-dir",
+              "{game}",
+              "--tslpatchdata",
+              "{extract}/step-037/1",
+              "--namespace-option-index",
+              "0",
+              "--install"
+            ],
+            "cwd": "{extract}/step-037/1",
+            "success_log": "{extract}/step-037/1/installlog.txt",
+            "success_markers": [
+              "The installation is complete with 0 errors and 0 warnings."
+            ],
+            "failure_regex": [
+              "^\\[Error\\]",
+              "^\\[Warning\\]"
+            ],
+            "expected_changes": "changed_manifest"
+          }
+        ]
+      },
+      "disabled_lookup_game_hint": false
+    },
+    {
+      "game": "k2",
+      "component_index": 45,
+      "guid": "fac1545f-791a-8fe0-83b0-1cfb8239063d",
+      "source_heading": "### PFHC03 Restoration",
+      "step_index": 45,
+      "step_id": "step-046",
+      "source_choice": "Original source recommends zombie-like; original plan selects Vanilla Zombie installer subtree. Movie Style Sith Eyes is retained as an unselected whole package subtree.",
+      "archive": {
+        "filename": "Effixians_PFHC03_Restoration.zip",
+        "sha256": "7baeed1536bff84311357bd4a386638417e4444c95a0d0cc29cc7fad4e36c769",
+        "bytes": 3667686
+      },
+      "installer": {
+        "path": "Effixians_PFHC03_Restoration/Vanilla Zombie/TSLPatcher - Install Effixian's PFHC03 Restoration - Vanilla Zombie.exe",
+        "sha256": "638aaeea4e40ffb6c592f68787f2140318a0dec7f2cde85908806ce3b5bc5131",
+        "bytes": 685056
+      },
+      "ini": {
+        "path": "Effixians_PFHC03_Restoration/Vanilla Zombie/tslpatchdata/changes.ini",
+        "sha256": "490ab10e2651dd9538ff295b50a3a1b7f1a4b8c34c3ab55919e95ca461989827",
+        "bytes": 2218
+      },
+      "namespace": null,
+      "members": [
+        {
+          "path": "Effixians_PFHC03_Restoration",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "Effixians_PFHC03_Restoration/Movie Style Sith Eyes",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "Effixians_PFHC03_Restoration/Movie Style Sith Eyes/TSLPatcher - Install Effixian's PFHC03 Restoration - Movie Style Sith Eyes.exe",
+          "directory": false,
+          "bytes": 685056,
+          "sha256": "638aaeea4e40ffb6c592f68787f2140318a0dec7f2cde85908806ce3b5bc5131"
+        },
+        {
+          "path": "Effixians_PFHC03_Restoration/Movie Style Sith Eyes/tslpatchdata",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "Effixians_PFHC03_Restoration/Movie Style Sith Eyes/tslpatchdata/PFHC03.tga",
+          "directory": false,
+          "bytes": 1048620,
+          "sha256": "8d2914e68a35c782dc7543428f0337ab3f03d16b5ca80ea19e72bdcdd035d8e9"
+        },
+        {
+          "path": "Effixians_PFHC03_Restoration/Movie Style Sith Eyes/tslpatchdata/PFHC03d1.tga",
+          "directory": false,
+          "bytes": 1048620,
+          "sha256": "62ecbf31d2ff2b389c7cbc94bae972fb430c9aa38e133e9c15e2856a5a2810cc"
+        },
+        {
+          "path": "Effixians_PFHC03_Restoration/Movie Style Sith Eyes/tslpatchdata/PFHC03d2.tga",
+          "directory": false,
+          "bytes": 1048620,
+          "sha256": "dee155c1e1f5b7ddd0dd173cb76b7bee264c6793fb2658d5814943f210ef028e"
+        },
+        {
+          "path": "Effixians_PFHC03_Restoration/Movie Style Sith Eyes/tslpatchdata/appearance.2da",
+          "directory": false,
+          "bytes": 148884,
+          "sha256": "381ad4362485a10aee65b95bd2681249fba551c572425a2f8c9b203ceb1cde05"
+        },
+        {
+          "path": "Effixians_PFHC03_Restoration/Movie Style Sith Eyes/tslpatchdata/changes.ini",
+          "directory": false,
+          "bytes": 2218,
+          "sha256": "490ab10e2651dd9538ff295b50a3a1b7f1a4b8c34c3ab55919e95ca461989827"
+        },
+        {
+          "path": "Effixians_PFHC03_Restoration/Movie Style Sith Eyes/tslpatchdata/heads.2da",
+          "directory": false,
+          "bytes": 6726,
+          "sha256": "4ebe6cec20961cae908fe26187fe7d2a248038912dd1a026e392c67bc7b94828"
+        },
+        {
+          "path": "Effixians_PFHC03_Restoration/Movie Style Sith Eyes/tslpatchdata/info.rtf",
+          "directory": false,
+          "bytes": 2714,
+          "sha256": "c8286ea8e3beaea39573e129c2ad34e295c68721bdd2b4a7c2ccc4ce584b0239"
+        },
+        {
+          "path": "Effixians_PFHC03_Restoration/Movie Style Sith Eyes/tslpatchdata/po_PFHC03.tga",
+          "directory": false,
+          "bytes": 49196,
+          "sha256": "bf4781cd87b920aea8faafc69f1b0697cc61734d339f158df1bccee2512f7f3b"
+        },
+        {
+          "path": "Effixians_PFHC03_Restoration/Movie Style Sith Eyes/tslpatchdata/po_PFHC03d1.tga",
+          "directory": false,
+          "bytes": 49196,
+          "sha256": "eb2ab6d0bfeefcf0d270dfe39d60b6d3823f89b2adc9d6165effc47b5ce677d1"
+        },
+        {
+          "path": "Effixians_PFHC03_Restoration/Movie Style Sith Eyes/tslpatchdata/po_PFHC03d2.tga",
+          "directory": false,
+          "bytes": 49196,
+          "sha256": "9daa417cee9a724763f14d1659616340d455fc64a013caa0236ef08cd0df7393"
+        },
+        {
+          "path": "Effixians_PFHC03_Restoration/Movie Style Sith Eyes/tslpatchdata/portraits.2da",
+          "directory": false,
+          "bytes": 4221,
+          "sha256": "4419750bb69759374b30f11dec1edef16da58df5ff94372aa0aeaf4f5c3df913"
+        },
+        {
+          "path": "Effixians_PFHC03_Restoration/Vanilla Zombie",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "Effixians_PFHC03_Restoration/Vanilla Zombie/TSLPatcher - Install Effixian's PFHC03 Restoration - Vanilla Zombie.exe",
+          "directory": false,
+          "bytes": 685056,
+          "sha256": "638aaeea4e40ffb6c592f68787f2140318a0dec7f2cde85908806ce3b5bc5131"
+        },
+        {
+          "path": "Effixians_PFHC03_Restoration/Vanilla Zombie/tslpatchdata",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "Effixians_PFHC03_Restoration/Vanilla Zombie/tslpatchdata/PFHC03.tga",
+          "directory": false,
+          "bytes": 1048620,
+          "sha256": "8d2914e68a35c782dc7543428f0337ab3f03d16b5ca80ea19e72bdcdd035d8e9"
+        },
+        {
+          "path": "Effixians_PFHC03_Restoration/Vanilla Zombie/tslpatchdata/PFHC03d1.tga",
+          "directory": false,
+          "bytes": 1048620,
+          "sha256": "56ae2d937f5a9e2ff8c684551e75aea7d3875e70dc58938405790d3a859fae2e"
+        },
+        {
+          "path": "Effixians_PFHC03_Restoration/Vanilla Zombie/tslpatchdata/PFHC03d2.tga",
+          "directory": false,
+          "bytes": 1048620,
+          "sha256": "eabcf38b1d5cdd196bf85c05dac225674bb61a945d9496de8d9f229b08da66c7"
+        },
+        {
+          "path": "Effixians_PFHC03_Restoration/Vanilla Zombie/tslpatchdata/appearance.2da",
+          "directory": false,
+          "bytes": 148884,
+          "sha256": "381ad4362485a10aee65b95bd2681249fba551c572425a2f8c9b203ceb1cde05"
+        },
+        {
+          "path": "Effixians_PFHC03_Restoration/Vanilla Zombie/tslpatchdata/changes.ini",
+          "directory": false,
+          "bytes": 2218,
+          "sha256": "490ab10e2651dd9538ff295b50a3a1b7f1a4b8c34c3ab55919e95ca461989827"
+        },
+        {
+          "path": "Effixians_PFHC03_Restoration/Vanilla Zombie/tslpatchdata/heads.2da",
+          "directory": false,
+          "bytes": 6726,
+          "sha256": "4ebe6cec20961cae908fe26187fe7d2a248038912dd1a026e392c67bc7b94828"
+        },
+        {
+          "path": "Effixians_PFHC03_Restoration/Vanilla Zombie/tslpatchdata/info.rtf",
+          "directory": false,
+          "bytes": 2663,
+          "sha256": "e5d88ee83cd024a7b10526776e2ebe1c91b10b136cda7ce1d36ff0d314543ded"
+        },
+        {
+          "path": "Effixians_PFHC03_Restoration/Vanilla Zombie/tslpatchdata/po_PFHC03.tga",
+          "directory": false,
+          "bytes": 49196,
+          "sha256": "8b33405a4f268e3b726432ecea68c3ba5cd03bcb9c0d57345d87863f5488e438"
+        },
+        {
+          "path": "Effixians_PFHC03_Restoration/Vanilla Zombie/tslpatchdata/po_PFHC03d1.tga",
+          "directory": false,
+          "bytes": 49196,
+          "sha256": "c5b00eaf89f4b80b940d6cadac4992a2e248a4d322989e1c553f3c3b94c49cb2"
+        },
+        {
+          "path": "Effixians_PFHC03_Restoration/Vanilla Zombie/tslpatchdata/po_PFHC03d2.tga",
+          "directory": false,
+          "bytes": 49196,
+          "sha256": "3b91f4b13e2ff730b3b389b894100a3302380ebab88f01d27e01afa5aeb62d5f"
+        },
+        {
+          "path": "Effixians_PFHC03_Restoration/Vanilla Zombie/tslpatchdata/portraits.2da",
+          "directory": false,
+          "bytes": 4221,
+          "sha256": "4419750bb69759374b30f11dec1edef16da58df5ff94372aa0aeaf4f5c3df913"
+        },
+        {
+          "path": "Effixians_PFHC03_Restoration/readme.txt",
+          "directory": false,
+          "bytes": 2130,
+          "sha256": "ea049e91367bfda4c6e34898b9d7b02ab2b6d383fcdd90fd07cae22875b811ea"
+        },
+        {
+          "path": "Effixians_PFHC03_Restoration/screenshot.jpg",
+          "directory": false,
+          "bytes": 231317,
+          "sha256": "62bc4703a9d63c60f38f3fb272794c2bb30e6c0f1451d1942f8021c913b343ad"
+        }
+      ],
+      "raw_component": {
+        "Guid": "fac1545f-791a-8fe0-83b0-1cfb8239063d",
+        "Name": "PFHC03 Restoration",
+        "Author": "Effix",
+        "Description": "For some reason, this head is included in vanilla but not enabled due to missing Dark Side transitions. This mod adds the transitions and re-enables the head as an option.",
+        "Directions": "Recommend the 'zombie-like' appearance, as it matches vanilla DS transitions.",
+        "Tier": "2 - Recommended",
+        "Category": [
+          "Restored Content"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/2003-effixians-pfhc03-restoration/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "fac1545f-791a-8fe0-83b0-1cfb8239063d",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "TSLPatcher",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "InstallationMethod": "TSLPatcher",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[PFHC03 Restoration](https://deadlystream.com/files/file/2003-effixians-pfhc03-restoration/)",
+        "WidescreenOnly": false
+      },
+      "canonical_component": {
+        "Guid": "fac1545f-791a-8fe0-83b0-1cfb8239063d",
+        "Name": "PFHC03 Restoration",
+        "Author": "Effix",
+        "Description": "For some reason, this head is included in vanilla but not enabled due to missing Dark Side transitions. This mod adds the transitions and re-enables the head as an option.",
+        "Directions": "Recommend the 'zombie-like' appearance, as it matches vanilla DS transitions.",
+        "Tier": "2 - Recommended",
+        "Category": [
+          "Restored Content"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/2003-effixians-pfhc03-restoration/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "fac1545f-791a-8fe0-83b0-1cfb8239063d",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "TSLPatcher",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "InstallationMethod": "TSLPatcher",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[PFHC03 Restoration](https://deadlystream.com/files/file/2003-effixians-pfhc03-restoration/)",
+        "WidescreenOnly": false
+      },
+      "original_step": {
+        "id": "step-046",
+        "source_heading": "### PFHC03 Restoration",
+        "operations": [
+          {
+            "type": "extract",
+            "source": "{archives}/Effixians_PFHC03_Restoration.zip",
+            "destination": "{extract}/step-046/1"
+          },
+          {
+            "type": "gui_patcher",
+            "patcher": "{extract}/step-046/1/Effixians_PFHC03_Restoration/Vanilla Zombie/TSLPatcher - Install Effixian's PFHC03 Restoration - Vanilla Zombie.exe",
+            "sha256": "638aaeea4e40ffb6c592f68787f2140318a0dec7f2cde85908806ce3b5bc5131",
+            "argv": [
+              "/usr/bin/wine",
+              "{extract}/step-046/1/Effixians_PFHC03_Restoration/Vanilla Zombie/TSLPatcher - Install Effixian's PFHC03 Restoration - Vanilla Zombie.exe"
+            ],
+            "cwd": "{extract}/step-046/1/Effixians_PFHC03_Restoration/Vanilla Zombie",
+            "success_log": "{extract}/step-046/1/Effixians_PFHC03_Restoration/Vanilla Zombie/installlog.rtf",
+            "success_markers": [
+              "Done. All changes have been applied."
+            ],
+            "failure_regex": [
+              "Error: ",
+              "Warning: ",
+              "Done\\. Some changes may have been applied"
+            ],
+            "expected_changes": "changed_manifest",
+            "wine_registry": [
+              {
+                "key": "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders",
+                "name": "Desktop",
+                "data": "{game_win}"
+              },
+              {
+                "key": "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders",
+                "name": "Desktop",
+                "data": "{game_win}"
+              }
+            ],
+            "actions": [
+              {
+                "wait_window": "^(Effixian's PFHC03 Restoration)",
+                "timeout": 120
+              },
+              {
+                "sleep": 3
+              },
+              {
+                "click": [
+                  502,
+                  433
+                ],
+                "window": "^(Effixian's PFHC03 Restoration)"
+              },
+              {
+                "wait_window": "^Browse for Folder$",
+                "timeout": 120
+              },
+              {
+                "sleep": 2
+              },
+              {
+                "click": [
+                  62,
+                  69
+                ],
+                "window": "^Browse for Folder$"
+              },
+              {
+                "sleep": 1
+              },
+              {
+                "click": [
+                  157,
+                  274
+                ],
+                "window": "^Browse for Folder$"
+              },
+              {
+                "wait_log": 600
+              }
+            ]
+          }
+        ]
+      },
+      "disabled_lookup_game_hint": false
+    },
+    {
+      "game": "k2",
+      "component_index": 84,
+      "guid": "4fefced2-405e-8107-9851-888b8827565d",
+      "source_heading": "### Short-Term Memory Fix",
+      "step_index": 84,
+      "step_id": "step-085",
+      "source_choice": "Original positional1 resolves N-DReW25 Fix, matching source recommendation to preserve more dialogue.",
+      "archive": {
+        "filename": "VSTMF1.4.7z",
+        "sha256": "61046731358c5a0484979315eb7c16a9571f5bd34da7f967f8dda2d08cb5c163",
+        "bytes": 9374876
+      },
+      "installer": {
+        "path": "VSTMF1.4/HoloPatcher.exe",
+        "sha256": "2a108d0ba866867da4726dedf6b17efdb23db4cbf3809856adbadf4a366cecb6",
+        "bytes": 9518185
+      },
+      "ini": {
+        "path": "VSTMF1.4/tslpatchdata/ND/changes.ini",
+        "sha256": "84d2db7d84b669aca351334068dde2dbb36c633536d165ee5a3bf68a87acb64c",
+        "bytes": 1219
+      },
+      "namespace": {
+        "index": 1,
+        "key": "Namespace2",
+        "id": "2",
+        "map": {
+          "path": "VSTMF1.4/tslpatchdata/namespaces.ini",
+          "sha256": "8b21bda35b2aadd707341e8d4b204f920487f2e9c05f80e4b60c1c148daf3173",
+          "bytes": 1237
+        },
+        "ini_name": "changes.ini",
+        "data_path": "ND"
+      },
+      "members": [
+        {
+          "path": "VSTMF1.4",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "VSTMF1.4/HoloPatcher.exe",
+          "directory": false,
+          "bytes": 9518185,
+          "sha256": "2a108d0ba866867da4726dedf6b17efdb23db4cbf3809856adbadf4a366cecb6"
+        },
+        {
+          "path": "VSTMF1.4/readme.txt",
+          "directory": false,
+          "bytes": 3676,
+          "sha256": "9398ffd2d94a9dadb74b07e67c8e042a1cd28a6deb55fe7176e20f270a92996f"
+        },
+        {
+          "path": "VSTMF1.4/tslpatchdata",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "VSTMF1.4/tslpatchdata/ND",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "VSTMF1.4/tslpatchdata/ND/511tobin099.lip",
+          "directory": false,
+          "bytes": 476,
+          "sha256": "f9804762cf1e950d0d7be77da5f9ec14d064f050fab9e2042559369d2fd9b099"
+        },
+        {
+          "path": "VSTMF1.4/tslpatchdata/ND/511tobin099.wav",
+          "directory": false,
+          "bytes": 61150,
+          "sha256": "feb9685b957fe0aacc2a840fc7539c4a1c1fd52942cf62d84c04c11438f75185"
+        },
+        {
+          "path": "VSTMF1.4/tslpatchdata/ND/append.tlk",
+          "directory": false,
+          "bytes": 187,
+          "sha256": "81c93b234e9a0151f91ed8f99ca643243d1b8c2b590000a8cc4e7c5daeb1f4a1"
+        },
+        {
+          "path": "VSTMF1.4/tslpatchdata/ND/changes.ini",
+          "directory": false,
+          "bytes": 1219,
+          "sha256": "84d2db7d84b669aca351334068dde2dbb36c633536d165ee5a3bf68a87acb64c"
+        },
+        {
+          "path": "VSTMF1.4/tslpatchdata/ND/info.rtf",
+          "directory": false,
+          "bytes": 48025,
+          "sha256": "0da854a58394c915335d020b48981b946bb3950424f7b862ae1c2ca8dc73ce61"
+        },
+        {
+          "path": "VSTMF1.4/tslpatchdata/ND/tobin.dlg",
+          "directory": false,
+          "bytes": 108973,
+          "sha256": "b3649b4b3b69c8cc9dfd5ca0b6af1fd6832e4185f58b984ceb3ec4236c054067"
+        },
+        {
+          "path": "VSTMF1.4/tslpatchdata/SC",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "VSTMF1.4/tslpatchdata/SC/511tobin099.lip",
+          "directory": false,
+          "bytes": 376,
+          "sha256": "1d9cdb6dc58521443a128bb3a368651467c2a17bb84cda3ea9ae05c6d1e7de5b"
+        },
+        {
+          "path": "VSTMF1.4/tslpatchdata/SC/511tobin099.wav",
+          "directory": false,
+          "bytes": 40702,
+          "sha256": "70e2aca975dd781ea225128710b8127d0ebe89a6dd2eaafc590272de432dcf4f"
+        },
+        {
+          "path": "VSTMF1.4/tslpatchdata/SC/append.tlk",
+          "directory": false,
+          "bytes": 133,
+          "sha256": "8d18c9aa3f1e84813f4313a6a0faa31e80aef37c243bf4a7ba80a2755be0c2c6"
+        },
+        {
+          "path": "VSTMF1.4/tslpatchdata/SC/changes.ini",
+          "directory": false,
+          "bytes": 1219,
+          "sha256": "9a4a2ded7665346745afdf409ea1af1c8ce521c54683137438eddc96df66a5c9"
+        },
+        {
+          "path": "VSTMF1.4/tslpatchdata/SC/info.rtf",
+          "directory": false,
+          "bytes": 48025,
+          "sha256": "0da854a58394c915335d020b48981b946bb3950424f7b862ae1c2ca8dc73ce61"
+        },
+        {
+          "path": "VSTMF1.4/tslpatchdata/SC/tobin.dlg",
+          "directory": false,
+          "bytes": 108973,
+          "sha256": "b3649b4b3b69c8cc9dfd5ca0b6af1fd6832e4185f58b984ceb3ec4236c054067"
+        },
+        {
+          "path": "VSTMF1.4/tslpatchdata/namespaces.ini",
+          "directory": false,
+          "bytes": 1237,
+          "sha256": "8b21bda35b2aadd707341e8d4b204f920487f2e9c05f80e4b60c1c148daf3173"
+        }
+      ],
+      "raw_component": {
+        "Guid": "4fefced2-405e-8107-9851-888b8827565d",
+        "Name": "Vaklu Short-Term Memory Fix",
+        "Author": "SuperChameau",
+        "Description": "In your dialogue with Vaklu when supporting him as your candidate for the Onderon throne, he virtually repeats himself verbatim in two sentences back-to-back. I see some grey on those temples man, but it's a bit too early for dementia. This mod tweaks his dialogue so he says something meaningfully different. This change is fully voiced using original voice work thanks to dialogue splicing.",
+        "Directions": "Recommend Drew's fix, as it preserves more of the original dialogue.",
+        "Tier": "3 - Suggested",
+        "Category": [
+          "Immersion"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/2654-vaklu-short-term-memory-fix/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "4fefced2-405e-8107-9851-888b8827565d",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "HoloPatcher Mod",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "Heading": "Short-Term Memory Fix",
+        "InstallationMethod": "HoloPatcher Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "NO"
+        ],
+        "NameFieldContent": "[Vaklu Short-Term Memory Fix](https://deadlystream.com/files/file/2654-vaklu-short-term-memory-fix/)",
+        "WidescreenOnly": false
+      },
+      "canonical_component": {
+        "Guid": "4fefced2-405e-8107-9851-888b8827565d",
+        "Name": "Vaklu Short-Term Memory Fix",
+        "Author": "SuperChameau",
+        "Description": "In your dialogue with Vaklu when supporting him as your candidate for the Onderon throne, he virtually repeats himself verbatim in two sentences back-to-back. I see some grey on those temples man, but it's a bit too early for dementia. This mod tweaks his dialogue so he says something meaningfully different. This change is fully voiced using original voice work thanks to dialogue splicing.",
+        "Directions": "Recommend Drew's fix, as it preserves more of the original dialogue.",
+        "Tier": "3 - Suggested",
+        "Category": [
+          "Immersion"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/2654-vaklu-short-term-memory-fix/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "4fefced2-405e-8107-9851-888b8827565d",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "HoloPatcher Mod",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "Heading": "Short-Term Memory Fix",
+        "InstallationMethod": "HoloPatcher Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "NO"
+        ],
+        "NameFieldContent": "[Vaklu Short-Term Memory Fix](https://deadlystream.com/files/file/2654-vaklu-short-term-memory-fix/)",
+        "WidescreenOnly": false
+      },
+      "original_step": {
+        "id": "step-085",
+        "source_heading": "### Short-Term Memory Fix",
+        "operations": [
+          {
+            "type": "extract",
+            "source": "{archives}/VSTMF1.4.7z",
+            "destination": "{extract}/step-085/1"
+          },
+          {
+            "type": "patcher",
+            "patcher": "{extract}/step-085/1/VSTMF1.4/HoloPatcher.exe",
+            "sha256": "2a108d0ba866867da4726dedf6b17efdb23db4cbf3809856adbadf4a366cecb6",
+            "argv": [
+              "/usr/bin/wine",
+              "{extract}/step-085/1/VSTMF1.4/HoloPatcher.exe",
+              "--game-dir",
+              "{game}",
+              "--tslpatchdata",
+              "{extract}/step-085/1/VSTMF1.4",
+              "--namespace-option-index",
+              "1",
+              "--install"
+            ],
+            "cwd": "{extract}/step-085/1/VSTMF1.4",
+            "success_log": "{extract}/step-085/1/VSTMF1.4/installlog.txt",
+            "success_markers": [
+              "The installation is complete with 0 errors and 0 warnings."
+            ],
+            "failure_regex": [
+              "^\\[Error\\]",
+              "^\\[Warning\\]"
+            ],
+            "expected_changes": "changed_manifest"
+          }
+        ]
+      },
+      "disabled_lookup_game_hint": false
+    },
+    {
+      "game": "k2",
+      "component_index": 100,
+      "guid": "4258d37f-8c01-83d5-940b-4800823ef67e",
+      "source_heading": "### No Health Regeneration",
+      "step_index": 100,
+      "step_id": "step-101",
+      "source_choice": "Original positional0 selects main installation. Source says optional Ebon Hawk healing requires a second run after base; original one-run step does not choose it.",
+      "archive": {
+        "filename": "No_Health_Regeneration_v1_1_1.zip",
+        "sha256": "c51b67ac4608fa0827f7390a454937430d08b43eed84d6757d878381a86d5708",
+        "bytes": 9887312
+      },
+      "installer": {
+        "path": "No_Health_Regeneration_v1_1_1/HoloPatcher.exe",
+        "sha256": "2a108d0ba866867da4726dedf6b17efdb23db4cbf3809856adbadf4a366cecb6",
+        "bytes": 9518185
+      },
+      "ini": {
+        "path": "No_Health_Regeneration_v1_1_1/tslpatchdata/changes.ini",
+        "sha256": "6c4fddd4cca1ca52bc49b31203095626173ed9f6b75045753288bd363b74ab5f",
+        "bytes": 1227
+      },
+      "namespace": {
+        "index": 0,
+        "key": "Namespace1",
+        "id": "MAIN_INSTALL",
+        "map": {
+          "path": "No_Health_Regeneration_v1_1_1/tslpatchdata/namespaces.ini",
+          "sha256": "5e80be93f73778bfc8b2b28f1a5c9fbfe7a866647243c506d40faf486fb844e9",
+          "bytes": 1018
+        },
+        "ini_name": "changes.ini",
+        "data_path": ""
+      },
+      "members": [
+        {
+          "path": "No_Health_Regeneration_v1_1_1",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "No_Health_Regeneration_v1_1_1/HoloPatcher.exe",
+          "directory": false,
+          "bytes": 9518185,
+          "sha256": "2a108d0ba866867da4726dedf6b17efdb23db4cbf3809856adbadf4a366cecb6"
+        },
+        {
+          "path": "No_Health_Regeneration_v1_1_1/readme.rtf",
+          "directory": false,
+          "bytes": 3706,
+          "sha256": "b0a3b94325e01b0eb68a583d98827563247f9fd43ed8411002f35615999f9fa5"
+        },
+        {
+          "path": "No_Health_Regeneration_v1_1_1/source",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "No_Health_Regeneration_v1_1_1/source/m_htb_ebohealer.nss",
+          "directory": false,
+          "bytes": 1152,
+          "sha256": "5abbe558b593d1c2aaf80855549a313c7b20e8e345d5003773dd68e1070e0243"
+        },
+        {
+          "path": "No_Health_Regeneration_v1_1_1/tslpatchdata",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "No_Health_Regeneration_v1_1_1/tslpatchdata/Option_EboHeal",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "No_Health_Regeneration_v1_1_1/tslpatchdata/Option_EboHeal/003EBO.mod",
+          "directory": false,
+          "bytes": 3370635,
+          "sha256": "9b82563152374f4f067be86b7509b3c365224424b6d552c19b90faa0d159daa1"
+        },
+        {
+          "path": "No_Health_Regeneration_v1_1_1/tslpatchdata/Option_EboHeal/003ebo.git",
+          "directory": false,
+          "bytes": 71700,
+          "sha256": "25061a4bf888ccdabb45e32481b40b1249b1f165ffab12dd1425afd38cda1424"
+        },
+        {
+          "path": "No_Health_Regeneration_v1_1_1/tslpatchdata/Option_EboHeal/003ebo_healer.utp",
+          "directory": false,
+          "bytes": 1781,
+          "sha256": "34c670aba8c0cb2dab1d14aca0719ecaf659bfe0db4b2329afe0d9d5134b5ec2"
+        },
+        {
+          "path": "No_Health_Regeneration_v1_1_1/tslpatchdata/Option_EboHeal/changes_eboheal.ini",
+          "directory": false,
+          "bytes": 2042,
+          "sha256": "7072435d2cc81d3a780c34dc8b0d9fcdff5adb524abd0f8f3e790e25a1048d7e"
+        },
+        {
+          "path": "No_Health_Regeneration_v1_1_1/tslpatchdata/Option_EboHeal/info_eboheal.rtf",
+          "directory": false,
+          "bytes": 555,
+          "sha256": "8d8cf40e2eb019e19f91417579e726534470a9b2e10573533465af8646682bba"
+        },
+        {
+          "path": "No_Health_Regeneration_v1_1_1/tslpatchdata/Option_EboHeal/m_htb_ebohealer.ncs",
+          "directory": false,
+          "bytes": 1143,
+          "sha256": "77c7c44ed00a56ba3d24dacca416d9afb6996b3c73bd702d8d88ecf5a5b6bb40"
+        },
+        {
+          "path": "No_Health_Regeneration_v1_1_1/tslpatchdata/changes.ini",
+          "directory": false,
+          "bytes": 1227,
+          "sha256": "6c4fddd4cca1ca52bc49b31203095626173ed9f6b75045753288bd363b74ab5f"
+        },
+        {
+          "path": "No_Health_Regeneration_v1_1_1/tslpatchdata/info.rtf",
+          "directory": false,
+          "bytes": 549,
+          "sha256": "bceed411f65ab2a95f4b08241b7e380e947acb929b9476aac3a61bce3eee345a"
+        },
+        {
+          "path": "No_Health_Regeneration_v1_1_1/tslpatchdata/namespaces.ini",
+          "directory": false,
+          "bytes": 1018,
+          "sha256": "5e80be93f73778bfc8b2b28f1a5c9fbfe7a866647243c506d40faf486fb844e9"
+        },
+        {
+          "path": "No_Health_Regeneration_v1_1_1/tslpatchdata/regeneration.2da",
+          "directory": false,
+          "bytes": 220,
+          "sha256": "4447c1d9f50dcc5360785f7a21d4f0ca6b576b30b7c8d7f39fcc3e24bf66e404"
+        }
+      ],
+      "raw_component": {
+        "Guid": "4258d37f-8c01-83d5-940b-4800823ef67e",
+        "Name": "No Health Regeneration",
+        "Author": "offthegridmorty",
+        "Description": "Having health regen by default in KOTOR 2 is bad for many reasons: it makes an already easy game easier; it negates the benefit of the health regeneration feat they added; and it makes the use & crafting of medkits and other health-restoring tools much less useful. I played with this mod and the game was still pretty easy by the end, but it was WAY more fun early on. It made me have to worry about health and especially healing items for quite a bit more time, which preserved the challenge beyond Telos.",
+        "Directions": "The option to gradually restore health while on the Ebon Hawk is compatible with the builds--if you'd like to use it, re-run the HoloPatcher and install that option after installing the base mod first.",
+        "Tier": "2 - Recommended",
+        "Category": [
+          "Mechanics Change"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [
+          {
+            "Action": "Patcher",
+            "Source": [
+              "<<modDirectory>>\\HoloPatcher"
+            ],
+            "Destination": "<<kotorDirectory>>",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/2530-no-health-regeneration/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "4258d37f-8c01-83d5-940b-4800823ef67e",
+            "DraftInstructionCount": 1,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "HoloPatcher Mod",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "InstallationMethod": "HoloPatcher Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[No Health Regeneration](https://deadlystream.com/files/file/2530-no-health-regeneration/)",
+        "WidescreenOnly": false
+      },
+      "canonical_component": {
+        "Guid": "4258d37f-8c01-83d5-940b-4800823ef67e",
+        "Name": "No Health Regeneration",
+        "Author": "offthegridmorty",
+        "Description": "Having health regen by default in KOTOR 2 is bad for many reasons: it makes an already easy game easier; it negates the benefit of the health regeneration feat they added; and it makes the use & crafting of medkits and other health-restoring tools much less useful. I played with this mod and the game was still pretty easy by the end, but it was WAY more fun early on. It made me have to worry about health and especially healing items for quite a bit more time, which preserved the challenge beyond Telos.",
+        "Directions": "The option to gradually restore health while on the Ebon Hawk is compatible with the builds--if you'd like to use it, re-run the HoloPatcher and install that option after installing the base mod first.",
+        "Tier": "2 - Recommended",
+        "Category": [
+          "Mechanics Change"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [
+          {
+            "Action": "Patcher",
+            "Source": [
+              "<<modDirectory>>/HoloPatcher"
+            ],
+            "Destination": "<<kotorDirectory>>",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/2530-no-health-regeneration/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "4258d37f-8c01-83d5-940b-4800823ef67e",
+            "DraftInstructionCount": 1,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "HoloPatcher Mod",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "InstallationMethod": "HoloPatcher Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[No Health Regeneration](https://deadlystream.com/files/file/2530-no-health-regeneration/)",
+        "WidescreenOnly": false
+      },
+      "original_step": {
+        "id": "step-101",
+        "source_heading": "### No Health Regeneration",
+        "operations": [
+          {
+            "type": "extract",
+            "source": "{archives}/No_Health_Regeneration_v1_1_1.zip",
+            "destination": "{extract}/step-101/1"
+          },
+          {
+            "type": "patcher",
+            "patcher": "{extract}/step-101/1/No_Health_Regeneration_v1_1_1/HoloPatcher.exe",
+            "sha256": "2a108d0ba866867da4726dedf6b17efdb23db4cbf3809856adbadf4a366cecb6",
+            "argv": [
+              "/usr/bin/wine",
+              "{extract}/step-101/1/No_Health_Regeneration_v1_1_1/HoloPatcher.exe",
+              "--game-dir",
+              "{game}",
+              "--tslpatchdata",
+              "{extract}/step-101/1/No_Health_Regeneration_v1_1_1",
+              "--namespace-option-index",
+              "0",
+              "--install"
+            ],
+            "cwd": "{extract}/step-101/1/No_Health_Regeneration_v1_1_1",
+            "success_log": "{extract}/step-101/1/No_Health_Regeneration_v1_1_1/installlog.txt",
+            "success_markers": [
+              "The installation is complete with 0 errors and 0 warnings."
+            ],
+            "failure_regex": [
+              "^\\[Error\\]",
+              "^\\[Warning\\]"
+            ],
+            "expected_changes": "changed_manifest"
+          }
+        ]
+      },
+      "disabled_lookup_game_hint": false
+    },
+    {
+      "game": "k2",
+      "component_index": 128,
+      "guid": "f062f905-3a4b-8d08-8e98-87d4326aebf1",
+      "source_heading": "### Vibrocutter Changes",
+      "step_index": 128,
+      "step_id": "step-129",
+      "source_choice": "Original positional4 resolves Demise ID whose Name is Location and Medpac, matching the source recommendation. Preserve namespace ID and display name separately.",
+      "archive": {
+        "filename": "VCChanges1.1.zip",
+        "sha256": "9d194d49f3e45614d20b680e13854c28110ff68a6b759c2bd11d82538d0b90e7",
+        "bytes": 10972681
+      },
+      "installer": {
+        "path": "VcChanges_1.1/HoloPatcher.exe",
+        "sha256": "2a108d0ba866867da4726dedf6b17efdb23db4cbf3809856adbadf4a366cecb6",
+        "bytes": 9518185
+      },
+      "ini": {
+        "path": "VcChanges_1.1/tslpatchdata/Demise/changes.ini",
+        "sha256": "3a768b87877bb2903fbb03d3384544813b6d46c510b5ac7241ab5ab457726568",
+        "bytes": 1174
+      },
+      "namespace": {
+        "index": 4,
+        "key": "Namespace5",
+        "id": "Demise",
+        "map": {
+          "path": "VcChanges_1.1/tslpatchdata/namespaces.ini",
+          "sha256": "e6c5b9a60c1f1db5ad8676aecac8f8b461c2f87fc744961df690227789bee0dc",
+          "bytes": 1573
+        },
+        "ini_name": "changes.ini",
+        "data_path": "Demise"
+      },
+      "members": [
+        {
+          "path": "VcChanges_1.1",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "VcChanges_1.1/HoloPatcher.exe",
+          "directory": false,
+          "bytes": 9518185,
+          "sha256": "2a108d0ba866867da4726dedf6b17efdb23db4cbf3809856adbadf4a366cecb6"
+        },
+        {
+          "path": "VcChanges_1.1/READ.txt",
+          "directory": false,
+          "bytes": 1682,
+          "sha256": "98e388ecef3f07a0fa26e2e90cd2ed773e752c03fe8107d9416011ea3f10d3de"
+        },
+        {
+          "path": "VcChanges_1.1/tslpatchdata",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "VcChanges_1.1/tslpatchdata/Demise",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "VcChanges_1.1/tslpatchdata/Demise/101per.mod",
+          "directory": false,
+          "bytes": 1831470,
+          "sha256": "10f74107c35eea132869681ea79e8d00200eed6ef7d7d6870d034bcdfcd1547d"
+        },
+        {
+          "path": "VcChanges_1.1/tslpatchdata/Demise/changes.ini",
+          "directory": false,
+          "bytes": 1174,
+          "sha256": "3a768b87877bb2903fbb03d3384544813b6d46c510b5ac7241ab5ab457726568"
+        },
+        {
+          "path": "VcChanges_1.1/tslpatchdata/Demise/g_assassindrd003.utc",
+          "directory": false,
+          "bytes": 4182,
+          "sha256": "c3de04306744db17ab4a79882a4784e6951c84bc35de02fad76ad878d6e26c69"
+        },
+        {
+          "path": "VcChanges_1.1/tslpatchdata/Demise/g_tresgencorp005.utp",
+          "directory": false,
+          "bytes": 2217,
+          "sha256": "99ce464089d6b07bd4deb67168a6edcf4328aeddf4f7b3994d1e08377c7fd164"
+        },
+        {
+          "path": "VcChanges_1.1/tslpatchdata/Demise/info.rtf",
+          "directory": false,
+          "bytes": 2254,
+          "sha256": "264066e720064d14727ac78731a6b6ebdd704fbba6364c42961f21956db97b5a"
+        },
+        {
+          "path": "VcChanges_1.1/tslpatchdata/Demise/vibrocutter2.uti",
+          "directory": false,
+          "bytes": 1034,
+          "sha256": "08581d5ac132dd44c69c9aa3eea0fe5b8acb084509cd36825493e2400aaa710e"
+        },
+        {
+          "path": "VcChanges_1.1/tslpatchdata/Location",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "VcChanges_1.1/tslpatchdata/Location/101per.mod",
+          "directory": false,
+          "bytes": 1831470,
+          "sha256": "10f74107c35eea132869681ea79e8d00200eed6ef7d7d6870d034bcdfcd1547d"
+        },
+        {
+          "path": "VcChanges_1.1/tslpatchdata/Location/changes.ini",
+          "directory": false,
+          "bytes": 1064,
+          "sha256": "f7a1f76a9b5b2a90fd4c060dd97ce2b60ba28a8a4ea6142fd96ff2d6331d87d1"
+        },
+        {
+          "path": "VcChanges_1.1/tslpatchdata/Location/info.rtf",
+          "directory": false,
+          "bytes": 268,
+          "sha256": "5abf539ed29b5192679ca33c89243f717cd2a4a7a9a6b3510dea897ef0c85688"
+        },
+        {
+          "path": "VcChanges_1.1/tslpatchdata/Location/lockerlg002.utp",
+          "directory": false,
+          "bytes": 2393,
+          "sha256": "8df74f142bcca7bea2ef7ee7925e084dbd4b24ed5248a48834b5fdf1103cd8d2"
+        },
+        {
+          "path": "VcChanges_1.1/tslpatchdata/Medpac",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "VcChanges_1.1/tslpatchdata/Medpac/101per.mod",
+          "directory": false,
+          "bytes": 1831470,
+          "sha256": "10f74107c35eea132869681ea79e8d00200eed6ef7d7d6870d034bcdfcd1547d"
+        },
+        {
+          "path": "VcChanges_1.1/tslpatchdata/Medpac/changes.ini",
+          "directory": false,
+          "bytes": 1071,
+          "sha256": "7837fdfc308d9e65cbf67469d0620cafa2855d999686ceb2ed443a254fe0b067"
+        },
+        {
+          "path": "VcChanges_1.1/tslpatchdata/Medpac/g_tresgencorp005.utp",
+          "directory": false,
+          "bytes": 2217,
+          "sha256": "99ce464089d6b07bd4deb67168a6edcf4328aeddf4f7b3994d1e08377c7fd164"
+        },
+        {
+          "path": "VcChanges_1.1/tslpatchdata/Medpac/info.rtf",
+          "directory": false,
+          "bytes": 366,
+          "sha256": "b603877708124838a454498d59d88962919e05b2b03f17b365018518b1d1ebc1"
+        },
+        {
+          "path": "VcChanges_1.1/tslpatchdata/Nothing",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "VcChanges_1.1/tslpatchdata/Nothing/101per.mod",
+          "directory": false,
+          "bytes": 1831470,
+          "sha256": "10f74107c35eea132869681ea79e8d00200eed6ef7d7d6870d034bcdfcd1547d"
+        },
+        {
+          "path": "VcChanges_1.1/tslpatchdata/Nothing/changes.ini",
+          "directory": false,
+          "bytes": 1072,
+          "sha256": "7a876e269bd75394ec60aeed918c3344b2803ddd88886dbaa6c4d921b3deb496"
+        },
+        {
+          "path": "VcChanges_1.1/tslpatchdata/Nothing/g_tresgencorp005.utp",
+          "directory": false,
+          "bytes": 2089,
+          "sha256": "734815e84c011fa9a99a5bd978b2f6c3f223695fddcd1f4ca6302993ecd97618"
+        },
+        {
+          "path": "VcChanges_1.1/tslpatchdata/Nothing/info.rtf",
+          "directory": false,
+          "bytes": 364,
+          "sha256": "3b61341f244d74862807a49b28fe8828e69eba59a67760f298aa560fd67bfc51"
+        },
+        {
+          "path": "VcChanges_1.1/tslpatchdata/Vibroblade",
+          "directory": true,
+          "bytes": 0,
+          "sha256": ""
+        },
+        {
+          "path": "VcChanges_1.1/tslpatchdata/Vibroblade/101per.mod",
+          "directory": false,
+          "bytes": 1831470,
+          "sha256": "10f74107c35eea132869681ea79e8d00200eed6ef7d7d6870d034bcdfcd1547d"
+        },
+        {
+          "path": "VcChanges_1.1/tslpatchdata/Vibroblade/changes.ini",
+          "directory": false,
+          "bytes": 1075,
+          "sha256": "1be4aec322aecdc816f2aad72f123af06869212e836d10aa4b2fc3abbdb47b0a"
+        },
+        {
+          "path": "VcChanges_1.1/tslpatchdata/Vibroblade/g_tresgencorp005.utp",
+          "directory": false,
+          "bytes": 2212,
+          "sha256": "5954e8d4cc2e2c2a31dc84a0bc7bc9f0b6ce9c7d89f9f595a10f2f0d1a33d5e4"
+        },
+        {
+          "path": "VcChanges_1.1/tslpatchdata/Vibroblade/info.rtf",
+          "directory": false,
+          "bytes": 389,
+          "sha256": "8c8d24fff0232d12dea6f16fad399962050fd9afa053267ea38c1e295a8b1347"
+        },
+        {
+          "path": "VcChanges_1.1/tslpatchdata/namespaces.ini",
+          "directory": false,
+          "bytes": 1573,
+          "sha256": "e6c5b9a60c1f1db5ad8676aecac8f8b461c2f87fc744961df690227789bee0dc"
+        }
+      ],
+      "raw_component": {
+        "Guid": "f062f905-3a4b-8d08-8e98-87d4326aebf1",
+        "Name": "Vibrocutter Changes",
+        "Author": "Lewok2007",
+        "Description": "This is just a thing what bothers me, from a game design perspective. Why would you get a weapon and then get another weapon immediately after, *before* facing any enemies with the first weapon? This mod moves the vibrocutter outside the Peragus medical wing to the body of one of the active droids on the route to the security room, forcing the player to either use the plasma torch or hand-to-hand combat to fight the droids for at least one room.",
+        "Directions": "Recommend the \"Location and Medpac\" install option, it gives the player an extra medpac as compensation for having to fight the first droids with a plasma torch.",
+        "Tier": "4 - Optional",
+        "Category": [
+          "Immersion"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/2670-vibrocutter-changes/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "f062f905-3a4b-8d08-8e98-87d4326aebf1",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults.",
+              "Recommend the \"Location and Medpac\" install option, it gives the player an extra medpac as compensation for having to fight the first droids with a plasma torch"
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "HoloPatcher Mod",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "InstallationMethod": "HoloPatcher Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES, however some text will be in English"
+        ],
+        "NameFieldContent": "[Vibrocutter Changes](https://deadlystream.com/files/file/2670-vibrocutter-changes/)",
+        "WidescreenOnly": false
+      },
+      "canonical_component": {
+        "Guid": "f062f905-3a4b-8d08-8e98-87d4326aebf1",
+        "Name": "Vibrocutter Changes",
+        "Author": "Lewok2007",
+        "Description": "This is just a thing what bothers me, from a game design perspective. Why would you get a weapon and then get another weapon immediately after, *before* facing any enemies with the first weapon? This mod moves the vibrocutter outside the Peragus medical wing to the body of one of the active droids on the route to the security room, forcing the player to either use the plasma torch or hand-to-hand combat to fight the droids for at least one room.",
+        "Directions": "Recommend the \"Location and Medpac\" install option, it gives the player an extra medpac as compensation for having to fight the first droids with a plasma torch.",
+        "Tier": "4 - Optional",
+        "Category": [
+          "Immersion"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/2670-vibrocutter-changes/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "f062f905-3a4b-8d08-8e98-87d4326aebf1",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults.",
+              "Recommend the \"Location and Medpac\" install option, it gives the player an extra medpac as compensation for having to fight the first droids with a plasma torch"
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "HoloPatcher Mod",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "InstallationMethod": "HoloPatcher Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES",
+          "however some text will be in English"
+        ],
+        "NameFieldContent": "[Vibrocutter Changes](https://deadlystream.com/files/file/2670-vibrocutter-changes/)",
+        "WidescreenOnly": false
+      },
+      "original_step": {
+        "id": "step-129",
+        "source_heading": "### Vibrocutter Changes",
+        "operations": [
+          {
+            "type": "extract",
+            "source": "{archives}/VCChanges1.1.zip",
+            "destination": "{extract}/step-129/1"
+          },
+          {
+            "type": "patcher",
+            "patcher": "{extract}/step-129/1/VcChanges_1.1/HoloPatcher.exe",
+            "sha256": "2a108d0ba866867da4726dedf6b17efdb23db4cbf3809856adbadf4a366cecb6",
+            "argv": [
+              "/usr/bin/wine",
+              "{extract}/step-129/1/VcChanges_1.1/HoloPatcher.exe",
+              "--game-dir",
+              "{game}",
+              "--tslpatchdata",
+              "{extract}/step-129/1/VcChanges_1.1",
+              "--namespace-option-index",
+              "4",
+              "--install"
+            ],
+            "cwd": "{extract}/step-129/1/VcChanges_1.1",
+            "success_log": "{extract}/step-129/1/VcChanges_1.1/installlog.txt",
+            "success_markers": [
+              "The installation is complete with 0 errors and 0 warnings."
+            ],
+            "failure_regex": [
+              "^\\[Error\\]",
+              "^\\[Warning\\]"
+            ],
+            "expected_changes": "changed_manifest"
+          }
+        ]
+      },
+      "disabled_lookup_game_hint": false
+    }
+  ]
+}

@@ -513,14 +513,15 @@ def query_application_reviews(binary, driven_input, components, private, run=sub
     return {"status": "verified", "owners_checked": len(verified), "guids": verified}
 
 
-def plan_selection(components, deselect=(), exclude_widescreen=False, complete_guide=False):
+def plan_selection(components, deselect=(), exclude_widescreen=False, complete_guide=False,
+                   profile_excluded=()):
     """Decide exactly which components the GUI will install, or refuse.
 
-    Base components not deselected are selected (what "Select all" would do).
-    Reviewed-policy GUIDs are always deselected. Widescreen-only components are
-    never installed: they are deselected with exclude_widescreen, otherwise any
-    that the input selects makes the plan refuse. Draft review is checked on
-    the components that remain selected only; the driver never authorizes it.
+    Complete mode drives both phases. A validated repository profile keeps all
+    definitions while selecting its admitted GUIDs; those explicit exclusions
+    are separate from policy skips and uncovered widescreen components. Legacy
+    mode remains a single base phase. Draft review is checked on selected
+    components only; the driver never authorizes it.
     """
     if complete_guide and exclude_widescreen:
         raise Blocked("complete_guide_conflicts_with_exclude_widescreen")
@@ -531,12 +532,19 @@ def plan_selection(components, deselect=(), exclude_widescreen=False, complete_g
     if not set(requested) <= set(identities):
         raise Blocked("deselect_guid_not_in_input")
     policy = set(requested)
+    profile_excluded = set(profile_excluded)
+    if not profile_excluded <= set(identities):
+        raise Blocked("profile_exclusion_guid_not_in_input")
+    if profile_excluded and not complete_guide:
+        raise Blocked("install_profile_requires_complete_guide")
+    if policy & profile_excluded:
+        raise Blocked("profile_exclusion_also_reported_as_policy_skip")
     widescreen = {identity for identity, component in zip(identities, components)
                   if component.get("WidescreenOnly") is True}
     not_installed = set() if complete_guide else widescreen - policy
     selection = []
     for identity, component in zip(identities, components):
-        if identity in policy:
+        if identity in policy or identity in profile_excluded:
             selection.append(False)
         elif identity in widescreen:
             selection.append(complete_guide or (component.get("IsSelected") is True and not exclude_widescreen))
@@ -562,8 +570,8 @@ def plan_selection(components, deselect=(), exclude_widescreen=False, complete_g
         "widescreen_phase": ("pending" if complete_guide else "not_covered_by_gui_lane") if widescreen else "none_in_input",
         "base_total": sum(base),
         "base_selected": sum(keep and is_base for keep, is_base in zip(selection, base)),
-        "subset": bool(policy or not_installed),
-        "click_select_all": not any(identity in policy for identity, is_base
+        "subset": bool(policy or not_installed or profile_excluded),
+        "click_select_all": not any(identity in policy | profile_excluded for identity, is_base
                                     in zip(identities, base) if is_base),
     }
     if complete_guide:
@@ -1330,6 +1338,31 @@ def verify_receipt(args, result, check_time, expected_ids):
     result["reason"] = "native_gui_completed_and_receipt_verified"
 
 
+def checked_install_profile(args, components):
+    """Authenticate selected-profile intent without converting exclusions into lost coverage."""
+    path = getattr(args, "install_profile_receipt", None)
+    if path is None:
+        return None
+    if not getattr(args, "complete_guide", False):
+        raise Blocked("install_profile_requires_complete_guide")
+    try:
+        if path.is_symlink() or not path.is_file() or path.stat().st_size > 4 * 1024 * 1024:
+            raise ValueError("invalid profile receipt file")
+        import install_profiles
+        receipt = json.loads(path.read_text(encoding="utf-8"))
+        selected = install_profiles.validate_receipt(receipt)
+        identities = [str(component.get("Guid", "")).lower() for component in components]
+        if (receipt["admitted_input_sha256"] != digest(args.input)
+                or identities != receipt["original_guids"]
+                or len(components) != receipt["retained_definition_count"]
+                or [component.get("IsSelected") is True for component in components]
+                   != [identity in selected for identity in identities]):
+            raise ValueError("profile receipt differs from the actual selected input")
+        return receipt
+    except (OSError, ValueError, KeyError, TypeError):
+        raise Blocked("install_profile_receipt_invalid_or_differs_from_input") from None
+
+
 def execute(args, result):
     for name in ("binary", "input", "game_dir", "archives"):
         setattr(args, name, getattr(args, name).resolve(strict=True))
@@ -1356,7 +1389,16 @@ def execute(args, result):
             isinstance(step, dict) and step.get("Action") == "K1Widescreen"
             for step in owner["Instructions"]))
         for owner in review_owners(components)))
-    plan = plan_selection(components, args.deselect, args.exclude_widescreen, complete_guide)
+    profile = checked_install_profile(args, components)
+    profile_excluded = (set(profile["excluded_guids"]) | set(profile["platform_inactive_guids"])
+                        if profile else set())
+    plan = plan_selection(components, args.deselect, args.exclude_widescreen, complete_guide,
+                          profile_excluded=profile_excluded)
+    if profile:
+        plan["install_profile"] = profile
+        result["install_profile"] = profile
+        result["profile_excluded_guids"] = profile["excluded_guids"]
+        result["platform_inactive_guids"] = profile["platform_inactive_guids"]
     if not args.game_dir.is_dir() or not args.archives.is_dir():
         raise Blocked("real_game_and_archive_directories_required")
     args.work_dir = args.work_dir.resolve()
@@ -1379,7 +1421,8 @@ def execute(args, result):
     result["input_sha256"] = digest(args.input)
     result["binary_sha256"] = digest(args.binary)
     result["component_count"] = len(components)
-    result["coverage"] = "subset" if plan["subset"] else "full"
+    result["coverage"] = ("subset" if plan["skipped_by_reviewed_policy"]
+                          or plan["excluded_widescreen"] else "full")
     result["expected_components"] = len(plan["expected_components"])
     for name in ("skipped_by_reviewed_policy", "excluded_widescreen", "widescreen_phase"):
         result[name] = plan[name]
@@ -1477,6 +1520,8 @@ def main():
     parser.add_argument("--exclude-widescreen", action="store_true",
                         help="deselect widescreen-only components in the private copy and report them "
                              "as not covered; without it a selected widescreen component is refused")
+    parser.add_argument("--install-profile-receipt", type=Path,
+                        help="validated repository profile receipt matching the complete input and selected GUIDs")
     parser.add_argument("--complete-guide", action="store_true",
                         help="drive and verify both native base and remaining installation phases")
     parser.add_argument("--timeout", type=float, required=True, help="Total GUI time budget in seconds")

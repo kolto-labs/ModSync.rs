@@ -1,4 +1,4 @@
-//! One compiled source-master alias layered over unchanged legacy archive recipes.
+//! Compiled source-master overlays layered over unchanged legacy archive recipes.
 //! Selection/order admits a dependency definition, never installed success. The
 //! engine must require owned committed predecessor checkpoints before effects.
 use crate::{Component, Guide, archive, draft};
@@ -6,6 +6,12 @@ use anyhow::{Context, Result, ensure};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::{path::Path, sync::atomic::AtomicBool};
+
+mod uco;
+
+pub(crate) fn is_generator(generator: &str) -> bool {
+    generator == GENERATOR || generator == uco::GENERATOR
+}
 
 pub(crate) const BINDING: &str = "ReviewedMasterBinding";
 pub(crate) const GENERATOR: &str = "reviewed-source-master-v1";
@@ -44,7 +50,10 @@ fn own(component: &Component) -> bool {
 }
 pub(crate) fn contains_resolved(component: &Component) -> bool {
     fn visit(component: &Component, depth: usize) -> bool {
-        depth > 64 || own(component) || component.options.iter().any(|c| visit(c, depth + 1))
+        depth > 64
+            || own(component)
+            || uco::own(component)
+            || component.options.iter().any(|c| visit(c, depth + 1))
     }
     visit(component, 0)
 }
@@ -69,6 +78,9 @@ fn check_claim(component: &Component) -> Result<()> {
 /// The returned identities are prerequisites, not proof that they ran. Actual
 /// execution must check the engine's owned committed checkpoint set.
 pub(crate) fn required_predecessors(component: &Component) -> Result<Vec<String>> {
+    if uco::own(component) {
+        return uco::required_predecessors(component);
+    }
     if !own(component) {
         ensure!(
             !component.options.iter().any(contains_resolved),
@@ -80,6 +92,22 @@ pub(crate) fn required_predecessors(component: &Component) -> Result<Vec<String>
     Ok(vec![PRIOR.into()])
 }
 fn predecessor_context(component: &Component, expected: &Value) -> Result<()> {
+    if let Some(origin) = super::reviewed_manual::community_patch_origin(component)? {
+        let mut actual = serde_json::to_value(origin.original())?;
+        let mut expected = expected.clone();
+        for value in [&mut actual, &mut expected] {
+            let object = value
+                .as_object_mut()
+                .context("Invalid compiled predecessor origin")?;
+            object.remove("IsSelected");
+            object.remove("DraftReview");
+        }
+        ensure!(
+            actual == expected,
+            "Native Community Patch compiled origin differs from original master context"
+        );
+        return Ok(());
+    }
     let mut actual = serde_json::to_value(component)?;
     let mut expected = expected.clone();
     let original_review = expected.get("DraftReview").cloned();
@@ -105,6 +133,7 @@ fn predecessor_context(component: &Component, expected: &Value) -> Result<()> {
     Ok(())
 }
 pub(crate) fn validate_guide(guide: &Guide) -> Result<()> {
+    uco::validate_guide(guide)?;
     ensure!(
         !guide
             .components
@@ -199,6 +228,7 @@ pub(crate) fn bind_in_guide(guide: &mut Guide) -> Result<()> {
             *component = overlay(component.clone())?;
         }
     }
+    uco::bind_in_guide(&mut candidate)?;
     validate_guide(&candidate)?;
     *guide = candidate;
     Ok(())
@@ -209,6 +239,9 @@ pub(crate) fn replay(
     options: &archive::Options,
     cancelled: &AtomicBool,
 ) -> Result<Component> {
+    if uco::own(component) {
+        return uco::replay(component, root, options, cancelled);
+    }
     check_claim(component)?;
     let mut expected = overlay(super::reviewed_manual::regenerate_owner(
         OWNER, root, options, cancelled,
@@ -235,6 +268,9 @@ pub(crate) fn replay(
     Ok(expected)
 }
 pub(crate) fn verification(pending: &Component) -> Result<Value> {
+    if uco::own(pending) {
+        return uco::verification(pending);
+    }
     check_claim(pending)?;
     let mut value = serde_json::to_value(pending)?;
     value
@@ -253,6 +289,9 @@ pub(crate) fn verify_runtime(
     options: &archive::Options,
     cancelled: &AtomicBool,
 ) -> Result<()> {
+    if uco::own(component) {
+        return uco::verify_runtime(component, root, options, cancelled);
+    }
     let pending = replay(component, root, options, cancelled)?;
     let record = &component.metadata["DraftReview"];
     const KEYS: [&str; 6] = [

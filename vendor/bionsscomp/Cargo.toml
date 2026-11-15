@@ -1,0 +1,26 @@
+[package]
+autotests = false
+autobenches = false
+autoexamples = false
+name = "bionsscomp"
+description = "NWScript (.nss) to compiled script (.ncs) compiler for Star Wars: Knights of the Old Republic I and II"
+readme = "UPSTREAM-README.md"
+version = "1.0.0"
+edition = "2021"
+rust-version = "1.77"
+authors = ["arrenkaetris"]
+homepage = "https://github.com/arrenkaetris/BioNSSComp"
+repository = "https://github.com/arrenkaetris/BioNSSComp"
+license = "AGPL-3.0-or-later"
+keywords = ["kotor", "nwscript", "compiler", "modding", "ncs"]
+categories = ["compilers", "game-development"]
+
+[lib]
+test = false
+doctest = false
+name = "bionsscomp"
+path = "src/lib.rs"
+
+# No dependencies on purpose. The crate stays std-only so it keeps building on
+# the oldest toolchain BioPatcher supports, and so consumers inherit nothing.
+[dependencies]

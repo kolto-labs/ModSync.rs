@@ -6,8 +6,6 @@ name: Production parity gates
 # native Windows/macOS builds run only on manual dispatch.
 on:
   pull_request:
-  push:
-    branches: [main]
   workflow_dispatch:
     inputs:
       native:

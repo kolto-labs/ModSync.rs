@@ -1,9 +1,7 @@
 # One-time owning-repository retention. No legacy transfer, rollback or new credentials.
 name: Retain verified current Trask archive
 on:
-  push:
-    branches: [fix/fullrun-ci-credentials]
-    paths: [.github/workflows/retain-current-trask.yml]
+  workflow_dispatch:
 permissions: {contents: read, actions: read}
 concurrency:
   group: retain-current-trask-${{ github.ref }}

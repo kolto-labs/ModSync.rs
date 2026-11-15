@@ -2,6 +2,8 @@ name: Full-run Rust installation lane
 on:
   workflow_call:
     inputs:
+      install_profile: {type: string, default: minimal}
+      download_mode: {type: string, default: cache-first}
       engine_repository: {type: string, required: true}
       engine_sha: {type: string, required: true}
       guide_repository: {type: string, required: true}
@@ -30,13 +32,15 @@ jobs:
       GAME: ${{ inputs.game }}
       MODE: ${{ inputs.mode }}
       PLAN_ID: ${{ inputs.plan_id }}
+      INSTALL_PROFILE: ${{ inputs.install_profile }}
+      DOWNLOAD_MODE: ${{ inputs.download_mode }}
       RUSTUP_TOOLCHAIN: 1.95.0
     steps:
       - name: Checkout owned CI
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           repository: ${{ github.repository }}
-          ref: ${{ github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
       - name: Check install-stage credentials before materialization
         id: admission
@@ -65,11 +69,13 @@ jobs:
         run: |
           sudo rm -rf -- /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
           df -h "$RUNNER_TEMP"
+          echo "FULLRUN_STORAGE_ROOT=$RUNNER_TEMP" >> "$GITHUB_ENV"
       - name: Prepare native production runtime
         shell: bash
         run: |
           rustup toolchain install 1.95.0 --profile minimal
           packages=(age 7zip 7zip-rar unrar megatools libarchive-tools pkg-config libssl-dev)
+          if [[ "$INSTALL_PROFILE" == exhaustive ]]; then packages+=(btrfs-progs); fi
           if [[ "$GAME" == k2 ]]; then
             sudo dpkg --add-architecture i386
             packages+=(wine wine64 wine32:i386 xvfb xauth)
@@ -129,6 +135,32 @@ jobs:
             echo "::error::Authenticated dependency fallback failed; verify optional MODSYNC_SOURCE_TOKEN access. Private fetch output was withheld."
             exit 1
           fi
+      - name: Prepare private copy-on-write storage for exhaustive installs
+        id: storage
+        if: inputs.install_profile == 'exhaustive'
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          available=$(df -B1 --output=avail "$RUNNER_TEMP" | tail -n 1)
+          capacity=$((available - 6 * 1024 * 1024 * 1024))
+          if (( capacity < 40 * 1024 * 1024 * 1024 )); then
+            echo '::error::Exhaustive installation needs at least 40 GiB after reserving 6 GiB for the host.'
+            exit 1
+          fi
+          image=$(mktemp "$RUNNER_TEMP/fullrun-storage.XXXXXX.img")
+          storage_root=$(mktemp -d "$RUNNER_TEMP/fullrun-storage.XXXXXX")
+          truncate --size "$capacity" "$image"
+          mkfs.btrfs -q -f "$image"
+          sudo mount -o loop,compress=zstd:1 "$image" "$storage_root"
+          sudo chown "$(id -u):$(id -g)" "$storage_root"
+          chmod 700 "$storage_root"
+          mkdir "$storage_root/scratch"
+          echo "FULLRUN_STORAGE_ROOT=$storage_root" >> "$GITHUB_ENV"
+          echo "TMPDIR=$storage_root/scratch" >> "$GITHUB_ENV"
+          echo "root=$storage_root" >> "$GITHUB_OUTPUT"
+          echo "image=$image" >> "$GITHUB_OUTPUT"
+          df -h "$storage_root"
       - name: Restore sealed game accelerator
         id: game_cache
         uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
@@ -144,9 +176,9 @@ jobs:
           LEGACY_REPOSITORY: ${{ inputs.artifact_repository }}
         run: |
           python tools/modsync-ci/fullrun_baseline.py --game "$GAME" \
-            --seal-dir "$RUNNER_TEMP/sealed" --game-dir "$RUNNER_TEMP/game" \
+            --seal-dir "$RUNNER_TEMP/sealed" --game-dir "$FULLRUN_STORAGE_ROOT/game" \
             --legacy-repository "$LEGACY_REPOSITORY" --consumer --required
-          python tools/modsync-ci/game_cache.py normalize-case --game "$GAME" --game-dir "$RUNNER_TEMP/game" --label "$MODE"
+          python tools/modsync-ci/game_cache.py normalize-case --game "$GAME" --game-dir "$FULLRUN_STORAGE_ROOT/game" --label "$MODE"
           rm -rf -- "$RUNNER_TEMP/sealed"
       - name: Restore archive accelerator
         uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
@@ -173,9 +205,9 @@ jobs:
             unset RCLONE_CONFIG_MODCACHE_ACCESS_KEY_ID RCLONE_CONFIG_MODCACHE_SECRET_ACCESS_KEY RCLONE_CONFIG_MODCACHE_ENDPOINT
           fi
           python tools/modsync-ci/fullrun_stage.py install --engine . --guides guide-input \
-            --game "$GAME" --mode "$MODE" --game-dir "$RUNNER_TEMP/game" \
-            --cache "$RUNNER_TEMP/mod-cache" --work-dir "$RUNNER_TEMP/lane-work" --output "$RUNNER_TEMP/lane-evidence" \
-            --prune-restored-object-cache
+            --game "$GAME" --mode "$MODE" --game-dir "$FULLRUN_STORAGE_ROOT/game" \
+            --cache "$RUNNER_TEMP/mod-cache" --work-dir "$FULLRUN_STORAGE_ROOT/lane-work" --output "$RUNNER_TEMP/lane-evidence" \
+            --prune-restored-object-cache --install-profile "$INSTALL_PROFILE" --download-mode "$DOWNLOAD_MODE"
       - name: Retain encrypted lane evidence
         if: ${{ (success() || failure()) && steps.admission.outcome == 'success' }}
         uses: ./.github/actions/retain-fullrun-evidence
@@ -184,3 +216,14 @@ jobs:
           name: fullrun-${{ inputs.game }}-${{ inputs.mode }}-${{ github.run_id }}-${{ github.run_attempt }}
           encryption-key: ${{ secrets.DIAGNOSTICS_ENCRYPTION_KEY }}
           encryption-recipient: ${{ vars.DIAGNOSTICS_ENCRYPTION_RECIPIENT }}
+      - name: Release disposable exhaustive storage
+        if: ${{ always() && steps.storage.outcome == 'success' }}
+        env:
+          STORAGE_ROOT: ${{ steps.storage.outputs.root }}
+          STORAGE_IMAGE: ${{ steps.storage.outputs.image }}
+        run: |
+          echo "TMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"
+          echo "FULLRUN_STORAGE_ROOT=$RUNNER_TEMP" >> "$GITHUB_ENV"
+          sudo umount -- "$STORAGE_ROOT"
+          rm -- "$STORAGE_IMAGE"
+          rmdir -- "$STORAGE_ROOT"

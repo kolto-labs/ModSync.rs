@@ -1,8 +1,5 @@
 name: Inspect retained K1 PE metadata without changing game bytes
 on:
-  push:
-    branches: [fix/fullrun-ci-credentials]
-    paths: [.github/workflows/k1-pe-metadata.yml]
   workflow_dispatch:
     inputs:
       engine_sha:

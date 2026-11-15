@@ -1,22 +1,12 @@
-# Complete repository-owned workflow graph. Owned pushes run full; PRs run credential-free checks.
+# Event defaults: quick branch pushes, full PRs, exhaustive release candidates.
+# Fork PRs receive credential-free contracts; full coverage never receives fork secrets.
 # Manual dispatch can select individual stages; no foreign workflow calls.
 # Eligible independent jobs continue after failure; result reconciles all required producer/lane states.
 name: Engine full-run CI
 on:
   push:
-    paths:
-      - '.github/fullrun.json'
-      - '.github/actionlint.yaml'
-      - '.github/workflows/fullrun*.yml'
-      - '.github/workflows/cache-*.yml'
-      - 'tools/modsync-ci/**'
-      - 'src/**'
-      - 'desktop/**'
-      - 'assets/**'
-      - 'Cargo.toml'
-      - 'Cargo.lock'
-      - '.github/actions/retain-fullrun-evidence/**'
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
   workflow_dispatch:
     inputs:
       operation:
@@ -24,6 +14,16 @@ on:
         type: choice
         options: [full, check, games, archives, install, seed, p2p]
         default: full
+      install_profile:
+        description: Installation coverage; full excludes massive movies, exhaustive includes them
+        type: choice
+        options: [minimal, full, exhaustive]
+        default: minimal
+      download_mode:
+        description: Cache-first, or try every download and fall back to valid cached versions
+        type: choice
+        options: [cache-first, refresh]
+        default: cache-first
       counterpart_sha:
         description: Exact mod-builds guide commit; empty uses the reviewed .github/fullrun.json pin
         type: string
@@ -50,14 +50,23 @@ on:
         description: Explicitly permit single-use Steam backup codes after saved-login/password attempts
         type: boolean
         default: false
+# Optional policy defaults live here; no repository variables are required.
+env:
+  FULLRUN_DEFAULTS: >-
+    {"push":"quick","pull_request":"full","workflow_dispatch":"minimal",
+     "release_candidate":"exhaustive","default_download_mode":"cache-first",
+     "release_download_mode":"refresh","release_target_branches":["main","master"],
+     "release_branch_prefixes":["release/","release-please--"],"release_labels":["release","release-candidate"]}
 permissions: {contents: read, actions: read}
 concurrency:
-  group: fullrun-${{ github.ref }}
+  # Quick pushes cannot cancel the same commit's required PR installation.
+  group: fullrun-${{ github.event_name == 'push' && 'quick' || 'installation' }}-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 jobs:
   plan:
+    name: ${{ github.event_name == 'push' && 'Quick branch checks' || 'Plan requested coverage' }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 2
     outputs:
       owner_repository: ${{ steps.request.outputs.owner_repository }}
       owner_sha: ${{ steps.request.outputs.owner_sha }}
@@ -70,22 +79,44 @@ jobs:
       modes: ${{ steps.request.outputs.modes }}
       cache_writer: ${{ steps.request.outputs.cache_writer }}
       plan_id: ${{ steps.request.outputs.plan_id }}
+      install_profile: ${{ steps.request.outputs.install_profile }}
+      download_mode: ${{ steps.request.outputs.download_mode }}
+      release_candidate: ${{ steps.request.outputs.release_candidate }}
     steps:
       - name: Checkout owned CI
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           repository: ${{ github.repository }}
-          ref: ${{ github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
       - name: Freeze repository-specific source and guide identities
         id: request
         env:
-          REQUEST_OPERATION: ${{ github.event_name == 'workflow_dispatch' && inputs.operation || github.event_name == 'push' && 'full' || 'check' }}
+          REQUEST_OPERATION: ${{ inputs.operation || '' }}
+          REQUEST_INSTALL_PROFILE: ${{ inputs.install_profile || '' }}
+          REQUEST_DOWNLOAD_MODE: ${{ inputs.download_mode || '' }}
           REQUEST_COUNTERPART_SHA: ${{ inputs.counterpart_sha }}
           REQUEST_GAME: ${{ inputs.game || 'both' }}
           REQUEST_MODE: ${{ inputs.mode || 'both' }}
-          REQUEST_WRITE_CACHE: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' && inputs.write_cache || false }}
+          REQUEST_WRITE_CACHE: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository || github.event_name == 'workflow_dispatch' && inputs.write_cache || false }}
         run: python tools/modsync-ci/fullrun_contract.py plan --output "$RUNNER_TEMP/fullrun-plan.json"
+      - name: Quick syntax and configuration checks
+        if: steps.request.outputs.install_profile == 'quick'
+        run: |
+          python - <<'PYQUICK'
+          import ast,json
+          from pathlib import Path
+          for path in Path('tools/modsync-ci').rglob('*.py'):
+              ast.parse(path.read_bytes(),filename=str(path))
+          for path in (Path('.github/fullrun.json'),Path('tools/modsync-ci/install_profiles.json')):
+              json.loads(path.read_text())
+          PYQUICK
+      - name: Quick workflow validation
+        if: steps.request.outputs.install_profile == 'quick'
+        uses: docker://rhysd/actionlint:1.7.12
+        env: {GOMAXPROCS: '2'}
+        with:
+          args: -color -config-file .github/actionlint.yaml
       - name: Retain public plan
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
@@ -94,7 +125,11 @@ jobs:
           retention-days: 14
           if-no-files-found: error
   toolkit:
+    needs: plan
+    if: needs.plan.outputs.install_profile != 'quick'
     uses: ./.github/workflows/fullrun-toolkit.yml
+    with:
+      quick: ${{ needs.plan.outputs.install_profile == 'quick' }}
     permissions: {contents: read}
   games:
     needs: plan
@@ -102,7 +137,7 @@ jobs:
     uses: ./.github/workflows/cache-game.yml
     with:
       games: ${{ needs.plan.outputs.games }}
-      cache_writer: ${{ fromJSON(needs.plan.outputs.cache_writer) }}
+      cache_writer: ${{ github.event_name == 'workflow_dispatch' && fromJSON(needs.plan.outputs.cache_writer) }}
       allow_steam: ${{ vars.FULLRUN_ALLOW_STEAM == 'true' }}
       use_steam_guard_codes: ${{ vars.FULLRUN_ALLOW_STEAM == 'true' && github.event_name == 'workflow_dispatch' && inputs.use_steam_guard_codes || false }}
       artifact_repository: ${{ vars.FULLRUN_ARTIFACT_REPOSITORY || github.repository }}
@@ -125,6 +160,8 @@ jobs:
     if: ${{ needs.plan.outputs.operation == 'full' || needs.plan.outputs.operation == 'archives' }}
     uses: ./.github/workflows/cache-archives.yml
     with:
+      install_profile: ${{ needs.plan.outputs.install_profile }}
+      download_mode: ${{ needs.plan.outputs.download_mode }}
       guide_repository: ${{ needs.plan.outputs.guide_repository }}
       guide_sha: ${{ needs.plan.outputs.guide_sha }}
       games: ${{ needs.plan.outputs.games }}
@@ -147,6 +184,10 @@ jobs:
         mode: ${{ fromJSON(needs.plan.outputs.modes) }}
     uses: ./.github/workflows/fullrun-lane.yml
     with:
+      install_profile: ${{ needs.plan.outputs.install_profile }}
+      # The archive producer exercises refresh once; consumers reuse its verified cache.
+      # Standalone install dispatches still honor the requested downloader mode.
+      download_mode: ${{ needs.plan.outputs.operation == 'full' && 'cache-first' || needs.plan.outputs.download_mode }}
       engine_repository: ${{ needs.plan.outputs.engine_repository }}
       engine_sha: ${{ needs.plan.outputs.engine_sha }}
       guide_repository: ${{ needs.plan.outputs.guide_repository }}
@@ -189,22 +230,23 @@ jobs:
     secrets:
       MODSYNC_SOURCE_TOKEN: ${{ secrets.MODSYNC_SOURCE_TOKEN }}
   result:
-    name: Requested full-run coverage
+    name: ${{ github.event_name == 'pull_request' && 'PR installation gate' || github.event_name == 'push' && 'Branch installation result' || 'Manual installation result' }}
     needs: [plan, toolkit, games, archives, install, seed, p2p]
-    if: ${{ always() }}
+    if: ${{ always() && (needs.plan.result != 'success' || needs.plan.outputs.install_profile != 'quick') }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 2
     steps:
       - name: Checkout owned CI
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           repository: ${{ github.repository }}
-          ref: ${{ github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
       - name: Fail on every required missing, incomplete, cancelled or failed result
         env:
           NEEDS_JSON: ${{ toJSON(needs) }}
           OPERATION: ${{ needs.plan.outputs.operation || 'check' }}
+          REQUIRE_DOWNLOADER: ${{ needs.plan.outputs.release_candidate || 'false' }}
         run: python tools/modsync-ci/fullrun_contract.py aggregate --operation "$OPERATION" --output "$RUNNER_TEMP/fullrun-result.json"
       - name: Retain public requested-scope verdict
         if: ${{ success() || failure() }}

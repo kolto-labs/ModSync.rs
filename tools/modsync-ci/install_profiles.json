@@ -1,0 +1,4657 @@
+{
+  "schema": 1,
+  "policy": "pinned-guide-install-profiles-v1",
+  "minimal_optional_archive_threshold_bytes": 268435456,
+  "size_evidence": {
+    "class": "authenticated own-repository artifact index and verified archive/source association metadata",
+    "index_sha256": "8c698d5488398e07d1636868ed3ff4e6a6f9eae255f1ecd6db65f9dd5f99b28a",
+    "size_semantics": "Sum distinct associated retained archive object bytes; known bytes are a lower bound when some associated metadata is absent"
+  },
+  "games": {
+    "k1": {
+      "guide_sha256": "44067788c6cb7a83b38d468817f273ce5cc901cd5e000c0f9ff65f8af15fc6ed",
+      "plan_sha256": "1b402ba085625c4863795069eaacaef0f53e8ea7179e56a5bd150d88eb9c0a74",
+      "source_count": 197,
+      "owners": [
+        {
+          "guid": "a3670a2f-f382-86e0-9696-020080fb3a43",
+          "heading": "KOTOR Dialogue Fixes",
+          "source_ids": [
+            "6d71e55c3803ba71bcce0ed4e5c6069da4f55be380fb60a587dd715e63b8e74f"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "6d71e55c3803ba71bcce0ed4e5c6069da4f55be380fb60a587dd715e63b8e74f"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "bdab3140-1e9e-8600-b95b-bee90658d9ef",
+          "heading": "Character Startup Changes",
+          "source_ids": [
+            "06c3cd166d117e53ab9557ccf7b06217ff1717a85f6628c94bb9a0c077af6337",
+            "736d77b3dd7df5c0a7b873bb5b6da8643f2038edd777d9ab02ac0d1aecc87814"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "06c3cd166d117e53ab9557ccf7b06217ff1717a85f6628c94bb9a0c077af6337",
+            "736d77b3dd7df5c0a7b873bb5b6da8643f2038edd777d9ab02ac0d1aecc87814"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "b5d29c88-4537-86a7-8412-60c659f6ef68",
+          "heading": "Thematic KOTOR Companions",
+          "source_ids": [
+            "2ae0e75e70e206f217742775deffb3530ae44c620385c4230b870a057319ef1b"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "2ae0e75e70e206f217742775deffb3530ae44c620385c4230b870a057319ef1b"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "f01daefc-b4f6-8294-bfa1-2a95b564a1f2",
+          "heading": "JC's Minor Fixes",
+          "source_ids": [
+            "24a96d856fe4d9eefa727a356d25d7d5887b0c0496934cc7a4a8c52de1591552"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "24a96d856fe4d9eefa727a356d25d7d5887b0c0496934cc7a4a8c52de1591552"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "b19b97d7-f2da-8975-a14d-6b6d969193e4",
+          "heading": "Ajunta Pall Appearance",
+          "source_ids": [
+            "3897f4efd25a314894be3e251094fee7019e6e7d1b4f2550769411b8cee6336b",
+            "cf859457592d903c043dd0f4f0dd71c1c68af99df2d72f44c80219461d04e19a"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "3897f4efd25a314894be3e251094fee7019e6e7d1b4f2550769411b8cee6336b",
+            "cf859457592d903c043dd0f4f0dd71c1c68af99df2d72f44c80219461d04e19a"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "6fb1971d-5775-85e5-9e77-ecc68a896e84",
+          "heading": "KOTOR Community Patch",
+          "source_ids": [
+            "adafebd0a9b70061c0df8fa55c65922f4129f6027531cdc33fd4db9825551233",
+            "c7b5669af722dc01c449d091c816406074ba31c16d74480f67573691a3d390d4"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "adafebd0a9b70061c0df8fa55c65922f4129f6027531cdc33fd4db9825551233",
+            "c7b5669af722dc01c449d091c816406074ba31c16d74480f67573691a3d390d4"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "d7fad948-2028-83a4-beca-11b085713f93",
+          "heading": "Droid Claw Fix",
+          "source_ids": [
+            "74ad1060780012cd287ef24cc91c3a3365987971dbda97c46d66fb0997a7a619"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "74ad1060780012cd287ef24cc91c3a3365987971dbda97c46d66fb0997a7a619"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "5dfc02b7-d58f-8769-87f4-25a1dadd4991",
+          "heading": "Ported VO Replacements",
+          "source_ids": [
+            "4169045ff5b82034a14c40b251fd9f637307e8a184cb454eff68cc6bc2c704ca"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "4169045ff5b82034a14c40b251fd9f637307e8a184cb454eff68cc6bc2c704ca"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "24049fa2-3ecd-8ce4-a606-c7a752dd039f",
+          "heading": "Ultimate Korriban",
+          "source_ids": [
+            "3d2187da77d03ca7e7de75f03d50e3795c3cd9a45f7505708346593f4a3ee080",
+            "e4596a9f3af39a5b83cbf9db532715cc81e00cd003836a4b4a8f39dba14e7698"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "3d2187da77d03ca7e7de75f03d50e3795c3cd9a45f7505708346593f4a3ee080",
+            "e4596a9f3af39a5b83cbf9db532715cc81e00cd003836a4b4a8f39dba14e7698"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "a5859114-2906-8194-90cb-309473035a20",
+          "heading": "Ultimate Kashyyyk",
+          "source_ids": [
+            "0fd4e8a8d1a27cdbde52d81b1cbff9495dbb65d58880bb657d1619ce798a1ee5"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "0fd4e8a8d1a27cdbde52d81b1cbff9495dbb65d58880bb657d1619ce798a1ee5"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "7a829bc5-092c-81b2-b820-32e4091c5d9d",
+          "heading": "Ultimate Tatooine",
+          "source_ids": [
+            "ced1834c0da221711b419dbdf2580afdb9375913acf08b7bdc0208234752f862"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "ced1834c0da221711b419dbdf2580afdb9375913acf08b7bdc0208234752f862"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "ddb667e4-a9ec-8b4b-b6e2-fea6a9c5b0c9",
+          "heading": "Ultimate Dantooine",
+          "source_ids": [
+            "0f6e2e93589f94d200c2611156b22f1cab6d0bd09a4701cf05cbbae302e80199"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "0f6e2e93589f94d200c2611156b22f1cab6d0bd09a4701cf05cbbae302e80199"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "e951f477-8d1d-8b06-8bb8-184dbf30d3a4",
+          "heading": "Ultimate Endar Spire +",
+          "source_ids": [
+            "1b118cfe39b25781a3e06948dcdb80781b8d9a08439e944744a731b5e67347c3"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "1b118cfe39b25781a3e06948dcdb80781b8d9a08439e944744a731b5e67347c3"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "a00afb1f-586a-8ebe-babb-dd880e581a37",
+          "heading": "Ultimate Manaan",
+          "source_ids": [
+            "76d71b909543c384703499f96a4d954ef9190c9666fbe2b3e6feb45decedc8d1"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "76d71b909543c384703499f96a4d954ef9190c9666fbe2b3e6feb45decedc8d1"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "814f2520-ec2d-8f77-8e9e-5eb576616203",
+          "heading": "Ultimate Taris",
+          "source_ids": [
+            "930ec1a2201c09db7afae8764fb4ccf8dec99c30b9164fd7770bcd024f05421e"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "930ec1a2201c09db7afae8764fb4ccf8dec99c30b9164fd7770bcd024f05421e"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "7e99b1de-b8a1-8ee4-9318-bbacaa52311f",
+          "heading": "Ultimate Character Overhaul",
+          "source_ids": [
+            "8209e1b3d093f6bf08155c1cd681d7f3f75d19db90ec6e405ee4db94aa2a9036"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "8209e1b3d093f6bf08155c1cd681d7f3f75d19db90ec6e405ee4db94aa2a9036"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "886d1851-90c8-843b-b0f5-30bb6e7863f9",
+          "heading": "Ultimate Unknown World",
+          "source_ids": [
+            "2199b93921a3d867a81a63ed9256b7d110fdbce54e6dd79e87eead1986b3105c"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "2199b93921a3d867a81a63ed9256b7d110fdbce54e6dd79e87eead1986b3105c"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "17918daa-225f-856b-a728-7411dbec081d",
+          "heading": "Korriban Sith Art",
+          "source_ids": [
+            "797139bfbcda628828573bb91dc0746e42beef0118254fd1de7220269f9592cf"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "797139bfbcda628828573bb91dc0746e42beef0118254fd1de7220269f9592cf"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "8a8c0a83-cbd4-8f0b-bdcb-3344f2d9b5e6",
+          "heading": "Duncan on Manaan",
+          "source_ids": [
+            "a37e0c52c984bdbf439e46f563790800060fe9d029de89da82f38828128d771e"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "a37e0c52c984bdbf439e46f563790800060fe9d029de89da82f38828128d771e"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "74ab9a39-cdaf-8d68-9110-fe34fadc51c5",
+          "heading": "Consistent Conditioning",
+          "source_ids": [
+            "252cf2a901caf8e249dc0d13955d1785937f92ffa6f8ec4c786a1f4f80675809"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "252cf2a901caf8e249dc0d13955d1785937f92ffa6f8ec4c786a1f4f80675809"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "fe1732b9-c5eb-8c01-8273-eace98311429",
+          "heading": "HD Pazaak Cards",
+          "source_ids": [
+            "46359afa86ca2e9e091a45e942225e343c0857849905ea64fb9efb4bc057ad1e"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "46359afa86ca2e9e091a45e942225e343c0857849905ea64fb9efb4bc057ad1e"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "b90ee25b-2fc9-88db-9d17-5a5ef47ee01c",
+          "heading": "HD PC Portraits",
+          "source_ids": [
+            "624048bd6a219c991454edd0a8b07dce08112bd9623993454226c9929b720941"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "624048bd6a219c991454edd0a8b07dce08112bd9623993454226c9929b720941"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "2385d192-b843-89f0-9588-2968b53196f4",
+          "heading": "PMHA05 HD",
+          "source_ids": [
+            "22fcfb75b7795422aa14c4a8ad283102913044a46b05d24db0049cd16a17ae87"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "22fcfb75b7795422aa14c4a8ad283102913044a46b05d24db0049cd16a17ae87"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "9af89564-d33c-8b97-a66c-2058442ab0a8",
+          "heading": "PMHA02 HD",
+          "source_ids": [
+            "1f9401d7af9de526ed2b47e4273ed626e1aa9dc908a2c57aa603daa3ad5b533b"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "1f9401d7af9de526ed2b47e4273ed626e1aa9dc908a2c57aa603daa3ad5b533b"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "e630bf95-cc6a-8579-bf0d-eb35509121b3",
+          "heading": "PMHA01 HD",
+          "source_ids": [
+            "52bf6b6cf17d492b38941583923f3ab34ce8659fdb2e84086bfd7300f0cc4ae5"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "52bf6b6cf17d492b38941583923f3ab34ce8659fdb2e84086bfd7300f0cc4ae5"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "07fa31d2-44c2-8583-8599-2e107efc5a30",
+          "heading": "PFHC05 HD",
+          "source_ids": [
+            "0e67261ccd1146be6043d8006e6a902e40771325452e46c0a04cded59af32c5b"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "0e67261ccd1146be6043d8006e6a902e40771325452e46c0a04cded59af32c5b"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "ff01b520-6a91-83ce-a6fe-e2ffa73eec55",
+          "heading": "PFHB02 Eye Fix",
+          "source_ids": [
+            "a0d45b8114dc940aa670acbaab9fc8765550668d72e21d6a71047551cb6e0511"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "a0d45b8114dc940aa670acbaab9fc8765550668d72e21d6a71047551cb6e0511"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "7e96f22b-6528-851d-b8dc-fa87bba8adf8",
+          "heading": "High-Poly Grenades",
+          "source_ids": [
+            "7f9ed71b207a4bee7ca1adb586811e85ce160fb09dc4aa044effd13206084b14"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "7f9ed71b207a4bee7ca1adb586811e85ce160fb09dc4aa044effd13206084b14"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "95fe4c20-2b89-8010-aa5b-91b3b0cb37cd",
+          "heading": "HD Gizka",
+          "source_ids": [
+            "aa6ca52e6c1a90a652dab10e17745312676ad3ff6ae64e2f956016bb1a592b8d"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "aa6ca52e6c1a90a652dab10e17745312676ad3ff6ae64e2f956016bb1a592b8d"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "28158b1a-0856-83c9-944d-9b1136e44c57",
+          "heading": "Gammorean Reskin Pack",
+          "source_ids": [
+            "53aa84dda08325f1b489e67c67ef2a47462425fd68e3d3f99d48c245d5b83e03"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "53aa84dda08325f1b489e67c67ef2a47462425fd68e3d3f99d48c245d5b83e03"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "0bbf307e-2e48-8a99-8a40-8be295a9f052",
+          "heading": "War Droids HD",
+          "source_ids": [
+            "534434a3318d5de6c4fd7eaea3d0ebc7562b901cd7ae340dd6ed3b61bcb5bdac"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "534434a3318d5de6c4fd7eaea3d0ebc7562b901cd7ae340dd6ed3b61bcb5bdac"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "b6c774cd-9998-8899-93b1-736aad3f1fd6",
+          "heading": "HD Cleaning Droids",
+          "source_ids": [
+            "4d944db7cca27fe82e52e567c9fa7d9b2f445a32ca62cd283be005327a9d529f"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "4d944db7cca27fe82e52e567c9fa7d9b2f445a32ca62cd283be005327a9d529f"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "65ebafc9-a124-875f-82b3-18c617ae6ea9",
+          "heading": "HD Jawas",
+          "source_ids": [
+            "b46e1fb81b439f6e0e2f22170b828755c4c9da7c27c22b5cf5396d62148e5b76"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "b46e1fb81b439f6e0e2f22170b828755c4c9da7c27c22b5cf5396d62148e5b76"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "f9228db0-ce83-81b2-918e-8cb3a7811e0f",
+          "heading": "HD Sand People",
+          "source_ids": [
+            "436bcf3fcfae3db8032cd7dbdb341b6e6463c81f73058277b91929e1f144b1b2",
+            "807a740e541a78a7401ecc875cb442011264a4412694070664a7573cca4a637b"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "436bcf3fcfae3db8032cd7dbdb341b6e6463c81f73058277b91929e1f144b1b2",
+            "807a740e541a78a7401ecc875cb442011264a4412694070664a7573cca4a637b"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "0c2079ec-5d23-8e69-8106-cbed77b3a58d",
+          "heading": "Better Twi'lek Heads",
+          "source_ids": [
+            "1645193ea719777687f9a2057cf05dc3676292a845cfcdc0370b91c3a3c86261"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "1645193ea719777687f9a2057cf05dc3676292a845cfcdc0370b91c3a3c86261"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "a01f0922-d858-8a22-abdd-2e58d6f24e60",
+          "heading": "HD Twi'lek Females",
+          "source_ids": [
+            "f4fdf4145a236698e43854774e6de7396217162f0e02f54038ed1a5717af05f1"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "f4fdf4145a236698e43854774e6de7396217162f0e02f54038ed1a5717af05f1"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "b4bb7dc6-8cfb-8015-b439-5b74895ea4ed",
+          "heading": "Thigh-High Boots for Twi'lek",
+          "source_ids": [
+            "514e7605ca5e7d3b7dfd1f11d0cca4307addc3bb66203119af91ddb48e33767c"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "514e7605ca5e7d3b7dfd1f11d0cca4307addc3bb66203119af91ddb48e33767c"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "2bef533f-1bde-833f-98fb-e4b450c3e0ef",
+          "heading": "Shaleena/Lashowe Mouth Fix",
+          "source_ids": [
+            "0086c895f1fe59956fcd18f00492616181b61ce3273a98ddff3b1d70ba447a07"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "0086c895f1fe59956fcd18f00492616181b61ce3273a98ddff3b1d70ba447a07"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "f502ec4c-d91d-8e6e-8261-fad6308c68d1",
+          "heading": "Calo Nord Recolor",
+          "source_ids": [
+            "ff4de1a8d755916e61953ed22c8ad1f1e462f049321bf57859a21189ff82c5dd"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "ff4de1a8d755916e61953ed22c8ad1f1e462f049321bf57859a21189ff82c5dd"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "10ebc352-0574-858f-b2d3-b52d7fb66014",
+          "heading": "HD Darth Malak",
+          "source_ids": [
+            "f202995404ff3ab994bdd204f6525ef54794720fa031d233746b77b044fc4864"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "f202995404ff3ab994bdd204f6525ef54794720fa031d233746b77b044fc4864"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "31175a55-b556-8430-9bff-a78d3744eef2",
+          "heading": "CineMalak",
+          "source_ids": [
+            "7e0021e07c238872d70d09218b9a76b37166ae829b0310dfe022044bf12ae0ad"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "7e0021e07c238872d70d09218b9a76b37166ae829b0310dfe022044bf12ae0ad"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "6a3112ab-1f95-843e-83cb-be42a52ae387",
+          "heading": "Detran's Darth Revan",
+          "source_ids": [
+            "581c60174b022b55f7b3dda3aab10a67107f446e7f3cdb990b5c90c77f37508d"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "581c60174b022b55f7b3dda3aab10a67107f446e7f3cdb990b5c90c77f37508d"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "ec593d23-92f3-8d73-990a-39e9fe473d8b",
+          "heading": "Darth Bandon HD",
+          "source_ids": [
+            "037ad8671facc913197a89536e421082e3818319beebc6d364e67393ca8911b3"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "037ad8671facc913197a89536e421082e3818319beebc6d364e67393ca8911b3"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "cf951583-e1d6-824e-aa9d-2bc4ebbd39e7",
+          "heading": "HD Vrook",
+          "source_ids": [
+            "0b24b185d592f6b5ba3dea59b7a2e1d076b852ba6ba4061d2d61bea5f3187657"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "0b24b185d592f6b5ba3dea59b7a2e1d076b852ba6ba4061d2d61bea5f3187657"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "da5f96df-9941-89e5-bc38-7318be1456ec",
+          "heading": "HD UI Elements",
+          "source_ids": [
+            "431d6ab333684278e61b4d5a3703f413da633f5d2e506ebe925c6453b8c90d3c"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "431d6ab333684278e61b4d5a3703f413da633f5d2e506ebe925c6453b8c90d3c"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "582504b9-e6ef-876e-a0fe-5389cb80f2cc",
+          "heading": "HD NPC Portraits",
+          "source_ids": [
+            "c0ddbd33ec24223367269d9a85e5bfb65529d924cd438c735d6f5097398fdd97"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "c0ddbd33ec24223367269d9a85e5bfb65529d924cd438c735d6f5097398fdd97"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "f966fc1f-6b47-88fc-9050-07b1371eb56a",
+          "heading": "Male NPC Clothing",
+          "source_ids": [
+            "3e7ab2e05a994c2487df75eae759bee66cd37d12c798f761c41c407783ed226f"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "3e7ab2e05a994c2487df75eae759bee66cd37d12c798f761c41c407783ed226f"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "95519736-cb6c-86e2-bb7a-3cd980fa9c05",
+          "heading": "Juhani Appearance Overhaul",
+          "source_ids": [
+            "c2b696db0bd1ece453da08fb961e37c10a41b30dcfd632d047274f30b8a99853",
+            "c753835e429dcc654d18c9134b1558efba0d9e89937eb542b325269cd7c73507"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "c2b696db0bd1ece453da08fb961e37c10a41b30dcfd632d047274f30b8a99853",
+            "c753835e429dcc654d18c9134b1558efba0d9e89937eb542b325269cd7c73507"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "4188c324-caeb-8ff6-9512-93e481d8b0ae",
+          "heading": "Juhani Cathar Head",
+          "source_ids": [
+            "a0bb3d93cc144639a1b71c27810585f1c3661a1c62031bc1bcb09040306d4452"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "a0bb3d93cc144639a1b71c27810585f1c3661a1c62031bc1bcb09040306d4452"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "8e70428e-2dab-8972-bf4c-6900d4ed8c26",
+          "heading": "Korriban: Back in Black",
+          "source_ids": [
+            "b2a3eb50af8ea52ed1d8b98758fb460d3dbf023df72dc9ac7053a1bf62bc512d"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "b2a3eb50af8ea52ed1d8b98758fb460d3dbf023df72dc9ac7053a1bf62bc512d"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "02034096-4a59-8fbc-b2a0-beb89cbf2067",
+          "heading": "Cloaked Jedi Robes",
+          "source_ids": [
+            "4dc299c87c100209115cee1644f553a88304157401fe48908ead4059277401ce"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "4dc299c87c100209115cee1644f553a88304157401fe48908ead4059277401ce"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "d2f4b632-2636-809e-a924-bcd8912b7a21",
+          "heading": "JC's Jedi Tailor",
+          "source_ids": [
+            "661cdb0b0adbe036ed06fd4b698e28d6461d199003960f4a57dbdb8fad88f8d7"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "661cdb0b0adbe036ed06fd4b698e28d6461d199003960f4a57dbdb8fad88f8d7"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "7deb6488-652d-820e-aee9-00bef11230fe",
+          "heading": "Cloaks with Shadows",
+          "source_ids": [
+            "b678249c15cb9f163209037fefce6fc3fe0c9152bb6c9790a8dc2e7896ddf44b"
+          ],
+          "dependencies": [
+            "02034096-4a59-8fbc-b2a0-beb89cbf2067"
+          ],
+          "acquisition_source_ids": [
+            "b678249c15cb9f163209037fefce6fc3fe0c9152bb6c9790a8dc2e7896ddf44b"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "aa4ebbd9-a7a6-8af1-92d2-57d7b9530fb5",
+          "heading": "Qel-Droma Reskin",
+          "source_ids": [
+            "2ffc447d4e89d575465b88bb449551b32bb1e7f832e3fdde48a7b19074cbf611"
+          ],
+          "dependencies": [
+            "02034096-4a59-8fbc-b2a0-beb89cbf2067"
+          ],
+          "acquisition_source_ids": [
+            "2ffc447d4e89d575465b88bb449551b32bb1e7f832e3fdde48a7b19074cbf611"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "4ce833d5-4085-8cc2-9e4f-3460b1fbbfe7",
+          "heading": "Quanon's HK-47",
+          "source_ids": [
+            "8dbbab28f1926587697e285e79437179c0b7f1654a8412d30fcd0866348ba67f"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "8dbbab28f1926587697e285e79437179c0b7f1654a8412d30fcd0866348ba67f"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "819993f4-0279-8fa4-a517-539c7bf69962",
+          "heading": "HD Sign Placeable",
+          "source_ids": [
+            "6b03a8a520a3ab8fc226d562ae557ff8b5fc7828fd0fbdc53f751d4a8941674a"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "6b03a8a520a3ab8fc226d562ae557ff8b5fc7828fd0fbdc53f751d4a8941674a"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "477d7c00-26ef-87be-adaf-ded4e3ea6f85",
+          "heading": "HD Kiosk",
+          "source_ids": [
+            "85e7580bb26358b61961da11e75445bb9906e2e6c1b9af8398f5784cc46112e2",
+            "e67f9893024d0836444f63f19428f6fb4522b81d6f37e87521c2955ce8cf2b65"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "85e7580bb26358b61961da11e75445bb9906e2e6c1b9af8398f5784cc46112e2",
+            "e67f9893024d0836444f63f19428f6fb4522b81d6f37e87521c2955ce8cf2b65"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "8ba87eeb-7e75-8d98-98dc-a3d32abc5f9d",
+          "heading": "HD Desk",
+          "source_ids": [
+            "7eee0b177c796c9bddb08f35c6b519dfe029c5b7a782d395eea9f2501ce43baa"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "7eee0b177c796c9bddb08f35c6b519dfe029c5b7a782d395eea9f2501ce43baa"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "32126835-981f-8378-94fe-0cb64249756f",
+          "heading": "HD Escape Pod",
+          "source_ids": [
+            "fdecbc6a40f6f6c12ba828ba8723189666744f1a9f5565dca60d03373a168485"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "fdecbc6a40f6f6c12ba828ba8723189666744f1a9f5565dca60d03373a168485"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "9f359cc3-0acc-8711-90f5-9cc7c91a9b4b",
+          "heading": "HD Weapon Placeables",
+          "source_ids": [
+            "5cfc7dd53e935a0d52cd1f8daaa1a4474e7b929e859d5c59e390953a1e7162a4"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "5cfc7dd53e935a0d52cd1f8daaa1a4474e7b929e859d5c59e390953a1e7162a4"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "634e72d7-59ff-8a55-acd2-d5ac6885b0be",
+          "heading": "K2 Swoops to K1",
+          "source_ids": [
+            "d042f24312a39032fd3558b98a730dd7742276f0e040e12648fae70a8be33c7e"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "d042f24312a39032fd3558b98a730dd7742276f0e040e12648fae70a8be33c7e"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "760fc170-0060-8e41-a18c-49054984d946",
+          "heading": "HD Stun Batons",
+          "source_ids": [
+            "7b4abc461eadd010557b6608b8be5d1651c6f12c4f56f3f25302181df02c59b7"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "7b4abc461eadd010557b6608b8be5d1651c6f12c4f56f3f25302181df02c59b7"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "42a811e7-1116-8b6b-a738-4135582aa3e3",
+          "heading": "Unique Sith Governor",
+          "source_ids": [
+            "aff9ad9c58463e36208be02563e90057060d771897707425fd3fc312e58aef5d"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "aff9ad9c58463e36208be02563e90057060d771897707425fd3fc312e58aef5d"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "90157c32-3ad5-8d28-aa65-cd7cecd20af2",
+          "heading": "HD Ithorians",
+          "source_ids": [
+            "1febc6382ed0dfa673cce1f5105f9c848fda12f7fefce742ef832167400fc2fb"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "1febc6382ed0dfa673cce1f5105f9c848fda12f7fefce742ef832167400fc2fb"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "7320b360-f4c4-8027-bed9-7fe32a3e1e17",
+          "heading": "HD Duros",
+          "source_ids": [
+            "693697106ea03c3895d77a0d4eb874bf2288ba4f5e2dcd3663655d13a62d636c"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "693697106ea03c3895d77a0d4eb874bf2288ba4f5e2dcd3663655d13a62d636c"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "50aab8fa-97b1-8036-b13a-05a1d3c8a5e8",
+          "heading": "HD Quarren",
+          "source_ids": [
+            "3606d8e042cef0505d245bcf4905664952b480a2ae0d589f3bfd05604d50ec9f"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "3606d8e042cef0505d245bcf4905664952b480a2ae0d589f3bfd05604d50ec9f"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "fcd21226-0f2e-8b6e-9573-5dacb7b0093c",
+          "heading": "HD Davik",
+          "source_ids": [
+            "a312cbd763a3c8aa33a92935d07922e0efe221c05420bb5011049f68c551f90c"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "a312cbd763a3c8aa33a92935d07922e0efe221c05420bb5011049f68c551f90c"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "65961515-06a5-826f-931e-ce293443f6c3",
+          "heading": "HD Doctors",
+          "source_ids": [
+            "9efd3381489ebaa3b706ccc11d9fae81a98d48c192473967df5a883eaee88482"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "9efd3381489ebaa3b706ccc11d9fae81a98d48c192473967df5a883eaee88482"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "5b246909-2689-8a21-ad46-02cb4b502403",
+          "heading": "Kebla Yurt HD",
+          "source_ids": [
+            "a8b11fef5768694b572836f5d4c4401feaefdbd2f51d5c34d729e3eaf22f7d2a"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "a8b11fef5768694b572836f5d4c4401feaefdbd2f51d5c34d729e3eaf22f7d2a"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "6896008b-2189-893d-9040-24d7ace38751",
+          "heading": "HD Deadeye Duncan",
+          "source_ids": [
+            "b2046e9de69e94677d138440ff1aece2d884c4fa85b7bcc9d92066e900bc625f"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "b2046e9de69e94677d138440ff1aece2d884c4fa85b7bcc9d92066e900bc625f"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "e6e24b90-2d19-80fd-a391-10a669fff95f",
+          "heading": "N_oldAMH01 HD",
+          "source_ids": [
+            "185fcc3107c4d3ea540eab83edaebd1d82600b9573c9210741b057da8b069fa4"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "185fcc3107c4d3ea540eab83edaebd1d82600b9573c9210741b057da8b069fa4"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "14b983cd-939a-8564-bf0f-c72100aae46f",
+          "heading": "HD Astromech Droids",
+          "source_ids": [
+            "59471e98556032213220b39ec8fcc3a4d05685a44f0e222fd49380d40e3d565d"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "59471e98556032213220b39ec8fcc3a4d05685a44f0e222fd49380d40e3d565d"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "6b6e5382-11c1-8cfe-9d87-eb46482f8ba6",
+          "heading": "HD Protocol Droids",
+          "source_ids": [
+            "fbf559288cc9a8b4fc10adc199835eb1087c2ba8ddd079d9e2d096c6feecba30"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "fbf559288cc9a8b4fc10adc199835eb1087c2ba8ddd079d9e2d096c6feecba30"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "2cb4a7df-dca8-8110-9652-6973aef53eba",
+          "heading": "Davik's Trophies",
+          "source_ids": [
+            "73760115e39e61da6a79b34028bce908c2fcf5162ecf2098ffeaf880733cefc4"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "73760115e39e61da6a79b34028bce908c2fcf5162ecf2098ffeaf880733cefc4"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "418f223c-cf27-85c6-916a-eeaa474c25ca",
+          "heading": "HD Carth Onasi",
+          "source_ids": [
+            "8fc8992af101d410ad99578b1ab2868ea328b53188cc65b023b759442449c017"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "8fc8992af101d410ad99578b1ab2868ea328b53188cc65b023b759442449c017"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "2fda8a49-32df-8d2e-8abe-f13861634749",
+          "heading": "HD Canderous Ordo",
+          "source_ids": [
+            "0fa44978ff2647f24a4ff70cb1f87d677d9cac4127a9aac81bd77ec32ac88e65",
+            "5a3e50e51ecbe65b00174672c3580f863502a8f78fd011fc19a2ee9d362cd8f8"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "0fa44978ff2647f24a4ff70cb1f87d677d9cac4127a9aac81bd77ec32ac88e65",
+            "5a3e50e51ecbe65b00174672c3580f863502a8f78fd011fc19a2ee9d362cd8f8"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "09d8f8bb-d321-8c23-adfb-47f5a13765ca",
+          "heading": "Quanon's Canderous",
+          "source_ids": [
+            "1b495a9a902a70ec26947fae3fa73cf04e095cf956b3279dbc84a40a7c2fb6a1"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "1b495a9a902a70ec26947fae3fa73cf04e095cf956b3279dbc84a40a7c2fb6a1"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "c0138f0c-9910-8ac7-af28-5c2187409bb7",
+          "heading": "Jolee HD",
+          "source_ids": [
+            "b8357104daf7a01d07a9e2470b98561ffbdd912270dd2f43d3832718b1aee87d"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "b8357104daf7a01d07a9e2470b98561ffbdd912270dd2f43d3832718b1aee87d"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "ad575e9f-f3c0-8a4f-9459-d2f09e274686",
+          "heading": "Fen's Jolee",
+          "source_ids": [
+            "ec84dd638ccfdfb66f2765acd72cbcae22dba1fa3f89b5a56d95372ed2974d8f"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "ec84dd638ccfdfb66f2765acd72cbcae22dba1fa3f89b5a56d95372ed2974d8f"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "928892c4-d210-8d5b-bcd5-a27d98fdca6e",
+          "heading": "Zaalbar HD",
+          "source_ids": [
+            "690ba8898bd267cba32b819ebe419379e4ad09b5bf054e243d9e52ef57978a94"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "690ba8898bd267cba32b819ebe419379e4ad09b5bf054e243d9e52ef57978a94"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "ed488679-bc04-892d-973b-107511862024",
+          "heading": "Sith Uniform Reformation Revised",
+          "source_ids": [
+            "6e60e499b93a1193627759acaac41143d1d7fa2b860b7ed23466c8b90140c434"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "6e60e499b93a1193627759acaac41143d1d7fa2b860b7ed23466c8b90140c434"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "dbbb57bc-b715-8f2b-bdb6-1b10534002b4",
+          "heading": "Stylized Portraits",
+          "source_ids": [
+            "bcec39ca2542cefd7b01d061b128cb80328f6d5d6421e45a929be57ed1715415"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "bcec39ca2542cefd7b01d061b128cb80328f6d5d6421e45a929be57ed1715415"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "0bc5ef83-c454-8e61-b704-01ab2869bd00",
+          "heading": "Star Map Revamp",
+          "source_ids": [
+            "6276324cd8cd4c1e3e1cae21e794e038aae8f0726e79107ea3c5c07138da2090"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "6276324cd8cd4c1e3e1cae21e794e038aae8f0726e79107ea3c5c07138da2090"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "d47702e4-fdbb-81f4-8e75-124758c52d1c",
+          "heading": "Background Improvements",
+          "source_ids": [
+            "dcf5d4d8150d50641c2a873982f4f7db9abaa119a2424dce15a2256619bb19db"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "dcf5d4d8150d50641c2a873982f4f7db9abaa119a2424dce15a2256619bb19db"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "7bdac77a-e2fc-8bba-aaac-2cd1454e531f",
+          "heading": "Kebla Yurt Renovation",
+          "source_ids": [
+            "d13b7b76352abf795320323ee00d793ff7eaddb5eef9e76d876fe057c09223ec"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "d13b7b76352abf795320323ee00d793ff7eaddb5eef9e76d876fe057c09223ec"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "7f0e5b49-2167-87de-9884-1ae2a798a297",
+          "heading": "Hi-Res Ebon Hawk",
+          "source_ids": [
+            "f6c4d46959a1e601ccf85d241dc3f4c07efb07d398d192a29a51cfb70a648d2f"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "f6c4d46959a1e601ccf85d241dc3f4c07efb07d398d192a29a51cfb70a648d2f"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "ab47cdb0-2c31-84c4-a81b-3a0cb8ca6c96",
+          "heading": "Ebon Hawk Repairs",
+          "source_ids": [
+            "f64acee8f2b4f478c7c70a5f285edcbd1e2a4b0fe49a89e99c4ce364c91fe0db"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "f64acee8f2b4f478c7c70a5f285edcbd1e2a4b0fe49a89e99c4ce364c91fe0db"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "f349d403-6355-8f99-ad7a-de1128210258",
+          "heading": "HQ Cockpit Skyboxes",
+          "source_ids": [
+            "ad124e459c7dccfbbf7319dd86899a786148aacab337d50aa1d591cd83cbd013"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "ad124e459c7dccfbbf7319dd86899a786148aacab337d50aa1d591cd83cbd013"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "07416fb0-1f9b-88ba-952f-4029575ad036",
+          "heading": "Yavin Station Hangar",
+          "source_ids": [
+            "344462c511491a1a1cc700e8655d4865c4d8fdd80c2d0714bf0375ca167a1544"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "344462c511491a1a1cc700e8655d4865c4d8fdd80c2d0714bf0375ca167a1544"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "7469e4e6-1be6-8085-b1c9-3b5f60aff0b4",
+          "heading": "Ebon Hawk Cockpit Upgrade I",
+          "source_ids": [
+            "f609365031fe965794822c27e6288edecf112a2c131494464f7152ac32a15c90"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "f609365031fe965794822c27e6288edecf112a2c131494464f7152ac32a15c90"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "519b915f-ea5e-837f-952e-06594adb93fe",
+          "heading": "Ebon Hawk Cockpit Upgrade II",
+          "source_ids": [
+            "52bd058ba31d96f542add742269fe7d7e23693e806a6c79db9371217d45f0abe"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "52bd058ba31d96f542add742269fe7d7e23693e806a6c79db9371217d45f0abe"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "ffe1ae21-9c1b-88e0-a6a9-ca2f60aca30b",
+          "heading": "Taris Reskin",
+          "source_ids": [
+            "93994e7982e3ea7fb441f8747d743056c01cb30753e9e8becd817e35bf399e5a",
+            "ea15419ac2d619b95a7b414924926a83eec971ed64bb6f30b55ab9d20b9b145c"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "93994e7982e3ea7fb441f8747d743056c01cb30753e9e8becd817e35bf399e5a",
+            "ea15419ac2d619b95a7b414924926a83eec971ed64bb6f30b55ab9d20b9b145c"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "82f19264-c6e4-848e-8b77-3403604df00a",
+          "heading": "High Quality Starfields",
+          "source_ids": [
+            "42a9c13b04b0d046be9ec1b63f26c57946dcdc568bd7478c1b6bd8db762bac4b"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "42a9c13b04b0d046be9ec1b63f26c57946dcdc568bd7478c1b6bd8db762bac4b"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "f396178b-0707-8bb4-9deb-8e1d0bfae9e3",
+          "heading": "HQ Skyboxes II",
+          "source_ids": [
+            "1e0de6e7d5a967acfade7cf64012860e7b467744c14b98a64ed7fbc11db4136a",
+            "7627e455b42bccb8445c956cb28ab23bd4cf2e7d301bc328e07528621c8a7da7"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "1e0de6e7d5a967acfade7cf64012860e7b467744c14b98a64ed7fbc11db4136a",
+            "7627e455b42bccb8445c956cb28ab23bd4cf2e7d301bc328e07528621c8a7da7"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "be6c7d76-9699-88cd-b7e3-1d23fe54ba09",
+          "heading": "Ebon Hawk Transparent Cockpit Windows",
+          "source_ids": [
+            "b4b430f9060883807810b7141e4253e23370f392b1204da4e28d146e80a1a272"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "b4b430f9060883807810b7141e4253e23370f392b1204da4e28d146e80a1a272"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "5578f0dd-7a7c-8a38-84d2-6c0a7c82e787",
+          "heading": "Hires Beam Effects",
+          "source_ids": [
+            "007b587bb3422da7e3f01c6da5f257db127c72f02583c6aa521685d579d3dace"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "007b587bb3422da7e3f01c6da5f257db127c72f02583c6aa521685d579d3dace"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "fc96b0d9-9e88-83ba-86e9-35d6845abf70",
+          "heading": "HD Fire & Ice",
+          "source_ids": [
+            "1b82de371f331e606d634c282adb6f4e1aabd169c2f261b8fabd4512515261ad"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "1b82de371f331e606d634c282adb6f4e1aabd169c2f261b8fabd4512515261ad"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "20d9dd30-bc05-847b-aaf1-6d8fd34601e4",
+          "heading": "Animated Energy Shields",
+          "source_ids": [
+            "093b35bf5e77f55a845eead703a334796ec4d42cc0c5f0630dea5dbaf944c14f"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "093b35bf5e77f55a845eead703a334796ec4d42cc0c5f0630dea5dbaf944c14f"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "c4721093-d206-8a35-a8ee-d70074963a5a",
+          "heading": "Animated Cantina Sign",
+          "source_ids": [
+            "fb4d853cb662bc44c3b54be9bf8634daf2d3d843b67a38e9f73df8f48f901db4"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "fb4d853cb662bc44c3b54be9bf8634daf2d3d843b67a38e9f73df8f48f901db4"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "a47d9415-c747-818b-bcce-72825f17ec11",
+          "heading": "Revamped FX",
+          "source_ids": [
+            "a5d8026c94cf19eee5229948f9cc3cd7c1140f280814ec17cdabdbe6611e5ef3"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "a5d8026c94cf19eee5229948f9cc3cd7c1140f280814ec17cdabdbe6611e5ef3"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "ae9cffcf-daae-8012-96e6-0d1c92620ba9",
+          "heading": "Terminal Texture",
+          "source_ids": [
+            "277225ec21a9ab949e43514fd4cc8f256e0b4c9b5c7838a19046b616b7388242"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "277225ec21a9ab949e43514fd4cc8f256e0b4c9b5c7838a19046b616b7388242"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "9de5d7f1-ccf4-8946-9d49-ec788abc5464",
+          "heading": "HD Workbench",
+          "source_ids": [
+            "f82a9dec22898f451691233a36ae78f4e5d4da6e6480abbddb1bf5ed872af400"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "f82a9dec22898f451691233a36ae78f4e5d4da6e6480abbddb1bf5ed872af400"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "450ab98a-f3d0-815b-a423-b6f5d2027f55",
+          "heading": "Animated Swoop Monitors",
+          "source_ids": [
+            "aea1d48dd88e1c4b27ba7fd16e6286e5adacb5aa2fdef4a25a0556e587a016a9"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "aea1d48dd88e1c4b27ba7fd16e6286e5adacb5aa2fdef4a25a0556e587a016a9"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "d7845fdf-b726-8825-9d0b-9e8c6cd996ad",
+          "heading": "Loadscreens in Color",
+          "source_ids": [
+            "03acf0929e7752a9bfc189771e6c260787674819065bc3e736398950a5db8ec4"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "03acf0929e7752a9bfc189771e6c260787674819065bc3e736398950a5db8ec4"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "e0c60688-88dd-84fe-a2b5-2f47bc956ab5",
+          "heading": "Reflective Lightsaber Blades",
+          "source_ids": [
+            "01cbe26a7f7bb5cd8998d22792a90ef82f142c8a248f6a7bd52389b57ffbad81"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "01cbe26a7f7bb5cd8998d22792a90ef82f142c8a248f6a7bd52389b57ffbad81"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "a7650f01-cbc8-8464-85af-cd1f727a04e0",
+          "heading": "Darth Malak's Lightsaber",
+          "source_ids": [
+            "61961e7e6aaa6e0d5145267bd36fd9f3e555fa34505f51a52997a6e50d1968fa"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "61961e7e6aaa6e0d5145267bd36fd9f3e555fa34505f51a52997a6e50d1968fa"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "21938f6e-c3ae-8c74-bab6-c3d206f4adf8",
+          "heading": "Blaster Visual Effects",
+          "source_ids": [
+            "9b004ba99b6d96553c7d313d895a776a632a44aa4f1e4d4f5653c01b4ce7d213"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "9b004ba99b6d96553c7d313d895a776a632a44aa4f1e4d4f5653c01b4ce7d213"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "e58c8ba9-7f5b-86c7-bb28-6dec83b48cf1",
+          "heading": "Wookiee Warblade Fix",
+          "source_ids": [
+            "7c11a999db4f0f119ce903f3c845a57329c5aed8d960186588c6d540de83b00a"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "7c11a999db4f0f119ce903f3c845a57329c5aed8d960186588c6d540de83b00a"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "4a1280f0-1856-8ca2-b5c4-6339faf8e948",
+          "heading": "Kill The Czerka Guard",
+          "source_ids": [
+            "d584ac2930ddfe1d8f3cc91ef10a61d267eadb60a577ab10147492a1f44eaf23"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "d584ac2930ddfe1d8f3cc91ef10a61d267eadb60a577ab10147492a1f44eaf23"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "d5403e9f-1936-8a89-934b-05693c57603c",
+          "heading": "Korriban Workbench",
+          "source_ids": [
+            "983eeb54b94c49e2929e24584b2130ecbff386e621ac8b24ac592211e9743127"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "983eeb54b94c49e2929e24584b2130ecbff386e621ac8b24ac592211e9743127"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "1684fafe-9547-8a4e-b743-c9fb94064f76",
+          "heading": "Senni Vek Mod",
+          "source_ids": [
+            "9cbb839213e4a7b50a6ae7d29358d5e52627e9371cf567320c2057f0e0795226"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "9cbb839213e4a7b50a6ae7d29358d5e52627e9371cf567320c2057f0e0795226"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "ad424e39-4564-8342-bb3e-fdc491b0fcf0",
+          "heading": "Male Twi'lek Diversity",
+          "source_ids": [
+            "901bcabcbfa787ae10d6493ff6826dca90dcff1ac26a386ab65f4f8de07f8cfb"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "901bcabcbfa787ae10d6493ff6826dca90dcff1ac26a386ab65f4f8de07f8cfb"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "aec010ca-ba40-80f6-948b-5e9f35939e86",
+          "heading": "Ixgil the Bith",
+          "source_ids": [
+            "c490ecf1de242c2f830766451f5dabe9fe58fa2d51e92c367c1a29b92732ab7b"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "c490ecf1de242c2f830766451f5dabe9fe58fa2d51e92c367c1a29b92732ab7b"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "5dc9bda7-73d0-8cd5-b80a-695428d1237f",
+          "heading": "Hidden Bek Control Room",
+          "source_ids": [
+            "a29684a1be37e173a43787c75b0a98943de38a5507cbe405aaa190071dbd329a"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "a29684a1be37e173a43787c75b0a98943de38a5507cbe405aaa190071dbd329a"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "581433cd-4c71-848a-92f3-03064c7eae94",
+          "heading": "Swoop Bike Upgrades",
+          "source_ids": [
+            "a9a577ce8d89efe2f8366b5110cb360b54878f939d1c7b174465911e67dbad2f"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "a9a577ce8d89efe2f8366b5110cb360b54878f939d1c7b174465911e67dbad2f"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "92abfa89-260b-827e-9dda-5be6ccbeb83a",
+          "heading": "Jedi Choice Dialogue Enhancement",
+          "source_ids": [
+            "3a6e2c015c22dc6ad2ef437bf4abfcdbe743c4c488f2db76c802d65c6f8881ac"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "3a6e2c015c22dc6ad2ef437bf4abfcdbe743c4c488f2db76c802d65c6f8881ac"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "eb902642-633b-85b0-8029-eed36bffb70f",
+          "heading": "Juhani Restoration",
+          "source_ids": [
+            "0a3e43654de4baa2135efd02fee4d42b9155a987ff86d12c9acffbbea3a11336"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "0a3e43654de4baa2135efd02fee4d42b9155a987ff86d12c9acffbbea3a11336"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "e3dca703-1956-8a13-bcbb-5f58649626c9",
+          "heading": "Vision Enhancement",
+          "source_ids": [
+            "86e6d428603afff1d516558f44d4bc2ce27152b3675a75f30829f7125883671f"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "86e6d428603afff1d516558f44d4bc2ce27152b3675a75f30829f7125883671f"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "a4ae05b3-d8b7-81d0-8d18-a5f2c58e8be3",
+          "heading": "New Leviathan Dialogue",
+          "source_ids": [
+            "03ebf2c09b0f51e516a904c48792a3b07c6553ceb632d03763c821698a98d34f"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "03ebf2c09b0f51e516a904c48792a3b07c6553ceb632d03763c821698a98d34f"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "6c31e777-937a-8e07-a886-0c23beb80faa",
+          "heading": "Balanced Pazaak",
+          "source_ids": [
+            "3561958d73e8225233df75df2b1d7bb0b1cb231ff4d6765c0b068ad52985e499"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "3561958d73e8225233df75df2b1d7bb0b1cb231ff4d6765c0b068ad52985e499"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "ab1c5fb0-4fc7-85a6-9086-e64250a6b96d",
+          "heading": "Camera Replacement",
+          "source_ids": [
+            "2a2ff7a6289e8988fecf58047bdf95d96a75c86f80344b51fa78c2fd562a028f"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "2a2ff7a6289e8988fecf58047bdf95d96a75c86f80344b51fa78c2fd562a028f"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "a328a55e-16b6-8e09-bf05-7f4b1d20ecb6",
+          "heading": "Rebalanced Grenades",
+          "source_ids": [
+            "b757829778179302ddac294dbeee815668a38c9d0cd1692d7221d25d7b4818e8"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "b757829778179302ddac294dbeee815668a38c9d0cd1692d7221d25d7b4818e8"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "fbded2da-8b40-835d-93f0-50b099f35476",
+          "heading": "HD Grenades & Mines",
+          "source_ids": [
+            "f8d90cd04ac0bac31fd3e4355903d88ae1f7f9c9632ae45023e32f4278a74053"
+          ],
+          "dependencies": [
+            "7e96f22b-6528-851d-b8dc-fa87bba8adf8"
+          ],
+          "acquisition_source_ids": [
+            "f8d90cd04ac0bac31fd3e4355903d88ae1f7f9c9632ae45023e32f4278a74053"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "071b55c7-fa42-8128-b78d-a2e7c0244fe4",
+          "heading": "Turret Minigame Remover",
+          "source_ids": [
+            "95d63f5ff6cedceacbaa1225a5f6cf03f933b45b7e5e931e3d22e5e707c7fedd"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "95d63f5ff6cedceacbaa1225a5f6cf03f933b45b7e5e931e3d22e5e707c7fedd"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "14d77038-49c0-882b-83a1-0a424efa0f60",
+          "heading": "Tutorial Remover",
+          "source_ids": [
+            "07d93c7cf8ada06f7edc81d429ff76d10fb51eaa270de815ddcb30d5a264d8a8"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "07d93c7cf8ada06f7edc81d429ff76d10fb51eaa270de815ddcb30d5a264d8a8"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "b9f55e61-5ec6-8934-9fca-a5a4e1f8f7a7",
+          "heading": "Leviathan Prison Break",
+          "source_ids": [
+            "b1c09ff08e3408725a6e70f859e4fda258ffcaf5b4c9749f5e6b5389d218ecfb"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "b1c09ff08e3408725a6e70f859e4fda258ffcaf5b4c9749f5e6b5389d218ecfb"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "367fef86-46a5-86a5-9ec3-3922ec041779",
+          "heading": "Ain't No Air in Space",
+          "source_ids": [
+            "f6ff52913460ef20265e1312b665051f5fdf1c91c011ea8663a912c29b7bad0b"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "f6ff52913460ef20265e1312b665051f5fdf1c91c011ea8663a912c29b7bad0b"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "30862622-1a16-8e74-9b33-6a93525e5832",
+          "heading": "Party Conversations on the Ebon Hawk",
+          "source_ids": [
+            "eb3f912ad9f6c5c302e5ce9688ad95848ce34fdca52e8e2482de54f1e8049eb1"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "eb3f912ad9f6c5c302e5ce9688ad95848ce34fdca52e8e2482de54f1e8049eb1"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "3659ab3f-2857-8630-ae48-64bbba1fad15",
+          "heading": "Dark Sacrifice",
+          "source_ids": [
+            "a41712e6c6c9a60fd80b0d96f21b2899547d8092373c2aaa83af40096d05570b"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "a41712e6c6c9a60fd80b0d96f21b2899547d8092373c2aaa83af40096d05570b"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "4c455e1c-4525-81a9-a443-42b44b79b2b4",
+          "heading": "Saber Throw Knockdown",
+          "source_ids": [
+            "d27eaadaec28b0b19091741320e9e67f6ad947238fc9f426fab62d4bc4b73327"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "d27eaadaec28b0b19091741320e9e67f6ad947238fc9f426fab62d4bc4b73327"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "e6488994-327d-825c-baed-6f869dad8ac2",
+          "heading": "Sunry Enhancement",
+          "source_ids": [
+            "f84057f3f87de3982970aacf7eff9a158a9e7cfcb3ac29fae692a2e9406faad3"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "f84057f3f87de3982970aacf7eff9a158a9e7cfcb3ac29fae692a2e9406faad3"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "ac01b5c6-98d6-8ffe-a19a-7628f0386da6",
+          "heading": "Davik Slave Change",
+          "source_ids": [
+            "4ec5f0385ce0a3b12260b523439851ae0e394bedb316b000c4c10b1e5597a4e5"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "4ec5f0385ce0a3b12260b523439851ae0e394bedb316b000c4c10b1e5597a4e5"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "f49f2fc1-9c7c-81f5-aaa5-1be2067fe595",
+          "heading": "Taris Rapid Transit",
+          "source_ids": [
+            "2e70faf67e1846b46a5c24784366e034a077dd78ed81b8448671cebd3eb6d34d"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "2e70faf67e1846b46a5c24784366e034a077dd78ed81b8448671cebd3eb6d34d"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "3f6541d7-9d72-82f9-bf90-a46ca30f4bc0",
+          "heading": "Manaan Rapid Transit",
+          "source_ids": [
+            "365fc7baecc5c47919e17f8c7698c25bb552152b167c6cb5c01dc51fb8ffc3aa"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "365fc7baecc5c47919e17f8c7698c25bb552152b167c6cb5c01dc51fb8ffc3aa"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "b7342f5c-8610-8169-a0c0-fd0d5427bee4",
+          "heading": "Recruit T3-M4 Early",
+          "source_ids": [
+            "7223286c14f63914e6259b2c043d4a9e4fab25f188b12873c6a5d9c31017da2d"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "7223286c14f63914e6259b2c043d4a9e4fab25f188b12873c6a5d9c31017da2d"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "a794138a-de5d-8dfe-8c8c-9eb47d474997",
+          "heading": "Security Spikes for K1",
+          "source_ids": [
+            "280c823834dfbf15f6774fb7e9bb85643199b8ae29c4c942a8dbfea947f45bf7"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "280c823834dfbf15f6774fb7e9bb85643199b8ae29c4c942a8dbfea947f45bf7"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "97c5f09c-0521-82df-beec-0896382e83f9",
+          "heading": "HQ Blasters",
+          "source_ids": [
+            "24ddedc11918fc7d3af13c7bf295ee4410bf695bb44dd6ef4ac110ca3dd8a464"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "24ddedc11918fc7d3af13c7bf295ee4410bf695bb44dd6ef4ac110ca3dd8a464"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "e6aa5f96-b229-86c6-bdc5-dc4e2ca22f5b",
+          "heading": "Crashed Republic Cruiser",
+          "source_ids": [
+            "6b5f95fe1fe6e9bdc0e61df21efdb6b3360c716d3aa2478021c46248a8ad9e28"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "6b5f95fe1fe6e9bdc0e61df21efdb6b3360c716d3aa2478021c46248a8ad9e28"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "962f4c2c-380b-8bd0-b3fa-23c8878ee5d0",
+          "heading": "Trandoshans Rescaled",
+          "source_ids": [
+            "605c9ebc6179ff897988212487f03a3fc3c7bcc6d9cb15426f94293d60d7c931"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "605c9ebc6179ff897988212487f03a3fc3c7bcc6d9cb15426f94293d60d7c931"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "ad945f81-8f8d-83b1-83b2-53fad8ee320b",
+          "heading": "Custom Selkath Animation",
+          "source_ids": [
+            "f164748bb3ae44ab4516cfebbf7584f8b96f784f110e82f96087551ddf724479"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "f164748bb3ae44ab4516cfebbf7584f8b96f784f110e82f96087551ddf724479"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "16e96f81-56a6-88bf-8e3e-f8c99e1b3008",
+          "heading": "Bastila Has TSL Battle Meditation",
+          "source_ids": [
+            "a54cfce47e2867809619a4c241fb9ce2ac26a86fa71ea81d14a6bde9046401f6"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "a54cfce47e2867809619a4c241fb9ce2ac26a86fa71ea81d14a6bde9046401f6"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "34f2e5ed-26e2-8157-baf5-a027f43e8405",
+          "heading": "Sneak Attack Restoration",
+          "source_ids": [
+            "b8143dd26bb20a799c818d803ae09184ef5dd50a4f998e85898b701f973490ea"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "b8143dd26bb20a799c818d803ae09184ef5dd50a4f998e85898b701f973490ea"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "74d64df6-aaff-8553-b43d-afdb25ab7a84",
+          "heading": "Sentinel Sneak Attack",
+          "source_ids": [
+            "fe8c5d0ebe5f6ca849765eed9a034dc94baa13c72baee44ac95afe383d8feedf"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "fe8c5d0ebe5f6ca849765eed9a034dc94baa13c72baee44ac95afe383d8feedf"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "0917559d-309e-8098-9783-b61f524fe439",
+          "heading": "Thematic The One",
+          "source_ids": [
+            "aad73385768ca3f87299127172b955c5b7aa9047974ff349ed1c4851f1562c0e"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "aad73385768ca3f87299127172b955c5b7aa9047974ff349ed1c4851f1562c0e"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "83226d49-f919-82a5-923e-c1d00f727c40",
+          "heading": "Sherruk with Lightsabers",
+          "source_ids": [
+            "1436e940385855f2666e56151ffbff2fb58d0eb9bfd8304224d22b44f388ac07",
+            "b406fedc0738bd8df09ae3d59ac25ca6ffca222590f2856b3dcba033f03e318b"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "1436e940385855f2666e56151ffbff2fb58d0eb9bfd8304224d22b44f388ac07",
+            "b406fedc0738bd8df09ae3d59ac25ca6ffca222590f2856b3dcba033f03e318b"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "2f0c7dc9-839c-8e1d-9dab-587cb969815d",
+          "heading": "Improved Cantina Sitters",
+          "source_ids": [
+            "c58bea8d2cd74b1db61c7678d1f53e8b6a1178b0dfccc62d2874c8d96441b644"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "c58bea8d2cd74b1db61c7678d1f53e8b6a1178b0dfccc62d2874c8d96441b644"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "cef20816-4d3c-882f-9987-1da2a1bedfa0",
+          "heading": "Helena Shan Improvement",
+          "source_ids": [
+            "d6a9525f88668ad4413bd15c7c677fe8c0b8ca176a59faf3ba58853880f9f656"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "d6a9525f88668ad4413bd15c7c677fe8c0b8ca176a59faf3ba58853880f9f656"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "475f5795-08ae-8ebc-9825-4c427f38fae6",
+          "heading": "Bastila's Dark Bodysuit",
+          "source_ids": [
+            "275f52d40b62967e55258f686ba027db90801430c681aaf1dec411277980b27a"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "275f52d40b62967e55258f686ba027db90801430c681aaf1dec411277980b27a"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "aa560f62-b6d3-84d2-b744-524261dde1aa",
+          "heading": "Dueling Arena Adjustment",
+          "source_ids": [
+            "d40a610f4c4bbdbf8e8f6064a37ed21f830321be028e682a3a009105ed106ccb"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "d40a610f4c4bbdbf8e8f6064a37ed21f830321be028e682a3a009105ed106ccb"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "c5528694-bee0-87dc-a15a-5ede9f0f4253",
+          "heading": "Bendak Non-Darkside Option",
+          "source_ids": [
+            "f92707575754878709aa4dd5e0cb9e62c1f9e1ade30a7a57d39b7bc874fd1d42"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "f92707575754878709aa4dd5e0cb9e62c1f9e1ade30a7a57d39b7bc874fd1d42"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "664758c3-09a8-8b64-9cb4-52d512887bf1",
+          "heading": "Kashyyyk Forcefield Rework",
+          "source_ids": [
+            "b8415a5b57e55b177b1b920b5121449304bfab27e823c7ca2ef993e215b6af10"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "b8415a5b57e55b177b1b920b5121449304bfab27e823c7ca2ef993e215b6af10"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "865b0833-e5a3-8cc7-8d5c-f9cbb26108bb",
+          "heading": "Swoop Platform Repair",
+          "source_ids": [
+            "aa2d48a061c6e01256404ec2a2532d8494251e59effa5d2873208d7b4fdd9efc"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "aa2d48a061c6e01256404ec2a2532d8494251e59effa5d2873208d7b4fdd9efc"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "e97b029f-74f0-8e45-bd77-cd301349992b",
+          "heading": "Engine Lab Bench",
+          "source_ids": [
+            "5f09c25099d20bf8fe908fee81ebeb72493c04cec1c8cf6555591f6dea4f01af"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "5f09c25099d20bf8fe908fee81ebeb72493c04cec1c8cf6555591f6dea4f01af"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "8e4017c2-0188-8749-be3a-aa8f27453d05",
+          "heading": "Missing Lamps Fix",
+          "source_ids": [
+            "a519cdf2f2fe24d268a8f3d7c3059d0fe9f2e7ea2e939fcdfff881cd1240d1aa"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "a519cdf2f2fe24d268a8f3d7c3059d0fe9f2e7ea2e939fcdfff881cd1240d1aa"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "7696c38c-9a45-8510-bda2-328f29eab2c1",
+          "heading": "Czerka Business Attire",
+          "source_ids": [
+            "7b7e4b983b049c22f1fb2f5117216f309a861a5756ac8e73c6436348d9f8002a"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "7b7e4b983b049c22f1fb2f5117216f309a861a5756ac8e73c6436348d9f8002a"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "e2c457a0-c5c2-8200-af67-82286104a1c1",
+          "heading": "Sith Texture Restoration",
+          "source_ids": [
+            "f19af92a0343261b2e3ada2ab5cc5d91524b15311fe49095a455e28909419086"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "f19af92a0343261b2e3ada2ab5cc5d91524b15311fe49095a455e28909419086"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "c05eae07-efa3-8d0d-aed4-956d55f5e271",
+          "heading": "Diversified Republic Soldiers",
+          "source_ids": [
+            "5982a57298061daef3da27f2a8eee05fcb719c0a9594edb5e3d10e008ba2cf74"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "5982a57298061daef3da27f2a8eee05fcb719c0a9594edb5e3d10e008ba2cf74"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "fd35a3d7-fa6d-89e8-ac6e-22f36a13e2bd",
+          "heading": "Diversified Jedi Captives",
+          "source_ids": [
+            "21e99c2b0a84eae376952323ad4e6cd9e33717e09f47700d9417303db313827b"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "21e99c2b0a84eae376952323ad4e6cd9e33717e09f47700d9417303db313827b"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "22bd845b-0d9f-8dad-a55b-5a122a020969",
+          "heading": "Juhani Romance Enhancement",
+          "source_ids": [
+            "5d788b29b7b8d2b28694c4741891b1ea9164ac5a99de51ab28ccf323f945f24e"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "5d788b29b7b8d2b28694c4741891b1ea9164ac5a99de51ab28ccf323f945f24e"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "e0130a70-2fd1-89d5-a9a1-b467e67dcaa6",
+          "heading": "Dodonna's Transmission",
+          "source_ids": [
+            "4e0ede4ec779919443137e3e530b336f2437c503dbfc2cfab5c1b24c8882830c"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "4e0ede4ec779919443137e3e530b336f2437c503dbfc2cfab5c1b24c8882830c"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "0443f90d-6b4e-8662-84a6-0b6eb9759ce6",
+          "heading": "Endgame Hologram Fix",
+          "source_ids": [
+            "df8ee69d6fae1fd0418e10561376c807599ca43619cbc23c73c85e91069b1670"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "df8ee69d6fae1fd0418e10561376c807599ca43619cbc23c73c85e91069b1670"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "3ff288a4-27ca-890b-8c84-3ca1eecd2a72",
+          "heading": "Twisted Rancor Trio Fix",
+          "source_ids": [
+            "319aaad54f62a06888cb901050315e92df222f3670878712b6061a98c4703b60"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "319aaad54f62a06888cb901050315e92df222f3670878712b6061a98c4703b60"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "f61e46b4-3ced-8696-b4c1-650c9493ad48",
+          "heading": "Rakatan Hologram Fix",
+          "source_ids": [
+            "cf4a7fc4776ea0fdff7bf157a7769f4552697f651047fd776f016cec55d4bf40"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "cf4a7fc4776ea0fdff7bf157a7769f4552697f651047fd776f016cec55d4bf40"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "a84c6034-355c-8023-b6a4-75255b7c1b16",
+          "heading": "Ending Enhancement",
+          "source_ids": [
+            "4d36c493911913d7a622e769fe5fa6e6e2509b07ebee795e136bcb1048a02e43"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "4d36c493911913d7a622e769fe5fa6e6e2509b07ebee795e136bcb1048a02e43"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "2fa45222-ae0c-8e49-a990-814e14f4260a",
+          "heading": "Elder Droid Unique VO",
+          "source_ids": [
+            "2cb80fbf6e8957627a2b18d9c24deb8e936bae54304ac54698b47def4e5424bf"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "2cb80fbf6e8957627a2b18d9c24deb8e936bae54304ac54698b47def4e5424bf"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "3f5cb051-3598-8fb9-abb0-b50ac47d269d",
+          "heading": "Ajunta Pall's Swords",
+          "source_ids": [
+            "7a565af084fe132238916fabbbb5fcd13acbcba448f1ab0d309b935a90087b25"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "7a565af084fe132238916fabbbb5fcd13acbcba448f1ab0d309b935a90087b25"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "4ea1565f-4e30-8d73-9bda-64f421cf0fc0",
+          "heading": "Ajunta Pall's Blade",
+          "source_ids": [
+            "33da72ca64815b04966bca28a2ee57a663c5031e1e26cd0efcb7f322739c04be"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "33da72ca64815b04966bca28a2ee57a663c5031e1e26cd0efcb7f322739c04be"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "31f46bde-5f3c-8e4a-b111-54048ed054fb",
+          "heading": "JC's Mandalorian Armor",
+          "source_ids": [
+            "5dac8953ba2ec623f73240aaf7f281f5e83e765a46a7e7867e0677502d53ab81"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "5dac8953ba2ec623f73240aaf7f281f5e83e765a46a7e7867e0677502d53ab81"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "34491bab-d2bf-8dfb-af04-20d5ec42c77a",
+          "heading": "Multifire & Autofire",
+          "source_ids": [
+            "bc1ee079018b6e32e497c8c15abdd49b8f06cb99f023d0909bbf3afc3421eeaa"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "bc1ee079018b6e32e497c8c15abdd49b8f06cb99f023d0909bbf3afc3421eeaa"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "ca59de10-e031-88ac-8c89-115d9cb23b8d",
+          "heading": "Blaster Adjustment",
+          "source_ids": [
+            "c9bba557bdc1ef528e8da5419d123d861f79459a3165fa2d29df94ca9ea083cc"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "c9bba557bdc1ef528e8da5419d123d861f79459a3165fa2d29df94ca9ea083cc"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "42af7d19-3bc8-8f7f-b6ef-933aa8b725c3",
+          "heading": "HQ Gaffi Stick",
+          "source_ids": [
+            "73b3373d36b6273a834deb854e261ae924b1a8f54be64e1ca08108331fa92368"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "73b3373d36b6273a834deb854e261ae924b1a8f54be64e1ca08108331fa92368"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "63d3c66f-a4c4-880f-8228-02e1c1d9625a",
+          "heading": "HD Quarterstaffs",
+          "source_ids": [
+            "0469214b9e0c42df4b259c7b486a5d3a0f590327a93eaa55ec95a0582d05f173"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "0469214b9e0c42df4b259c7b486a5d3a0f590327a93eaa55ec95a0582d05f173"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "469428cc-b2ee-87c5-8391-b5fb72ec2c55",
+          "heading": "Training Lightsabers",
+          "source_ids": [
+            "0d067e5b37e0864d969f686f93c1495e9886c208219528106cbd023562ca5c0e"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "0d067e5b37e0864d969f686f93c1495e9886c208219528106cbd023562ca5c0e"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "a756653a-e346-84e9-b73a-235751c50599",
+          "heading": "Logical Datapads",
+          "source_ids": [
+            "0e637aeb43044ca4632a8fc89c5bd90bf6a4ac88b55ef515378aceff3734e0a0"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "0e637aeb43044ca4632a8fc89c5bd90bf6a4ac88b55ef515378aceff3734e0a0"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "74b34746-4b35-8f70-bdd7-ec635bebe04e",
+          "heading": "Realistic Visual Effects",
+          "source_ids": [
+            "30ca5a450157c70744f849a9a3caf3c60d52de95bc7056ae50845ce9c321d9a9"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "30ca5a450157c70744f849a9a3caf3c60d52de95bc7056ae50845ce9c321d9a9"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "00a148d2-6ee2-8212-9607-1bdce9efee1e",
+          "heading": "Minor Music Tweaks",
+          "source_ids": [
+            "c6f489895bafd1a3e22b85093615920a60a7e0cd5ee738413971b32e2d223a6c"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "c6f489895bafd1a3e22b85093615920a60a7e0cd5ee738413971b32e2d223a6c"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "f9d0db30-838f-80eb-b736-c27dd098113b",
+          "heading": "NPC Alignment Fix",
+          "source_ids": [
+            "e144e2f5c9595b6b0cd031551aa87c9ecf15e67cebd1db279dc370a8f6e0db98"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "e144e2f5c9595b6b0cd031551aa87c9ecf15e67cebd1db279dc370a8f6e0db98"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "0046da60-4d8d-81fb-bd4d-fe39bf99bcc0",
+          "heading": "Repair Affects Stun Droid",
+          "source_ids": [
+            "343b4ab4f37253f6d0816aca6f4b72c080b04b42afb80af35c83335530ec4905"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "343b4ab4f37253f6d0816aca6f4b72c080b04b42afb80af35c83335530ec4905"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "b236f2f3-efe2-84f1-848e-b00bca9109de",
+          "heading": "Alignment Affects Force Powers",
+          "source_ids": [
+            "ed7f5f3dcf16d8c9f85bf79319855142e74242d794fbe30e3523e74d6ded3585"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "ed7f5f3dcf16d8c9f85bf79319855142e74242d794fbe30e3523e74d6ded3585"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "7c11497d-de47-8eee-b80a-967b984a2822",
+          "heading": "Galaxy Map Fix",
+          "source_ids": [
+            "98e805804d6d732a518cfd1f1ab239cce35b79c4fd59ec704ca7a00de2db04dc"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "98e805804d6d732a518cfd1f1ab239cce35b79c4fd59ec704ca7a00de2db04dc"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "bd712c74-49d6-8d80-88b5-8a3aab28e916",
+          "heading": "Remove Duplicate TGA/TPC",
+          "source_ids": [
+            "322a489542ab9f74048b93c6a0df5c3b4cc7e3284036c7f04c6bc6c331f88616",
+            "74bb09a9821b8864d4fabf380bdcd671854972f725323fa441554b4fd5dbc30f"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "322a489542ab9f74048b93c6a0df5c3b4cc7e3284036c7f04c6bc6c331f88616"
+          ],
+          "non_archive_provenance_source_ids": [
+            "74bb09a9821b8864d4fabf380bdcd671854972f725323fa441554b4fd5dbc30f"
+          ]
+        },
+        {
+          "guid": "4a452675-10a9-81d2-b825-43731624248a",
+          "heading": "Ultimate Character Overhaul Patches",
+          "source_ids": [
+            "f91dced4bedb4d28b136673da940b82db594941580b5bd699891ebbed630d76b"
+          ],
+          "dependencies": [
+            "7e99b1de-b8a1-8ee4-9318-bbacaa52311f"
+          ],
+          "acquisition_source_ids": [
+            "f91dced4bedb4d28b136673da940b82db594941580b5bd699891ebbed630d76b"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "269dc2cf-5e62-85dd-9f6f-3b302fe290a1",
+          "heading": "Republic Soldier Fix",
+          "source_ids": [
+            "5f18f3de93249235f58edc6a739a786269c0965e273a1517c3f9e7bfcab6c17c"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "5f18f3de93249235f58edc6a739a786269c0965e273a1517c3f9e7bfcab6c17c"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "8c7d4f24-3e3f-8e5f-ac4b-96a186f334d6",
+          "heading": "Republic Soldier's New Shade",
+          "source_ids": [
+            "51be7fbe892be1e0fe3af151b1f5ef39b6df2852a86cd4c32b07fccd190ef623"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "51be7fbe892be1e0fe3af151b1f5ef39b6df2852a86cd4c32b07fccd190ef623"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "ed7a95d9-fcd4-8011-b84a-fc075490dadc",
+          "heading": "Character Textures & Model Fixes",
+          "source_ids": [
+            "9719ea852f9ce8d0fca7f66179ae6612bf3d0a8e0e095aa757ce848ec77cf641"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "9719ea852f9ce8d0fca7f66179ae6612bf3d0a8e0e095aa757ce848ec77cf641"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "267b10d2-bab0-8e3a-a258-f9b6d6f9d71b",
+          "heading": "4GB Patcher",
+          "source_ids": [
+            "5f2317c4b135554cabf669145ca5d409798af11f83785929f6497e1dd8108240"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "5f2317c4b135554cabf669145ca5d409798af11f83785929f6497e1dd8108240"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "7f10fc5e-4d8f-8851-a691-eaabcd8daeb4",
+          "heading": "Turret Cockpit Widescreen",
+          "source_ids": [
+            "54baef9e7a38d5be8d6c6675321ef4855ddc83ea0b50cb8a6b0acf0352a8d934"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "54baef9e7a38d5be8d6c6675321ef4855ddc83ea0b50cb8a6b0acf0352a8d934"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "6c3c7165-297e-80eb-b9f8-d47506dab2d5",
+          "heading": "HR Menus",
+          "source_ids": [
+            "4ae669da01fd817c39ea1c9d6753a26e00f020b5b8da17c2f1b07b8f5f2db721"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "4ae669da01fd817c39ea1c9d6753a26e00f020b5b8da17c2f1b07b8f5f2db721"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "0e6154b2-8591-879d-b410-62baa95cd654",
+          "heading": "HD UI Menu Pack",
+          "source_ids": [
+            "a5f58e20044c99bbb969460dfcdb7a4aea4739196a7047b37a5a949ebdc84a82"
+          ],
+          "dependencies": [
+            "6c3c7165-297e-80eb-b9f8-d47506dab2d5"
+          ],
+          "acquisition_source_ids": [
+            "a5f58e20044c99bbb969460dfcdb7a4aea4739196a7047b37a5a949ebdc84a82"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "10380438-2753-8ebc-8694-70236e6b20c3",
+          "heading": "Workbench Camera Tweak",
+          "source_ids": [
+            "2295429a8fa87a6b38037fa224b9669d2c109d488caf01a77dd661f1580a8a8f"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "2295429a8fa87a6b38037fa224b9669d2c109d488caf01a77dd661f1580a8a8f"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "6ff2988d-370a-8079-9162-093df5c6d60b",
+          "heading": "Pretty Good! Icons",
+          "source_ids": [
+            "e52ea33e6fa82a157c4ea19b361b1c8a2735518308a836246188b940ceb33032"
+          ],
+          "dependencies": [
+            "6c3c7165-297e-80eb-b9f8-d47506dab2d5"
+          ],
+          "acquisition_source_ids": [
+            "e52ea33e6fa82a157c4ea19b361b1c8a2735518308a836246188b940ceb33032"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "461350dd-6027-8124-a17e-ae6fd5536f37",
+          "heading": "Robe Icons for JC's Cloaked Robes",
+          "source_ids": [
+            "ff9a8eb19cb058aeb6b0e85dc1d3fd258f5d0a7d3d561e9880271b3080ab49e4"
+          ],
+          "dependencies": [
+            "02034096-4a59-8fbc-b2a0-beb89cbf2067"
+          ],
+          "acquisition_source_ids": [
+            "ff9a8eb19cb058aeb6b0e85dc1d3fd258f5d0a7d3d561e9880271b3080ab49e4"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "abb0ac12-2ab0-87bf-9f1a-f3a4b059ba38",
+          "heading": "Upscaled Computer",
+          "source_ids": [
+            "d3a9bc542d8cdb0c66a64f1a940b4e704e08ca6c6e29cbd1be4ffc6b2cd902b6"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "d3a9bc542d8cdb0c66a64f1a940b4e704e08ca6c6e29cbd1be4ffc6b2cd902b6"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "94eca3b4-0f21-84e1-ad12-9bd08c7e9d72",
+          "heading": "Widescreen Fade Fix",
+          "source_ids": [
+            "ee4a4f8987b7683b02b298cd004e8da56d190ce98f2a971ae41e5a623ab43092"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "ee4a4f8987b7683b02b298cd004e8da56d190ce98f2a971ae41e5a623ab43092"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "da831add-0d34-8105-9657-a46418b358e5",
+          "heading": "Main Menu Widescreen Fix",
+          "source_ids": [
+            "04fefeb9cea9634a4d14d3011d86fee31342dfaa7ec3cf1a86ed6dcfcafca6d6"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "04fefeb9cea9634a4d14d3011d86fee31342dfaa7ec3cf1a86ed6dcfcafca6d6"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "e75d7430-9865-8cbf-a574-773a147cabee",
+          "heading": "Cutscenes Rescaled",
+          "source_ids": [
+            "1fbef761e0b030e5fb01d4c9d9eb9ffb2fd382be84841ab28110a809c406c05a"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "1fbef761e0b030e5fb01d4c9d9eb9ffb2fd382be84841ab28110a809c406c05a"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "7ca6f5d5-4ef3-81c1-a805-415c2c30b47c",
+          "heading": "Remastered Cutscenes",
+          "source_ids": [
+            "39480c0fac5b693ebce2135916a268ef6f7b127d80fba6f76a2ea50e20ccb20c"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "39480c0fac5b693ebce2135916a268ef6f7b127d80fba6f76a2ea50e20ccb20c"
+          ],
+          "non_archive_provenance_source_ids": []
+        }
+      ],
+      "exclusions": [
+        {
+          "guid": "24049fa2-3ecd-8ce4-a606-c7a752dd039f",
+          "heading": "Ultimate Korriban",
+          "name": "Ultimate Korriban High Resolution",
+          "kind": "large-optional-environment-textures",
+          "profiles": [
+            "minimal"
+          ],
+          "observed_archive_bytes": 716440199,
+          "unknown_associations": 0,
+          "archive_size_evidence": [
+            {
+              "sha256": "9c587b682f8469c22093e9b718d1110a209c0666ece65dd007fceb9b002a11ee",
+              "bytes": 716440044
+            },
+            {
+              "sha256": "de54c6d0c89b8152b4df6125b45d54bce876b9cb566da4297e6472df90223f27",
+              "bytes": 155
+            }
+          ]
+        },
+        {
+          "guid": "a5859114-2906-8194-90cb-309473035a20",
+          "heading": "Ultimate Kashyyyk",
+          "name": "Ultimate Kashyyyk High Resolution",
+          "kind": "large-optional-environment-textures",
+          "profiles": [
+            "minimal"
+          ],
+          "observed_archive_bytes": 316045534,
+          "unknown_associations": 0,
+          "archive_size_evidence": [
+            {
+              "sha256": "3d53dc0c905f28043c500c74eaa814ffb8447ed4c7aeed38f8367d9b3115752b",
+              "bytes": 316045534
+            }
+          ]
+        },
+        {
+          "guid": "7a829bc5-092c-81b2-b820-32e4091c5d9d",
+          "heading": "Ultimate Tatooine",
+          "name": "Ultimate Tatooine High Resolution",
+          "kind": "large-optional-environment-textures",
+          "profiles": [
+            "minimal"
+          ],
+          "observed_archive_bytes": 466430635,
+          "unknown_associations": 0,
+          "archive_size_evidence": [
+            {
+              "sha256": "3ec658c09cebcd9a8cc2ccf12c53faf2bc4dea0d32765cb1459f0fc45e46bd41",
+              "bytes": 466430635
+            }
+          ]
+        },
+        {
+          "guid": "ddb667e4-a9ec-8b4b-b6e2-fea6a9c5b0c9",
+          "heading": "Ultimate Dantooine",
+          "name": "Ultimate Dantooine High Resolution",
+          "kind": "large-optional-environment-textures",
+          "profiles": [
+            "minimal"
+          ],
+          "observed_archive_bytes": 494070294,
+          "unknown_associations": 0,
+          "archive_size_evidence": [
+            {
+              "sha256": "bf40814a47ce6856ec4c198e9b75e01e6b00ad91a2d9ca4486844c055e1bde8a",
+              "bytes": 494070294
+            }
+          ]
+        },
+        {
+          "guid": "e951f477-8d1d-8b06-8bb8-184dbf30d3a4",
+          "heading": "Ultimate Endar Spire +",
+          "name": "Ultimate Endar Spire/Star Forge/Yavin Station",
+          "kind": "large-optional-environment-textures",
+          "profiles": [
+            "minimal"
+          ],
+          "observed_archive_bytes": 497412006,
+          "unknown_associations": 0,
+          "archive_size_evidence": [
+            {
+              "sha256": "47439d7c2e25f02358a31af815b88a3c244081f3ad824ba0ab2abfa5bba6b61a",
+              "bytes": 497412006
+            }
+          ]
+        },
+        {
+          "guid": "a00afb1f-586a-8ebe-babb-dd880e581a37",
+          "heading": "Ultimate Manaan",
+          "name": "Ultimate Manaan High Resolution",
+          "kind": "large-optional-environment-textures",
+          "profiles": [
+            "minimal"
+          ],
+          "observed_archive_bytes": 422809388,
+          "unknown_associations": 0,
+          "archive_size_evidence": [
+            {
+              "sha256": "c1c68f78a7b1cb80b6803d9347475f5c4fc534f2be0f235ce2163cad2e3f5387",
+              "bytes": 422809388
+            }
+          ]
+        },
+        {
+          "guid": "814f2520-ec2d-8f77-8e9e-5eb576616203",
+          "heading": "Ultimate Taris",
+          "name": "Ultimate Taris High Resolution",
+          "kind": "large-optional-environment-textures",
+          "profiles": [
+            "minimal"
+          ],
+          "observed_archive_bytes": 1422806887,
+          "unknown_associations": 0,
+          "archive_size_evidence": [
+            {
+              "sha256": "2ead03356a24309a4d5f699966e709fe0c5ba1d900d27ed1d9bd2254f69610d9",
+              "bytes": 1422806887
+            }
+          ]
+        },
+        {
+          "guid": "886d1851-90c8-843b-b0f5-30bb6e7863f9",
+          "heading": "Ultimate Unknown World",
+          "name": "Ultimate Unknown World High Resolution",
+          "kind": "large-optional-environment-textures",
+          "profiles": [
+            "minimal"
+          ],
+          "observed_archive_bytes": 280988383,
+          "unknown_associations": 0,
+          "archive_size_evidence": [
+            {
+              "sha256": "85ddb679d923d72806b3b7085cc5ce33c9ae99f21705469fa25b27a4b80f9fac",
+              "bytes": 280988383
+            }
+          ]
+        },
+        {
+          "guid": "e75d7430-9865-8cbf-a574-773a147cabee",
+          "heading": "Cutscenes Rescaled",
+          "name": "K1 Cutscenes Rescaled",
+          "kind": "massive-cinematic",
+          "profiles": [
+            "minimal",
+            "full"
+          ],
+          "observed_archive_bytes": 16567032171,
+          "unknown_associations": 0,
+          "archive_size_evidence": [
+            {
+              "sha256": "5b60a4b3e559a40c1a06477431e6a60be3794d116cdb7e594fc2f5e32dc93d26",
+              "bytes": 16567032171
+            }
+          ]
+        },
+        {
+          "guid": "7ca6f5d5-4ef3-81c1-a805-415c2c30b47c",
+          "heading": "Remastered Cutscenes",
+          "name": "KOTOR Remastered Cutscenes",
+          "kind": "massive-cinematic",
+          "profiles": [
+            "minimal",
+            "full"
+          ],
+          "observed_archive_bytes": 0,
+          "unknown_associations": 0,
+          "archive_size_evidence": []
+        }
+      ],
+      "protected_guids": [
+        "267b10d2-bab0-8e3a-a258-f9b6d6f9d71b",
+        "4a452675-10a9-81d2-b825-43731624248a",
+        "6c3c7165-297e-80eb-b9f8-d47506dab2d5",
+        "6fb1971d-5775-85e5-9e77-ecc68a896e84",
+        "7c11497d-de47-8eee-b80a-967b984a2822",
+        "7e99b1de-b8a1-8ee4-9318-bbacaa52311f"
+      ],
+      "archive_metadata_sha256": "226960f42d3f1c6796734fc474abe1841a92bd12fc09fb2c90b1ff58ba615515",
+      "platform_default_inactive_guids": [
+        "7ca6f5d5-4ef3-81c1-a805-415c2c30b47c"
+      ]
+    },
+    "k2": {
+      "guide_sha256": "f442bdf574031623ed577609730d887069b9bc8e38e8e2f38ecc43a7e7487d5f",
+      "plan_sha256": "0add8c1aeb7cdfad3df4b21761e135c150aa7832cf3fc0edabe01a91245a9258",
+      "source_count": 151,
+      "owners": [
+        {
+          "guid": "7c3bc4e3-7afd-8e2c-9aec-17527238184e",
+          "heading": "4GB Patcher",
+          "source_ids": [
+            "5f2317c4b135554cabf669145ca5d409798af11f83785929f6497e1dd8108240"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "5f2317c4b135554cabf669145ca5d409798af11f83785929f6497e1dd8108240"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "bee5a72b-d748-8f83-8261-81758a9bfc56",
+          "heading": "TSLRCM",
+          "source_ids": [
+            "dd677fc000a4c5d13e4fe3fcd484c2fd761f017b7e4ae25abbafc1906b5e1dfa"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "dd677fc000a4c5d13e4fe3fcd484c2fd761f017b7e4ae25abbafc1906b5e1dfa"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "8a80301b-fa9b-8c8c-8623-cd6255013703",
+          "heading": "TSLRCM Tweak Pack",
+          "source_ids": [
+            "a7b65a1a4540001ac01810029b3055eba58cf9e7860f6cb615458352d53b1605"
+          ],
+          "dependencies": [
+            "bee5a72b-d748-8f83-8261-81758a9bfc56"
+          ],
+          "acquisition_source_ids": [
+            "a7b65a1a4540001ac01810029b3055eba58cf9e7860f6cb615458352d53b1605"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "9c5bbc49-daa8-89be-8f27-8428d8fa24b8",
+          "heading": "Silent Sion",
+          "source_ids": [
+            "24a70bd45e273936276109c4cab7cff54dff57434fa2ccc32a9939e8d7aeeaf0"
+          ],
+          "dependencies": [
+            "bee5a72b-d748-8f83-8261-81758a9bfc56"
+          ],
+          "acquisition_source_ids": [
+            "24a70bd45e273936276109c4cab7cff54dff57434fa2ccc32a9939e8d7aeeaf0"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "d22f13ca-1a14-8942-8875-2d3754e8f499",
+          "heading": "Thematic KOTOR 2 Companions",
+          "source_ids": [
+            "0db9185f623072f33de446e521ba59165af51f393161e0de25a979011d683b81"
+          ],
+          "dependencies": [
+            "bee5a72b-d748-8f83-8261-81758a9bfc56"
+          ],
+          "acquisition_source_ids": [
+            "0db9185f623072f33de446e521ba59165af51f393161e0de25a979011d683b81"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "8e638d71-aea1-851e-905b-8e7bdf590221",
+          "heading": "Saving Throw Fixes",
+          "source_ids": [
+            "05f9c360f69b04c3b0c8359a69d97cd75f774ae794db9796f98207e7e9312b62"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "05f9c360f69b04c3b0c8359a69d97cd75f774ae794db9796f98207e7e9312b62"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "5a13dbf0-ca35-87ea-b27f-181905adc656",
+          "heading": "Classic Class Attack",
+          "source_ids": [
+            "6517b45580807ff41e6f06f94355fbb848807c1576f17417ceb4edc08307dfb5"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "6517b45580807ff41e6f06f94355fbb848807c1576f17417ceb4edc08307dfb5"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "8541df8d-5a4f-86fd-b87c-562296b7b619",
+          "heading": "Robes with Shadows",
+          "source_ids": [
+            "51db3820bd13a0e4f929aad64cd733cebcaedbfb8dd66c061d1e8cf05b8a3f98"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "51db3820bd13a0e4f929aad64cd733cebcaedbfb8dd66c061d1e8cf05b8a3f98"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "216eb8b6-3076-8a92-bd7d-012862b10b32",
+          "heading": "K2CP",
+          "source_ids": [
+            "78025cdaf6b1e9ac10062ed95795a58ddb581e7c6fe01772203086814d81fac7"
+          ],
+          "dependencies": [
+            "bee5a72b-d748-8f83-8261-81758a9bfc56"
+          ],
+          "acquisition_source_ids": [
+            "78025cdaf6b1e9ac10062ed95795a58ddb581e7c6fe01772203086814d81fac7"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "a23aef08-aeb6-8eef-b193-a0d982c1c163",
+          "heading": "Remote Tells Influence",
+          "source_ids": [
+            "5cdd4932f6ff86bb44545c592236c6b735ac055b7386a447d634bb4bf1df27e6",
+            "b2d026b6038a98b72b686c93de35d6aa02cc965096a7e7935e791ff97be79eaa"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "5cdd4932f6ff86bb44545c592236c6b735ac055b7386a447d634bb4bf1df27e6",
+            "b2d026b6038a98b72b686c93de35d6aa02cc965096a7e7935e791ff97be79eaa"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "f00b12f3-9004-8c45-89ec-e522fd5ac5b3",
+          "heading": "Better Czerka Salvager",
+          "source_ids": [
+            "5412ffb584f48e2cb7eafe654e7766f78cfd2e5688ecee2945f85551ef1d5a8f"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "5412ffb584f48e2cb7eafe654e7766f78cfd2e5688ecee2945f85551ef1d5a8f"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "6e9e1d85-e8e9-88ea-8a32-58f37e5f7398",
+          "heading": "Ultimate HR Textures",
+          "source_ids": [
+            "cc949406130f885425318f67df438df7ab1d19c6de48f5640e60602cb64419e0"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "cc949406130f885425318f67df438df7ab1d19c6de48f5640e60602cb64419e0"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "5694d896-2945-86ac-9aba-34b7c922d4c1",
+          "heading": "Ultimate Character Overhaul",
+          "source_ids": [
+            "42e9dbd36ab125e5e9aea9ac34eb2f209b5e39ba5b8138f8691c91bfa0cc12e0"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "42e9dbd36ab125e5e9aea9ac34eb2f209b5e39ba5b8138f8691c91bfa0cc12e0"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "4b8d984d-1f71-808d-88e8-c38bb8e5f267",
+          "heading": "Ultimate Nar Shaddaa",
+          "source_ids": [
+            "a1ed3c17358f5999cf93a7cc0653704d827dafcf35d94ab5be7250956aafd1e1"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "a1ed3c17358f5999cf93a7cc0653704d827dafcf35d94ab5be7250956aafd1e1"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "307e3aa7-fb49-8c93-97ec-a5decf6b293e",
+          "heading": "Ultimate Dantooine",
+          "source_ids": [
+            "c8d3abc7ff19488dd4f8bd6645532076e86ce08ab5eed4295dd80638f4b8a9b4"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "c8d3abc7ff19488dd4f8bd6645532076e86ce08ab5eed4295dd80638f4b8a9b4"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "06386c89-6e6d-859e-8b20-7eac4e2e932c",
+          "heading": "Ultimate Dxun",
+          "source_ids": [
+            "24c00be4fff1188035133b9d2d31512353bcc25de0978479db75c55a5423afaf",
+            "65814681140352cc94fac473fa7487f134f01cdeb39c98ca348fd157f8605bc3"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "24c00be4fff1188035133b9d2d31512353bcc25de0978479db75c55a5423afaf",
+            "65814681140352cc94fac473fa7487f134f01cdeb39c98ca348fd157f8605bc3"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "fb5f07e9-6e90-8d4c-a4a6-8ef2d84b4e90",
+          "heading": "Ultimate Onderon",
+          "source_ids": [
+            "e04bfd9ca6e11719fd76fdbb173465c84475608abe674aa75b1ca01062a43825"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "e04bfd9ca6e11719fd76fdbb173465c84475608abe674aa75b1ca01062a43825"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "20bd9cd8-85e2-8e2f-b943-6881b367cf23",
+          "heading": "Ultimate Korriban",
+          "source_ids": [
+            "8951cd5d0d1d760ca4a25294949989fb621f2b371fd8cdc7968f2b5d40407fdd"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "8951cd5d0d1d760ca4a25294949989fb621f2b371fd8cdc7968f2b5d40407fdd"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "a1224c8e-b3d4-869c-a2f8-53837c8af753",
+          "heading": "Ultimate Malachor",
+          "source_ids": [
+            "da8371ae9ead7c6b73dc4588258b1ae2c609a0d62b2291280019fb715db749b7"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "da8371ae9ead7c6b73dc4588258b1ae2c609a0d62b2291280019fb715db749b7"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "51c182dd-fa14-8a73-b6ef-1a1b77f92e8f",
+          "heading": "Korriban Sith Art",
+          "source_ids": [
+            "797139bfbcda628828573bb91dc0746e42beef0118254fd1de7220269f9592cf"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "797139bfbcda628828573bb91dc0746e42beef0118254fd1de7220269f9592cf"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "015b790e-cf58-854e-8678-65ee7b367873",
+          "heading": "Ritual and Water Textures",
+          "source_ids": [
+            "019a6b6a3fd1e7e5257c35de6304aadc833af7b631242b4d5c3b883e4d36ae18"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "019a6b6a3fd1e7e5257c35de6304aadc833af7b631242b4d5c3b883e4d36ae18"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "234f990c-aba3-8445-99cd-a2e1b08f00db",
+          "heading": "PFHC06 Fix",
+          "source_ids": [
+            "e2bd8b1e28bfddfd98a43a13f95e35499eb8a70a8f900e06c004efcfe53366fc"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "e2bd8b1e28bfddfd98a43a13f95e35499eb8a70a8f900e06c004efcfe53366fc"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "d25cb92d-7cee-8c80-a7c3-259c35b09ba2",
+          "heading": "Droid Special Weapons Fix",
+          "source_ids": [
+            "8b2389c5d73101955d4220c969b4ee1842f3f25922b988a04698e103420ee234"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "8b2389c5d73101955d4220c969b4ee1842f3f25922b988a04698e103420ee234"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "be764bb8-4c17-85a4-8a31-7a23ea0a19df",
+          "heading": "Honest Merchant",
+          "source_ids": [
+            "95a1f95eb536a5785cd08b2a5c0fccdc95cf22bda8e2fd5f3af8c2bb88eaddbd"
+          ],
+          "dependencies": [
+            "bee5a72b-d748-8f83-8261-81758a9bfc56"
+          ],
+          "acquisition_source_ids": [
+            "95a1f95eb536a5785cd08b2a5c0fccdc95cf22bda8e2fd5f3af8c2bb88eaddbd"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "00ab0357-31d9-87f7-b435-5ac18ecf7141",
+          "heading": "JC's Minor Fixes",
+          "source_ids": [
+            "e7911bac40632705bd57b39af40a2052bbec413383a89703cc441287326f71aa"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "e7911bac40632705bd57b39af40a2052bbec413383a89703cc441287326f71aa"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "a2072211-a255-8f3a-9068-748319eef496",
+          "heading": "Maintenance Reskin",
+          "source_ids": [
+            "61b35debc3cf3c375694033f2e4842c59d28fafe58e03fc91731ef7ada521421"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "61b35debc3cf3c375694033f2e4842c59d28fafe58e03fc91731ef7ada521421"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "d8ed497e-44af-8a94-b22f-5db6fd7749b8",
+          "heading": "HD Sign Placeable",
+          "source_ids": [
+            "6b03a8a520a3ab8fc226d562ae557ff8b5fc7828fd0fbdc53f751d4a8941674a"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "6b03a8a520a3ab8fc226d562ae557ff8b5fc7828fd0fbdc53f751d4a8941674a"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "43ff8dfd-3e6a-849e-85fa-f76c70b94556",
+          "heading": "HD Kiosk",
+          "source_ids": [
+            "e67f9893024d0836444f63f19428f6fb4522b81d6f37e87521c2955ce8cf2b65",
+            "f6318f5ed068f9f8a909de61e04fab61fb6540b1babf7d91161b43ffadfc5e31"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "e67f9893024d0836444f63f19428f6fb4522b81d6f37e87521c2955ce8cf2b65",
+            "f6318f5ed068f9f8a909de61e04fab61fb6540b1babf7d91161b43ffadfc5e31"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "cffd1987-a2c1-8df6-a552-5f8fca35db6c",
+          "heading": "HD Desk",
+          "source_ids": [
+            "7eee0b177c796c9bddb08f35c6b519dfe029c5b7a782d395eea9f2501ce43baa"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "7eee0b177c796c9bddb08f35c6b519dfe029c5b7a782d395eea9f2501ce43baa"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "ce7755c6-72de-80d0-8c36-87ca8bcb8624",
+          "heading": "Hires Beam Effects",
+          "source_ids": [
+            "f92617c421f2af4e4a4eed69b3fa3b2c975a75264ed05ffc183481f791ea7682"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "f92617c421f2af4e4a4eed69b3fa3b2c975a75264ed05ffc183481f791ea7682"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "2f27ce7d-34f1-87e5-b266-f27202038694",
+          "heading": "Fire and Ice HD",
+          "source_ids": [
+            "d01c9d0d28dec821f2d2853bf107a41e6fc3c92b4289ebeb3fa47d68f31bff55"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "d01c9d0d28dec821f2d2853bf107a41e6fc3c92b4289ebeb3fa47d68f31bff55"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "d446dfb5-744b-84a6-8bf7-4eae85ff8afe",
+          "heading": "Animated Energy Shields",
+          "source_ids": [
+            "093b35bf5e77f55a845eead703a334796ec4d42cc0c5f0630dea5dbaf944c14f"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "093b35bf5e77f55a845eead703a334796ec4d42cc0c5f0630dea5dbaf944c14f"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "a5e44c8f-971b-8627-a545-7d7aff4a47be",
+          "heading": "Blaster Visual Effects",
+          "source_ids": [
+            "7d66a17ab38400362817791817c32720e47385c723f1926a6ec4578c63c8a17e"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "7d66a17ab38400362817791817c32720e47385c723f1926a6ec4578c63c8a17e"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "926132fe-a9c4-8b04-a23d-5dca863d78c6",
+          "heading": "Head Model Fixes",
+          "source_ids": [
+            "e7128d86655d61531504ddf6c3b3994b5457c9d1afd113aa365b9787d7d46a00"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "e7128d86655d61531504ddf6c3b3994b5457c9d1afd113aa365b9787d7d46a00"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "27b988f5-615d-88ef-af93-d4e6a6f264e9",
+          "heading": "New Holocron Textures",
+          "source_ids": [
+            "47164c10e86289a75bf36a88d183779ff166cec5e3c423f330d7d537721487e6"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "47164c10e86289a75bf36a88d183779ff166cec5e3c423f330d7d537721487e6"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "c1bd1e7c-85be-8469-93d8-e3aba3777809",
+          "heading": "Thigh-High Boots for Twi'lek",
+          "source_ids": [
+            "b30dbe1cf8922b1de37b94b6b30898e421dff9f533e8016a4ca7422c2a0a5f7b"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "b30dbe1cf8922b1de37b94b6b30898e421dff9f533e8016a4ca7422c2a0a5f7b"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "1d93e291-aa7d-8c1b-992d-510c349bb926",
+          "heading": "Better Twi'lek Heads",
+          "source_ids": [
+            "8964ea8a75e3295e4db0850fd47cb63618659b11d39ff162ede968599ea32191"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "8964ea8a75e3295e4db0850fd47cb63618659b11d39ff162ede968599ea32191"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "a7713e63-471e-81f0-8923-e4620be96f6e",
+          "heading": "Twi'lek Male Diversity",
+          "source_ids": [
+            "e7a4fe3468afc43faab3e1e703610ad014c2990735b2aa78195230b7d0c492fb"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "e7a4fe3468afc43faab3e1e703610ad014c2990735b2aa78195230b7d0c492fb"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "946b6493-db4b-877c-870d-100b3e44d365",
+          "heading": "Dahnis Unique Look",
+          "source_ids": [
+            "6976f46fd314fe54973bd90ab0f09d91f4f6ddd54128427dddc5258d9c31d866"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "6976f46fd314fe54973bd90ab0f09d91f4f6ddd54128427dddc5258d9c31d866"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "97d39844-42a1-8664-98ef-c02a1f2c6b2a",
+          "heading": "Darth Malak's Armor",
+          "source_ids": [
+            "ae56149fff10f17ea863c5853c9d15d5d35de098fd677a4ac9df0d1f2d4b82cf"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "ae56149fff10f17ea863c5853c9d15d5d35de098fd677a4ac9df0d1f2d4b82cf"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "d84764ab-fcb5-844d-802c-4b635d453d6a",
+          "heading": "Supermodel Fix",
+          "source_ids": [
+            "4ac80675ea32be16fa6c4f7c8c0a5215ef2c04020dca274d86282d37a80d2b7d"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "4ac80675ea32be16fa6c4f7c8c0a5215ef2c04020dca274d86282d37a80d2b7d"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "7b678426-adfb-8f47-a090-bf8e263dc37f",
+          "heading": "Worn-Out Mando Armor",
+          "source_ids": [
+            "8f1b0fcb76f1a89379b24686f911292ba00c5f8a3193341e58708452346671ee"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "8f1b0fcb76f1a89379b24686f911292ba00c5f8a3193341e58708452346671ee"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "93f58945-78b4-8fb9-996e-b67dce2933c3",
+          "heading": "HD NPC Portraits",
+          "source_ids": [
+            "72d3259e22e7c42c775ac6e4843000dc229d2b5d9c81df9c43e35ddcdd2cc6b5"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "72d3259e22e7c42c775ac6e4843000dc229d2b5d9c81df9c43e35ddcdd2cc6b5"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "35384a76-4529-88d0-a8aa-55904d163d80",
+          "heading": "HD PC Portraits",
+          "source_ids": [
+            "300814e5a4ff16567092302d10bee7158d39766934812d50f169abe11a2af4de"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "300814e5a4ff16567092302d10bee7158d39766934812d50f169abe11a2af4de"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "8823785c-725f-8a23-8db5-0b4a8d49de30",
+          "heading": "Stylized Portraits TSL",
+          "source_ids": [
+            "49386cb3fa914f3b137b50f9512c04a58428ed7a48f0c73da21acab5568cc6a2"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "49386cb3fa914f3b137b50f9512c04a58428ed7a48f0c73da21acab5568cc6a2"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "fac1545f-791a-8fe0-83b0-1cfb8239063d",
+          "heading": "PFHC03 Restoration",
+          "source_ids": [
+            "eda708dde812be440aa5fe48712cdb577780b1d65ff7e1316d7c17937b72d3c2"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "eda708dde812be440aa5fe48712cdb577780b1d65ff7e1316d7c17937b72d3c2"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "17cbde5b-a234-8c26-95f3-5bdc8de199c5",
+          "heading": "4K Atton",
+          "source_ids": [
+            "23945488922e91f0a473cee002f5f4d013d961255fd5f62fd669f0ec979d376b"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "23945488922e91f0a473cee002f5f4d013d961255fd5f62fd669f0ec979d376b"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "d96b60b3-24a9-86f5-af8f-59b11ac904e9",
+          "heading": "Atton with Scruff",
+          "source_ids": [
+            "0ca1554bb4bea055fd858c47b0560dc00001f4e8c67608f6fac5e169a7ad05d1"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "0ca1554bb4bea055fd858c47b0560dc00001f4e8c67608f6fac5e169a7ad05d1"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "f1c2cec5-948e-8808-a11a-b0005393ff06",
+          "heading": "Rounder G0-T0",
+          "source_ids": [
+            "ac79ae8fc9a832b15fb24dcda73956c30a04cc9acc64e509bbaab2565a87efb1"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "ac79ae8fc9a832b15fb24dcda73956c30a04cc9acc64e509bbaab2565a87efb1"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "39cd6164-573d-8d0d-875e-6ac5c63b4fa7",
+          "heading": "Dark Harbinger",
+          "source_ids": [
+            "fec75e60b0392c38012b730a1916072f0b1519a932d34aed7cfae7aedaadb0a3"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "fec75e60b0392c38012b730a1916072f0b1519a932d34aed7cfae7aedaadb0a3"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "8d4d74c9-722b-8c9b-9fcf-5c2c0085eb27",
+          "heading": "HD Vrook",
+          "source_ids": [
+            "f6cebe260045b0ec2bd9863c78707078a223c4b35706008d4df09a38dbaccde6"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "f6cebe260045b0ec2bd9863c78707078a223c4b35706008d4df09a38dbaccde6"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "f73985bc-e1eb-8b5b-aa68-bd4d277b69b7",
+          "heading": "HD Darth Nihilus",
+          "source_ids": [
+            "234c461979985a1be3823680d323c8e51e5c7986a3fca6f88f93e83b44b7f30d"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "234c461979985a1be3823680d323c8e51e5c7986a3fca6f88f93e83b44b7f30d"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "4fa12cf9-b4af-8174-b99f-0b51f9fea045",
+          "heading": "Darth Sion Remake",
+          "source_ids": [
+            "1fb29649b6a943e3fc8614d06e713b8ce9ae9695d2d7ad0d16c7ff9f79579873"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "1fb29649b6a943e3fc8614d06e713b8ce9ae9695d2d7ad0d16c7ff9f79579873"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "baedd512-a14d-8c31-a651-d2d45d4afae9",
+          "heading": "Detran's Revan",
+          "source_ids": [
+            "60a54eca80a94f63b568beb1c1174e8f8dc835109dc338ef7fe47688af600717"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "60a54eca80a94f63b568beb1c1174e8f8dc835109dc338ef7fe47688af600717"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "bd44defe-db68-8c7f-bccf-19285d434b2e",
+          "heading": "Lore-Friendly Mandalore",
+          "source_ids": [
+            "caa14ae04d963826d535d5a3d4c9ca5bed72d71e1186388f03034ffacd8cedbb"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "caa14ae04d963826d535d5a3d4c9ca5bed72d71e1186388f03034ffacd8cedbb"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "aac85482-ec1e-81b0-abb2-7d47325fd6b3",
+          "heading": "Visas Reduced Model Clipping",
+          "source_ids": [
+            "fe44236b7c55d18ab68580bfd926530d10a24a49b1a2231a90144af936c9b956"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "fe44236b7c55d18ab68580bfd926530d10a24a49b1a2231a90144af936c9b956"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "d440d1d2-8dc0-8b02-8b6c-bf6c5f607de5",
+          "heading": "HD Visas Marr",
+          "source_ids": [
+            "957adc76c7b9937b9b6189ce4cd7d3e50ba3a2d2438f4ed614134ddadec4f9cf"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "957adc76c7b9937b9b6189ce4cd7d3e50ba3a2d2438f4ed614134ddadec4f9cf"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "065db6f5-c734-8f35-918b-bff0ad103eaf",
+          "heading": "Mira Unpoofed",
+          "source_ids": [
+            "098b9f9e96aa91af6fed2f936e5c258928fe3817c1e1be815cbadf716c584a42"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "098b9f9e96aa91af6fed2f936e5c258928fe3817c1e1be815cbadf716c584a42"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "8f7963a1-d0ac-83b0-b142-bdba65db00d5",
+          "heading": "T3M4 HD 2K",
+          "source_ids": [
+            "6872e56dd0b0169c5535a828af02e2701bcae41f0826186d58c8732c4970a140"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "6872e56dd0b0169c5535a828af02e2701bcae41f0826186d58c8732c4970a140"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "830d9024-ac76-88e0-9941-48ee2d086bd8",
+          "heading": "HD Astromechs",
+          "source_ids": [
+            "21a24ecd0cd267320ecb2c7b740957fc11b18be2fd9ffe1034cf4d96d360b33a"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "21a24ecd0cd267320ecb2c7b740957fc11b18be2fd9ffe1034cf4d96d360b33a"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "1955774a-e2ac-8803-86e3-1ceef025843d",
+          "heading": "War Droid HD",
+          "source_ids": [
+            "534434a3318d5de6c4fd7eaea3d0ebc7562b901cd7ae340dd6ed3b61bcb5bdac"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "534434a3318d5de6c4fd7eaea3d0ebc7562b901cd7ae340dd6ed3b61bcb5bdac"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "dbc1e507-288d-8490-9b14-2035e35bef43",
+          "heading": "HD Duros",
+          "source_ids": [
+            "693697106ea03c3895d77a0d4eb874bf2288ba4f5e2dcd3663655d13a62d636c",
+            "aa2fdd0509d18781cf1da967a8c52d54eb3775fdea044cef7084c82b8362f342"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "693697106ea03c3895d77a0d4eb874bf2288ba4f5e2dcd3663655d13a62d636c",
+            "aa2fdd0509d18781cf1da967a8c52d54eb3775fdea044cef7084c82b8362f342"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "4486324f-7915-8334-a274-54113babb79b",
+          "heading": "HD Ithorians",
+          "source_ids": [
+            "1febc6382ed0dfa673cce1f5105f9c848fda12f7fefce742ef832167400fc2fb"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "1febc6382ed0dfa673cce1f5105f9c848fda12f7fefce742ef832167400fc2fb"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "9e76d73e-4fb7-834e-9d2f-860d26b5aad6",
+          "heading": "N_oldAMH01 HD",
+          "source_ids": [
+            "185fcc3107c4d3ea540eab83edaebd1d82600b9573c9210741b057da8b069fa4"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "185fcc3107c4d3ea540eab83edaebd1d82600b9573c9210741b057da8b069fa4"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "9bc989ce-8165-8ad5-a056-ffac404ffd45",
+          "heading": "Canonical Jedi Exile",
+          "source_ids": [
+            "d8b43191f80bbd5cb80d5b50979e424d7e831adf90c704c17977aa6be7c53cf3"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "d8b43191f80bbd5cb80d5b50979e424d7e831adf90c704c17977aa6be7c53cf3"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "1059906d-6b74-81ed-bfe4-21405eac9924",
+          "heading": "Lightsaber Visual Effects",
+          "source_ids": [
+            "93c5c66ffbc8483910f415208eea12f32b87008ab3484741768e25c135bad171"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "93c5c66ffbc8483910f415208eea12f32b87008ab3484741768e25c135bad171"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "2f09619c-5b49-8b97-978f-a8a78e615e12",
+          "heading": "Lightsaber Hilt Variety",
+          "source_ids": [
+            "40deb01fa030f972aa15b1ea017790d8aa59dfcd9d77f598927699352c3a1c90"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "40deb01fa030f972aa15b1ea017790d8aa59dfcd9d77f598927699352c3a1c90"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "ece1cc1f-793c-80bc-bb6a-c3211bcb3ca9",
+          "heading": "Random Panels",
+          "source_ids": [
+            "9580c0894b49ca9a89dedf97b53a638370c59b9b18bf131f34fdd0990305705d"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "9580c0894b49ca9a89dedf97b53a638370c59b9b18bf131f34fdd0990305705d"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "271d3518-941f-87a6-b2ff-39703a2343e3",
+          "heading": "Neglected Computer Panel",
+          "source_ids": [
+            "a1e6f5241509dc90a0bbc9adc194510b30a95b49138ff8cd327ed16aebe9e540"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "a1e6f5241509dc90a0bbc9adc194510b30a95b49138ff8cd327ed16aebe9e540"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "16d4a5ba-e6c4-80ca-a94b-297e9b0f0d18",
+          "heading": "Improved Peragus Asteroids",
+          "source_ids": [
+            "e257c4222585049d6485d95a3bbcb0a87f3ed60ee391699cb89279773cd6fcd7"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "e257c4222585049d6485d95a3bbcb0a87f3ed60ee391699cb89279773cd6fcd7"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "9687845e-d9c1-8f8d-b4b4-14e638ba4d71",
+          "heading": "Swoop Monitor Replacement",
+          "source_ids": [
+            "7c2b033062b48748ffa330184418c3f113d5251cf3511ea72c95757c7063ff23"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "7c2b033062b48748ffa330184418c3f113d5251cf3511ea72c95757c7063ff23"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "820eca3b-3df1-8874-9e8a-f0215063aa2c",
+          "heading": "HD Terminal Texture",
+          "source_ids": [
+            "277225ec21a9ab949e43514fd4cc8f256e0b4c9b5c7838a19046b616b7388242"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "277225ec21a9ab949e43514fd4cc8f256e0b4c9b5c7838a19046b616b7388242"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "f7f60559-87ae-8b1b-ba23-809788b82e8d",
+          "heading": "Animated Computer Panel",
+          "source_ids": [
+            "05047dec97c99b73bb88493db2aafe366eadeb8f33f73f9ab94c4f2b68ac40f7"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "05047dec97c99b73bb88493db2aafe366eadeb8f33f73f9ab94c4f2b68ac40f7"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "dc73ae69-3f79-8cb9-96ee-26abaf699cc3",
+          "heading": "HD Workbench",
+          "source_ids": [
+            "f82a9dec22898f451691233a36ae78f4e5d4da6e6480abbddb1bf5ed872af400"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "f82a9dec22898f451691233a36ae78f4e5d4da6e6480abbddb1bf5ed872af400"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "e7861093-a58d-854f-8bfa-ea735fd601b8",
+          "heading": "Backdrop Improvements",
+          "source_ids": [
+            "8b2333f3d72b7522875046a4d73b3080913db9039f2f48e33543837e32e6a8a5"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "8b2333f3d72b7522875046a4d73b3080913db9039f2f48e33543837e32e6a8a5"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "e8501df3-9a84-8f60-988c-15f30ca01af7",
+          "heading": "Citadel Station Backdrop",
+          "source_ids": [
+            "2e04d5950d235d8beb4538ea69e9a896f193d6941a60e4dd7f0f5663e2fc03a2"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "2e04d5950d235d8beb4538ea69e9a896f193d6941a60e4dd7f0f5663e2fc03a2"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "351de0e9-d36f-8bb2-ba08-003d9123e25a",
+          "heading": "HQ Skyboxes II",
+          "source_ids": [
+            "465842418f24ab5830549e8609cf23e1442a066fe15d07f4489abdf200ccc1bd"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "465842418f24ab5830549e8609cf23e1442a066fe15d07f4489abdf200ccc1bd"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "bbd6d8a0-e6e3-816e-a9b8-65fe8b0a9124",
+          "heading": "Ebon Hawk Cockpit Upgrade I",
+          "source_ids": [
+            "f609365031fe965794822c27e6288edecf112a2c131494464f7152ac32a15c90"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "f609365031fe965794822c27e6288edecf112a2c131494464f7152ac32a15c90"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "c503ab3f-a9be-8efa-b318-91a2bf173fa6",
+          "heading": "Ebon Hawk Cockpit Upgrade II",
+          "source_ids": [
+            "52bd058ba31d96f542add742269fe7d7e23693e806a6c79db9371217d45f0abe"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "52bd058ba31d96f542add742269fe7d7e23693e806a6c79db9371217d45f0abe"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "620ff4a4-c4d9-8c29-8e1d-48632b7f5c61",
+          "heading": "Spark Effect",
+          "source_ids": [
+            "e3cfee5c08c722a9dd362d2bb95a56550b70d572be1087a5555ff9865397298c"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "e3cfee5c08c722a9dd362d2bb95a56550b70d572be1087a5555ff9865397298c"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "02a4e06f-b54e-8384-8cb6-20fd5123f754",
+          "heading": "Transparent Cockpit Windows",
+          "source_ids": [
+            "fb611cecddfc1c32dfb0c538d265637810b00c2cf70365701c359f6f407c6a2b"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "fb611cecddfc1c32dfb0c538d265637810b00c2cf70365701c359f6f407c6a2b"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "1ef52c4c-8846-8a4e-a304-ef6d30d5e7b9",
+          "heading": "HD Cockpit Skyboxes",
+          "source_ids": [
+            "78aec634ffa6f65fe7682ac153f7a725594a74241fd640b8587c6b21cb1eeea2"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "78aec634ffa6f65fe7682ac153f7a725594a74241fd640b8587c6b21cb1eeea2"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "1bae0a2b-1111-807b-ab7f-8623b7d68ece",
+          "heading": "FTL Loop",
+          "source_ids": [
+            "b334f0c5f1b949c924977e9256110df2ef21041a35252c45bd4fe71041c91509"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "b334f0c5f1b949c924977e9256110df2ef21041a35252c45bd4fe71041c91509"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "ef2a219f-8140-8d40-8627-323ed78b9ebd",
+          "heading": "Aleema Keto's Robe Fix",
+          "source_ids": [
+            "c7a17cab10af8c4b3d870fccb69e8eef9bd237b772ca316212624e65255f5201"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "c7a17cab10af8c4b3d870fccb69e8eef9bd237b772ca316212624e65255f5201"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "4fefced2-405e-8107-9851-888b8827565d",
+          "heading": "Short-Term Memory Fix",
+          "source_ids": [
+            "2ff2bab46b32bc9b8225031d1dbd91e52a6406d3602db59918e1356f2bc503ed"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "2ff2bab46b32bc9b8225031d1dbd91e52a6406d3602db59918e1356f2bc503ed"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "21cf7e64-44c9-862f-a8c7-df867312c607",
+          "heading": "Onderon News Makes Sense",
+          "source_ids": [
+            "a907f6b003c652b426abee7846d54e735bd9cc0196ae0a737c43d9217ed74ac1"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "a907f6b003c652b426abee7846d54e735bd9cc0196ae0a737c43d9217ed74ac1"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "efd50568-8103-8dcc-9bc2-f9b7fce8f456",
+          "heading": "Hawk Downloadable Map",
+          "source_ids": [
+            "3261c10e1c50922eb5691986e577164d801682d347ae0c4ae836ecc35f7c4176"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "3261c10e1c50922eb5691986e577164d801682d347ae0c4ae836ecc35f7c4176"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "40d00784-6d4e-86ba-a2be-c9d24630bbfe",
+          "heading": "Kinrath Egg Crystal Drop",
+          "source_ids": [
+            "97735926d045b41e0ee9de7d8a4a9b19c46ba0416a0274ca2f8de260d7135c1c"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "97735926d045b41e0ee9de7d8a4a9b19c46ba0416a0274ca2f8de260d7135c1c"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "4d2fffea-9b4f-8f9e-ab7e-7762a485cca4",
+          "heading": "Thorium Charge Mod",
+          "source_ids": [
+            "0472493d31eb4b15dbe4e5cb7ea159b3075c7f642ce54f066093cd57c0a7d7f5"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "0472493d31eb4b15dbe4e5cb7ea159b3075c7f642ce54f066093cd57c0a7d7f5"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "54aaf64a-fe83-86ee-a05b-0aba49bd62ac",
+          "heading": "Kill the Ithorian",
+          "source_ids": [
+            "eb5a8687a481c50118787fcc825ccfafe917bfdacb72ffebb4cfdcb6475bac90"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "eb5a8687a481c50118787fcc825ccfafe917bfdacb72ffebb4cfdcb6475bac90"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "1c41be60-19d6-8036-b053-76ba7b463f69",
+          "heading": "Red Floating Lightsabers",
+          "source_ids": [
+            "f328994035b9bd341e5dba86a01bad4f0dc20b9aa3227fd017623d2133e338fd"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "f328994035b9bd341e5dba86a01bad4f0dc20b9aa3227fd017623d2133e338fd"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "6ba6462c-e08c-8a66-ba66-cc7ca39efa7a",
+          "heading": "Mira or Hanharr",
+          "source_ids": [
+            "e2ae0269a50d2a4650d063b5cc2f988b46af568337d757fb65b7d9697290a03b"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "e2ae0269a50d2a4650d063b5cc2f988b46af568337d757fb65b7d9697290a03b"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "a38fc2df-8c87-84ea-afab-d5b98c28b4cf",
+          "heading": "Kreia's Fall Cutscene",
+          "source_ids": [
+            "940ea7a1721840369adcdfb606d7fee7b137faa979f30f7ff1e9790efb86192d"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "940ea7a1721840369adcdfb606d7fee7b137faa979f30f7ff1e9790efb86192d"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "0d645887-5b3a-82a1-925e-cdd7c68bf923",
+          "heading": "PartySwap",
+          "source_ids": [
+            "18666ea9b3acb154317b1b9f96aef85f487b2b02faa0b83cec5e9bf11b0feabe"
+          ],
+          "dependencies": [
+            "bee5a72b-d748-8f83-8261-81758a9bfc56"
+          ],
+          "acquisition_source_ids": [
+            "18666ea9b3acb154317b1b9f96aef85f487b2b02faa0b83cec5e9bf11b0feabe"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "403daebc-dd7f-892c-ac37-823cf1ae6600",
+          "heading": "Extended Enclave",
+          "source_ids": [
+            "6950e79e461037255afadd155f30d93dc1514a4374780e9b7a21e08ef4d86397"
+          ],
+          "dependencies": [
+            "0d645887-5b3a-82a1-925e-cdd7c68bf923",
+            "bee5a72b-d748-8f83-8261-81758a9bfc56"
+          ],
+          "acquisition_source_ids": [
+            "6950e79e461037255afadd155f30d93dc1514a4374780e9b7a21e08ef4d86397"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "8fab0c36-d633-8fa1-b7db-a3a61ff83e78",
+          "heading": "PartySwap-EE Compatch",
+          "source_ids": [
+            "f708fe1843fa06e854fa847643ee15beb161839d4fdac9fec404f3c59a506e16"
+          ],
+          "dependencies": [
+            "0d645887-5b3a-82a1-925e-cdd7c68bf923",
+            "403daebc-dd7f-892c-ac37-823cf1ae6600"
+          ],
+          "acquisition_source_ids": [
+            "f708fe1843fa06e854fa847643ee15beb161839d4fdac9fec404f3c59a506e16"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "1943c462-51f0-8989-985d-5004700001f9",
+          "heading": "Extended Korriban Arrival",
+          "source_ids": [
+            "9c3e2908ed122e6c345a01369cde0a9e3aaf6a52d2a571611a4d816c0c4e9b32"
+          ],
+          "dependencies": [
+            "bee5a72b-d748-8f83-8261-81758a9bfc56"
+          ],
+          "acquisition_source_ids": [
+            "9c3e2908ed122e6c345a01369cde0a9e3aaf6a52d2a571611a4d816c0c4e9b32"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "40840198-65b3-8cbc-aaa1-db49a544e6da",
+          "heading": "Prologue Item Recovery",
+          "source_ids": [
+            "742d5eba5b4be223f765899667c39af9d901dfdb45ba8c29ac744aa99f9a069d"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "742d5eba5b4be223f765899667c39af9d901dfdb45ba8c29ac744aa99f9a069d"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "3e061a46-1f85-8653-884c-9df4bdf89139",
+          "heading": "Balance Tweak Pack",
+          "source_ids": [
+            "49d4f193e4104d710bb4cea50c8d0f1ffcc2929f8ca1c1bfadf0a7e5f4c0008c"
+          ],
+          "dependencies": [
+            "bee5a72b-d748-8f83-8261-81758a9bfc56"
+          ],
+          "acquisition_source_ids": [
+            "49d4f193e4104d710bb4cea50c8d0f1ffcc2929f8ca1c1bfadf0a7e5f4c0008c"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "3c5272b3-dc18-84eb-bf27-5595f1ca3962",
+          "heading": "Mines Overhaul",
+          "source_ids": [
+            "817f24d53adf8d7f500448442fcd40d06d38837acfda109aa4bcdc3ddcbd25c8"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "817f24d53adf8d7f500448442fcd40d06d38837acfda109aa4bcdc3ddcbd25c8"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "4258d37f-8c01-83d5-940b-4800823ef67e",
+          "heading": "No Health Regeneration",
+          "source_ids": [
+            "ce3dd5bac68dceea03a70459116c816124a6588db8785b7f00ad1b436df7c1fe"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "ce3dd5bac68dceea03a70459116c816124a6588db8785b7f00ad1b436df7c1fe"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "e5a9ef4c-bc9b-85cb-aa11-35460e6524c4",
+          "heading": "Thematic Sith Lords",
+          "source_ids": [
+            "b949e1982f74f95aaa24ad6cb6e68096a525ea55b7e4cff8b39973b6d77077b7"
+          ],
+          "dependencies": [
+            "bee5a72b-d748-8f83-8261-81758a9bfc56"
+          ],
+          "acquisition_source_ids": [
+            "b949e1982f74f95aaa24ad6cb6e68096a525ea55b7e4cff8b39973b6d77077b7"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "f88f9af8-050f-811c-814b-706cb9466483",
+          "heading": "Thematic Jedi Masters",
+          "source_ids": [
+            "29cdb2d6b0cfd946fd77030ad3c760c43d66b26328c275a9fc5facc4389256bf"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "29cdb2d6b0cfd946fd77030ad3c760c43d66b26328c275a9fc5facc4389256bf"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "ec7ead25-991c-89e5-bee8-01e1a5b8ef69",
+          "heading": "Better Disciple Meditation",
+          "source_ids": [
+            "c5fa4528716ca36f79512fd6a87c299de467cbd65ede79c08fd72e468d2841e4"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "c5fa4528716ca36f79512fd6a87c299de467cbd65ede79c08fd72e468d2841e4"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "1a7ac764-f51b-882e-ab19-8c1a13bbbcaa",
+          "heading": "Bao-Dur & Heavy Armor",
+          "source_ids": [
+            "248c841c6f163c3338735f6e988c8111138fd13fc7b00385db0ab7c1b899a23f"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "248c841c6f163c3338735f6e988c8111138fd13fc7b00385db0ab7c1b899a23f"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "eb0e8d8b-eb2f-8be4-96af-505924face12",
+          "heading": "JC's Crystal Attunement",
+          "source_ids": [
+            "2301300cd7fb1c6caae95fc2dfdf778ff7081d2cb784eb114211cf50dc5d7322"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "2301300cd7fb1c6caae95fc2dfdf778ff7081d2cb784eb114211cf50dc5d7322"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "d636ea9c-91a4-8954-99ef-5adcfdd23582",
+          "heading": "Jekk'Jekk'Tarr Thugs",
+          "source_ids": [
+            "6c8de3891bb8d6d561fca0a4947d77e617cb0f82a375a5d90139491cb555cd05"
+          ],
+          "dependencies": [
+            "bee5a72b-d748-8f83-8261-81758a9bfc56"
+          ],
+          "acquisition_source_ids": [
+            "6c8de3891bb8d6d561fca0a4947d77e617cb0f82a375a5d90139491cb555cd05"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "ede3329f-5570-8a73-bea5-d33f538f60d5",
+          "heading": "Logical Jekk'Jekk Tarr",
+          "source_ids": [
+            "df5c48ba97e66a2fdff444f79518d36890098745dbe5d8087e847ad113411e63"
+          ],
+          "dependencies": [
+            "bee5a72b-d748-8f83-8261-81758a9bfc56"
+          ],
+          "acquisition_source_ids": [
+            "df5c48ba97e66a2fdff444f79518d36890098745dbe5d8087e847ad113411e63"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "f44c70f2-b5a7-894a-8122-0e04e1029169",
+          "heading": "Mira's Vanilla Escape",
+          "source_ids": [
+            "ce8b7557d839ef6c25293f628359f33be09e5a3da58bb8d09d1f9d3be29aa005"
+          ],
+          "dependencies": [
+            "bee5a72b-d748-8f83-8261-81758a9bfc56"
+          ],
+          "acquisition_source_ids": [
+            "ce8b7557d839ef6c25293f628359f33be09e5a3da58bb8d09d1f9d3be29aa005"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "7ff1ba5d-e226-8649-9d14-82c27e66484e",
+          "heading": "Kreia's Longsword",
+          "source_ids": [
+            "645298fca2c1f21dc6f5c31169237e3512448d0bba1b3e17edb31565fdef40ae"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "645298fca2c1f21dc6f5c31169237e3512448d0bba1b3e17edb31565fdef40ae"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "4a1e3739-5396-84a6-96c7-5ff99267d498",
+          "heading": "Harbinger Performance Fix",
+          "source_ids": [
+            "85627ace29fb952a079568f6575f149c8b8b8bff6729c13578cb2ed7a0b0ec6c"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "85627ace29fb952a079568f6575f149c8b8b8bff6729c13578cb2ed7a0b0ec6c"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "4fb6ac45-3839-8f16-9867-4f9d4fe58cfd",
+          "heading": "Visas VO Tweak",
+          "source_ids": [
+            "9b1efc23c3f874e20fb5c3f8180927a736bd5c099128ec9f43fdeec0fcaebe56"
+          ],
+          "dependencies": [
+            "bee5a72b-d748-8f83-8261-81758a9bfc56"
+          ],
+          "acquisition_source_ids": [
+            "9b1efc23c3f874e20fb5c3f8180927a736bd5c099128ec9f43fdeec0fcaebe56"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "718aff57-5340-8467-8c3e-73c082bb8fde",
+          "heading": "Sion and a Male Exile",
+          "source_ids": [
+            "0d08b1e4e7fdb981292d5817e6d7df35febbe241d5e89a46757daf1d843f4cff"
+          ],
+          "dependencies": [
+            "bee5a72b-d748-8f83-8261-81758a9bfc56"
+          ],
+          "acquisition_source_ids": [
+            "0d08b1e4e7fdb981292d5817e6d7df35febbe241d5e89a46757daf1d843f4cff"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "079aebde-7475-8d37-8d6b-f4a9fa355ca8",
+          "heading": "Assassins with Lightsabers",
+          "source_ids": [
+            "a2f797d436a8b58d73d9dde735ce401a400cd5be80c2f0f293a36a52721baaf8"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "a2f797d436a8b58d73d9dde735ce401a400cd5be80c2f0f293a36a52721baaf8"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "b5b5ebd8-61e4-863c-b922-d46989ea8ee8",
+          "heading": "True Sith Assassins",
+          "source_ids": [
+            "e2b762c4f919d05506132c52373fd39a52e0420c456d4c96daef6c6980071258"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "e2b762c4f919d05506132c52373fd39a52e0420c456d4c96daef6c6980071258"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "1b3a4760-3d39-8f2f-af11-f1409a3f6874",
+          "heading": "For Mandalore!",
+          "source_ids": [
+            "d3bc9a513ee49a25f3c26ff83560a1f3ea95e6ccaa5f4db406716d266bcbc21e"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "d3bc9a513ee49a25f3c26ff83560a1f3ea95e6ccaa5f4db406716d266bcbc21e"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "5554bd4e-92ea-8409-a453-8b171a8f2d01",
+          "heading": "Peragus Medical Bay Enhancement",
+          "source_ids": [
+            "60bf34efc2846d821b51eaf254860bbebbb6cea3b9cf05a2b48f5605774550ff"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "60bf34efc2846d821b51eaf254860bbebbb6cea3b9cf05a2b48f5605774550ff"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "3eb56efe-013e-8095-80cf-a2584ba2cf94",
+          "heading": "HQ Blasters",
+          "source_ids": [
+            "d98ff834e36202df0c18ed33bd00b07962a8f9d375e50ac9fa6dc880dbdd5478"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "d98ff834e36202df0c18ed33bd00b07962a8f9d375e50ac9fa6dc880dbdd5478"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "a5e5f6e5-2c95-8649-8263-1a2dae090c1f",
+          "heading": "Droid Model Fix",
+          "source_ids": [
+            "740f8ee5e5d4ef3d706b1086f7f265a6c4e7fef6baef6f42f6ea7b455af8fd07"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "740f8ee5e5d4ef3d706b1086f7f265a6c4e7fef6baef6f42f6ea7b455af8fd07"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "4ac1d872-7366-87c1-80ba-5d03ca78debc",
+          "heading": "Quarterstaff Replacements",
+          "source_ids": [
+            "71c4569891c2b7a1ccf47162a63fbf380444120bd913633fb7049a0b68e6fbdc"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "71c4569891c2b7a1ccf47162a63fbf380444120bd913633fb7049a0b68e6fbdc"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "56187609-f126-8188-a955-7cab8ae51e2b",
+          "heading": "Upscaled Icon Overhaul",
+          "source_ids": [
+            "4f41344d22828eb106c692c2cef1c1daa4676c97f02099ee125769b6d2df9823"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "4f41344d22828eb106c692c2cef1c1daa4676c97f02099ee125769b6d2df9823"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "2de86e49-571f-8600-931e-5bc2ad5acebe",
+          "heading": "Rescaled Trandoshans",
+          "source_ids": [
+            "7c93a4c139ae8f49d206b98ac300402e2c60d45880e3eb2a61100cefc6c29037"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "7c93a4c139ae8f49d206b98ac300402e2c60d45880e3eb2a61100cefc6c29037"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "698da25b-eba9-89b0-a10e-4fa8df07afcb",
+          "heading": "Visually Repair HK",
+          "source_ids": [
+            "51d36cf186a7b3a77df0274ce885fcef49f171fe94f3ad536533b969c43f8fe4"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "51d36cf186a7b3a77df0274ce885fcef49f171fe94f3ad536533b969c43f8fe4"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "9f0d9805-9b91-8450-a61a-ecbe189c8482",
+          "heading": "Expanded Ending",
+          "source_ids": [
+            "22d007e46760cbcd7f31a97ead4aff93c9776f5a1fb1cc9acca0bde1931ac30d"
+          ],
+          "dependencies": [
+            "bee5a72b-d748-8f83-8261-81758a9bfc56"
+          ],
+          "acquisition_source_ids": [
+            "22d007e46760cbcd7f31a97ead4aff93c9776f5a1fb1cc9acca0bde1931ac30d"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "869841d4-48c6-8989-8dc8-a02e6689aa0d",
+          "heading": "Consistent Bastila Recognition",
+          "source_ids": [
+            "3f300a3d630859481d02d7d97d0d56dca08ba5f5d774281e31c9118c6ff22ab8"
+          ],
+          "dependencies": [
+            "bee5a72b-d748-8f83-8261-81758a9bfc56"
+          ],
+          "acquisition_source_ids": [
+            "3f300a3d630859481d02d7d97d0d56dca08ba5f5d774281e31c9118c6ff22ab8"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "8f97eab8-9ee5-859f-a86f-bb4d0476c34b",
+          "heading": "Handmaiden Fit Model",
+          "source_ids": [
+            "517af3e204370d15bf0b5dc29e7ad187a2c7920ec2d0103b5dc82a78dde68f57",
+            "843c339262534e14f3b499844940c8f93920c621ed8a44d22167362bd1bf608c"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "517af3e204370d15bf0b5dc29e7ad187a2c7920ec2d0103b5dc82a78dde68f57",
+            "843c339262534e14f3b499844940c8f93920c621ed8a44d22167362bd1bf608c"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "b83b224a-3c42-83d5-85f4-c89df4a263ae",
+          "heading": "JC's Handmaiden Sisters",
+          "source_ids": [
+            "4a12ae51ab45e73a559b453293c921d77213da01c070cbb8386553c3b6164235"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "4a12ae51ab45e73a559b453293c921d77213da01c070cbb8386553c3b6164235"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "cefe9aa3-7ce9-89ce-be59-8e13f8406549",
+          "heading": "Replacement Loadscreens",
+          "source_ids": [
+            "631eec942239dd0fac86edbf1b0d6d92425a086fe0c7bf482edaf5c1f74a7ab8",
+            "6e7895a31fd1b7a7659b5ec854c2c35732252fdaaee47d33f99b6bc33ac010b2",
+            "c87922a454139f35549793b625e7531ee8b4aabc4516a085beeced7670f4fb06"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "631eec942239dd0fac86edbf1b0d6d92425a086fe0c7bf482edaf5c1f74a7ab8",
+            "6e7895a31fd1b7a7659b5ec854c2c35732252fdaaee47d33f99b6bc33ac010b2",
+            "c87922a454139f35549793b625e7531ee8b4aabc4516a085beeced7670f4fb06"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "f062f905-3a4b-8d08-8e98-87d4326aebf1",
+          "heading": "Vibrocutter Changes",
+          "source_ids": [
+            "283c5f43ad834a6251f35e755565434d40fe3ea68596e966fae610df45ed7fb6"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "283c5f43ad834a6251f35e755565434d40fe3ea68596e966fae610df45ed7fb6"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "bc7c31c7-fe6d-8f45-a753-725c9c5cb8e9",
+          "heading": "Peragus Monitor Adjust",
+          "source_ids": [
+            "a084865c9591dac80678a83dd6434167161995503fb727d12770543a162928bf"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "a084865c9591dac80678a83dd6434167161995503fb727d12770543a162928bf"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "c1c364aa-403a-8333-9ab3-f9bc5d1a8264",
+          "heading": "Replacement Peragus II",
+          "source_ids": [
+            "5f59e5fe90f2f87023576a0e1864c654a3db56928d214616cef1355f00239507"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "5f59e5fe90f2f87023576a0e1864c654a3db56928d214616cef1355f00239507"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "74838401-c8de-815d-97c4-baeadf2671f2",
+          "heading": "TSL Galaxymap Fixpack",
+          "source_ids": [
+            "05e118c517b98a301e391594e9808763defccd1f2f18e2553ceec40453c8e7a0"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "05e118c517b98a301e391594e9808763defccd1f2f18e2553ceec40453c8e7a0"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "6b1a2cc1-49d5-80ce-920c-8ab7eed947da",
+          "heading": "Fixed Hologram Models",
+          "source_ids": [
+            "11d3c07bc97b4edd5e856a98a8afde91679850da6e093d96285fcc7a6d4879f4"
+          ],
+          "dependencies": [
+            "bee5a72b-d748-8f83-8261-81758a9bfc56"
+          ],
+          "acquisition_source_ids": [
+            "11d3c07bc97b4edd5e856a98a8afde91679850da6e093d96285fcc7a6d4879f4"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "bd26925e-d7a1-896e-8cb7-380755d81089",
+          "heading": "Relighting TSL",
+          "source_ids": [
+            "48feb8556d12b70b245796f9a0d10e12d416fab3d1804fa87533589eb1c08080"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "48feb8556d12b70b245796f9a0d10e12d416fab3d1804fa87533589eb1c08080"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "f27d4b13-b349-8c56-b9b7-620cdc133579",
+          "heading": "Companion Clothes",
+          "source_ids": [
+            "f1bff49429154b2ec50b1e6d379f9875767d7e336f821850228ba5505f957f59"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "f1bff49429154b2ec50b1e6d379f9875767d7e336f821850228ba5505f957f59"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "e015887a-be0f-86d1-830e-92d82c8fc46c",
+          "heading": "Improved Enlightenment/Corruption",
+          "source_ids": [
+            "b5e8bd00abb1552134512314ddb129643e2462f64ba6f09ef966d3207ebbb8ea"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "b5e8bd00abb1552134512314ddb129643e2462f64ba6f09ef966d3207ebbb8ea"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "bb12eb49-4189-822d-ac7b-8d2e7169864b",
+          "heading": "Repair Affects Stun Droid",
+          "source_ids": [
+            "28a1ae84391d79cf9bad70a8ef7bcb18c733655be20987f2ccd60d143c9f45b2"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "28a1ae84391d79cf9bad70a8ef7bcb18c733655be20987f2ccd60d143c9f45b2"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "44dfac1f-e2f3-84a8-bfe8-f0c1162553f5",
+          "heading": "Improved Force Sight",
+          "source_ids": [
+            "c7af048cb3ab73ce7af5b9de0b394d48141b057213af05462f33fa86342d4379"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "c7af048cb3ab73ce7af5b9de0b394d48141b057213af05462f33fa86342d4379"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "ac772b5f-e639-822d-b93f-e8c9560c7c18",
+          "heading": "Alignment Affects Force Powers",
+          "source_ids": [
+            "b27297622aea4d99859959302063d2afc17c090098d47331b2870b193f3d4f18"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "b27297622aea4d99859959302063d2afc17c090098d47331b2870b193f3d4f18"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "1acdc42b-0b9f-836b-8989-bae84915273c",
+          "heading": "Ultimate Character Overhaul Patches",
+          "source_ids": [
+            "8ab924a5897dde779600d72594310ba5d23570791a4d1bef5bedaad24004581b"
+          ],
+          "dependencies": [
+            "5694d896-2945-86ac-9aba-34b7c922d4c1"
+          ],
+          "acquisition_source_ids": [
+            "8ab924a5897dde779600d72594310ba5d23570791a4d1bef5bedaad24004581b"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "c40159e7-c31d-8722-bbfe-de644328f040",
+          "heading": "Bao-Dur/Darth Maul",
+          "source_ids": [
+            "46b6aa516e77fcd005574c8bf74dec821d2cd1d586f201edad4a381e6648f6fc"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "46b6aa516e77fcd005574c8bf74dec821d2cd1d586f201edad4a381e6648f6fc"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "162f91a3-1728-8a61-8f0a-5b7524e67d1c",
+          "heading": "Realistic Visual Effects",
+          "source_ids": [
+            "3078acd6066ace154baac100b898b91f89cdd8f05c930bde5b8fc127578faadf"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "3078acd6066ace154baac100b898b91f89cdd8f05c930bde5b8fc127578faadf"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "50750eba-472b-862d-bb38-08d573c2c481",
+          "heading": "Remove Duplicate TGA/TPC",
+          "source_ids": [
+            "322a489542ab9f74048b93c6a0df5c3b4cc7e3284036c7f04c6bc6c331f88616",
+            "d82b277b1eaf415d3cc536678f0eba5d4fbcd0f574a5f4ed65651e15ddd7c550"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "322a489542ab9f74048b93c6a0df5c3b4cc7e3284036c7f04c6bc6c331f88616"
+          ],
+          "non_archive_provenance_source_ids": [
+            "d82b277b1eaf415d3cc536678f0eba5d4fbcd0f574a5f4ed65651e15ddd7c550"
+          ]
+        },
+        {
+          "guid": "ee2b251b-720d-8f69-9d38-5a56310f0bb4",
+          "heading": "TOMB",
+          "source_ids": [
+            "5e65ede366285c74a91dd5066f871e5085fdbc42134c73f9b37d626056bdf2d9"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "5e65ede366285c74a91dd5066f871e5085fdbc42134c73f9b37d626056bdf2d9"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "13b0fc04-d64b-8dae-bdc2-b6eb01f3b4d6",
+          "heading": "Character Textures & Model Fixes",
+          "source_ids": [
+            "5cc9e8658eacf063893f0769eef473cb4856b724c02e0f45e2161bac05d69870"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "5cc9e8658eacf063893f0769eef473cb4856b724c02e0f45e2161bac05d69870"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "14d721c3-67f9-885b-9736-04282d41bed0",
+          "heading": "Main Menu Fix",
+          "source_ids": [
+            "e65b3e0b9fc29a47556948301b140691814956b4633722eb1d18d5fa95621ef0"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "e65b3e0b9fc29a47556948301b140691814956b4633722eb1d18d5fa95621ef0"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "370931b4-794d-8558-a7b6-80469feead18",
+          "heading": "K2 Cutscenes Rescaled",
+          "source_ids": [
+            "b1ea598bc2dcc8182dcf3983d90237600d8eee02324536cfc98e330c4dc6fe51"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "b1ea598bc2dcc8182dcf3983d90237600d8eee02324536cfc98e330c4dc6fe51"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "35154fa5-f0c4-8418-9634-58aedf9ffec7",
+          "heading": "K2 Remastered Cutscenes",
+          "source_ids": [
+            "697f63fc224cc4b83aed2f8965d73769a4c18326a50ed2d29bd6e7359ce240c0"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "697f63fc224cc4b83aed2f8965d73769a4c18326a50ed2d29bd6e7359ce240c0"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "863b2f97-c8e8-8715-a1e0-2515fa70c71e",
+          "heading": "Loading Screen Rescaled",
+          "source_ids": [
+            "98ef0729f90df81a91a47338ca5fcfafd0add41ec2dad2f10979031df10de159"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "98ef0729f90df81a91a47338ca5fcfafd0add41ec2dad2f10979031df10de159"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "3fa40bfc-198a-80ff-9547-db7e504a1017",
+          "heading": "Workbench Camera Tweak",
+          "source_ids": [
+            "cf213453e58f3940e81da548c427ede5caef3460dd6e1dbd48fc331d34611a17"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "cf213453e58f3940e81da548c427ede5caef3460dd6e1dbd48fc331d34611a17"
+          ],
+          "non_archive_provenance_source_ids": []
+        },
+        {
+          "guid": "600d2fa2-c148-846f-bf3b-a44f10daf103",
+          "heading": "Upscaled Maps",
+          "source_ids": [
+            "5d13bd9dfa4b95bb25a2b3b2e96424791cff4efbbed5a24ab70a0dc36cd9826f"
+          ],
+          "dependencies": [],
+          "acquisition_source_ids": [
+            "5d13bd9dfa4b95bb25a2b3b2e96424791cff4efbbed5a24ab70a0dc36cd9826f"
+          ],
+          "non_archive_provenance_source_ids": []
+        }
+      ],
+      "exclusions": [
+        {
+          "guid": "6e9e1d85-e8e9-88ea-8a32-58f37e5f7398",
+          "heading": "Ultimate HR Textures",
+          "name": "Ultimate High Resolution Texture Pack",
+          "kind": "large-optional-environment-textures",
+          "profiles": [
+            "minimal"
+          ],
+          "observed_archive_bytes": 1391063691,
+          "unknown_associations": 0,
+          "archive_size_evidence": [
+            {
+              "sha256": "61fd130601101471c40a6982c2b066208ea70b435d2cdc02e998fe5656b9b00b",
+              "bytes": 1391063691
+            }
+          ]
+        },
+        {
+          "guid": "4b8d984d-1f71-808d-88e8-c38bb8e5f267",
+          "heading": "Ultimate Nar Shaddaa",
+          "name": "Ultimate Nar Shaddaa High Resolution",
+          "kind": "large-optional-environment-textures",
+          "profiles": [
+            "minimal"
+          ],
+          "observed_archive_bytes": 807988379,
+          "unknown_associations": 0,
+          "archive_size_evidence": [
+            {
+              "sha256": "6dd006e47fe60bb078f2a2b061ab2a1e200c6b4b05b5a2e4cb448fbff324a426",
+              "bytes": 807988379
+            }
+          ]
+        },
+        {
+          "guid": "307e3aa7-fb49-8c93-97ec-a5decf6b293e",
+          "heading": "Ultimate Dantooine",
+          "name": "Ultimate Dantooine High Resolution",
+          "kind": "large-optional-environment-textures",
+          "profiles": [
+            "minimal"
+          ],
+          "observed_archive_bytes": 750063088,
+          "unknown_associations": 0,
+          "archive_size_evidence": [
+            {
+              "sha256": "27ee469896ea7096672feef033b6c448f52680eb354dce20cd66915d23c98752",
+              "bytes": 750063088
+            }
+          ]
+        },
+        {
+          "guid": "06386c89-6e6d-859e-8b20-7eac4e2e932c",
+          "heading": "Ultimate Dxun",
+          "name": "Ultimate Dxun High Resolution",
+          "kind": "large-optional-environment-textures",
+          "profiles": [
+            "minimal"
+          ],
+          "observed_archive_bytes": 482513002,
+          "unknown_associations": 0,
+          "archive_size_evidence": [
+            {
+              "sha256": "810be6bccaaea067fdb4e74d5de0840f0a1e217f3492075b6beb2aa8b8fc2d89",
+              "bytes": 482504635
+            },
+            {
+              "sha256": "ef5d044a113affff731145cd6bb455cf8a20fb71667716a734bf80c5faa82c55",
+              "bytes": 8367
+            }
+          ]
+        },
+        {
+          "guid": "fb5f07e9-6e90-8d4c-a4a6-8ef2d84b4e90",
+          "heading": "Ultimate Onderon",
+          "name": "Ultimate Onderon High Resolution",
+          "kind": "large-optional-environment-textures",
+          "profiles": [
+            "minimal"
+          ],
+          "observed_archive_bytes": 333596075,
+          "unknown_associations": 0,
+          "archive_size_evidence": [
+            {
+              "sha256": "76c9267d1b06db45c5a0231a27e457a29f22ef00654d963b0ad3ed78dfd1364a",
+              "bytes": 333596075
+            }
+          ]
+        },
+        {
+          "guid": "370931b4-794d-8558-a7b6-80469feead18",
+          "heading": "K2 Cutscenes Rescaled",
+          "name": "K2 Cutscenes Rescaled",
+          "kind": "massive-cinematic",
+          "profiles": [
+            "minimal",
+            "full"
+          ],
+          "observed_archive_bytes": 0,
+          "unknown_associations": 0,
+          "archive_size_evidence": []
+        },
+        {
+          "guid": "35154fa5-f0c4-8418-9634-58aedf9ffec7",
+          "heading": "K2 Remastered Cutscenes",
+          "name": "KOTOR 2 Remastered Cutscenes",
+          "kind": "massive-cinematic",
+          "profiles": [
+            "minimal",
+            "full"
+          ],
+          "observed_archive_bytes": 3426445261,
+          "unknown_associations": 0,
+          "archive_size_evidence": [
+            {
+              "sha256": "295a42a537f9cb19e329a8bac458720d0858ced929243d361995ffe3aa0cea77",
+              "bytes": 2331082636
+            },
+            {
+              "sha256": "56e87873606765efced68a213dc006ababc93fdfbba86b8918cef38827bf4149",
+              "bytes": 1095362625
+            }
+          ]
+        }
+      ],
+      "protected_guids": [
+        "1acdc42b-0b9f-836b-8989-bae84915273c",
+        "5694d896-2945-86ac-9aba-34b7c922d4c1",
+        "bee5a72b-d748-8f83-8261-81758a9bfc56"
+      ],
+      "archive_metadata_sha256": "b560eee3c00980438d438f17a38b8f5e89b9b37d0cd6840ff307d4fa6358cec7",
+      "platform_default_inactive_guids": [
+        "370931b4-794d-8558-a7b6-80469feead18"
+      ]
+    }
+  },
+  "compatibility_sources": [
+    {
+      "owner_guid": "07416fb0-1f9b-88ba-952f-4029575ad036",
+      "filename": "Vurt-Yavin Compatch.7z",
+      "sha256": "df398a85af50791954e11986c90583a145a2e7a00cd47efa30e07f15f69dc1b8",
+      "source_id": "8fee01d1de2105d1d4cdd442e4b736515ff6da5b42d641bbc8e5bb12f0021065",
+      "donor_guid": null
+    },
+    {
+      "owner_guid": "83226d49-f919-82a5-923e-c1d00f727c40",
+      "filename": "SAWL Patch.rar",
+      "sha256": "681ff0da13422831fb006d810fef5733473c866900589aadbce049cc1f58bdcd",
+      "source_id": "b406fedc0738bd8df09ae3d59ac25ca6ffca222590f2856b3dcba033f03e318b",
+      "donor_guid": null
+    },
+    {
+      "owner_guid": "7696c38c-9a45-8510-bda2-328f29eab2c1",
+      "filename": "Czerka Business Attire - Dark Hope Ithorian Compatch.7z",
+      "sha256": "72ff641a033230673e2f6bf38c8bbae9e9b49c86108364d2eb375ed07db9c68e",
+      "source_id": "6d3324683057692bb2e726f7054cc39e717b9275900484a417014351f22bf90a",
+      "donor_guid": null
+    },
+    {
+      "owner_guid": "351de0e9-d36f-8bb2-ba08-003d9123e25a",
+      "filename": "K2CP_v1.6.3.zip",
+      "sha256": "6e734ed7e81ad8169d12870ce9fcf829bd56b88f22e7ea20fb37fcb85b8580c1",
+      "source_id": "78025cdaf6b1e9ac10062ed95795a58ddb581e7c6fe01772203086814d81fac7",
+      "donor_guid": "216eb8b6-3076-8a92-bd7d-012862b10b32"
+    },
+    {
+      "owner_guid": "8f97eab8-9ee5-859f-a86f-bb4d0476c34b",
+      "filename": "FS_Fit_Handmaiden Patch.rar",
+      "sha256": "dc294dbdfbdf83718fd720a84ebab27a8804f075ce41723faacf2ea57d52b03b",
+      "source_id": "517af3e204370d15bf0b5dc29e7ad187a2c7920ec2d0103b5dc82a78dde68f57",
+      "donor_guid": null
+    }
+  ]
+}

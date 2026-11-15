@@ -214,14 +214,15 @@ class PinnedRestoreAndRefreshTests(PinFixture):
             (code, report), _ = self.restore(item)
         self.assertEqual((code, report["entries"][0]["status"]), (0, "restored"))
 
-    def test_stale_non_pinned_entry_still_needs_refresh(self):
+    def test_verified_non_pinned_cache_hit_does_not_refresh_by_age(self):
         item = item_for(NEXUS_URL)
         self.write_manifest(item, self.stored_entry(status="verified", evidence="download-without-upstream-metadata",
                                                     checked_at=cache.time.time() - 30 * DAY))
         with mock.patch.object(cache, "refresh_one", side_effect=ValueError(cache.NEXUS_REASON)) as refresh:
             (code, report), _ = self.restore(item)
-        refresh.assert_called_once()
-        self.assertEqual((code, report["entries"][0]["status"]), (0, "restored"))
+        refresh.assert_not_called()
+        self.assertEqual((code, report["entries"][0]["status"], report["entries"][0]["source"]),
+                         (0, "restored", "local"))
 
     def test_stale_non_pinned_entry_with_a_missing_object_is_unresolved(self):
         item = item_for(NEXUS_URL)
@@ -232,32 +233,73 @@ class PinnedRestoreAndRefreshTests(PinFixture):
         refresh.assert_called_once()
         self.assertEqual((code, report["entries"][0]["status"]), (1, "unresolved"))
 
-    def test_pinned_status_without_a_matching_pin_gets_old_behavior(self):
+    def test_manifest_status_never_overrides_a_different_reviewed_pin(self):
         item = item_for(NEXUS_URL)
-        self.write_manifest(item, self.stored_entry(checked_at=cache.time.time() - 30 * DAY))
-        for pin_setup in (lambda: None, lambda: self.write_pins(sha="3" * 64),
-                          lambda: self.write_pins(url=DEADLY_URL, provider="deadlystream")):
-            pin_setup()
-            with mock.patch.object(cache, "refresh_one", side_effect=ValueError(cache.NEXUS_REASON)) as refresh:
-                (code, report), _ = self.restore(item)
-            refresh.assert_called_once()
-            self.assertEqual(report["entries"][0]["status"], "restored")
+        for pin_setup, expected_code, expected_status, calls in (
+                (lambda: None, 0, "restored", 0),
+                (lambda: self.write_pins(sha="3" * 64), 1, "unresolved", 1),
+                (lambda: self.write_pins(url=DEADLY_URL, provider="deadlystream"), 0, "restored", 0)):
+            with self.subTest(expected_status=expected_status, provider_calls=calls):
+                self.write_manifest(item, self.stored_entry(checked_at=cache.time.time() - 30 * DAY))
+                pin_setup()
+                with mock.patch.object(cache, "recover_objects", return_value=""), \
+                        mock.patch.object(cache, "refresh_one", side_effect=ValueError(cache.NEXUS_REASON)) as refresh:
+                    (code, report), _ = self.restore(item)
+                self.assertEqual(refresh.call_count, calls)
+                self.assertEqual((code, report["entries"][0]["status"]), (expected_code, expected_status))
 
-    def test_pinned_entry_for_unsupported_provider_gets_old_behavior(self):
+    def test_unsupported_seed_provider_still_reuses_verified_cache(self):
         item = self.write_pins(url=DEADLY_URL, provider="deadlystream")
         self.write_manifest(item, self.stored_entry(checked_at=cache.time.time() - 30 * DAY))
         with mock.patch.object(cache, "refresh_one", side_effect=ValueError("HTTP 500")) as refresh:
             (_, report), _ = self.restore(item)
-        refresh.assert_called_once()
+        refresh.assert_not_called()
         self.assertEqual(report["entries"][0]["status"], "restored")
 
     def test_refresh_keeps_pinned_entry_without_fetching(self):
         item = self.write_pins()
         self.write_manifest(item, self.stored_entry(checked_at=cache.time.time() - 30 * DAY))
         with mock.patch.object(cache, "refresh_one", side_effect=AssertionError("no upstream check")):
-            code, report = self.run_main(item, "refresh", "--force")
+            code, report = self.run_main(item, "refresh")
         self.assertEqual((code, report["entries"][0]["status"]), (0, "pinned"))
         self.assertEqual(self.read_entry(item)["status"], "pinned")
+
+    def test_forced_refresh_attempts_provider_and_preserves_pinned_fallback(self):
+        item = self.write_pins()
+        before = self.stored_entry(checked_at=cache.time.time() - 30 * DAY)
+        self.write_manifest(item, before)
+        with mock.patch.object(cache, "refresh_one", side_effect=ValueError(cache.NEXUS_REASON)) as refresh:
+            code, report = self.run_main(item, "refresh", "--download-mode", "refresh")
+        refresh.assert_called_once()
+        entry = report["entries"][0]
+        self.assertEqual((code, entry["source"], entry["status"]), (0, "cached-fallback", "pinned"))
+        self.assertTrue(entry["acquisition"]["provider_attempted"])
+        self.assertEqual(self.read_entry(item)["checked_at"], before["checked_at"])
+
+    def test_forced_refresh_rejects_an_unreviewed_seed_version(self):
+        item = self.write_pins()
+        self.write_manifest(item, self.stored_entry())
+        changed_payload = zip_bytes("changed")
+        changed_sha = cache.hashlib.sha256(changed_payload).hexdigest()
+        changed = {"sha256": changed_sha, "size": len(changed_payload), "extension": "zip",
+                   "archive_name": "pack_a.zip", "status": "fresh", "evidence": "download-200"}
+        cache.object_path(self.root, changed).write_bytes(changed_payload)
+        with mock.patch.object(cache, "refresh_one", return_value=changed) as refresh:
+            code, report = self.run_main(item, "refresh", "--download-mode", "refresh")
+        refresh.assert_called_once()
+        self.assertEqual((code, report["entries"][0]["source"]), (0, "cached-fallback"))
+        self.assertEqual(self.read_entry(item)["sha256"], self.sha)
+        self.assertIn("reviewed seed pin", report["entries"][0]["acquisition"]["fallback_reason"])
+
+    def test_matching_seed_body_accepts_fresh_provider_tags(self):
+        item = self.write_pins()
+        self.write_manifest(item, self.stored_entry())
+        fresh = {**self.stored_entry(), "status": "fresh", "evidence": "download-200"}
+        with mock.patch.object(cache, "refresh_one", return_value=fresh) as refresh:
+            code, report = self.run_main(item, "refresh", "--download-mode", "refresh")
+        refresh.assert_called_once()
+        self.assertEqual((code, report["entries"][0]["source"]), (0, "website"))
+        self.assertEqual(self.read_entry(item)["sha256"], self.sha)
 
     def test_failed_refresh_never_downgrades_a_pinned_entry(self):
         item = self.write_pins()

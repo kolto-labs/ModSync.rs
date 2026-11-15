@@ -1,8 +1,5 @@
 name: Original Companion Starting Armors reference witness
 on:
-  push:
-    branches: [fix/fullrun-ci-credentials]
-    paths: [.github/workflows/k2-companion-vendor-proof.yml]
   workflow_dispatch:
 permissions: {contents: read, actions: read}
 concurrency:

@@ -1,8 +1,5 @@
 name: Prove nine native K2 recipes across twelve owners
 on:
-  push:
-    branches: [fix/fullrun-ci-credentials]
-    paths: [.github/workflows/native-single-ini-ci-proof.yml]
   workflow_dispatch:
     inputs:
       feature_sha:
@@ -20,7 +17,7 @@ jobs:
       fail-fast: false
       matrix: {mode: [cli, gui]}
     runs-on: ubuntu-24.04
-    timeout-minutes: 120
+    timeout-minutes: 180
     env:
       MODE: ${{ matrix.mode }}
       FEATURE_SHA: ${{ inputs.feature_sha || github.sha }}
@@ -53,15 +50,6 @@ jobs:
           sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=60 install -y --no-install-recommends age wine wine64 wine32:i386 xvfb xauth pkg-config libssl-dev zstd openssl python3-tk tesseract-ocr libxkbcommon-x11-dev libx11-dev libxcursor-dev libxrandr-dev libxi-dev libgl1-mesa-dev libwayland-dev scrot
           python -m pip install PyAutoGUI==0.9.54 pytesseract==0.3.13 Pillow==11.3.0
           rustup toolchain install 1.95.0 --profile minimal
-      - name: Build actual application without material credentials
-        timeout-minutes: 35
-        run: |
-          flags=()
-          if [[ "$MODE" == cli ]]; then flags+=(--no-default-features); fi
-          env -i PATH="$PATH" HOME="$HOME" RUSTUP_TOOLCHAIN=1.95.0 \
-            CARGO_PROFILE_RELEASE_OVERFLOW_CHECKS=true CARGO_PROFILE_RELEASE_DEBUG_ASSERTIONS=true \
-            cargo build --locked --release --lib --bin modsync -j2 "${flags[@]}" \
-            >"$RUNNER_TEMP/single-ini-evidence/build.log" 2>&1
       - name: Recover verified own-repository baseline and twelve exact reviewed inputs
         timeout-minutes: 35
         env:
@@ -132,6 +120,38 @@ jobs:
           result.update(installer=material[0]['blob'],component_materials=material,packs=packs)
           (evidence/'material-provenance.json').write_text(json.dumps(result,indent=2))
           PY
+      - name: Acquire authenticated encrypted exact-head production binary
+        id: production-build
+        timeout-minutes: 60
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          CACHE_ENCRYPTION_KEY: ${{ secrets.CACHE_ENCRYPTION_KEY }}
+        run: |
+          umask 077
+          status=0
+          python tools/modsync-ci/production_build.py fetch --mode "$MODE" \
+            --destination target/release/modsync --wait-seconds 3300 \
+            --receipt "$RUNNER_TEMP/single-ini-evidence/production-build-provenance.json" \
+            >"$RUNNER_TEMP/single-ini-evidence/production-build.log" 2>&1 || status=$?
+          if [[ "$status" == 0 ]]; then
+            echo 'reused=true' >>"$GITHUB_OUTPUT"
+          elif [[ "$status" == 3 ]]; then
+            echo 'reused=false' >>"$GITHUB_OUTPUT"
+          else
+            exit "$status"
+          fi
+      - name: Build actual application without material credentials
+        if: ${{ steps.production-build.outputs.reused == 'false' }}
+        timeout-minutes: 35
+        run: |
+          flags=()
+          if [[ "$MODE" == cli ]]; then flags+=(--no-default-features); fi
+          env -i PATH="$PATH" HOME="$HOME" RUSTUP_TOOLCHAIN=1.95.0 \
+            CARGO_PROFILE_RELEASE_OVERFLOW_CHECKS=true CARGO_PROFILE_RELEASE_DEBUG_ASSERTIONS=true \
+            cargo build --locked --release --lib --bin modsync -j2 "${flags[@]}" \
+            >"$RUNNER_TEMP/single-ini-evidence/build.log" 2>&1
+          printf '%s\n' '{"schema_version":1,"source":"local-build-fallback","reason":"exact-head producer unavailable"}' \
+            >"$RUNNER_TEMP/single-ini-evidence/production-build-selection.json"
       - name: Run actual twelve-component binding, independent replay and native installation
         timeout-minutes: 30
         run: |

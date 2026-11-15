@@ -1,9 +1,11 @@
 //! Local archive inference shared by guide conversion and desktop callers.
 pub mod archive_map;
+pub mod duplicate_cleanup;
 mod merge;
 pub mod resolved;
 pub mod reviewed_manual;
 pub(crate) mod reviewed_master;
+pub(crate) mod source_plan_namespace;
 pub(crate) mod source_plan_patcher;
 use crate::{Component, Guide, Instruction, archive};
 use anyhow::{Context, Result, ensure};
@@ -59,7 +61,10 @@ fn ensure_generic_archive_inference(component: &Component) -> Result<()> {
     ensure!(
         !source_plan_patcher::has_owner(&component.guid)?
             && !source_plan_patcher::contains_native(component)
-            && !reviewed_master::contains_resolved(component),
+            && !source_plan_namespace::has_owner(&component.guid)?
+            && !source_plan_namespace::contains_native(component)
+            && !reviewed_master::contains_resolved(component)
+            && !duplicate_cleanup::contains(component),
         "Mapped source-plan and resolved-master owners require their compiled binding; generic local archive inference is forbidden"
     );
     Ok(())

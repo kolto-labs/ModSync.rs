@@ -118,15 +118,74 @@ impl Engine {
         let ini = mods.join(configuration.strip_prefix(package)?);
         if let Some(contract) = contract {
             contract.verify_staged(&mods, &self.settings.cancelled)?;
-        }
-        super::patcher_prepare::normalize(&mods, &self.settings.cancelled)?;
-        let strict = if contract.is_some_and(|contract| contract.requires_exact_prediction()) {
-            let session = odypatcher::Session::discover(
-                mods.to_str()
-                    .context("Native prediction path is not UTF-8")?,
-                "changes.ini",
-                "info.rtf",
+            ensure!(
+                arguments.trim().parse::<usize>().ok() == contract.selected_namespace(),
+                "Native prediction namespace argument differs from compiled selection"
             );
+            contract.verify_selected_configuration(
+                &mods,
+                arguments.trim().parse::<usize>().ok(),
+                &ini,
+                &self.settings.cancelled,
+            )?;
+        }
+        let resource_sources = super::source_plan_resources::prepare(
+            contract,
+            &mods,
+            &game,
+            &self.settings.cancelled,
+        )?;
+        super::patcher_prepare::verify_required_game_language(
+            contract,
+            &game,
+            &self.settings.cancelled,
+        )?;
+        if let Some(receipt) =
+            super::patcher_prepare::prepare_legacy_ini(contract, &ini, &self.settings.cancelled)?
+        {
+            emit(Event {
+                component: "Patcher".into(),
+                step: 0,
+                message: format!("Legacy duplicate-key preparation: {receipt}"),
+            });
+        }
+        if contract.is_some_and(|authority| authority.original_program_run().is_some()) {
+            super::patcher_prepare::normalize_selected(&mods, &ini, &self.settings.cancelled)?;
+        } else {
+            super::patcher_prepare::normalize(&mods, &self.settings.cancelled)?;
+        }
+        super::canonicalize_patcher_layout(&mods)?;
+        let mut session = odypatcher::Session::discover(
+            mods.to_str()
+                .context("Native prediction path is not UTF-8")?,
+            contract
+                .and_then(|contract| contract.selected_ini_name())
+                .unwrap_or("changes.ini"),
+            "info.rtf",
+        );
+        if let Ok(index) = arguments.trim().parse::<usize>() {
+            ensure!(
+                index < session.namespaces.len().max(1),
+                "Native prediction namespace index absent from original map"
+            );
+            if !session.namespaces.is_empty() {
+                session.select_namespace(index);
+            }
+        }
+        ensure!(
+            session.blocked_reason().is_none(),
+            "Native prediction configuration is blocked"
+        );
+        let ini = session.ini_path();
+        let strict = if contract.is_some_and(|contract| contract.requires_exact_prediction()) {
+            contract
+                .context("Missing native prediction selection authority")?
+                .verify_selected_path(
+                    &mods,
+                    arguments.trim().parse::<usize>().ok(),
+                    &session.ini_path(),
+                    &self.settings.cancelled,
+                )?;
             ensure!(
                 session.blocked_reason().is_none(),
                 "Native prediction configuration is blocked"
@@ -144,6 +203,12 @@ impl Engine {
         let mut installer =
             odypatcher::ModInstaller::new(&mods, &game, &ini, Some(odypatcher::PatchLogger::new()))
                 .map_err(|error| anyhow::anyhow!("Prepare native prediction: {error}"))?;
+        if let Some(expected) = contract.and_then(|contract| contract.expected_game()) {
+            ensure!(
+                installer.game == Some(expected),
+                "Source-plan native prediction game differs from the actual detected destination game"
+            );
+        }
         super::companion_selector::adapt(contract, &mut installer)?;
         let tomb_compatibility = super::tomb_shadow_compatibility::adapt(
             contract,
@@ -151,6 +216,14 @@ impl Engine {
             &mods,
             &self.settings.cancelled,
         )?;
+        if let Some(contract) = contract {
+            super::strict_nss::prepare(
+                contract,
+                &mods,
+                &mut installer,
+                self.settings.cancelled.clone(),
+            )?;
+        }
         installer
             .validate_configured_paths()
             .map_err(|error| anyhow::anyhow!("Unsafe native prediction configuration: {error}"))?;
@@ -180,6 +253,15 @@ impl Engine {
         let compatibility = tomb_compatibility
             .map(|prepared| prepared.finish(&mods, &game, &report, &self.settings.cancelled))
             .transpose()?;
+        let compiled_nss = contract
+            .map(|contract| {
+                super::strict_nss::finish(contract, &installer, &self.settings.cancelled)
+            })
+            .transpose()?
+            .unwrap_or_default();
+        let resource_evidence = resource_sources
+            .map(|prepared| prepared.finish(&report))
+            .transpose()?;
         if let Some((session, before)) = strict {
             ensure!(
                 session.write_install_log(&installer.log.all_logs).is_some(),
@@ -195,6 +277,15 @@ impl Engine {
             )?;
             if let Some(compatibility) = compatibility {
                 receipt["Compatibility"] = compatibility;
+            }
+            if let Some(resources) = resource_evidence {
+                receipt["DestinationResourceSources"] = resources;
+            }
+            if let Some(run) = contract.and_then(|authority| authority.original_program_run()) {
+                receipt["OriginalProgramRun"] = run.clone();
+            }
+            if !compiled_nss.is_empty() {
+                receipt["CertifiedNssCompilation"] = serde_json::to_value(compiled_nss)?;
             }
             emit(Event {
                 component: "Patcher".into(),

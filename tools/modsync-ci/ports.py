@@ -7,6 +7,7 @@ import gui_diag
 from fullrun_contract import require_gui_phases
 import fullrun_guide_choices
 import k1_widescreen_inputs
+import install_profiles
 import hashlib
 import json
 import math
@@ -541,12 +542,15 @@ MANUAL_BIND_GENERATOR = "reviewed-manual-file-effects"
 MANUAL_PATCHER_GENERATOR = "reviewed-manual-native-patcher"
 MANUAL_BOOK_SHA256 = "f85240122267d088f7b52c1746c2edb2fdb8795846889f4158dcf59b4fd91d60"
 MANUAL_BOOKS = {
-    "k1": [("reviewed_manual_k1.json", "b04b7331b5001f81698feb5571460ea9e2e486d032956abb22967d704254c338", 66)],
+    "k1": [("reviewed_manual_k1.json", "b04b7331b5001f81698feb5571460ea9e2e486d032956abb22967d704254c338", 66),
+           ("reviewed_manual_raw_inputs_k1.json", "f3dadc5ad04f7c501753ca38bf50492e067c54b8ed1df401910780d3ca836d93", 2),
+           ("reviewed_manual_community_patch_k1.json", "923c0a5ebe52615247717bd3bab6ce48bad98cc664825a840465025b2b7e1fbc", 1)],
     "k2": [("reviewed_manual_k2.json", MANUAL_BOOK_SHA256, 57),
            ("reviewed_manual_single_ini_k2.json", "2eee9ca0321722919306743903b18a872c1be1954c547963b3a737a270679fbe", 4),
            ("reviewed_manual_baodur_k2.json", "f71e9fbf5c3e0bcf300d604c453b44fcdb9f98c8ff82c6f5f568a06a07fad577", 1),
            ("reviewed_manual_log_delete_k2.json", "b4850e572859cf4c22616be584a0ca02411fb2ddcd3ae4f23fcb05d7a97af13a", 2),
-           ("reviewed_manual_installer_choice_k2.json", "e50408f7108f9c0a6b1829d9cfa70b1004721de6f9162437271aa46e59df9b9b", 2)],
+           ("reviewed_manual_installer_choice_k2.json", "e50408f7108f9c0a6b1829d9cfa70b1004721de6f9162437271aa46e59df9b9b", 2),
+           ("reviewed_manual_community_patch_k2.json", "c8f3877165f3da1adc8d5d76cc86ef8e803cc5d2a012aa22ef1f1fb25723db74", 1)],
 }
 BIND_SUFFIXES = (".zip", ".7z", ".rar")
 BIND_UNSAFE_NAME = re.compile(r"[/\\*?\[\]\x00-\x1f\x7f]")
@@ -662,8 +666,213 @@ def mapped_archive_groups(path):
     return groups
 
 
+def load_source_plan_archive_pins(source, game):
+    """Transport exact admitted filenames; native derivation remains the authority."""
+    if game not in ("k1", "k2"):
+        return {}
+    authority_path = source / "src/archive_generation/source_plan_patcher_authority.json"
+    if (authority_path.is_symlink() or not authority_path.is_file()
+            or authority_path.stat().st_size > 256 * 1024
+            or digest(authority_path) != "88aac6db9661452a9a64e230ec4e795131117dd9a3d246262323214e2fa26700"):
+        raise Blocked("source_plan_archive_mapping_identity_changed")
+    authority = json.loads(authority_path.read_text(encoding="utf-8"))
+    rows = authority.get("rows", [])
+    if len(rows) != 46 or sum(row.get("disposition") == "admitted" for row in rows) != 40:
+        raise Blocked("source_plan_archive_mapping_scope_changed")
+    expected = authority["sources"][game]
+    plan_path = source / "tools/modsync-ci/fixtures/ci" / (game + "-manual-plan.json")
+    if (plan_path.is_symlink() or not plan_path.is_file()
+            or plan_path.stat().st_size > 8 * 1024 * 1024
+            or digest(plan_path) != expected["plan_sha256"]):
+        raise Blocked("source_plan_archive_plan_identity_changed")
+    plan = json.loads(plan_path.read_text(encoding="utf-8"))
+    if plan.get("guide_sha256") != expected["guide_sha256"]:
+        raise Blocked("source_plan_archive_guide_identity_changed")
+    pins = {}
+    for row in rows:
+        if row["game"] != game or row["disposition"] != "admitted":
+            continue
+        step = plan["steps"][row["step_index"]]
+        operations = step.get("operations", [])
+        if (step.get("id") != row["step_id"] or step.get("source_heading") != row["heading"]
+                or len(operations) != 2 or operations[0].get("type") != "extract"):
+            raise Blocked("source_plan_archive_step_identity_changed")
+        archive_source = operations[0].get("source", "")
+        filename = archive_source.removeprefix("{archives}/")
+        checksum = plan["archive_sha256"].get(archive_source)
+        if (not archive_source.startswith("{archives}/") or not 0 < len(filename) <= 255
+                or filename in (".", "..") or re.search(r"[/\\*?\x00-\x1f\x7f]", filename)
+                or not filename.lower().endswith(BIND_SUFFIXES)
+                or not isinstance(checksum, str) or not re.fullmatch(r"[0-9a-f]{64}", checksum)
+                or row["guid"] in pins):
+            raise Blocked("source_plan_archive_pin_invalid")
+        pins[row["guid"]] = (filename, checksum)
+    return pins
+
+
+SOURCE_SUPPLEMENTAL_SHA256 = "92fad6add3641d53416effbf8a1360c51fb9b64fc340273c2baa33b06672ee74"
+
+
+def source_context_equal(actual, expected):
+    """Compare the complete pinned owner, accepting omitted empty serialization defaults."""
+    if isinstance(expected, dict):
+        if not isinstance(actual, dict) or set(actual) - set(expected):
+            return False
+        return all(source_context_equal(actual[key], value) if key in actual
+                   else (value is None or value == "" or value == [] or value == {}
+                         or value is False)
+                   for key, value in expected.items())
+    if isinstance(expected, list):
+        return (isinstance(actual, list) and len(actual) == len(expected)
+                and all(source_context_equal(a, e) for a, e in zip(actual, expected)))
+    return type(actual) is type(expected) and actual == expected
+
+
+def load_source_program_groups(source, game, converted):
+    """Closed filename/hash transport from full pinned plans and supplemental choices.
+
+    This grants no native selection, instruction approval or installation authority:
+    Rust reconstructs original context and authenticates every actual input again.
+    """
+    if game not in ("k1", "k2"):
+        return {}
+    # Keep the original forty-owner authority and both source hash pairs anchored.
+    load_source_plan_archive_pins(source, game)
+    authority = json.loads((source / "src/archive_generation/source_plan_patcher_authority.json")
+                           .read_text(encoding="utf-8"))
+    expected = authority["sources"][game]
+    guide_path = source / "src/archive_generation" / ("source_plan_" + game + ".md")
+    if (guide_path.is_symlink() or not guide_path.is_file()
+            or digest(guide_path) != expected["guide_sha256"]):
+        raise Blocked("source_program_guide_identity_changed")
+    plan = json.loads((source / "tools/modsync-ci/fixtures/ci" / (game + "-manual-plan.json"))
+                      .read_text(encoding="utf-8"))
+    components = components_of(converted)
+    count = 197 if game == "k1" else 151
+    if (len(components) != count or len({c.get("Guid") for c in components}) != count
+            or len(plan["steps"]) > count):
+        raise Blocked("source_program_complete_owner_inventory_changed")
+    groups = {}
+    for index, step in enumerate(plan["steps"]):
+        component = components[index]
+        heading = component.get("Heading") or component.get("Name")
+        if (not isinstance(heading, str) or step.get("id") != f"step-{index + 1:03}"
+                or step.get("source_heading") != "### " + heading):
+            raise Blocked("source_program_ordered_owner_heading_changed")
+        operations = step.get("operations", [])
+        native = any(operation.get("type") in ("patcher", "gui_patcher")
+                     for operation in operations)
+        file_owner = index in ({40, 149} if game == "k1" else {94, 135})
+        if not (native or file_owner) or component.get("Guid") == "bee5a72b-d748-8f83-8261-81758a9bfc56":
+            continue
+        pins = {}
+        for operation in step.get("operations", []):
+            archive_source = operation.get("source", "")
+            if not isinstance(archive_source, str) or not archive_source.startswith("{archives}/"):
+                continue
+            filename = archive_source.removeprefix("{archives}/")
+            checksum = plan["archive_sha256"].get(archive_source)
+            if (not 0 < len(filename) <= 255 or filename in (".", "..")
+                    or re.search(r"[/\\*?\x00-\x1f\x7f]", filename)
+                    or not isinstance(checksum, str) or not re.fullmatch(r"[0-9a-f]{64}", checksum)):
+                raise Blocked("source_program_input_pin_invalid")
+            if filename in pins and pins[filename] != checksum:
+                raise Blocked("source_program_input_pin_conflict")
+            pins[filename] = checksum
+        if pins:
+            groups[component["Guid"]] = [{"filename": name, "sha256": checksum}
+                                         for name, checksum in pins.items()]
+    supplemental_path = source / "src/archive_generation/source_plan_namespace/supplemental_authority.json"
+    if (supplemental_path.is_symlink() or not supplemental_path.is_file()
+            or supplemental_path.stat().st_size > 8 * 1024 * 1024
+            or digest(supplemental_path) != SOURCE_SUPPLEMENTAL_SHA256):
+        raise Blocked("source_program_supplemental_identity_changed")
+    supplemental = json.loads(supplemental_path.read_text(encoding="utf-8"))
+    if (supplemental.get("schema") != 1 or supplemental.get("policy") != "closed-supplemental-source-choices-v2"
+            or supplemental.get("source_kind") != "authored-supplemental"
+            or supplemental.get("original_manual_plan_steps") is not False
+            or len(supplemental.get("rows", [])) != 11
+            or supplemental["source_guide_sha256"][game] != expected["guide_sha256"]):
+        raise Blocked("source_program_supplemental_scope_changed")
+    for row in supplemental["rows"]:
+        if row["game"] != game:
+            continue
+        component = components[row["index"]]
+        raw = row["raw_component"]
+        if (row["guid"] != component.get("Guid") or raw.get("Guid") != row["guid"]
+                or raw.get("Name") != row["name"] or row["source_kind"] != "authored-supplemental"
+                or not source_context_equal(component, row["canonical_component"])):
+            raise Blocked("source_program_supplemental_owner_context_changed")
+        groups[row["guid"]] = [{"filename": pin["filename"], "sha256": pin["sha256"],
+                                "source_url": pin["source_url"]}
+                               for pin in row["inputs"] if pin["active"]]
+    return groups
+
+
+# Original pinned plans explicitly consume these five compatibility inputs.
+# The four Mega keys are one-way digests of the canonical archive-map keys;
+# no share/decryption fragment is embedded here. Metadata provenance is the
+# retained run 43710676465 and independently matching historical run 43638810389.
+SOURCE_COMPATIBILITY_DONORS = {
+    ('07416fb0-1f9b-88ba-952f-4029575ad036', 'Vurt-Yavin Compatch.7z', 'df398a85af50791954e11986c90583a145a2e7a00cd47efa30e07f15f69dc1b8'): {
+        'provider_url': 'https://mega.nz/file/QAhhFTzD',
+        'source_id': '8fee01d1de2105d1d4cdd442e4b736515ff6da5b42d641bbc8e5bb12f0021065',
+        'archive_map_key_sha256': 'cae11643464680b67eefac82b9acf8bd2e94d19655f6641ee093fe4210febdd3',
+        'donor_guid': None,
+        'provenance': 'explicit-original-pinned-plan-compatibility-input',
+    },
+    ('83226d49-f919-82a5-923e-c1d00f727c40', 'SAWL Patch.rar', '681ff0da13422831fb006d810fef5733473c866900589aadbce049cc1f58bdcd'): {
+        'provider_url': 'https://mega.nz/',
+        'source_id': 'b406fedc0738bd8df09ae3d59ac25ca6ffca222590f2856b3dcba033f03e318b',
+        'archive_map_key_sha256': '7e34cad6b1f05e3493269eb7bff416ca4dd36b3e58ad84360abd1ac50e0796ae',
+        'donor_guid': None,
+        'provenance': 'explicit-original-pinned-plan-compatibility-input',
+    },
+    ('7696c38c-9a45-8510-bda2-328f29eab2c1', 'Czerka Business Attire - Dark Hope Ithorian Compatch.7z', '72ff641a033230673e2f6bf38c8bbae9e9b49c86108364d2eb375ed07db9c68e'): {
+        'provider_url': 'https://mega.nz/file/wUYRUTAD',
+        'source_id': '6d3324683057692bb2e726f7054cc39e717b9275900484a417014351f22bf90a',
+        'archive_map_key_sha256': '0101ac0d1afcdd0c8742fdfba5ef07a3d5d7a6fe322eebc8e331c53ce8d4f252',
+        'donor_guid': None,
+        'provenance': 'explicit-original-pinned-plan-compatibility-input',
+    },
+    ('351de0e9-d36f-8bb2-ba08-003d9123e25a', 'K2CP_v1.6.3.zip', '6e734ed7e81ad8169d12870ce9fcf829bd56b88f22e7ea20fb37fcb85b8580c1'): {
+        'provider_url': 'https://deadlystream.com/files/file/1280-kotor-2-community-patch/',
+        'source_id': '78025cdaf6b1e9ac10062ed95795a58ddb581e7c6fe01772203086814d81fac7',
+        'archive_map_key_sha256': '78025cdaf6b1e9ac10062ed95795a58ddb581e7c6fe01772203086814d81fac7',
+        'donor_guid': '216eb8b6-3076-8a92-bd7d-012862b10b32',
+        'provenance': 'selected-donor-original-guide-owner',
+    },
+    ('8f97eab8-9ee5-859f-a86f-bb4d0476c34b', 'FS_Fit_Handmaiden Patch.rar', 'dc294dbdfbdf83718fd720a84ebab27a8804f075ce41723faacf2ea57d52b03b'): {
+        'provider_url': 'https://mega.nz/',
+        'source_id': '517af3e204370d15bf0b5dc29e7ad187a2c7920ec2d0103b5dc82a78dde68f57',
+        'archive_map_key_sha256': '0af188c99c157bf4439fd5a395e7aeea1609777618aca3ef88f47b72f3e682b2',
+        'donor_guid': None,
+        'provenance': 'explicit-original-pinned-plan-compatibility-input',
+    },
+}
+
+
+def compiled_compatibility_source_association(component, pin, components, archive_groups):
+    """An exact compiled cross-source input, never a global filename fallback."""
+    donor = SOURCE_COMPATIBILITY_DONORS.get(
+        (component.get("Guid"), pin["filename"], pin["sha256"]))
+    if donor is None or component.get("IsSelected", True) is not True:
+        return False
+    if donor["donor_guid"] is not None:
+        selected = [owner for owner in components if owner.get("Guid") == donor["donor_guid"]
+                    and owner.get("IsSelected", True) is True
+                    and canonical_link(donor["provider_url"]) in {
+                        canonical_link(link) for link in owner.get("ResourceRegistry", {})}]
+        if len(selected) != 1:
+            return False
+    return any(hashlib.sha256(canonical_link(link).encode("utf-8")).hexdigest()
+               == donor["archive_map_key_sha256"] and pin["filename"] in names
+               for link, names in (archive_groups or {}).items())
+
+
 def resolved_archive_bindings(converted, mapping, archives, rules=None, vendor_languages=None,
-                              reviewed_recipes=None, archive_groups=None):
+                              reviewed_recipes=None, archive_groups=None, source_plan_pins=None,
+                              source_program_groups=None, excluded_guids=()):
     """--resolved-archives entries for components whose links map to exactly one archive present in `archives`.
 
     A component the map cannot resolve falls back to its reviewed `archive_aliases` rule
@@ -681,6 +890,8 @@ def resolved_archive_bindings(converted, mapping, archives, rules=None, vendor_l
     bindings = []
     for component in components:
         guid, name = component.get("Guid"), component_archive(component, mapping)
+        if guid in excluded_guids:
+            continue
         recipe = (reviewed_recipes or {}).get(guid)
         if recipe is not None and seen.get(guid) == 1:
             pins = recipe["archives"]
@@ -694,7 +905,10 @@ def resolved_archive_bindings(converted, mapping, archives, rules=None, vendor_l
                 filename = pin["filename"]
                 if (not 0 < len(filename) <= 255
                         or re.search(r"[/\\*?\x00-\x1f\x7f]", filename)
-                        or not filename.lower().endswith(BIND_SUFFIXES)):
+                        or (not filename.lower().endswith(BIND_SUFFIXES)
+                            and (filename, pin["sha256"]) not in {
+                                ("N_DarthMalak01.tga", "04160ed9e2eef2c88a3ed644ec2be24e5cd765f67a7cca35106be062e20358cd"),
+                                ("tar02_duelorg021.dlg", "6ebb0b909c4ac7496971e3cc1320ce14b04fc67aec167f0feeb0e332181aff57")})):
                     break
                 path = archives / filename
                 if path.is_symlink() or not path.is_file() or digest(path) != pin["sha256"]:
@@ -706,13 +920,60 @@ def resolved_archive_bindings(converted, mapping, archives, rules=None, vendor_l
                     binding.update(sha256=pins[0]["sha256"], sizeBytes=(archives / group[0]).stat().st_size)
                 bindings.append(binding)
             continue
+        program_pins = (source_program_groups or {}).get(guid)
+        # Preserve the separately reviewed vendor and exact revision routes.
+        if program_pins is not None and guid not in {
+                "bee5a72b-d748-8f83-8261-81758a9bfc56", "14d77038-49c0-882b-83a1-0a424efa0f60",
+                "ed488679-bc04-892d-973b-107511862024", "e015887a-be0f-86d1-830e-92d82c8fc46c"}:
+            if seen.get(guid) != 1 or not program_pins:
+                continue
+            registry = component.get("ResourceRegistry", {})
+            selected = {filename for link in registry
+                        for filename in (archive_groups or {}).get(canonical_link(link), ())}
+            names = [pin["filename"] for pin in program_pins]
+            if (len(set(names)) != len(names) or not all(
+                    pin["filename"] in selected or compiled_compatibility_source_association(
+                        component, pin, components, archive_groups) for pin in program_pins)):
+                continue
+            group = []
+            for pin in program_pins:
+                filename = pin["filename"]
+                # Literal brackets are permitted only inside this exact compiled
+                # filename/hash group; the generic filename policy is unchanged.
+                if (not 0 < len(filename) <= 255 or filename in (".", "..")
+                        or re.search(r"[/\\*?\x00-\x1f\x7f]", filename)
+                        or not filename.lower().endswith(BIND_SUFFIXES)):
+                    break
+                if ("source_url" in pin and filename not in (archive_groups or {}).get(
+                        canonical_link(pin["source_url"]), ())):
+                    break
+                path = archives / filename
+                if path.is_symlink() or not path.is_file():
+                    break
+                with path.open("rb") as handle:
+                    actual_sha256 = hashlib.file_digest(handle, "sha256").hexdigest()
+                if actual_sha256 != pin["sha256"]:
+                    raise Blocked("source_program_archive_identity_changed")
+                group.append(filename)
+            if len(group) == len(program_pins):
+                binding = {"componentGuid": guid, "filenames": group}
+                if len(group) == 1:
+                    binding.update(sha256=program_pins[0]["sha256"],
+                                   sizeBytes=(archives / group[0]).stat().st_size)
+                bindings.append(binding)
+            continue
         if name is None and by_key:
             name = declared_archive(component, counts, by_key, archives)
         vendor = (guid == "bee5a72b-d748-8f83-8261-81758a9bfc56"
                   and name == "tslrcm2022.exe"
                   and (vendor_languages or {}).get(guid) == "english")
+        source_plan_pin = (source_plan_pins or {}).get(guid)
+        literal_brackets = (source_plan_pin is not None and name == source_plan_pin[0]
+                            and isinstance(name, str) and ("[" in name or "]" in name)
+                            and not re.search(r"[/\\*?\x00-\x1f\x7f]", name))
         if (not isinstance(guid, str) or not guid or seen[guid] != 1 or name is None
-                or not 0 < len(name) <= 255 or name in (".", "..") or BIND_UNSAFE_NAME.search(name)
+                or not 0 < len(name) <= 255 or name in (".", "..")
+                or (BIND_UNSAFE_NAME.search(name) and not literal_brackets)
                 or not (name.lower().endswith(BIND_SUFFIXES) or vendor)):
             continue
         path = archives / name
@@ -720,9 +981,80 @@ def resolved_archive_bindings(converted, mapping, archives, rules=None, vendor_l
             continue
         with path.open("rb") as handle:
             sha256 = hashlib.file_digest(handle, "sha256").hexdigest()
+        # This publisher reused its filename for the separately reviewed 1.0.2
+        # package. Transport either explicit body identity; Rust independently
+        # selects and replays the original or revision authority from fresh bytes.
+        if guid == "14d77038-49c0-882b-83a1-0a424efa0f60" and (name, sha256) not in {
+                ("Trask Ulgo Without Tutorials.7z",
+                 "b9e4b5f4934594400cbc4873cbba12b78444174d5239b92f0049d746f31207cc"),
+                ("Trask Ulgo Without Tutorials.7z",
+                 "39d1da3da9476dafaa86e2568adae522ee95686b9adb51bff5e5d98c9c9e83ee")}:
+            raise Blocked("trask_source_revision_archive_identity_changed")
+        # The public revision has a distinct container name and body identity.
+        # It never aliases the historical ZIP pin; Rust selects the corresponding
+        # original or separately authored revision program from fresh bytes.
+        if guid == "ed488679-bc04-892d-973b-107511862024" and (name, sha256) not in {
+                ("Heyorange_s_Sith Uniform_Reformation_Revised.zip",
+                 "0ac82a9a19b137e58d3ed2f3fcc28e2beab40dce09214f852d520b9f90577ab3"),
+                ("Heyorange_s_Sith Uniform_Reformation_Revised.7z",
+                 "231ca858a5c354c3a76f8408b06256376930bcc999e8967491b1bc750547abe0")}:
+            raise Blocked("uniform_source_revision_archive_identity_changed")
+        if guid == "e015887a-be0f-86d1-830e-92d82c8fc46c" and (name, sha256) not in {
+                ("Improved Enlightenment and Corruption Feats.zip",
+                 "0c6db43f218d6d5bf73b1be8e3f7dc469254f3168920b6af6fa8513313617597"),
+                ("Improved_Enlightenment_and_Corruption_Feats_v1_0_1.zip",
+                 "b3730c98a05a12ee0a6610a57570be62ff14a7217abaef667ced9b4b541f7eed")}:
+            raise Blocked("enlightenment_source_revision_archive_identity_changed")
+        if literal_brackets and sha256 != source_plan_pin[1]:
+            raise Blocked("source_plan_literal_archive_identity_changed")
         bindings.append({"componentGuid": guid, "filenames": [name], "sha256": sha256,
                          "sizeBytes": path.stat().st_size})
     return bindings
+
+
+SOURCE_BOUND_GENERATORS = {
+    "source-plan-native-patcher-v1": ("SourcePlanPatcherBinding", 1,
+                                      "closed-normal-nine-action-empty-directions-v1"),
+    "source-plan-selected-namespace-v1": ("SourcePlanNamespaceBinding", 1,
+                                         "closed-original-source-selected-namespace-v1"),
+    "original-pinned-source-program-v1": ("SourcePlanNamespaceBinding", 2,
+                                         "original-pinned-ordered-program-v1"),
+    "reviewed-guide-duplicate-cleanup-v1": ("GuideDuplicateCleanupBinding", 1,
+                                          "delete-tpc-with-same-directory-casefold-stem-tga-or-dds-v1"),
+}
+
+
+def source_bound_envelope(component):
+    """Recognize a compiled draft envelope for preservation, never approve metadata.
+
+    The actual Rust review that follows must freshly reproduce the source body,
+    owner and effects. A generator string alone never waives the drop guard.
+    """
+    record = component.get("DraftReview") or {}
+    spec = SOURCE_BOUND_GENERATORS.get(record.get("Generator"))
+    if spec is None:
+        return False
+    key, schema, policy = spec
+    binding = component.get(key)
+    result = record.get("Result") or {}
+    if (not isinstance(binding, dict) or binding.get("Schema") != schema
+            or binding.get("Policy") != policy
+            or not isinstance(record.get("RequiresReview"), bool)
+            or result.get("ComponentGuid") != component.get("Guid")
+            or result.get("DraftInstructionCount") != len(component.get("Instructions") or [])
+            or result.get("UnparsedGaps") != []
+            or not isinstance(record.get("Derivations"), list)):
+        return False
+    if key == "SourcePlanPatcherBinding":
+        original = binding.get("OriginalComponent", {})
+    elif key == "SourcePlanNamespaceBinding":
+        choice = binding.get("OriginalSourceChoice", {})
+        original = choice.get("OriginalComponent" if schema == 2 else "canonical_component", {})
+    else:
+        original = binding.get("OriginalComponent", {})
+    return (isinstance(original, dict)
+            and all(original.get(field) == component.get(field)
+                    for field in ("Guid", "Name", "Author", "Directions", "ResourceRegistry")))
 
 
 def bound_result(before, after):
@@ -748,7 +1080,9 @@ def bound_result(before, after):
             record = component.get("DraftReview") or {}
             found[str(component.get("Guid", "")).lower()] = (
                 len(component.get("Instructions") or []), "DraftReview" in component,
-                bool(component.get("InstallationWarning")), record.get("Generator") == BIND_GENERATOR)
+                bool(component.get("InstallationWarning")),
+                record.get("Generator") == BIND_GENERATOR or source_bound_envelope(component),
+                source_bound_envelope(component))
             flatten([option for option in component.get("Options") or [] if isinstance(option, dict)], found)
         return found
 
@@ -792,6 +1126,18 @@ def bound_result(before, after):
                 option for option in component.get("Options") or [] if isinstance(option, dict)]))
         return found
 
+    def source_bindings(components):
+        found = {}
+        for component in components:
+            if source_bound_envelope(component):
+                key = SOURCE_BOUND_GENERATORS[component["DraftReview"]["Generator"]][0]
+                found[str(component.get("Guid", "")).lower()] = {
+                    field: component.get(field) for field in
+                    ("Instructions", "Options", key, "DraftReview")}
+            found.update(source_bindings([
+                option for option in component.get("Options") or [] if isinstance(option, dict)]))
+        return found
+
     old, new = loaded_components(components_of(before)), loaded_components(components_of(after))
     if [item.get("Guid") for item in old] != [item.get("Guid") for item in new]:
         return 0, "bound_output_components_changed"
@@ -807,20 +1153,26 @@ def bound_result(before, after):
     if any(new_vendors.get(identity) != binding
            for identity, binding in vendor_bindings(old).items()):
         return 0, "bound_output_changes_resolved_vendor_recipe"
+    new_sources = source_bindings(new)
+    if any(new_sources.get(identity) != binding
+           for identity, binding in source_bindings(old).items()):
+        return 0, "bound_output_changes_compiled_source_recipe"
     kept = flatten(new, {})
-    for guid, (count, drafted, warned, _) in flatten(old, {}).items():
+    for guid, (count, drafted, warned, _, _) in flatten(old, {}).items():
         if guid not in kept:
             if count or drafted or warned:
                 return 0, "bound_output_drops_instructions_or_drafts"
             continue
-        new_count, new_drafted, new_warned, new_bound = kept[guid]
-        if ((count and not new_count) or (drafted and not new_drafted) or (warned and not new_warned)
+        new_count, new_drafted, new_warned, new_bound, new_source = kept[guid]
+        if ((count and not new_count) or (drafted and not new_drafted)
+                or (warned and not new_warned and not new_source)
                 or (new_count < count and not new_bound)):
             return 0, "bound_output_drops_instructions_or_drafts"
     return sum(1 for item in new
                if (item.get("DraftReview") or {}).get("Generator") in
                (BIND_GENERATOR, MOVIE_BIND_GENERATOR, VENDOR_BIND_GENERATOR,
-                MANUAL_BIND_GENERATOR, MANUAL_PATCHER_GENERATOR)), None
+                MANUAL_BIND_GENERATOR, MANUAL_PATCHER_GENERATOR)
+               or source_bound_envelope(item)), None
 
 
 BIND_DIAGNOSTICS_KEY = "bind_diagnostics"
@@ -928,7 +1280,12 @@ def bind_archives(command, source, guide, converted, archives, archive_map, priv
         bindings = resolved_archive_bindings(
             converted, mapped_archives(archive_map.resolve(strict=True)), archives, rules,
             vendor_languages=vendor_languages, reviewed_recipes=reviewed_recipes,
-            archive_groups=mapped_archive_groups(archive_map.resolve(strict=True)))
+            archive_groups=mapped_archive_groups(archive_map.resolve(strict=True)),
+            source_plan_pins=(load_source_plan_archive_pins(source, guide.parent.name)
+                              if compact_defaults else None),
+            source_program_groups=(load_source_program_groups(source, guide.parent.name, converted)
+                                   if compact_defaults else None),
+            excluded_guids=set((report.get("install_profile_scope") or {}).get("excluded_guids", [])))
     except (OSError, ValueError, AttributeError):
         review["bind_failed"] = "archive_map_unreadable"
         return converted
@@ -2616,9 +2973,14 @@ def rust_gui_failure_fields(failure, components):
 def install_rust_gui_with_quarantine(command, source, private, game, archives, converted, policy_guids,
                                      deselect, report, env, max_iterations=QUARANTINE_MAX_ITERATIONS,
                                      max_fraction=QUARANTINE_MAX_FRACTION, complete_guide=False,
-                                     execute_runner=()):
+                                     execute_runner=(), profile_receipt=None):
     """Run the Rust GUI driver with the shared bounded install quarantine policy."""
     components = converted_components(converted)
+    profile_arguments = []
+    if profile_receipt:
+        profile_path = private / "gui-install-profile.json"
+        profile_path.write_text(json.dumps(profile_receipt, indent=2) + "\n", encoding="utf-8")
+        profile_arguments = ["--install-profile-receipt", str(profile_path)]
     policy = report.get("quarantine") or start_quarantine(
         components, deselect, report, max_iterations, max_fraction)
     report.setdefault(INSTALL_QUARANTINE_KEY, [])
@@ -2643,7 +3005,7 @@ def install_rust_gui_with_quarantine(command, source, private, game, archives, c
                  "--work-dir", str(gui_work), "--report", str(driver_report),
                  "--timeout", "7000"]
                 + (["--complete-guide"] if complete_guide else ["--exclude-widescreen"])
-                + list(execute_runner)
+                + list(execute_runner) + profile_arguments
                 + [flag for guid_ in sorted(skipped) for flag in ("--deselect", guid_)],
                 source, private, stage, report, env)
         except Blocked as failure:
@@ -3570,7 +3932,151 @@ def review_manifest(path, guide, converted):
     return answers
 
 
+
+def consume_verified_build(fd, source, mode, private, report):
+    """Consume Stage's authenticated parent capability, never a guide-supplied receipt.
+
+    Stage acquires and verifies the encrypted producer artifact before its
+    credential scrub, then passes only this anonymous read-only descriptor.
+    Recheck the selected checkout and copy the exact binary into owned storage.
+    """
+    import fcntl
+    import production_build
+
+    def require(value, reason):
+        if not value:
+            raise Blocked("verified_build_" + reason)
+
+    def unchanged(before, after):
+        # Reading may update atime. Identity, ownership, contents and mode must stay fixed.
+        return all(getattr(before, field) == getattr(after, field) for field in (
+            "st_dev", "st_ino", "st_mode", "st_nlink", "st_uid", "st_gid", "st_size",
+            "st_mtime_ns", "st_ctime_ns"))
+
+    def unique_object(pairs):
+        result = {}
+        for key, value in pairs:
+            require(key not in result, "duplicate_json_key")
+            result[key] = value
+        return result
+
+    require(type(fd) is int and fd >= 3, "descriptor_invalid")
+    try:
+        metadata = os.fstat(fd)
+        require(stat.S_ISREG(metadata.st_mode) and metadata.st_nlink == 0
+                and 0 < metadata.st_size <= production_build.MAX_JSON,
+                "descriptor_not_bounded_anonymous_regular")
+        require(fcntl.fcntl(fd, fcntl.F_GETFL) & os.O_ACCMODE == os.O_RDONLY,
+                "descriptor_not_read_only")
+        os.lseek(fd, 0, os.SEEK_SET)
+        with os.fdopen(os.dup(fd), "rb") as stream:
+            body = stream.read(production_build.MAX_JSON + 1)
+        require(len(body) == metadata.st_size and unchanged(metadata, os.fstat(fd)),
+                "descriptor_changed")
+    finally:
+        os.close(fd)
+    payload = json.loads(body, object_pairs_hook=unique_object)
+    require(isinstance(payload, dict)
+            and set(payload) == {"schema_version", "source_path", "receipt"}
+            and type(payload["schema_version"]) is int and payload["schema_version"] == 1
+            and payload["source_path"] == str(source), "parent_context_differs")
+    receipt = payload["receipt"]
+    require(isinstance(receipt, dict) and set(receipt) == {
+        "schema", "status", "repository", "ref", "head_sha", "mode", "binary_path",
+        "binary_sha256", "binary_bytes", "producer_run_id", "producer_run_attempt",
+        "artifact_id", "artifact_zip_sha256", "ciphertext_sha256", "build_provenance"},
+        "receipt_shape_differs")
+    require(type(receipt["schema"]) is int and receipt["schema"] == 1
+            and receipt["status"] == "verified" and receipt["mode"] == mode
+            and receipt["repository"] == production_build.REPOSITORY
+            and receipt["ref"] in production_build.REFS
+            and isinstance(receipt["head_sha"], str)
+            and re.fullmatch(r"[0-9a-f]{40}", receipt["head_sha"]), "identity_differs")
+    for key in ("binary_sha256", "artifact_zip_sha256", "ciphertext_sha256"):
+        require(isinstance(receipt[key], str) and re.fullmatch(r"[0-9a-f]{64}", receipt[key]),
+                "digest_invalid")
+    for key in ("producer_run_id", "producer_run_attempt", "artifact_id", "binary_bytes"):
+        require(type(receipt[key]) is int and receipt[key] > 0, "size_or_identifier_invalid")
+    require(receipt["binary_bytes"] <= production_build.MAX_BINARY, "binary_oversized")
+    clean = {key: os.environ[key] for key in ("PATH", "HOME") if key in os.environ}
+    clean.update(GIT_CONFIG_NOSYSTEM="1", GIT_CONFIG_GLOBAL="/dev/null", GIT_OPTIONAL_LOCKS="0")
+    try:
+        head = subprocess.check_output(["git", "rev-parse", "--verify", "HEAD"],
+                                       cwd=source, env=clean, timeout=30, text=True,
+                                       stderr=subprocess.DEVNULL).strip()
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:
+        raise Blocked("verified_build_checkout_identity_unavailable") from error
+    require(head == receipt["head_sha"], "checkout_head_differs")
+    expected = production_build.recipe(mode, root=source)
+    provenance = receipt["build_provenance"]
+    require(isinstance(provenance, dict), "provenance_missing")
+    wanted = {"schema": 1, "mode": mode, "repository": receipt["repository"],
+              "ref": receipt["ref"], "head_sha": head, "workflow_sha": head,
+              "workflow_ref": receipt["repository"] + "/" + production_build.WORKFLOW + "@" + receipt["ref"],
+              "job": "production", "run_id": str(receipt["producer_run_id"]),
+              "run_attempt": str(receipt["producer_run_attempt"]), "recipe": expected,
+              "recipe_sha256": production_build.digest(production_build.stable(expected)),
+              "binary": {"filename": "modsync", "bytes": receipt["binary_bytes"],
+                         "sha256": receipt["binary_sha256"]}}
+    require(all(provenance.get(key) == value for key, value in wanted.items())
+            and provenance.get("event") in ("push", "workflow_dispatch")
+            and isinstance(provenance.get("compiler"), str)
+            and provenance["compiler"].startswith("rustc 1.95.0 ")
+            and "host: x86_64-unknown-linux-gnu" in provenance["compiler"]
+            and isinstance(provenance.get("cargo"), str)
+            and provenance["cargo"].startswith("cargo 1.95.0 "), "source_recipe_differs")
+    binary = source / "target" / "release" / "modsync"
+    require(receipt["binary_path"] == str(binary), "binary_path_differs")
+    require(all(parent.is_dir() and not parent.is_symlink()
+                for parent in (source / "target", source / "target" / "release")),
+            "binary_parent_unsafe")
+    destination = private / "target" / "release" / "modsync"
+    destination.parent.mkdir(parents=True, mode=0o700)
+    checksum = hashlib.sha256()
+    size = 0
+    prefix = b""
+    try:
+        with os.fdopen(os.open(binary, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK), "rb") as original:
+            before = os.fstat(original.fileno())
+            require(stat.S_ISREG(before.st_mode) and before.st_nlink == 1
+                    and stat.S_IMODE(before.st_mode) == 0o755
+                    and before.st_size == receipt["binary_bytes"], "binary_shape_differs")
+            with destination.open("xb") as output:
+                while chunk := original.read(4 * 1024 * 1024):
+                    size += len(chunk)
+                    require(size <= receipt["binary_bytes"], "binary_grew")
+                    if not prefix:
+                        prefix = chunk[:64]
+                    checksum.update(chunk)
+                    output.write(chunk)
+                require(unchanged(before, os.fstat(original.fileno()))
+                        and size == receipt["binary_bytes"]
+                        and checksum.hexdigest() == receipt["binary_sha256"], "binary_changed")
+                require(prefix[:7] == b"\x7fELF\x02\x01\x01"
+                        and int.from_bytes(prefix[18:20], "little") == 62
+                        and int.from_bytes(prefix[16:18], "little") in (2, 3), "binary_not_expected_elf")
+                output.flush()
+                os.fsync(output.fileno())
+                os.fchmod(output.fileno(), 0o755)
+        require(production_build.recipe(mode, root=source) == expected, "source_changed_during_copy")
+    except BaseException:
+        destination.unlink(missing_ok=True)
+        raise
+    report["production_build"] = {
+        "source": "verified-production-artifact", "head_sha": head, "mode": mode,
+        "producer_run_id": receipt["producer_run_id"], "producer_run_attempt": receipt["producer_run_attempt"],
+        "artifact_id": receipt["artifact_id"], "artifact_zip_sha256": receipt["artifact_zip_sha256"],
+        "ciphertext_sha256": receipt["ciphertext_sha256"], "binary_sha256": receipt["binary_sha256"],
+        "binary_bytes": size, "recipe_sha256": wanted["recipe_sha256"],
+        "source_inventory_sha256": expected["source_inventory_sha256"]}
+    progress("verified exact-head production binary copied into private execution storage")
+    return destination
+
+
 def execute(args, report):
+    verified_fd = getattr(args, "verified_build_fd", None)
+    if verified_fd is not None and (args.implementation != "rust" or not getattr(args, "complete_guide", False)):
+        raise Blocked("verified_build_requires_complete_rust_lane")
     source = args.source.resolve(strict=True)
     guide = args.guide.resolve(strict=True)
     game = args.game_dir.resolve(strict=True)
@@ -3591,6 +4097,14 @@ def execute(args, report):
     private = Path(tempfile.mkdtemp(prefix="ports-", dir=work))
     private.chmod(0o700)
     report["guide_sha256"] = digest(guide)
+    if getattr(args, "complete_guide", False):
+        try:
+            scope = install_profiles.profile_scope(guide.parent.name, args.install_profile)
+        except ValueError as error:
+            raise Blocked(str(error)) from error
+        if report["guide_sha256"] != scope["source_guide_sha256"]:
+            raise Blocked("install_profile_requires_pinned_complete_guide")
+        report["install_profile_scope"] = scope
     env = os.environ.copy()
     env["CARGO_TARGET_DIR"] = str(private / "target")
     converted = private / "converted.toml"
@@ -3608,17 +4122,27 @@ def execute(args, report):
             env["CARGO_PROFILE_RELEASE_DEBUG_ASSERTIONS"] = "true"
             if args.mode == "cli":
                 build.append("--no-default-features")
-        run(build, source, private, "build", report, env)
-        command = [str(private / "target" / profile / "modsync")]
+        if verified_fd is None:
+            run(build, source, private, "build", report, env)
+            report["production_build"] = {"source": "local-build", "profile": profile,
+                                          "mode": args.mode, "cargo_arguments": build[1:]}
+            executable = private / "target" / profile / "modsync"
+        else:
+            executable = consume_verified_build(verified_fd, source, args.mode, private, report)
+        command = [str(executable)]
         archive_map = []
         if args.archive_map:
             archive_map = ["--archive-map", str(args.archive_map.resolve(strict=True))]
         complete = getattr(args, "complete_guide", False)
         local_generation = [] if complete else ["--auto-generate-local"]
+        preparation = []
+        if complete and guide.parent.name == "k2":
+            preparation = ["--k2-preparation-profile", "steam-windows-source-3cfd-v1"]
+            report["native_k2_preparation_profile"] = "steam-windows-source-3cfd-v1"
         try:
             run(command + ["convert", str(guide), str(converted),
                            "--format", "toml", "--parse-directions"] + local_generation
-                + ["--source-path", str(archives)] + archive_map,
+                + ["--source-path", str(archives)] + archive_map + preparation,
                 source, private, "convert", report, env)
         finally:
             record_convert_skips(private / "convert.log", report)
@@ -3685,6 +4209,7 @@ def execute(args, report):
     if args.implementation == "rust":
         report["stage"] = "draft_review"
         exempt = deselected_now()
+        exempt |= set((report.get("install_profile_scope") or {}).get("excluded_guids", []))
         if gui_rust and not complete_gui:
             exempt |= {item["component_guid"] for item in gui_widescreen_scope(converted, exempt)[0]}
         accept_drafts(command, source, converted, private, report, env, exempt, gui_rust)
@@ -3698,27 +4223,33 @@ def execute(args, report):
             command, source, game, guide, converted, private, report, env)
         report["stage"] = "guide_selection"
         try:
-            receipt, retained = fullrun_guide_choices.project(
-                guide, converted, archives, args.restore_report.resolve(strict=True),
-                args.archive_map.resolve(strict=True),
-                Path(__file__).resolve().with_name("seed_pins.json"),
-                guide_step_list(guide.read_text(encoding="utf-8"), "rust")[0],
-                report.get(SKIPPED_REPORT_KEY, []), baseline_applicability=applicability,
-                source_order=True)
+            movie_alternative = None
+            if args.install_profile == "exhaustive":
+                movie_alternative = fullrun_guide_choices.verify_alternative(
+                    guide.parent.name, archives, args.restore_report.resolve(strict=True),
+                    args.archive_map.resolve(strict=True),
+                    Path(__file__).resolve().with_name("seed_pins.json"))
+            receipt = install_profiles.apply(converted, guide.parent.name,
+                args.install_profile, baseline_applicability=applicability)
         except (ValueError, OSError, subprocess.SubprocessError) as error:
-            raise Blocked("documented_linux_guide_selection_refused: " + str(error)) from error
-        report["guide_selection"] = receipt
+            raise Blocked("install_profile_selection_refused: " + str(error)) from error
+        if movie_alternative is not None:
+            receipt["selected_movie_alternative"] = movie_alternative
+        report["install_profile"] = receipt
         report["complete_guide"] = True
-        report["installation_scope"] = fullrun_guide_choices.CLAIM
-        report[SKIPPED_REPORT_KEY] = retained
-        report["original_converted_component_count"] = report["converted_component_count"]
-        report["converted_component_count"] = receipt["admitted_component_count"]
-        report["admitted_component_count"] = receipt["admitted_component_count"]
-        report["component_count"] = receipt["admitted_component_count"]
-        report["source_order"] = receipt["source_order_policy"]
-        report["converted_sha256"] = digest(converted)
-        inactive = {item["component_guid"] for item in receipt["inactive"]
-                    if item["component_guid"] is not None}
+        report["installation_scope"] = receipt["claim"]
+        omitted = set(receipt["excluded_guids"]) | set(receipt["platform_inactive_guids"])
+        report["profile_selection_omissions"] = [item for item in report.get(SKIPPED_REPORT_KEY, [])
+            if item.get("component_guid") in omitted]
+        report[SKIPPED_REPORT_KEY] = [item for item in report.get(SKIPPED_REPORT_KEY, [])
+            if item.get("component_guid") not in omitted]
+        report["original_converted_component_count"] = receipt["source_definition_count"]
+        report["converted_component_count"] = receipt["retained_definition_count"]
+        report["admitted_component_count"] = receipt["selected_count"]
+        report["component_count"] = receipt["selected_count"]
+        report["source_order"] = fullrun_guide_choices.source_order_policy(receipt["original_guids"])
+        report["converted_sha256"] = receipt["admitted_input_sha256"]
+        inactive = omitted
         # Keep original conversion diagnostics, separately attributed to the two
         # inactive choices; they are not required admitted recipe components.
         diagnostics = report.get(BIND_DIAGNOSTICS_KEY, [])
@@ -3740,10 +4271,14 @@ def execute(args, report):
     for record in report.get(SKIPPED_REPORT_KEY, []):
         if record["component_guid"] is not None:
             deselect += ["--deselect", record["component_guid"]]
+    profile_receipt = report.get("install_profile") or {}
+    profile_omitted = set(profile_receipt.get("excluded_guids", [])) | set(profile_receipt.get("platform_inactive_guids", []))
+    deselect += [flag for identity in sorted(profile_omitted) for flag in ("--deselect", identity)]
     policy_guids = deselected_now()
+    execution_excluded = policy_guids | profile_omitted
     excluded, has_widescreen = ([], False)
     if gui_rust:
-        excluded, has_widescreen = gui_widescreen_scope(converted, policy_guids)
+        excluded, has_widescreen = gui_widescreen_scope(converted, execution_excluded)
         if complete_gui:
             excluded = []
         report["gui_not_covered"] = {
@@ -3753,7 +4288,7 @@ def execute(args, report):
     if args.implementation == "rust":
         report["stage"] = "draft_review"
         pending = pending_drafts(
-            converted, policy_guids | {item["component_guid"] for item in excluded}, gui_rust)
+            converted, execution_excluded | {item["component_guid"] for item in excluded}, gui_rust)
         if pending:
             # accept_drafts accepted or deselected every pending draft; one left is a bug.
             report.setdefault("draft_review", {})["unreviewed"] = pending
@@ -3763,14 +4298,14 @@ def execute(args, report):
         report["stage"] = "review"
         choices = review_manifest(args.review_manifest, guide, converted)
         selected_input = converted
-        if policy_guids:
+        if execution_excluded:
             selected_input = private / "converted-policy.toml"
             report["selected_after_policy_count"] = select_base_components(
-                converted, policy_guids, selected_input)
+                converted, execution_excluded, selected_input)
         document = tomllib.loads(converted.read_text(encoding="utf-8"))
         installable = [guid(component["Guid"])
                        for component in document.get("thisMod", document.get("Components", []))
-                       if guid(component["Guid"]) not in policy_guids]
+                       if guid(component["Guid"]) not in execution_excluded]
         report["installable_component_count"] = len(installable)
         all_installable = list(installable)
         alias_archives(converted, args.archive_map, archives, set(installable), report,
@@ -3836,7 +4371,7 @@ def execute(args, report):
         report["reason"] = "native_install_commands_succeeded"
         return
     directories = ["--input", str(converted), "--game-dir", str(game),
-                   "--source-dir", str(archives)]
+                   "--source-dir", str(archives), "--use-file-selection"]
     execute_runner = execute_runner_arguments(private, converted, report) if complete_rust else []
     if complete_rust:
         # Complete runs authorize the reviewed admitted external instructions.
@@ -3854,25 +4389,29 @@ def execute(args, report):
             command, source, private, game, archives, converted, policy_guids, deselect, report, env,
             getattr(args, "max_quarantine", QUARANTINE_MAX_ITERATIONS),
             getattr(args, "max_quarantine_fraction", QUARANTINE_MAX_FRACTION),
-            complete_guide=complete_gui, execute_runner=execute_runner)
+            complete_guide=complete_gui, execute_runner=execute_runner,
+            profile_receipt=profile_receipt or None)
         gui_skipped = policy_guids | {item["component_guid"] for item in quarantined_entries(report)}
         if not driver_report.is_file() or driver_report.is_symlink():
             raise Blocked("gui_completion_report_missing")
         result = json.loads(driver_report.read_text(encoding="utf-8"))
         if not isinstance(result, dict):
             raise Blocked("gui_completion_not_verified")
-        expected_completed = (report["component_count"] - len(gui_skipped) - len(excluded))
+        expected_completed = (len(set(profile_receipt["selected_guids"]) - gui_skipped)
+            if profile_receipt else report["component_count"] - len(gui_skipped) - len(excluded))
         if complete_gui:
-            expected_ids = {str(component.get("Guid", "")).lower()
-                            for component in converted_components(converted)} - gui_skipped
+            expected_ids = ((set(profile_receipt["selected_guids"]) if profile_receipt else
+                             {str(component.get("Guid", "")).lower()
+                              for component in converted_components(converted)}) - gui_skipped)
             if set(result.get("completed_guids", [])) != expected_ids:
                 raise Blocked("gui_complete_guide_component_set_mismatch")
-            if has_widescreen and not gui_skipped:
+            if has_widescreen:
                 try:
-                    require_gui_phases(result, report["component_count"])
+                    require_gui_phases(result, expected_completed, definition_count=(
+                        report["converted_component_count"] if profile_receipt else None))
                 except ValueError as error:
                     raise Blocked("gui_complete_guide_phase_evidence_invalid: " + str(error)) from error
-            selected_widescreen = gui_widescreen_scope(converted, gui_skipped)[0]
+            selected_widescreen = gui_widescreen_scope(converted, gui_skipped | profile_omitted)[0]
             expected_phase = ("completed_and_verified" if selected_widescreen else
                               "not_installed_due_to_policy") if has_widescreen else "none_in_input"
             if result.get("widescreen_phase") != expected_phase:
@@ -3887,10 +4426,14 @@ def execute(args, report):
                 or result.get("ui_completed") is not True
                 or result.get("input_sha256") != report["converted_sha256"]
                 or result.get("binary_sha256") != digest(Path(command[0]))
-                or result.get("component_count") != report["component_count"]
+                or result.get("component_count") != (report["converted_component_count"] if profile_receipt else report["component_count"])
                 or result.get("completed_components") != expected_completed
                 or result.get("expected_components") != expected_completed
                 or result.get("skipped_by_reviewed_policy") != sorted(gui_skipped)
+                or (profile_receipt and (
+                    result.get("install_profile") != profile_receipt
+                    or result.get("profile_excluded_guids") != profile_receipt["excluded_guids"]
+                    or result.get("platform_inactive_guids") != profile_receipt["platform_inactive_guids"]))
                 or result.get("excluded_widescreen") != sorted(
                     item["component_guid"] for item in excluded)
                 or result.get("widescreen_phase") != report["gui_not_covered"]["widescreen_phase"]
@@ -3921,8 +4464,11 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--implementation", choices=("rust", "typescript"), required=True)
     parser.add_argument("--mode", choices=("cli", "gui"), required=True)
+    parser.add_argument("--install-profile", choices=install_profiles.PROFILES, default="minimal",
+                        help="closed selections on the complete pinned source guide; definitions stay intact")
     parser.add_argument("--complete-guide", action="store_true",
                         help="drive the Rust desktop through base and remaining phases with full receipt verification")
+    parser.add_argument("--verified-build-fd", type=int, help=argparse.SUPPRESS)
     parser.add_argument("--review-manifest", type=Path,
                         help="separately authored hash-bound JSON review (TypeScript required)")
     parser.add_argument("--archive-map", type=Path,

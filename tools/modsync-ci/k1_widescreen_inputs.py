@@ -3,6 +3,8 @@
 
 `remote` enables the optional same-repository Actions artifact read tier. Public
 publisher fallback needs no credentials and remains available with remote=False.
+Cache-first uses verified cache tiers before publishers; refresh tries publishers
+first and falls back to verified cache. cache_only forbids publisher requests.
 This does not change the main archive manifest, cache objects, packs or indexes.
 """
 from __future__ import annotations
@@ -337,54 +339,88 @@ def _report(path, report):
         temporary.unlink(missing_ok=True)
 
 
-def ensure(archives_root: Path, cache_root: Path, report_path: Path, *, remote=True) -> dict:
+def ensure(archives_root: Path, cache_root: Path, report_path: Path, *, remote=True,
+           cache_only=False, download_mode='cache-first') -> dict:
     """Return a bounded report; callers must require report['ok'] before install.
 
     Existing wrong files are fatal and remain untouched. No payload is accepted
     from a mere listing, response metadata, or an unverified cached object.
     """
+    _require(download_mode in ('cache-first', 'refresh'), "invalid-download-mode")
+    _require(not (cache_only and download_mode == 'refresh'), "refresh-cache-only-conflict")
     archives, root, report_path = _path(archives_root), _path(cache_root), _path(report_path)
     _require(not (archives.is_relative_to(root) or root.is_relative_to(archives)), "archive-cache-roots-overlap")
     _require(not any(report_path.is_relative_to(path) or path.is_relative_to(report_path) for path in (archives, root)), "report-payload-path-overlap")
     report = {"schema_version": 1, "kind": "k1-native-widescreen-public-input-acquisition",
         "profile_id": PROFILE_ID, "profile_sha256": PROFILE_SHA256,
         "galaxy_profile_sha256": GALAXY_PROFILE_SHA256, "source_guide_sha256": GUIDE_SHA256,
-        "source_plan_sha256": PLAN_SHA256, "ok": False, "entries": []}
+        "source_plan_sha256": PLAN_SHA256, "download_mode": download_mode,
+        "cache_only": bool(cache_only), "ok": False, "entries": []}
     context, remote_attempted = None, False
     try:
         pins = _pins()
         archives = _directory(archives)
         objects = _directory(root / "k1-widescreen-inputs" / "objects")
+        def cached(pin, destination, auxiliary):
+            nonlocal context, remote_attempted
+            if _present(destination, pin):
+                return "verified-destination"
+            if _present(auxiliary, pin):
+                _copy(auxiliary, destination, pin)
+                return "auxiliary-cache"
+            ordinary = root / "objects" / pin["sha256"]
+            if _present(ordinary, pin):
+                _copy(ordinary, destination, pin)
+                return "existing-cache-object"
+            if remote and not remote_attempted:
+                remote_attempted = True
+                try:
+                    context = _remote_context()
+                except Exception:
+                    context = None
+            try:
+                found = _remote_fetch(context, pin, auxiliary, objects)
+            except Exception:
+                found = False
+            if found:
+                _copy(auxiliary, destination, pin)
+                return "same-repository-artstore-read"
+            return None
+
         for pin in pins:
             entry = {**pin, "status": "pending", "publisher": SOURCES[pin["role"]][0]}
             report["entries"].append(entry)
-            destination = archives / pin["filename"]
-            auxiliary = objects / pin["sha256"]
-            if _present(destination, pin):
-                entry.update(status="verified", source_class="verified-destination")
-            elif _present(auxiliary, pin):
-                _copy(auxiliary, destination, pin)
-                entry.update(status="verified", source_class="auxiliary-cache")
-            elif _present(root / "objects" / pin["sha256"], pin):
-                _copy(root / "objects" / pin["sha256"], destination, pin)
-                entry.update(status="verified", source_class="existing-cache-object")
-            else:
-                if remote and not remote_attempted:
-                    remote_attempted = True
-                    try:
-                        context = _remote_context()
-                    except Exception:
-                        context = None
+            destination, auxiliary = archives / pin["filename"], objects / pin["sha256"]
+            source_class = None
+            if download_mode == 'refresh':
+                # Existing incorrect payloads stay fatal; never replace them even
+                # when a publisher would supply a valid pinned body.
+                _present(destination, pin)
+                _present(auxiliary, pin)
                 try:
-                    found = _remote_fetch(context, pin, auxiliary, objects)
-                except Exception:
-                    found = False
-                if found:
-                    entry.update(status="verified", source_class="same-repository-artstore-read")
-                else:
-                    _publisher(pin, auxiliary)
-                    entry.update(status="verified", source_class="verified-public-publisher")
+                    with tempfile.TemporaryDirectory(prefix=".k1-refresh-", dir=objects) as temporary:
+                        refreshed = Path(temporary) / pin["filename"]
+                        _publisher(pin, refreshed)
+                        _identity(refreshed, pin)
+                        _copy(refreshed, auxiliary, pin)
+                    _copy(auxiliary, destination, pin)
+                    source_class = "verified-public-publisher-refresh"
+                    entry["publisher_refresh"] = "verified"
+                except Exception as error:
+                    entry["publisher_refresh"] = "failed-cache-fallback"
+                    entry["publisher_refresh_failure"] = (str(error) if isinstance(error, InputError)
+                        else type(error).__name__[:96])
+            if source_class is None:
+                source_class = cached(pin, destination, auxiliary)
+                if source_class is not None and download_mode == 'refresh':
+                    source_class = "refresh-fallback-" + source_class
+            if source_class is None:
+                _require(not cache_only, "required-input-not-in-cache")
+                _require(download_mode != 'refresh', "refresh-and-cache-unavailable")
+                _publisher(pin, auxiliary)
                 _copy(auxiliary, destination, pin)
+                source_class = "verified-public-publisher"
+            entry.update(status="verified", source_class=source_class)
             if not _present(auxiliary, pin):
                 _copy(destination, auxiliary, pin)
             _identity(destination, pin)
@@ -418,9 +454,12 @@ def main(argv=None):
     parser.add_argument("--cache", type=Path, required=True)
     parser.add_argument("--report", type=Path, required=True)
     parser.add_argument("--no-remote", action="store_true", help="disable optional Actions artifact reads; public fallback remains available")
+    parser.add_argument("--cache-only", action="store_true", help="reject misses after verified cache/artifact tiers; never contact publishers")
+    parser.add_argument("--download-mode", choices=("cache-first", "refresh"), default="cache-first")
     args = parser.parse_args(argv)
     try:
-        report = ensure(args.archives, args.cache, args.report, remote=not args.no_remote)
+        report = ensure(args.archives, args.cache, args.report, remote=not args.no_remote,
+                        cache_only=args.cache_only, download_mode=args.download_mode)
     except Exception:
         print("K1 auxiliary acquisition rejected unsafe paths or report destination")
         return 1

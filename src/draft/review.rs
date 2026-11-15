@@ -173,6 +173,14 @@ fn notes(notes: &[String], expected: usize, kind: &str) -> Result<()> {
 /// editor transaction validates the entire resulting guide before publication.
 pub fn resolve(component: &mut Component, resolution: &Resolution) -> Result<()> {
     ensure!(
+        !crate::archive_generation::source_plan_namespace::contains_native(component),
+        "Selected namespace recipes require their dedicated complete source replay"
+    );
+    ensure!(
+        !crate::archive_generation::duplicate_cleanup::contains(component),
+        "Compiled duplicate cleanup requires dedicated source replay"
+    );
+    ensure!(
         !crate::archive_generation::source_plan_patcher::contains_native(component),
         "Source-plan native owners require their dedicated independent whole-component replay verifier"
     );
@@ -466,7 +474,41 @@ pub fn verify_archive_derived(
         "Draft is not awaiting review"
     );
     if record.get("Generator").and_then(Value::as_str)
-        == Some(crate::archive_generation::reviewed_master::GENERATOR)
+        == Some(crate::k2_preparation::MASTER_GENERATOR)
+    {
+        let replayed = crate::k2_preparation::replay_master(component, root, options, cancelled)?;
+        ensure!(
+            serde_json::to_value(&*component)? == serde_json::to_value(&replayed)?,
+            "Pending Lightsaber master model differs"
+        );
+        let verification = crate::k2_preparation::master_verification(&replayed)?;
+        let mut cleared = replayed;
+        clear_subtree(&mut cleared, &verification, 0)?;
+        *component = cleared;
+        return Ok(());
+    }
+    ensure!(
+        !crate::k2_preparation::contains_master(component),
+        "Preparation master cannot use another verifier"
+    );
+    if record.get("Generator").and_then(Value::as_str)
+        == Some(crate::archive_generation::duplicate_cleanup::GENERATOR)
+    {
+        let replayed = crate::archive_generation::duplicate_cleanup::replay(component, cancelled)?;
+        let verification = crate::archive_generation::duplicate_cleanup::verification(&replayed)?;
+        let mut cleared = replayed;
+        clear_subtree(&mut cleared, &verification, 0)?;
+        *component = cleared;
+        return Ok(());
+    }
+    ensure!(
+        !crate::archive_generation::duplicate_cleanup::contains(component),
+        "Compiled duplicate cleanup cannot use another replay verifier"
+    );
+    if record
+        .get("Generator")
+        .and_then(Value::as_str)
+        .is_some_and(crate::archive_generation::reviewed_master::is_generator)
     {
         return verify_reviewed_master(component, root, options, cancelled);
     }
@@ -482,6 +524,20 @@ pub fn verify_archive_derived(
     ensure!(
         !crate::archive_generation::source_plan_patcher::contains_native(component),
         "Source-plan native provenance cannot use another draft replay verifier"
+    );
+    if record
+        .get("Generator")
+        .and_then(Value::as_str)
+        .is_some_and(|generator| {
+            generator == crate::archive_generation::source_plan_namespace::GENERATOR
+                || generator == crate::archive_generation::source_plan_namespace::PROGRAM_GENERATOR
+        })
+    {
+        return verify_source_plan_namespace(component, root, options, cancelled);
+    }
+    ensure!(
+        !crate::archive_generation::source_plan_namespace::contains_native(component),
+        "Selected namespace provenance cannot use another replay verifier"
     );
     if record.get("Generator").and_then(Value::as_str)
         == Some(crate::k1_widescreen_recipe::GENERATOR)
@@ -650,6 +706,44 @@ fn verify_reviewed_master(
         "Complete pending master model differs from fresh replay"
     );
     let verification = crate::archive_generation::reviewed_master::verification(&replayed)?;
+    let mut cleared = component.clone();
+    clear_subtree(&mut cleared, &verification, 0)?;
+    *component = cleared;
+    Ok(())
+}
+
+fn verify_source_plan_namespace(
+    component: &mut Component,
+    root: &Path,
+    options: &archive::Options,
+    cancelled: &AtomicBool,
+) -> Result<()> {
+    let record = component
+        .metadata
+        .get("DraftReview")
+        .context("Missing selected namespace generated draft")?;
+    const KEYS: [&str; 4] = ["RequiresReview", "Result", "Generator", "Derivations"];
+    ensure!(
+        record.as_object().is_some_and(|object| {
+            object.len() == KEYS.len() && object.keys().all(|key| KEYS.contains(&key.as_str()))
+        }) && record["RequiresReview"] == true
+            && (record["Generator"] == crate::archive_generation::source_plan_namespace::GENERATOR
+                || record["Generator"]
+                    == crate::archive_generation::source_plan_namespace::PROGRAM_GENERATOR)
+            && !pending_masters(component, 0),
+        "Selected namespace review requires exact pending provenance without resolution history or unresolved masters"
+    );
+    let mut replayed = crate::archive_generation::source_plan_namespace::replay(
+        component, root, options, cancelled,
+    )?;
+    // Only outer selection is adapter-owned; all provenance and nested models
+    // must equal the fresh independent pending derivation before review clears.
+    replayed.is_selected = component.is_selected;
+    ensure!(
+        serde_json::to_value(&*component)? == serde_json::to_value(&replayed)?,
+        "Selected namespace complete pending model differs from independent replay"
+    );
+    let verification = crate::archive_generation::source_plan_namespace::verification(&replayed)?;
     let mut cleared = component.clone();
     clear_subtree(&mut cleared, &verification, 0)?;
     *component = cleared;

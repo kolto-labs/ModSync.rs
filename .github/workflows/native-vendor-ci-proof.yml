@@ -1,8 +1,5 @@
 name: Prove native reviewed K2 components
 on:
-  push:
-    branches: [fix/fullrun-ci-credentials]
-    paths: [.github/workflows/native-vendor-ci-proof.yml]
   workflow_dispatch:
     inputs:
       feature_sha:

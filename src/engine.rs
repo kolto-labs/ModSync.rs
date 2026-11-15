@@ -3,6 +3,7 @@ pub use authoring::AuthoringActionReport;
 mod checkpoint_coordinator;
 mod cleanlist;
 mod k1_widescreen;
+mod k2_preparation;
 mod managed;
 mod source_resolution;
 mod tomb_shadow_compatibility;
@@ -27,6 +28,8 @@ mod patcher_prediction;
 mod patcher_prepare;
 mod provided_installer;
 mod reviewed_patcher;
+mod source_plan_resources;
+mod strict_nss;
 pub use provided_installer::{ProvidedInstallerRunner, WindowsProcessRunner};
 mod patcher_simulation;
 pub(crate) mod process_arguments;
@@ -605,6 +608,9 @@ pub struct Engine {
     selected: BTreeSet<crate::guid::Identity>,
     completed: BTreeSet<crate::guid::Identity>,
     checkpoint_completed: BTreeSet<crate::guid::Identity>,
+    completed_source_definitions: BTreeMap<crate::guid::Identity, Component>,
+    supplemental_source_guide: Option<Guide>,
+    k2_prepared: Option<serde_json::Value>,
     selected_names: BTreeSet<String>,
     conflicts: Option<crate::conflicts::Tracker>,
     validation_target: Option<(String, String, Option<usize>)>,
@@ -823,6 +829,9 @@ impl Engine {
             selected: BTreeSet::new(),
             completed: BTreeSet::new(),
             checkpoint_completed: BTreeSet::new(),
+            completed_source_definitions: BTreeMap::new(),
+            supplemental_source_guide: None,
+            k2_prepared: None,
             selected_names: BTreeSet::new(),
             conflicts: None,
             validation_target: None,
@@ -1199,6 +1208,7 @@ impl Engine {
             "maxExpandedBytes": self.settings.archive.max_expanded_bytes,
             "selected": selected,
             "excluded": crate::selection::exclusion_receipt(&guide.components, &availability),
+            "k2Preparation": crate::k2_preparation::verify(guide)?,
         }))
     }
 
@@ -1519,6 +1529,7 @@ impl Engine {
                 self.path_policy.case_insensitive,
             )?;
             engine.completed = self.completed.clone();
+            engine.checkpoint_resume = self.checkpoint_resume.clone();
             Ok(engine)
         };
         let validated_components: Vec<_> = guide
@@ -1717,6 +1728,12 @@ impl Engine {
             .map(|component| component.name.clone())
             .collect();
         let mut issues = Vec::new();
+        if let Err(error) = self.prepare_k2(guide, None, &mut |_| {}) {
+            return vec![crate::validation::DryRunIssue::engine(
+                format!("{error:#}"),
+                None,
+            )];
+        }
         for component in ordered {
             if self
                 .completed
@@ -1761,7 +1778,7 @@ impl Engine {
                 }
                 let result = self
                     .check_cancelled()
-                    .and_then(|_| self.execute(component, instruction, &mut |_| {}))
+                    .and_then(|_| self.execute_indexed(component, instruction, index, &mut |_| {}))
                     .with_context(|| {
                         format!(
                             "{} / step {} ({})",
@@ -1815,6 +1832,7 @@ impl Engine {
     ) -> Result<Vec<crate::validation::ArchiveOutcome>> {
         recovery::ensure_clean(&self.settings.roots)?;
         recovery::verify_completion(&self.settings.roots, guide, self.completed.len())?;
+        self.prepare_k2(guide, None, emit)?;
         self.selected = selected_guid_keys(guide);
         self.selected.extend(self.completed.iter().cloned());
         let mut outcomes = Vec::new();
@@ -2227,6 +2245,7 @@ impl Engine {
         warnings: &mut crate::fomod::WarningCollector,
         issues: &mut Vec<anyhow::Error>,
     ) -> Result<()> {
+        self.prepare_k2(guide, None, &mut |_| {})?;
         fn configured_choices(
             component: &Component,
             filename: &str,
@@ -2971,6 +2990,9 @@ impl Engine {
     /// Inspect only applying actions and reached options. Runner configuration by
     /// itself does not change an installation that never launches such a runner.
     fn requires_external_writer_checkpoint(&self, guide: &Guide) -> Result<bool> {
+        if crate::k2_preparation::verify(guide)?.is_some() {
+            return Ok(true);
+        }
         let provided = self.settings.provided_installer.is_some();
         let execute = self.settings.execute_runner.is_some() || provided;
         fn visit(
@@ -2989,7 +3011,7 @@ impl Engine {
             if crate::archive_generation::reviewed_master::contains_resolved(component) {
                 return Ok(true);
             }
-            for instruction in &component.instructions {
+            for (operation_index, instruction) in component.instructions.iter().enumerate() {
                 if !applies_with(selected, instruction) {
                     continue;
                 }
@@ -3002,7 +3024,7 @@ impl Engine {
                                 component,
                             )
                             || engine
-                                .native_patcher_contract(component, instruction)?
+                                .native_patcher_contract(component, instruction, operation_index)?
                                 .is_some_and(|contract| contract.requires_exact_prediction()) =>
                     {
                         return Ok(true);
@@ -3041,11 +3063,14 @@ impl Engine {
         emit: &mut impl FnMut(Event),
         progress: Option<&mut InstallObserver<'_>>,
     ) -> Result<()> {
+        self.prepare_k2(guide, None, emit)?;
         self.load_selection(guide);
         self.run_selected(ordered, emit, progress)
     }
 
     fn load_selection(&mut self, guide: &Guide) {
+        self.completed_source_definitions.clear();
+        self.supplemental_source_guide = Some(guide.clone());
         self.selected = selected_guid_keys(guide);
         self.selected_names = guide
             .components
@@ -3116,6 +3141,57 @@ impl Engine {
         let result: Result<()> = (|| {
             self.validation_target = Some((c.name.clone(), c.guid.clone(), None));
             self.check_component(c)?;
+            if crate::archive_generation::source_plan_namespace::requires_standalone_k2_profile(c) {
+                crate::archive_generation::source_plan_namespace::verify_standalone_k2_guide(
+                    self.supplemental_source_guide
+                        .as_ref()
+                        .context("Missing owned standalone guide context")?,
+                )?;
+                // M4-78 DRO areas are incompatible with the original standalone
+                // profile. Check actual VFS inputs too, including resumed installs.
+                for (path, _) in self.files.values() {
+                    if let Ok(relative) = path.strip_prefix(&self.settings.roots.game) {
+                        let relative = relative
+                            .to_string_lossy()
+                            .replace('\\', "/")
+                            .to_ascii_lowercase();
+                        ensure!(
+                            !(relative.starts_with("modules/")
+                                && (relative.ends_with("dro.mod")
+                                    || relative.ends_with("dro.rim")
+                                    || relative.ends_with("dro_s.rim"))),
+                            "Enclave standalone profile rejects installed M4-78 DRO modules"
+                        );
+                    }
+                }
+            }
+            for predecessor in
+                crate::archive_generation::source_plan_namespace::required_predecessors(c)?
+            {
+                let key = crate::guid::key_ascii(&predecessor);
+                ensure!(
+                    actual_install || self.exact_patcher_prediction,
+                    "Supplemental prerequisites require exact native prediction before source effects"
+                );
+                if actual_install {
+                    ensure!(
+                        self.component_checkpoints
+                            && self.checkpoint_process.is_some()
+                            && self.checkpoint_completed.contains(&key),
+                        "{} requires an owned completed predecessor checkpoint {predecessor}",
+                        c.name
+                    );
+                }
+                let definition = self.completed_source_definitions.get(&key)
+                    .context("Supplemental predecessor has not completed in this prediction or verified checkpoint prefix")?;
+                crate::archive_generation::source_plan_namespace::verify_predecessor(
+                    c,
+                    definition,
+                    &self.settings.roots.mods,
+                    &self.settings.archive,
+                    &self.settings.cancelled,
+                )?;
+            }
             if actual_install {
                 let predecessors =
                     crate::archive_generation::reviewed_master::required_predecessors(c)?;
@@ -3143,9 +3219,13 @@ impl Engine {
             for instruction in c
                 .instructions
                 .iter()
-                .filter(|instruction| instruction.action == "Patcher")
+                .enumerate()
+                .filter(|(_, instruction)| instruction.action == "Patcher")
             {
-                if self.native_patcher_contract(c, instruction)?.is_some() {
+                if self
+                    .native_patcher_contract(c, instruction.1, instruction.0)?
+                    .is_some()
+                {
                     ensure!(
                         self.settings.patcher_engine == PatcherEngine::OdyPatcher
                             && self.settings.patcher.is_none()
@@ -3218,7 +3298,7 @@ impl Engine {
                     managed.action = instruction.action.clone();
                 }
                 let instruction_result =
-                    self.execute_observed(c, instruction, emit, progress.as_deref_mut());
+                    self.execute_observed(c, instruction, Some(n), emit, progress.as_deref_mut());
                 self.stage_managed_writes = false;
                 instruction_result.with_context(|| {
                     format!("{} / step {} ({})", c.name, n + 1, instruction.action)
@@ -3251,6 +3331,13 @@ impl Engine {
                 error.as_deref(),
             );
         }
+        // Prediction records source applicability only. Actual publication also
+        // requires the independently committed checkpoint prefix above, and
+        // native prediction/runtime must still resolve all required game inputs.
+        if result.is_ok() {
+            self.completed_source_definitions
+                .insert(crate::guid::key_ascii(&c.guid), c.clone());
+        }
         result
     }
 
@@ -3258,6 +3345,7 @@ impl Engine {
         &self,
         component: &Component,
         instruction: &Instruction,
+        operation_index: usize,
     ) -> Result<Option<crate::archive_generation::reviewed_manual::NativePatcherContract>> {
         let legacy = crate::archive_generation::reviewed_manual::native_patcher_contract(
             component,
@@ -3270,11 +3358,22 @@ impl Engine {
             &self.settings.archive,
             &self.settings.cancelled,
         )?;
+        let namespace = crate::archive_generation::source_plan_namespace::native_patcher_contract(
+            component,
+            instruction,
+            operation_index,
+            &self.settings.roots.mods,
+            &self.settings.archive,
+            &self.settings.cancelled,
+        )?;
         ensure!(
-            legacy.is_none() || derived.is_none(),
+            usize::from(legacy.is_some())
+                + usize::from(derived.is_some())
+                + usize::from(namespace.is_some())
+                <= 1,
             "Conflicting native Patcher authorities"
         );
-        Ok(legacy.or(derived))
+        Ok(namespace.or(derived).or(legacy))
     }
 
     fn check_component(&self, c: &Component) -> Result<()> {
@@ -3296,6 +3395,12 @@ impl Engine {
             &self.settings.archive,
             &self.settings.cancelled,
         )?;
+        crate::archive_generation::source_plan_namespace::verify_runtime(
+            c,
+            &self.settings.roots.mods,
+            &self.settings.archive,
+            &self.settings.cancelled,
+        )?;
         ensure!(
             c.metadata
                 .get("UnresolvedMasters")
@@ -3303,6 +3408,15 @@ impl Engine {
             "{} has unresolved Markdown masters; review its dependencies",
             c.name
         );
+        if crate::k2_preparation::contains_master(c) {
+            crate::k2_preparation::verify_master_runtime(
+                c,
+                &self.settings.roots.mods,
+                &self.settings.archive,
+                &self.settings.cancelled,
+            )?;
+            self.verify_k2_preparation_master()?;
+        }
         for dependency in &c.dependencies {
             ensure!(
                 self.selected.contains(&crate::guid::key_ascii(dependency)),
@@ -3861,7 +3975,16 @@ impl Engine {
         i: &Instruction,
         emit: &mut impl FnMut(Event),
     ) -> Result<()> {
-        self.execute_observed(component, i, emit, None)
+        self.execute_observed(component, i, None, emit, None)
+    }
+    fn execute_indexed(
+        &mut self,
+        component: &Component,
+        i: &Instruction,
+        operation_index: usize,
+        emit: &mut impl FnMut(Event),
+    ) -> Result<()> {
+        self.execute_observed(component, i, Some(operation_index), emit, None)
     }
 
     // First-class authoring extension; managed file manifests cannot own empty dirs.
@@ -3919,6 +4042,7 @@ impl Engine {
         &mut self,
         component: &Component,
         i: &Instruction,
+        operation_index: Option<usize>,
         emit: &mut impl FnMut(Event),
         mut progress: Option<&mut InstallObserver<'_>>,
     ) -> Result<()> {
@@ -4277,6 +4401,20 @@ impl Engine {
                 }
             }
             "DelDuplicate" => {
+                let certified_cleanup =
+                    crate::archive_generation::duplicate_cleanup::contains(component);
+                if certified_cleanup {
+                    crate::archive_generation::duplicate_cleanup::verify_runtime(
+                        component,
+                        &self.settings.cancelled,
+                    )?;
+                    if self.install {
+                        ensure!(
+                            self.component_checkpoints && self.checkpoint_process.is_some(),
+                            "Compiled duplicate cleanup requires an owned running component checkpoint"
+                        );
+                    }
+                }
                 // C# DeleteDuplicateFile throws "Invalid directory path" for a
                 // Destination `PathValidator.IsValidPath` refuses (UnknownError).
                 ensure!(
@@ -4308,6 +4446,7 @@ impl Engine {
                 let descendant_prefix = format!("{directory_key}/");
                 let mut candidates = Vec::new();
                 let mut counts: BTreeMap<(String, String), usize> = BTreeMap::new();
+                let mut alternatives = BTreeSet::new();
                 for (path, _) in self.files.values() {
                     budget.charge(1)?;
                     budget.text(&path.to_string_lossy())?;
@@ -4332,6 +4471,9 @@ impl Engine {
                     let stem = crate::unicode_case::ordinal_key(stem);
                     let extension = crate::unicode_case::ordinal_key(extension);
                     let group = (parent_key, stem.clone());
+                    if certified_cleanup && matches!(extension.as_str(), ".TGA" | ".DDS") {
+                        alternatives.insert(group.clone());
+                    }
                     if extensions.contains(&extension) {
                         *counts.entry(group.clone()).or_default() += 1;
                     }
@@ -4343,7 +4485,11 @@ impl Engine {
                     // Empty Arguments selects extensionless candidates as in the
                     // reference; preferred extensions need not be compatible.
                     if !group.1.is_empty()
-                        && counts.get(&group).copied().unwrap_or(0) > 1
+                        && (if certified_cleanup {
+                            alternatives.contains(&group)
+                        } else {
+                            counts.get(&group).copied().unwrap_or(0) > 1
+                        })
                         && extension == preferred
                     {
                         self.settings.roots.check(&path)?;
@@ -4460,7 +4606,18 @@ impl Engine {
                     .sources
                     .first()
                     .context("Patcher has no resolved binding")?;
-                let contract = self.native_patcher_contract(component, i)?;
+                ensure!(
+                    operation_index.is_some()
+                        || !crate::archive_generation::source_plan_namespace::contains_native(
+                            component
+                        ),
+                    "An original source program requires its explicit current operation ordinal"
+                );
+                let contract = self.native_patcher_contract(
+                    component,
+                    i,
+                    operation_index.unwrap_or(usize::MAX),
+                )?;
                 if self.install
                     && contract
                         .as_ref()
@@ -4569,6 +4726,7 @@ impl Engine {
         let mut staged_patcher = None;
         let mut patcher_data = None;
         let mut native_patcher = None;
+        let mut native_resource_sources = None;
         let mut command = if i.action == "Patcher" {
             // C# runs every patcher on the game folder (`ExecuteTSLPatcherAsync`
             // passes `MainConfig.DestinationPath`, and the VFS simulation uses it
@@ -4593,6 +4751,12 @@ impl Engine {
             if let Some(contract) = native_contract {
                 contract.verify_staged(&staged_base, &self.settings.cancelled)?;
             }
+            native_resource_sources = source_plan_resources::prepare(
+                native_contract,
+                &staged_base,
+                &dest,
+                &self.settings.cancelled,
+            )?;
             patcher_data = Some(staged_base.clone());
             staged_patcher = Some(stage);
             let mut cmd = self
@@ -4667,6 +4831,44 @@ impl Engine {
                     );
                 }
             }
+            if let Some(contract) = native_contract {
+                let raw_base = patcher_data
+                    .as_deref()
+                    .context("Missing verified private patcher package")?;
+                ensure!(
+                    namespace == contract.selected_namespace(),
+                    "Native namespace argument differs from its compiled selection"
+                );
+                let raw_ini = if let Some(relative) = contract.selected_ini_relative_path() {
+                    raw_base.join(crate::paths::relative(relative, false)?)
+                } else {
+                    odypatcher::Session::discover(
+                        raw_base
+                            .to_str()
+                            .context("Non UTF8 private patcher package")?,
+                        "changes.ini",
+                        "info.rtf",
+                    )
+                    .ini_path()
+                };
+                contract.verify_selected_configuration(
+                    raw_base,
+                    namespace,
+                    &raw_ini,
+                    &self.settings.cancelled,
+                )?;
+                if let Some(receipt) = patcher_prepare::prepare_legacy_ini(
+                    Some(contract),
+                    &raw_ini,
+                    &self.settings.cancelled,
+                )? {
+                    emit(Event {
+                        component: "Patcher".into(),
+                        step: 0,
+                        message: format!("Legacy duplicate-key preparation: {receipt}"),
+                    });
+                }
+            }
             cmd
         } else {
             // An imported installer is logically present but its immutable object
@@ -4728,7 +4930,18 @@ impl Engine {
         };
         if self.install {
             if let Some(data) = &patcher_data {
-                patcher_prepare::normalize(data, &self.settings.cancelled)?;
+                if let Some(contract) =
+                    native_contract.filter(|contract| contract.original_program_run().is_some())
+                {
+                    let selected = data.join(
+                        contract
+                            .selected_ini_relative_path()
+                            .context("Original program lost selected INI path")?,
+                    );
+                    patcher_prepare::normalize_selected(data, &selected, &self.settings.cancelled)?;
+                } else {
+                    patcher_prepare::normalize(data, &self.settings.cancelled)?;
+                }
                 clear_patcher_logs(data)?;
             }
             let receipt = if let Some(mut command) = command.take() {
@@ -4756,6 +4969,7 @@ impl Engine {
                     destination,
                     *namespace,
                     native_contract,
+                    native_resource_sources.as_ref(),
                     emit,
                 )?;
                 None
@@ -4866,20 +5080,22 @@ impl Engine {
         destination: &Path,
         namespace: Option<usize>,
         contract: Option<&crate::archive_generation::reviewed_manual::NativePatcherContract>,
+        resource_sources: Option<&source_plan_resources::PreparedResources>,
         emit: &mut impl FnMut(Event),
     ) -> Result<()> {
+        patcher_prepare::verify_required_game_language(
+            contract,
+            destination,
+            &self.settings.cancelled,
+        )?;
         // Discovery expects these canonical document names. Adjust only the
         // private payload; the source mod's spelling and bytes stay intact.
-        canonicalize_patcher_child(base, "tslpatchdata")?;
-        let data = base.join("tslpatchdata");
-        if data.is_dir() {
-            for name in ["changes.ini", "info.rtf", "namespaces.ini"] {
-                canonicalize_patcher_child(&data, name)?;
-            }
-        }
+        canonicalize_patcher_layout(base)?;
         let mut session = odypatcher::Session::discover(
             base.to_str().context("Patcher staging path is not UTF-8")?,
-            "changes.ini",
+            contract
+                .and_then(|contract| contract.selected_ini_name())
+                .unwrap_or("changes.ini"),
             "info.rtf",
         );
         if let Some(index) = namespace {
@@ -4898,10 +5114,14 @@ impl Engine {
         );
         self.check_cancelled()?;
         let strict_before = if contract.is_some() {
-            ensure!(
-                namespace.is_none(),
-                "Reviewed native Patcher forbids namespace selection"
-            );
+            contract
+                .context("Missing reviewed selection contract")?
+                .verify_selected_path(
+                    base,
+                    namespace,
+                    &session.ini_path(),
+                    &self.settings.cancelled,
+                )?;
             Some(reviewed_patcher::before(
                 base,
                 destination,
@@ -4918,6 +5138,12 @@ impl Engine {
             Some(odypatcher::PatchLogger::new()),
         )
         .map_err(|error| anyhow::anyhow!("Prepare built-in OdyPatcher: {error}"))?;
+        if let Some(expected) = contract.and_then(|contract| contract.expected_game()) {
+            ensure!(
+                installer.game == Some(expected),
+                "Source-plan native recipe game differs from the actual detected destination game"
+            );
+        }
         companion_selector::adapt(contract, &mut installer)?;
         let tomb_compatibility = tomb_shadow_compatibility::adapt(
             contract,
@@ -4925,6 +5151,14 @@ impl Engine {
             base,
             &self.settings.cancelled,
         )?;
+        if let Some(contract) = contract {
+            strict_nss::prepare(
+                contract,
+                base,
+                &mut installer,
+                self.settings.cancelled.clone(),
+            )?;
+        }
         installer
             .validate_configured_paths()
             .map_err(|error| anyhow::anyhow!("Unsafe native patch configuration: {error}"))?;
@@ -4984,6 +5218,15 @@ impl Engine {
                         prepared.finish(base, destination, &report, &self.settings.cancelled)
                     })
                     .transpose()?;
+                let compiled_nss = contract
+                    .map(|contract| {
+                        strict_nss::finish(contract, &installer, &self.settings.cancelled)
+                    })
+                    .transpose()?
+                    .unwrap_or_default();
+                let resource_evidence = resource_sources
+                    .map(|prepared| prepared.finish(&report))
+                    .transpose()?;
                 if let Some(before) = strict_before {
                     let mut receipt = reviewed_patcher::finish(
                         before,
@@ -4995,6 +5238,17 @@ impl Engine {
                     )?;
                     if let Some(compatibility) = compatibility {
                         receipt["Compatibility"] = compatibility;
+                    }
+                    if let Some(resources) = resource_evidence {
+                        receipt["DestinationResourceSources"] = resources;
+                    }
+                    if let Some(run) =
+                        contract.and_then(|authority| authority.original_program_run())
+                    {
+                        receipt["OriginalProgramRun"] = run.clone();
+                    }
+                    if !compiled_nss.is_empty() {
+                        receipt["CertifiedNssCompilation"] = serde_json::to_value(compiled_nss)?;
                     }
                     receipt["ComponentGuid"] = serde_json::json!(
                         contract
@@ -5117,6 +5371,17 @@ fn patcher_failure_summary(logs: &[odypatcher::PatchLog]) -> String {
             errors.join(" | ")
         )
     }
+}
+
+fn canonicalize_patcher_layout(base: &Path) -> Result<()> {
+    canonicalize_patcher_child(base, "tslpatchdata")?;
+    let data = base.join("tslpatchdata");
+    if data.is_dir() {
+        for name in ["changes.ini", "info.rtf", "namespaces.ini"] {
+            canonicalize_patcher_child(&data, name)?;
+        }
+    }
+    Ok(())
 }
 
 fn canonicalize_patcher_child(directory: &Path, name: &str) -> Result<()> {

@@ -34,6 +34,49 @@ use std::{
     time::Duration,
 };
 
+// Keep full receipts in the persistent/copyable report. The progress pane shows
+// verified facts rather than source plans and embedded diagnostic patterns.
+fn progress_log_text(line: &str) -> std::borrow::Cow<'_, str> {
+    let Some((owner, message)) = line.split_once(": ") else {
+        return line.into();
+    };
+    if let Some(body) = message.strip_prefix("K1 deterministic candidate publication: ")
+        && let Ok(value) = serde_json::from_str::<serde_json::Value>(body)
+        && value["Kind"] == "K1WidescreenCandidateMaterializationOnly"
+    {
+        let text = match value["Role"].as_str() {
+            Some("hrmenus") => "Prepared the widescreen menus and executable.",
+            Some("fourgb") | Some("4gb") => "Prepared the executable memory patch.",
+            _ => return line.into(),
+        };
+        return format!("{owner}: {text} Full receipt retained in the report.").into();
+    }
+    if let Some(body) = message.strip_prefix("K1 whole Galaxy Vanilla base then 1920 overlay: ")
+        && let Ok(value) = serde_json::from_str::<serde_json::Value>(body)
+        && value["WholeComponent"] == true
+        && value["Installed"] == true
+        && value["NativeOutcome"]["Contract"] == "native-zero-warnings-changed-game-v1"
+        && ["Warnings", "Errors", "Failed"]
+            .iter()
+            .all(|key| value["NativeOutcome"][*key] == 0)
+    {
+        return format!("{owner}: Installed and verified the Galaxy Map base and widescreen overlay. Full receipt retained in the report.").into();
+    }
+    if let Some(body) = message.strip_prefix("Reviewed native Patcher outcome: ")
+        && let Ok(value) = serde_json::from_str::<serde_json::Value>(body)
+        && value["Contract"] == "native-zero-warnings-changed-game-v1"
+        && ["Warnings", "Errors", "Failed", "Skipped"]
+            .iter()
+            .all(|key| value[*key] == 0)
+        && let Some(configured) = value["Configured"].as_u64()
+        && configured > 0
+        && value["Completed"].as_u64() == Some(configured)
+    {
+        return format!("{owner}: Installed and verified all {configured} configured patches. Full receipt retained in the report.").into();
+    }
+    line.into()
+}
+
 enum Message {
     ShellTerminal(Box<main_window::Finished>),
     DeploymentTerminal(Box<deployment_panel::Finished>),
@@ -4776,7 +4819,7 @@ impl eframe::App for App {
                         .stick_to_bottom(true)
                         .show(ui, |ui| {
                             for line in &self.logs {
-                                ui.monospace(line);
+                                ui.monospace(progress_log_text(line).as_ref());
                             }
                         });
                 });

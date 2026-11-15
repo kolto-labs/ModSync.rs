@@ -1,8 +1,5 @@
 name: Compare retained K2 mod versions without exporting payloads
 on:
-  push:
-    branches: [fix/fullrun-ci-credentials]
-    paths: [.github/workflows/k2-retained-mod-metadata.yml]
   workflow_dispatch:
 permissions: {contents: read, actions: read}
 concurrency:

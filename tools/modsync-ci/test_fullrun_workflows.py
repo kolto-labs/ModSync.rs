@@ -52,39 +52,72 @@ class WorkflowGraph(unittest.TestCase):
         config = json.loads((ROOT / ".github/fullrun.json").read_text())
         self.assertRegex(config["counterpart_sha"], r"^[0-9a-f]{40}$")
         self.assertIn(config["role"], ("engine", "guides"))
-    def test_actual_event_expressions_admit_full_pushes_and_keep_prs_credential_free(self):
+    def test_event_defaults_bind_trusted_pr_heads_and_keep_pushes_quick(self):
         main = yaml.load((ROOT / ".github/workflows/fullrun.yml").read_text(), Loader=yaml.BaseLoader)
         step = next(s for s in main["jobs"]["plan"]["steps"] if s.get("id") == "request")
-        for event, operation, write, expected, writer in (
-                ("push", "", False, "full", True),
-                ("pull_request", "full", True, "check", False),
-                ("pull_request_target", "full", True, "check", False),
-                ("workflow_run", "full", True, "check", False),
-                ("workflow_dispatch", "full", False, "full", False),
-                ("workflow_dispatch", "games", True, "games", True),
-                ("workflow_dispatch", "install", True, "install", False),
-                ("workflow_dispatch", "check", True, "check", False)):
-            context = {"github.event_name": event, "inputs.operation": operation,
-                       "inputs.write_cache": write, "inputs.counterpart_sha": "",
-                       "inputs.game": "", "inputs.mode": ""}
-            env = {}
+        defaults = json.loads(main["env"]["FULLRUN_DEFAULTS"])
+        for event, requested, write, base, expected, profile, download, writer in (
+                ("push", "", False, "feature", "check", "quick", "cache-first", False),
+                ("pull_request", "", True, "feature", "full", "full", "cache-first", True),
+                ("pull_request", "", True, "main", "full", "exhaustive", "refresh", True),
+                ("workflow_dispatch", "full", False, "feature", "full", "minimal", "cache-first", False),
+                ("workflow_dispatch", "games", True, "feature", "games", "minimal", "cache-first", True),
+                ("workflow_dispatch", "install", True, "feature", "install", "minimal", "cache-first", False),
+                ("workflow_dispatch", "check", True, "feature", "check", "minimal", "cache-first", False)):
+            repository = "kolto-labs/ModSync.rs"
+            context = {"github.event_name": event, "github.repository": repository,
+                       "github.event.pull_request.head.repo.full_name": repository,
+                       "inputs.operation": requested, "inputs.write_cache": write,
+                       "inputs.install_profile": "", "inputs.download_mode": "",
+                       "inputs.counterpart_sha": "", "inputs.game": "", "inputs.mode": ""}
+            env = {"FULLRUN_DEFAULTS": json.dumps(defaults)}
             for key, expression in step["env"].items():
-                value = re.sub(r"\b(?:github|inputs|secrets)\.[A-Za-z_]+",
+                value = re.sub(r"\b(?:github|inputs|secrets)(?:\.[A-Za-z_]+)+",
                                lambda match: repr(context[match[0]]), expression[3:-2])
                 value = re.sub(r"\bfalse\b", "False", value).replace("&&", " and ").replace("||", " or ")
                 result = eval(value, {"__builtins__": {}})
                 env[key] = str(result).lower() if type(result) is bool else result
-            with self.subTest(event=event, operation=operation, write=write), tempfile.TemporaryDirectory() as root:
-                env.update(GITHUB_REPOSITORY="kolto-labs/ModSync.rs", GITHUB_SHA="a" * 40,
-                           GITHUB_EVENT_NAME=event, GITHUB_OUTPUT=str(Path(root) / "outputs"))
+            with self.subTest(event=event, operation=requested, base=base), tempfile.TemporaryDirectory() as root:
+                payload = Path(root) / "event.json"
+                payload.write_text(json.dumps({"pull_request": {"head": {"sha": "b" * 40,
+                    "ref": "feature", "repo": {"full_name": repository}}, "base": {"ref": base}}}
+                    if event == "pull_request" else {}))
+                env.update(GITHUB_REPOSITORY=repository, GITHUB_SHA="a" * 40,
+                           GITHUB_EVENT_NAME=event, GITHUB_EVENT_PATH=str(payload),
+                           GITHUB_OUTPUT=str(Path(root) / "outputs"))
                 output = Path(root) / "plan.json"
                 with mock.patch.dict(os.environ, env, clear=True), contextlib.redirect_stdout(io.StringIO()):
                     self.assertEqual(fullrun_contract.main(["plan", "--config", str(ROOT / ".github/fullrun.json"),
                                                            "--output", str(output)]), 0)
                 plan = json.loads(output.read_text())
-                self.assertEqual((plan["operation"], plan["cache_writer"]), (expected, writer))
+                self.assertEqual((plan["operation"], plan["cache_writer"], plan["install_profile"],
+                                  plan["download_mode"]), (expected, writer, profile, download))
+                self.assertEqual(plan["engine_sha"], ("b" if event == "pull_request" else "a") * 40)
+                self.assertEqual(plan["release_candidate"], base == "main")
                 for key in ("CACHE_ENCRYPTION_KEY", "DIAGNOSTICS_ENCRYPTION_KEY"):
                     self.assertNotIn(key, env, "planning must not gate independent stages on private keys")
+
+    def test_release_policy_cannot_be_downgraded_and_forks_cannot_acquire(self):
+        config = json.loads((ROOT / ".github/fullrun.json").read_text())
+        for pull in ({"base": {"ref": "main"}}, {"head": {"ref": "release/v1"}},
+                     {"labels": [{"name": "release-candidate"}]}):
+            policy = fullrun_contract.workflow_policy("pull_request", {"pull_request": pull},
+                                                     requested_profile="minimal", requested_download="cache-first")
+            self.assertEqual((policy["install_profile"], policy["download_mode"]), ("exhaustive", "refresh"))
+        with self.assertRaises(ValueError):
+            fullrun_contract.plan(config, config["repository"], "a" * 40, operation="full",
+                                  event="pull_request", trusted_pull_request=False)
+
+    def test_quick_push_uses_one_runner_and_new_runs_cancel_prior_same_branch(self):
+        main = yaml.load((ROOT / ".github/workflows/fullrun.yml").read_text(), Loader=yaml.BaseLoader)
+        self.assertEqual(main["concurrency"]["cancel-in-progress"], "true")
+        self.assertIn("github.head_ref || github.ref_name", main["concurrency"]["group"])
+        self.assertIn("!= 'quick'", main["jobs"]["toolkit"]["if"])
+        self.assertIn("!= 'quick'", main["jobs"]["result"]["if"])
+        for path in (ROOT / ".github/workflows").glob("*.yml"):
+            document = yaml.load(path.read_text(), Loader=yaml.BaseLoader)
+            if path.name != "fullrun.yml":
+                self.assertNotIn("push", document.get("on", {}), path.name)
     def test_each_private_stage_checks_its_own_credentials_before_any_acquisition(self):
         for filename, job, stage, keys in (
                 ("cache-game.yml", "game", "games", {"CACHE_ENCRYPTION_KEY"}),

@@ -15,17 +15,20 @@ import artstore_client
 import fullrun_archive_manifest
 import cache
 import gui_diag
+import evidence_receipt
 import k1_widescreen_inputs
+import supplemental_public_inputs
 import fullrun_contract as contract
 
 HERE = Path(__file__).resolve().parent
 
 
-def checked(command, log, env=None):
+def checked(command, log, env=None, pass_fds=()):
     log = Path(log)
     log.parent.mkdir(parents=True, exist_ok=True)
     with log.open("w", encoding="utf-8") as stream:
-        result = subprocess.run(command, stdout=stream, stderr=subprocess.STDOUT, check=False, env=env)
+        options = {"pass_fds": pass_fds} if pass_fds else {}
+        result = subprocess.run(command, stdout=stream, stderr=subprocess.STDOUT, check=False, env=env, **options)
     if result.returncode:
         raise ValueError("stage failed; inspect its retained encrypted evidence")
     return result
@@ -35,6 +38,68 @@ def installer_environment():
     return {name: value for name, value in cache.scrubbed_env().items()
             if not gui_diag.SECRET_ENV_NAME.search(name)
             and not name.startswith(("SSH_", "GIT_CONFIG_"))}
+
+
+def production_build_capability(engine, mode, output):
+    """Acquire before credential scrubbing; only an anonymous readonly FD crosses it.
+
+    The receipt is not standalone authority. This trusted parent verifies the
+    artifact through the acquiring helper, then ports rechecks its source/bytes.
+    Legacy, external-source and non-CI callers keep their original local build.
+    """
+    if (os.name != "posix" or not Path("/proc/self/fd").is_dir()
+            or os.environ.get("GITHUB_ACTIONS") != "true"
+            or os.environ.get("GITHUB_REPOSITORY") != "kolto-labs/ModSync.rs"
+            or not os.environ.get("GITHUB_TOKEN")
+            or not os.environ.get("CACHE_ENCRYPTION_KEY")):
+        return None
+    import production_build
+    if os.environ.get("GITHUB_REF") not in production_build.REFS:
+        return None
+    engine = Path(engine).resolve(strict=True)
+    if not (engine / ".git").exists():
+        return None
+    git = subprocess.run(["git", "rev-parse", "HEAD"], cwd=engine,
+                         stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                         text=True, check=False, env=installer_environment())
+    if git.returncode or git.stdout.strip() != os.environ.get("GITHUB_SHA"):
+        return None
+    output = Path(output)
+    receipt_path = output / "production-build-acquisition.json"
+    command = [sys.executable, str(HERE / "production_build.py"), "fetch", "--mode", mode,
+               "--source-root", str(engine), "--destination", str(engine / "target/release/modsync"),
+               "--wait-seconds", "3300", "--receipt", str(receipt_path)]
+    allowed = {"PATH", "HOME", "LANG", "RUNNER_TEMP", "TMPDIR", "TMP", "TEMP", "SYSTEMROOT", "WINDIR",
+               "GITHUB_ACTIONS", "GITHUB_REPOSITORY", "GITHUB_REPOSITORY_ID", "GITHUB_REPOSITORY_OWNER_ID",
+               "GITHUB_REF", "GITHUB_SHA", "GITHUB_RUN_ID", "GITHUB_RUN_ATTEMPT", "GITHUB_WORKFLOW_REF",
+               "GITHUB_WORKFLOW_SHA", "GITHUB_JOB", "GITHUB_EVENT_NAME", "GITHUB_API_URL",
+               "GITHUB_TOKEN", "CACHE_ENCRYPTION_KEY"}
+    environment = {name: value for name, value in os.environ.items() if name in allowed}
+    with (output / "production-build-acquisition-private.log").open("w", encoding="utf-8") as log:
+        result = subprocess.run(command, stdout=log, stderr=subprocess.STDOUT,
+                                check=False, env=environment)
+    if result.returncode == 3:
+        return None
+    if result.returncode:
+        raise ValueError("Verified production build admission failed; inspect encrypted acquisition evidence")
+    with receipt_path.open("rb") as source:
+        metadata = os.fstat(source.fileno())
+        if not stat.S_ISREG(metadata.st_mode) or metadata.st_size > 12 * 1024 * 1024:
+            raise ValueError("Invalid verified build acquisition receipt")
+        body = source.read(12 * 1024 * 1024 + 1)
+    receipt = json.loads(body)
+    if (receipt.get("status") != "verified" or receipt.get("head_sha") != git.stdout.strip()
+            or receipt.get("repository") != os.environ["GITHUB_REPOSITORY"] or receipt.get("mode") != mode):
+        raise ValueError("Verified build acquiring parent identity differs")
+    payload = json.dumps({"schema_version": 1, "source_path": str(engine), "receipt": receipt}).encode()
+    if len(payload) > 12 * 1024 * 1024:
+        raise ValueError("Verified build capability exceeds bound")
+    with tempfile.TemporaryFile(dir=output) as staging:
+        staging.write(payload)
+        staging.flush()
+        os.fchmod(staging.fileno(), 0o400)
+        descriptor = os.open("/proc/self/fd/" + str(staging.fileno()), os.O_RDONLY | os.O_CLOEXEC)
+    return descriptor
 
 
 def selected_seed_ids(root, games):
@@ -85,9 +150,14 @@ def identity(engine, guide_root, engine_sha, guide_sha, output):
     actual_guide = subprocess.check_output(["git", "-C", str(guide_root), "rev-parse", "HEAD"], text=True).strip()
     if actual_engine != contract.exact_sha(engine_sha) or actual_guide != contract.exact_sha(guide_sha):
         raise ValueError("checked-out engine or guide does not match the admitted immutable revision")
+    execution = evidence_receipt.identity()
     contract.write_json(output, {"schema_version": 1, "engine_sha": actual_engine,
                                 "guide_sha": actual_guide, "execution_repository": os.environ.get("GITHUB_REPOSITORY"),
-                                "execution_sha": os.environ.get("GITHUB_SHA"),
+                                "execution_sha": execution["sha"],
+                                "execution_source_sha": execution.get("source_sha", execution["sha"]),
+                                "execution_source_repository": execution.get("source_repository", execution["repository"]),
+                                "execution_event": os.environ.get("GITHUB_EVENT_NAME", ""),
+                                "execution_workflow_sha": execution["workflow_sha"],
                                 "artifact_repository": os.environ.get("ARTSTORE_REPOSITORY") or os.environ.get("GITHUB_REPOSITORY"),
                                 "plan_id": os.environ.get("PLAN_ID"), "run_id": os.environ.get("GITHUB_RUN_ID"),
                                 "run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT"), "cross_lane_parity": "unverified"})
@@ -108,8 +178,145 @@ def native_k1_scope(guide_root):
             and cache.digest(path) == k1_widescreen_inputs.GUIDE_SHA256)
 
 
+def install_scope(args, game):
+    """Acquire a profile subset while the unchanged whole guide stays authoritative."""
+    import install_profiles
+    scope = install_profiles.plan(getattr(args, "install_profile", "minimal"), game)
+    path = Path(args.guides) / "content" / game / "full.md"
+    if path.is_symlink() or cache.digest(path) != scope["source_guide_sha256"]:
+        raise ValueError("Install profile requires the exact complete original source guide")
+    items = cache.discover([str(path)])
+    discovered = {item["id"] for item in items}
+    selected = set(scope["acquisition_source_ids"])
+    if not selected or selected - discovered:
+        raise ValueError("Install profile archive closure is empty or outside the original guide")
+    excluded_headings = set(scope["excluded_headings"])
+    inactive = set(scope["platform_inactive_source_ids"]) - selected
+    retained = set(selected)
+    for item in items:
+        if item["id"] in retained or item["id"] in inactive:
+            continue
+        steps = cache.referencing_steps(item)
+        if not steps or any(step["heading"] not in excluded_headings for step in steps):
+            # Preamble/master/setup inputs have no root-component GUID. Preserve
+            # them unless every reference belongs to a documented omission.
+            retained.add(item["id"])
+    scope = {**scope, "archive_source_ids": sorted(retained),
+             "archive_omitted_source_ids": sorted(discovered - retained),
+             "guide_only_archive_source_ids": sorted(retained - selected),
+             "non_acquisition_policy_source_ids": sorted(item["id"] for item in items
+                 if item["id"] in retained and cache.uncached_reason(item))}
+    return scope
+
+
+def source_filter(scope):
+    return [argument for identity in scope["archive_source_ids"] for argument in ("--source-id", identity)]
+
+
+def downloader_validation(args, games):
+    """Describe real provider attempts separately from verified cache reuse."""
+    mode = getattr(args, "download_mode", "cache-first")
+    scopes = {game: install_scope(args, game) for game in games}
+    selected = {identity for scope in scopes.values() for identity in scope["archive_source_ids"]}
+    attempted, downloaded, fallback, policies, valid, seen = set(), set(), set(), set(), set(), set()
+    failures = []
+    for game, scope in scopes.items():
+        path = Path(args.output) / ("verify-%s.json" % game)
+        try:
+            if path.is_symlink() or path.stat().st_size > 32 * 1024 * 1024:
+                raise ValueError("unsafe downloader report")
+            report = json.loads(path.read_text())
+            entries = report["entries"]
+            expected = set(scope["archive_source_ids"])
+            if (report.get("command") != "restore" or report.get("ok") is not True
+                    or len(entries) != len(expected) or {entry["id"] for entry in entries} != expected):
+                raise ValueError("downloader source coverage differs")
+            for entry in entries:
+                identity = entry["id"]
+                seen.add(identity)
+                if entry.get("status") == cache.UNCACHED_SKIPPED:
+                    if identity not in scope["non_acquisition_policy_source_ids"]:
+                        raise ValueError("Required archive cannot be waived as a policy helper")
+                    policies.add(identity)
+                    continue
+                acquisition = entry.get("acquisition", {})
+                if entry.get("status") != "restored" or acquisition.get("download_mode") != mode:
+                    raise ValueError("downloader input is not verified for the requested mode")
+                valid.add(identity)
+                if acquisition.get("provider_attempted") is True:
+                    attempted.add(identity)
+                elif (acquisition.get("provider_outcome") in ("downloaded", "cached-fallback")
+                        or acquisition.get("provider_downloaded") is True
+                        or acquisition.get("valid_cache_fallback") is True):
+                    raise ValueError("Downloader outcome lacks a real provider attempt")
+                if (acquisition.get("provider_outcome") == "downloaded"
+                        or acquisition.get("provider_downloaded") is True):
+                    downloaded.add(identity)
+                if (acquisition.get("provider_outcome") == "cached-fallback"
+                        or acquisition.get("valid_cache_fallback") is True):
+                    fallback.add(identity)
+        except (OSError, ValueError, KeyError, TypeError):
+            failures.append(game)
+    missing = selected - valid - policies
+    unattempted = selected - attempted - policies if mode == "refresh" else set()
+    passed = not failures and not missing and not unattempted and seen == selected
+    return {"schema_version": 1, "status": "passed" if passed else "failed",
+        "install_profile": getattr(args, "install_profile", "minimal"), "download_mode": mode,
+        "selected_source_ids": sorted(selected), "provider_attempted_source_ids": sorted(attempted),
+        "valid_cache_fallback_source_ids": sorted(fallback), "downloaded_source_ids": sorted(downloaded),
+        "non_acquisition_policy_source_ids": sorted(policies),
+        "non_archive_provenance_source_ids": sorted({identity for scope in scopes.values()
+            for identity in scope["non_archive_provenance_source_ids"]}),
+        "missing_verified_source_ids": sorted(missing), "unattempted_required_source_ids": sorted(unattempted),
+        "incomplete_games": failures,
+        "claim": "provider attempts and verified cache fallback; cache/artifact reads are not provider downloads"}
+
+
 def refresh(args, games):
+    try:
+        refresh_archives(args, games)
+    finally:
+        validation = downloader_validation(args, games)
+        contract.write_json(Path(args.output) / "downloader-validation.json", validation)
+        contract.emit_outputs({"download_validation": validation["status"]})
+    if validation["status"] != "passed":
+        raise ValueError("Downloader validation did not cover the requested profile and mode")
+
+
+def restore_with_public_supplement(command, log, args, game, destination, report_path, map_path,
+                                   source_ids=None):
+    """Repair only the pinned public K2 source group after the normal restore."""
+    def identity(path):
+        try:
+            info = Path(path).stat()
+            return info.st_ino, info.st_size, info.st_mtime_ns
+        except FileNotFoundError:
+            return None
+
+    before = (identity(report_path), identity(map_path)) if game == "k2" else None
+    failure = None
+    try:
+        checked(command, log)
+    except ValueError as error:
+        failure = error
+    if (game == "k2" and (source_ids is None or supplemental_public_inputs.SOURCE_ID in source_ids)
+            and supplemental_public_inputs.applies(args.guides)):
+        # A failed restore may be repaired only from this invocation's newly
+        # written records. The helper also rejects every unrelated failure.
+        if failure is not None and (identity(report_path) in (None, before[0])
+                                    or identity(map_path) in (None, before[1])):
+            raise failure
+        return supplemental_public_inputs.ensure(args.guides, destination, args.cache,
+            report_path, map_path, Path(args.output) / "k2-supplemental-public-inputs.json",
+            download_mode=getattr(args, "download_mode", "cache-first"))
+    if failure is not None:
+        raise failure
+    return None
+
+
+def refresh_archives(args, games):
     guides(args.guides, games)
+    scopes = {game: install_scope(args, game) for game in games}
     fullrun_archive_manifest.recover(args.cache, args.guides, games)
     cache_root = Path(args.cache)
     cache_root.parent.mkdir(parents=True, exist_ok=True)
@@ -119,23 +326,34 @@ def refresh(args, games):
     # Restore verifies every required archive; the cache cap is a storage policy,
     # never permission to count an unfetched OVER_LIMIT object as verified.
     for game in games:
+        scope = scopes[game]
+        contract.write_json(evidence / ("install-profile-%s.json" % game), scope)
         report_path = evidence / ("verify-%s.json" % game)
         with tempfile.TemporaryDirectory(prefix="archive-verification-", dir=cache_root.parent) as temporary:
-            checked([sys.executable, str(HERE / "cache.py"), "restore", *guides(args.guides, [game]),
+            map_path = evidence / ("verify-%s-archive-map.json" % game)
+            restore_with_public_supplement([sys.executable, str(HERE / "cache.py"), "restore", *guides(args.guides, [game]),
                      "--cache-dir", args.cache, "--destination", temporary, "--report", str(report_path),
-                     *uncached_options([game]), *remote_options()], evidence / ("verify-%s-private.log" % game))
+                     "--download-mode", getattr(args, "download_mode", "cache-first"),
+                     *source_filter(scope),
+                     *(["--archive-map", str(map_path)] if game == "k2" else []),
+                     *uncached_options([game]), *remote_options()], evidence / ("verify-%s-private.log" % game),
+                     args, game, Path(temporary), report_path, map_path, scope["archive_source_ids"])
             report = json.loads(report_path.read_text())
             entries = report.get("entries")
-            expected = {item["id"] for item in cache.discover(guides(args.guides, [game])[1::2])}
+            expected = set(scope["archive_source_ids"])
             if (report.get("ok") is not True or not isinstance(entries, list) or not entries
                     or len(entries) != len(expected) or {entry.get("id") for entry in entries} != expected
                     or any(entry.get("status") not in ("restored", cache.UNCACHED_SKIPPED) for entry in entries)):
                 raise ValueError("Archive verification did not restore every required guide input")
             receipts.append({"game": game, "restored": sum(entry["status"] == "restored" for entry in entries),
-                             "policy_skipped": sum(entry["status"] == cache.UNCACHED_SKIPPED for entry in entries)})
-            if game == "k1" and native_k1_scope(args.guides):
+                             "policy_skipped": sum(entry["status"] == cache.UNCACHED_SKIPPED for entry in entries),
+                             "install_profile": scope["profile"], "selected_owner_count": scope["selected_count"],
+                             "original_definition_count": scope["source_definition_count"],
+                             "selected_archive_sources": len(expected)})
+            if scope["requires_k1_widescreen_inputs"] and native_k1_scope(args.guides):
                 auxiliary = k1_widescreen_inputs.ensure(
-                    Path(temporary), cache_root, evidence / "k1-native-inputs.json")
+                    Path(temporary), cache_root, evidence / "k1-native-inputs.json",
+                    download_mode=getattr(args, "download_mode", "cache-first"))
                 if auxiliary.get("ok") is not True:
                     raise ValueError("Pinned K1 native inputs unavailable; inspect encrypted acquisition evidence")
                 receipts[-1]["native_widescreen_inputs_verified"] = 6
@@ -148,9 +366,17 @@ def refresh(args, games):
         # An existing immutable cache key cannot acquire new auxiliary objects.
         identity = key + k1_widescreen_inputs.PROFILE_SHA256 + k1_widescreen_inputs.GALAXY_PROFILE_SHA256
         key = "mod-archives-" + hashlib.sha256(identity.encode()).hexdigest()[:16]
+    # A partial-profile object set must not occupy an exhaustive immutable cache
+    # key merely because both retained the complete original manifest metadata.
+    profile_identity = json.dumps({game: {"policy_sha256": scope["policy_sha256"],
+        "profile": scope["profile"], "sources": scope["archive_source_ids"]}
+        for game, scope in scopes.items()}, sort_keys=True, separators=(",", ":"))
+    key = "mod-archives-" + hashlib.sha256((key + profile_identity).encode()).hexdigest()[:16]
     contract.emit_outputs({"archive_cache_key": key})
     contract.write_json(evidence / "cache-receipt.json", {
-        "archive_cache_key": key, "games": games, "status": "verified", "verification": receipts})
+        "archive_cache_key": key, "games": games, "status": "verified", "verification": receipts,
+        "install_profile": getattr(args, "install_profile", "minimal"),
+        "download_mode": getattr(args, "download_mode", "cache-first")})
 
 
 def object_cache_prune_scope(root, archives, protected, runner_temp, actions, runner_environment):
@@ -260,30 +486,46 @@ def install(args):
     temp.mkdir(parents=True, exist_ok=True)
     work = Path(args.work_dir)
     work.mkdir(parents=True, exist_ok=True)
+    # CLI callers always supply an explicit default profile. Older Python
+    # callers without that field retain their unfiltered acquisition API.
+    scope = install_scope(args, args.game) if hasattr(args, "install_profile") else None
+    if scope is not None:
+        contract.write_json(temp / "install-profile-source-scope.json", scope)
     fullrun_archive_manifest.recover(args.cache, args.guides, [args.game])
     options = uncached_options([args.game])
-    checked([sys.executable, str(HERE / "cache.py"), "restore", *guides(args.guides, [args.game]),
+    restore_with_public_supplement([sys.executable, str(HERE / "cache.py"), "restore", *guides(args.guides, [args.game]),
              "--cache-dir", args.cache, "--destination", str(work / "archives"),
+             "--download-mode", getattr(args, "download_mode", "cache-first"),
+             *(source_filter(scope) if scope is not None else []),
              "--archive-map", str(temp / "archive-map.json"), "--report", str(temp / "restore.json"),
-             *options, *remote_options()], temp / "restore-private.log")
+             *options, *remote_options()], temp / "restore-private.log", args, args.game,
+             work / "archives", temp / "restore.json", temp / "archive-map.json", scope["archive_source_ids"] if scope is not None else None)
     if getattr(args, "prune_restored_object_cache", False):
         prune_restored_object_cache(args, work / "archives", temp / "restore.json", temp / "archive-map.json")
-    if args.game == "k1" and native_k1_scope(args.guides):
+    if (scope is None or scope["requires_k1_widescreen_inputs"]) and native_k1_scope(args.guides):
         auxiliary = k1_widescreen_inputs.ensure(
-            work / "archives", Path(args.cache), temp / "k1-native-inputs.json")
+            work / "archives", Path(args.cache), temp / "k1-native-inputs.json",
+            download_mode=getattr(args, "download_mode", "cache-first"))
         if auxiliary.get("ok") is not True:
             raise ValueError("Pinned K1 native inputs unavailable; inspect encrypted acquisition evidence")
+    build_descriptor = None
     try:
+        build_descriptor = production_build_capability(args.engine, args.mode, temp)
+        build_arguments = [] if build_descriptor is None else ["--verified-build-fd", str(build_descriptor)]
         checked([sys.executable, str(HERE / "ports.py"), "--implementation", "rust", "--mode", args.mode, "--complete-guide", "--max-quarantine", "0",
+                 *(["--install-profile", scope["profile"]] if scope is not None else []),
                  "--source", args.engine, "--guide", str(Path(args.guides) / "content" / args.game / "full.md"),
                  "--game-dir", args.game_dir, "--archives", str(work / "archives"),
                  "--archive-map", str(temp / "archive-map.json"), "--restore-report", str(temp / "restore.json"),
-                 "--work-dir", str(work / "work"), "--report", str(temp / "report.json")], temp / "install-private.log",
-                env=installer_environment())
+                 "--work-dir", str(work / "work"), "--report", str(temp / "report.json"), *build_arguments], temp / "install-private.log",
+                env=installer_environment(), pass_fds=() if build_descriptor is None else (build_descriptor,))
     finally:
+        if build_descriptor is not None:
+            os.close(build_descriptor)
         retain_port_diagnostics(work / "work", temp / "native-diagnostics")
     digest = hashlib.sha256((Path(args.guides) / "content" / args.game / "full.md").read_bytes()).hexdigest()
-    result = contract.require_complete(json.loads((temp / "report.json").read_text()), args.mode, digest)
+    result = contract.require_complete(json.loads((temp / "report.json").read_text()), args.mode, digest,
+                                       install_profile=scope["profile"] if scope is not None else None)
     contract.write_json(temp / "completion.json", result)
 
 
@@ -341,6 +583,11 @@ def main(argv=None):
             child.add_argument("--games", default='["k1","k2"]')
         if name == "refresh":
             child.add_argument("--cache", required=True)
+        if name in ("refresh", "install"):
+            child.add_argument("--install-profile", choices=("minimal", "full", "exhaustive"),
+                               default="minimal", help="original guide coverage to acquire and install")
+            child.add_argument("--download-mode", choices=("cache-first", "refresh"),
+                               default="cache-first", help="reuse verified cache, or check every selected upstream input")
         if name == "seed":
             child.add_argument("--dry-run", action="store_true")
         if name in ("identity", "install"):

@@ -4715,21 +4715,27 @@ widescreen evidence in the selection-availability replay documentation.
 
 ## Repository-owned CI integration boundary
 
-The full-run workflow now owns its local cache/install/seed/P2P/tooling stages and binds the engine to the triggering source SHA. Owned engine pushes request the complete graph; PRs request credential-free checks. The six synthetic CLI/GUI workflow entry points have been removed; real install routes remain in the full-run matrix. The separately owned mod-builds variant binds the triggering guide SHA and retains its own event policy. See [CI operation and proof limits](docs/ci-fullruns.md). Full-run completeness rejects partial or omitted component coverage and GUI subset phases; this is single-lane evidence, not cross-route/per-mod parity. Packaging proofs retain their existing limitations. Rust test and custom-harness execution remains frozen; no product feature or parity completion is claimed by the CI migration.
+The full-run workflow now owns its local cache/install/seed/P2P/tooling stages and binds the engine to the triggering source SHA. Every engine branch push requests quick syntax/configuration and workflow checks without acquisition or installation. Same-repository PRs request the full pipeline; fork PRs have separate credential-free tooling checks and cannot enter private installation stages. Ordinary trusted PRs use Full/cache-first; release-candidate PRs require Exhaustive/refresh. Manual dispatch defaults to Minimal/cache-first. The six synthetic CLI/GUI workflow entry points have been removed; real install routes remain in the full-run matrix. The separately owned mod-builds variant binds the triggering guide SHA and retains its own event policy. See [CI operation and proof limits](docs/ci-fullruns.md). Profile completeness validates the pinned full inventory and explicit selected/excluded/applicability partition, and rejects partial selected coverage or incomplete GUI phases; this is single-lane evidence, not cross-route/per-mod parity. Packaging proofs retain their existing limitations. Rust test and custom-harness execution remains frozen; no product feature or parity completion is claimed by the CI migration.
 
 ## Full-run diagnostics encryption
 
-Full-run evidence can use a native age X25519 public recipient (`DIAGNOSTICS_ENCRYPTION_RECIPIENT` Actions variable), with its private identity held offline. The legacy independent diagnostics secret remains supported; game/cache envelopes and their matching keys are unchanged. Public-key encryption does not authenticate the producer: evidence consumers must verify GitHub artifact/run/commit provenance and the ciphertext receipt. Credential reduction does not establish full-guide installation or change required coverage gates.
+Full-run evidence can use a native age X25519 public recipient (`DIAGNOSTICS_ENCRYPTION_RECIPIENT` Actions variable), with its private identity held offline. The legacy independent `DIAGNOSTICS_ENCRYPTION_KEY` secret remains supported with a minimum of 32 bytes. It must be separate from `CACHE_ENCRYPTION_KEY`, whose existing matching value is still needed for game/cache envelopes; the preferred public-recipient route requires no diagnostics private key in CI. Public-key encryption does not authenticate the producer: evidence consumers must verify GitHub artifact/run/commit provenance and the ciphertext receipt. Credential reduction does not establish full-guide installation or change required coverage gates.
 
 ## Full-run input recovery and GUI coverage
 
 Full-run archive preparation can recover a same-repository authenticated encrypted URL-to-object manifest. It checks source/transfer/guide provenance and current pins, filters cache metadata to approved fields, and verifies actual restored archive bytes before pruning the accelerator. A cache size limit no longer counts as byte verification. Legacy artifact credentials remain scoped to their selected namespace; manifest discovery uses the owning repository token.
 
-The explicit `--complete-guide` Rust GUI driver path covers native Base and Remaining phases and requires fresh validation, snapshot confirmation, cumulative component receipts and the actual final game-file manifest. Legacy single-phase behavior remains available. Required omissions, exclusions, partial results and incomplete phase evidence still fail the full-run gate. This adds a verification path; real full-guide runtime acceptance remains pending until an exact-head full CI run succeeds.
+The explicit `--complete-guide` Rust GUI driver path covers native Base and Remaining phases and requires fresh validation, snapshot confirmation, cumulative component receipts and the actual final game-file manifest. Legacy single-phase behavior remains available. Unexplained omissions, missing selected components, partial results and incomplete phase evidence still fail the profile gate. This adds a verification path; real full-guide runtime acceptance remains pending until an exact-head full CI run succeeds.
 
 Modern full-run game-backup recovery downloads each candidate ZIP once with its GitHub digest and size verified, then retains every existing per-part hash/MAC, joined seal, baseline authentication and required-module check. Legacy providers without modern ZIP metadata keep the original member API.
 
-Full-run `--complete-guide` admission now records the pinned guide's documented Linux installation choices. Original source/model coverage is checked first (K1 197 components, K2 151); one mutually exclusive cutscene alternative is inactive, producing 196/150 admitted components. The Windows-only manual helper was already outside Rust's converted model and is recorded as a guide-only applicability choice. The selected cutscene archives are rehashed on disk, K2's exact pins are enforced, and an exhaustive GUID partition plus unchanged retained model binds the input projection. This is complete coverage of these documented choices, not all alternatives or parity. Any other omission, failed binding, missing input or incomplete phase remains fatal.
+Full-run admission retains the pinned guide's entire converted model (K1 197 components, K2 151) and original order. Minimal excludes the closed measured optional environment/texture owners at least 256 MiB plus cinematic movies, with protected prerequisites and dependency closure; Full excludes only massive cinematic movie owners; Exhaustive includes all applicable documented mods and one reviewed cutscene variant. The mutually exclusive alternative stays defined and inactive, and verified baseline applicability remains explicit. Hash-bound `install_profile` receipts record the exact selection and exclusions; reduced-profile success cannot establish exhaustive coverage. Selected missing inputs, unexplained omissions or incomplete phases remain fatal.
+
+Normal acquisition is cache-first: verified destination, accelerator and authorized artifact bytes avoid publisher requests; misses use the configured download paths. Explicit refresh attempts upstream first and can fall back to verified cached bytes under the same immutable pins. Release-candidate PRs require exhaustive installation and downloader-attempt evidence. The workflow's release-candidate policy includes PRs targeting main/master, release branch prefixes and release labels. Quick push checks have a two-minute timeout and provide no installation evidence. These workflow and component changes do not establish an exact-head full CI pass.
+
+When refresh is requested, the composed full pipeline attempts it once in its archive producer, then passes the exact verified immutable cache key to cache-first installation consumers. Standalone install operations retain the requested refresh behavior. Archive preparation reads existing generations without a global writer lease; new cache keys are immutable. Cancellation groups separate quick pushes from required installation runs on the same branch, while retaining cancellation of older runs within each scope.
+
+Linux checkpoint CAS capture uses `FICLONE` into a private inode where supported, hashes that clone and verifies object size/hash before immutable publication. Unsupported platforms/filesystems retain bounded copy-and-hash fallback; capture uses no hard links. Exhaustive hosted lanes co-locate game, mod/extraction work and CAS on a disposable Btrfs loop filesystem with zstd compression. Preflight reserves 6 GiB for the host and requires at least 40 GiB for the image. This measured capacity check does not establish a complete installation disk bound; final hosted runtime validation remains pending.
 
 ## Archive-bound movie installation
 
@@ -4777,7 +4783,7 @@ Namespaces, extra executables, other payload roots and unknown files remain
 fenced. Exact retained K2 inventories establish four eligible wrapper layouts;
 native generation/replay and real installation acceptance remain pending.
 
-After documented guide-choice projection, complete runs also refuse policy skips
+After the validated profile selection, complete runs also refuse policy skips
 that still name an admitted component. A warning label does not prove an Aspyr,
 3C-FD or executable-patch prerequisite. Existing aggregate baseline receipts do
 not establish those states; no additional applicability exclusion is claimed.
@@ -5084,3 +5090,71 @@ Galaxy provenance metadata. The driver masks only such empty quoted labels
 followed by a JSON delimiter. Inline actual-metadata/real-error controls pass;
 quoted error messages with details, unquoted errors and all other readiness,
 receipt and full-manifest gates remain effective. Hosted GUI replay is pending.
+
+The progress pane now summarizes verified K1 candidate publication and successful
+whole Galaxy outcomes. Persistent logs and copied/saved reports retain the full
+original structured receipts. Other messages, failed outcomes and malformed
+records remain visible unchanged. This avoids OCR interpreting zero-valued JSON
+error counters as an installation error; hosted GUI confirmation remains pending.
+The same display-only summary applies to a parsed strict native Patcher receipt
+only when every configured patch completed and all skip/failure/warning/error
+counters are zero. Failed, partial or malformed records remain fully visible;
+saved and copied raw logs retain the complete original receipt.
+
+Two additional K1 file-effect recipes cover the original standalone CineMalak
+TGA and Bendak dialogue download. Their original guide contexts, single-copy
+plan operations, filenames and whole-file SHA-256 values are compiled authority.
+They use an explicit bounded loose-input inventory instead of attempting archive
+decoding. Filename transport admits these exact pinned pairs only; arbitrary
+loose files still receive no reviewed authority. Fresh independent review and
+runtime replay remain required. Complete-guide installation is not established
+by this source admission.
+
+The production dependency snapshots in vendor/odypatcher and vendor/bionsscomp
+preserve upstream pins, reviewed source inventories and license notices. Their
+optional strict NSS API accepts an explicit immutable source/header namespace,
+bounded compiler work and shared cancellation, with retained diagnostics. The
+API alone does not admit nonempty CompileList recipes. The original pinned-plan
+compiler now issues private contracts for authenticated selected configurations,
+explicit source/include closures and known correct-game headers. Prediction and
+publication share that contract and compare exact output identities. The parser
+uses precedence climbing to avoid unnecessary recursion without raising its
+256-frame limit. Actual compiler CLI checks cover all seven original Bastila
+scripts with representative numeric memory values; those checks do not establish
+genuine-game values or original-compiler equivalence.
+
+The two original duplicate-cleanup owners have a separate compiled source
+translation. Archive-aware conversion reconstructs their unchanged original guide
+contexts and emits one pending native operation; dedicated source replay must
+approve the complete model. The operation removes only TPC resources with a TGA
+or DDS alternative of the same case-insensitive stem in the same directory,
+including Override descendants. Two TPC spellings alone cannot trigger deletion.
+The original guide authorizes deletion; pinned source scripts establish recursive
+same-directory matching. Actual execution requires an owned running component
+checkpoint for recovery. Source scripts are retained as provenance and never
+executed. Changes to instructions, original context or approval records fail
+runtime replay. A controlled production CLI installation removed exactly the two
+intended TPC files; no-checkpoint and forged-model attempts refused, and checkpoint
+restore recovered both roots with matching bytes and modes. This is controlled
+state evidence, not genuine-game or full hosted coverage.
+
+The remaining original native plans use an ordered typed program compiler rather
+than per-owner member inventories. Complete pinned original archives are freshly
+hashed and bounded inventories are derived from immutable snapshots. Native runs
+retain their original operation ordinals and explicit namespace selections; no
+packaged installer is executed by this capability. Unknown active behavior still
+refuses admission. Supplemental choices retain separately compiled source evidence.
+Their HRMenus, Cloaked Robes, TSLRCM and PartySwap prerequisites require fresh source
+authentication; publication additionally requires owned completed checkpoints.
+Extended Enclave requires the original complete K2 guide inventory and rejects
+installed M4 DRO modules. Prediction records applicability and never proves an
+external vendor installation. Combined production and full hosted validation of
+these newly integrated paths remain pending.
+
+The original Swoop installer resolves a duplicate GFF-list key to its first value
+on both visits. Its exact source INI receives a narrowly pinned private translation
+that preserves those seven GFF operations. Source admission, prediction and real
+installation use the same translation. Original archive and INI identities remain
+provenance; the effective INI digest is recorded separately. Unreachable sections
+are classified only for exact source/configuration identities with complete active
+and inactive section coverage; arbitrary parser warnings remain failures.
