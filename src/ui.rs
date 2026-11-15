@@ -796,10 +796,7 @@ impl App {
                 .iter()
                 .filter(|c| {
                     c.is_selected
-                        && c.metadata
-                            .get("WidescreenOnly")
-                            .and_then(serde_json::Value::as_bool)
-                            == Some(true)
+                        && modsync::phase::component_phase(c) == modsync::phase::Phase::Remaining
                 })
                 .count()
         })
@@ -811,10 +808,7 @@ impl App {
                 .iter()
                 .filter(|c| {
                     c.is_selected
-                        && c.metadata
-                            .get("WidescreenOnly")
-                            .and_then(serde_json::Value::as_bool)
-                            != Some(true)
+                        && modsync::phase::component_phase(c) != modsync::phase::Phase::Remaining
                 })
                 .count()
         })
@@ -2070,7 +2064,7 @@ impl App {
                 let mut change = None;
                 let detected = modsync::game::detect(&modsync::game::resolve_install_root(Path::new(&self.game)));
                 if let Some(guide) = &mut self.guide { for (index, c) in guide.components.iter().enumerate() {
-                    if c.metadata.get("WidescreenOnly").and_then(serde_json::Value::as_bool) == Some(true) {
+                    if modsync::phase::component_phase(c) == modsync::phase::Phase::Remaining {
                         let mut selected = c.is_selected;
                         let reason = (self.selection_panel.stamp == self.input_stamp)
                             .then(|| self.selection_panel.availability.reason(&c.guid))
@@ -2459,10 +2453,8 @@ impl App {
                         g.components
                             .iter()
                             .filter(|c| {
-                                c.metadata
-                                    .get("WidescreenOnly")
-                                    .and_then(serde_json::Value::as_bool)
-                                    != Some(true)
+                                modsync::phase::component_phase(c)
+                                    != modsync::phase::Phase::Remaining
                             })
                             .flat_map(|c| c.category.iter().cloned())
                             .map(|category| (category, false))
@@ -2479,11 +2471,8 @@ impl App {
                 );
                 for (_, indices) in &mut groups {
                     indices.retain(|i| {
-                        g.components[*i]
-                            .metadata
-                            .get("WidescreenOnly")
-                            .and_then(serde_json::Value::as_bool)
-                            != Some(true)
+                        modsync::phase::component_phase(&g.components[*i])
+                            != modsync::phase::Phase::Remaining
                     });
                 }
                 groups.retain(|(_, indices)| !indices.is_empty());
@@ -2642,10 +2631,8 @@ impl App {
                                 .components
                                 .get_mut(self.selected)
                                 .filter(|c| {
-                                    c.metadata
-                                        .get("WidescreenOnly")
-                                        .and_then(serde_json::Value::as_bool)
-                                        != Some(true)
+                                    modsync::phase::component_phase(c)
+                                        != modsync::phase::Phase::Remaining
                                 })
                                 .filter(|c| {
                                     modsync::selection::matches_filters(

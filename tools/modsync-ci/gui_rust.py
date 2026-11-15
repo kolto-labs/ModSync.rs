@@ -569,6 +569,81 @@ def plan_selection(components, deselect=(), exclude_widescreen=False, complete_g
     return plan
 
 
+def query_application_phase_plan(binary, driven_input, plan, private, complete_guide=False,
+                                 run=subprocess.run):
+    """Use the production core's read-only phase plan; never infer native deferrals.
+
+    The same private, selected guide is subsequently opened by the desktop. Every
+    selected GUID and both complete membership partitions must agree before any
+    GUI process starts. A phase plan is planning evidence, never draft approval.
+    """
+    home = private / "phase-query-home"
+    home.mkdir(mode=0o700, exist_ok=True)
+    environment = {key: os.environ[key] for key in
+                   ("PATH", "LANG", "LC_ALL", "TZ", "SYSTEMROOT", "WINDIR") if key in os.environ}
+    for name in ("HOME", "XDG_CONFIG_HOME", "XDG_CACHE_HOME", "XDG_DATA_HOME", "XDG_RUNTIME_DIR", "TMPDIR"):
+        directory = home / name.lower()
+        directory.mkdir(mode=0o700, exist_ok=True)
+        environment[name] = str(directory)
+    output = private / "phase-plan.json"
+    log = private / "phase-plan.log"
+    command = [str(binary), "phase-plan", str(driven_input)]
+    before = digest(driven_input)
+    try:
+        with output.open("w", encoding="utf-8") as stdout, log.open("w", encoding="utf-8") as stderr:
+            completed = run(command, cwd=private, env=environment, stdin=subprocess.DEVNULL,
+                            stdout=stdout, stderr=stderr, timeout=QUERY_TIMEOUT_SECONDS)
+        if (completed.returncode or output.stat().st_size > 4 * 1024 * 1024
+                or log.stat().st_size > 4 * 1024 * 1024 or digest(driven_input) != before):
+            raise ValueError("phase query failed, changed input, or exceeded its output bound")
+        document = json.loads(output.read_text(encoding="utf-8"))
+        if (set(document) != {"schema_version", "execution_order", "base", "remaining",
+                              "base_all", "remaining_all", "installed"}
+                or type(document["schema_version"]) is not int or document["schema_version"] != 1
+                or document["installed"] is not False):
+            raise ValueError("invalid phase-plan schema")
+
+        def identities(name):
+            values = document[name]
+            if (not isinstance(values, list) or len(values) > 10000
+                    or any(not isinstance(value, str) or not value or len(value) > 256 for value in values)):
+                raise ValueError("invalid phase-plan identities")
+            values = [value.lower() for value in values]
+            if len(set(values)) != len(values):
+                raise ValueError("duplicate phase-plan identities")
+            return values
+
+        execution, base, remaining, base_all, remaining_all = (
+            identities(name) for name in ("execution_order", "base", "remaining", "base_all", "remaining_all"))
+        original = plan["identities"]
+        expected = plan["expected_components"]
+        base_members, remaining_members = set(base_all), set(remaining_all)
+        if (len(set(original)) != len(original) or len(set(expected)) != len(expected)
+                or set(execution) != set(expected) or len(execution) != len(expected)
+                or base_members & remaining_members or base_members | remaining_members != set(original)
+                or len(base_all) + len(remaining_all) != len(original)
+                or execution != base + remaining
+                or base != [identity for identity in execution if identity in base_members]
+                or remaining != [identity for identity in execution if identity in remaining_members]):
+            raise ValueError("application phase partition or selected execution prefix differs from plan")
+    except (OSError, subprocess.SubprocessError, ValueError, TypeError, KeyError, AttributeError):
+        raise Blocked("application_phase_plan_query_failed_or_differs_from_selection") from None
+    if not complete_guide and remaining:
+        raise Blocked("full_input_contains_separate_widescreen_phase_driver_supports_single_phase_only")
+    if complete_guide and not base:
+        raise Blocked("complete_guide_requires_nonempty_base_phase")
+    plan.update(expected_components=execution, base_guids=base, remaining_guids=remaining,
+                base_total=len(base_all), base_selected=len(base),
+                widescreen_phase=(("pending" if complete_guide else "not_covered_by_gui_lane")
+                                  if remaining_all else "none_in_input"))
+    plan["click_select_all"] = (not complete_guide
+        and not set(base_all) & set(plan["skipped_by_reviewed_policy"]))
+    return {"status": "matched", "schema_version": 1, "selected_components": len(execution),
+            "base_selected": len(base), "remaining_selected": len(remaining),
+            "base_total": len(base_all), "remaining_total": len(remaining_all),
+            "phase_plan_sha256": digest(output), "installed": False}
+
+
 def query_application_selection(binary, driven_input, game_dir, select_all, private,
                                 run=subprocess.run):
     """Ask the real binary what the desktop will show: `modsync selection --json`.
@@ -1241,6 +1316,11 @@ def execute(args, result):
     if len(set(present_owner_ids)) != len(present_owner_ids):
         raise Blocked("draft_review_owner_identities_duplicate")
     complete_guide = getattr(args, "complete_guide", False)
+    native_phase_plan = ("K1WidescreenSchedule" in document or any(
+        "K1WidescreenBinding" in owner or (isinstance(owner.get("Instructions"), list) and any(
+            isinstance(step, dict) and step.get("Action") == "K1Widescreen"
+            for step in owner["Instructions"]))
+        for owner in review_owners(components)))
     plan = plan_selection(components, args.deselect, args.exclude_widescreen, complete_guide)
     if not args.game_dir.is_dir() or not args.archives.is_dir():
         raise Blocked("real_game_and_archive_directories_required")
@@ -1269,9 +1349,14 @@ def execute(args, result):
     for name in ("skipped_by_reviewed_policy", "excluded_widescreen", "widescreen_phase"):
         result[name] = plan[name]
     (private / "input.toml").write_text(
-        rewrite_selection(input_text, plan["selection"]) if plan["subset"] or complete_guide else input_text,
+        rewrite_selection(input_text, plan["selection"]) if plan["subset"] or complete_guide or native_phase_plan else input_text,
         encoding="utf-8")
     result["driven_input_sha256"] = digest(private / "input.toml")
+    if native_phase_plan:
+        result["phase_oracle"] = query_application_phase_plan(
+            args.binary, private / "input.toml", plan, private, complete_guide)
+        result["expected_components"] = len(plan["expected_components"])
+        result["widescreen_phase"] = plan["widescreen_phase"]
     # The real loader checks receipt identity after the selection rewrite. Nested
     # InputComponent/Recipe snapshots remain provenance, not installation owners.
     result["review_oracle"] = query_application_reviews(

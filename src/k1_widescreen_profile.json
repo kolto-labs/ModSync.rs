@@ -1,0 +1,1265 @@
+{
+  "schema": 1,
+  "source_guide_revision": "67dc5fd8da6abde324c51d32eee3d04687070dd6",
+  "source_guide_sha256": "44067788c6cb7a83b38d468817f273ce5cc901cd5e000c0f9ff65f8af15fc6ed",
+  "profile": "k1-1920x1080-1024-interface-letterbox-off-movies-on-v1",
+  "vendor_output_equivalence_proven": true,
+  "source_components": [
+    {
+      "original_index": 179,
+      "raw": {
+        "Guid": "7c11497d-de47-8eee-b80a-967b984a2822",
+        "Name": "Galaxy Map Fix Pack",
+        "Author": "Kexikus & Sith Holocron",
+        "Description": "Moves the planets on the K1 Galaxy Map to their canon positions, and animates the screen on the Ebon Hawk",
+        "Directions": "If intending to play [in widescreen](#optional-widescreen-extended-widescreen-support-mods) and with the widescreen menus mod (part of several additional widescreen support mods [here](/modding/mod_builds/k1/widescreen)), install this mod *after* completing the rest of this guide, including widescreen menus installation (this is the only mod you will have to install out of presented order). When coming back to install this mod, if using widescreen you will move the file from the optional download \"HR Menu Patch.zip\" which corresponds to your resolution to your override folder, *after* completing the installation of the base mod. If you are not intending to play in widescreen, install the base mod only at this point.",
+        "Tier": "3 - Suggested",
+        "Category": [
+          "Graphics Improvement",
+          "Immersion"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "http://deadlystream.com/files/file/1068-k1-galaxy-map-fix-pack/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "7c11497d-de47-8eee-b80a-967b984a2822",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults.",
+              "When coming back to install this mod",
+              "If you are not intending to play in widescreen, install the base mod only at this point"
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 1
+          },
+          "MethodContext": {
+            "Method": "TSLPatcher",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "Heading": "Galaxy Map Fix",
+        "InstallationMethod": "TSLPatcher",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[Galaxy Map Fix Pack](http://deadlystream.com/files/file/1068-k1-galaxy-map-fix-pack/)",
+        "WidescreenOnly": false
+      },
+      "canonical": {
+        "Guid": "7c11497d-de47-8eee-b80a-967b984a2822",
+        "Name": "Galaxy Map Fix Pack",
+        "Author": "Kexikus & Sith Holocron",
+        "Description": "Moves the planets on the K1 Galaxy Map to their canon positions, and animates the screen on the Ebon Hawk",
+        "Directions": "If intending to play [in widescreen](#optional-widescreen-extended-widescreen-support-mods) and with the widescreen menus mod (part of several additional widescreen support mods [here](/modding/mod_builds/k1/widescreen)), install this mod *after* completing the rest of this guide, including widescreen menus installation (this is the only mod you will have to install out of presented order). When coming back to install this mod, if using widescreen you will move the file from the optional download \"HR Menu Patch.zip\" which corresponds to your resolution to your override folder, *after* completing the installation of the base mod. If you are not intending to play in widescreen, install the base mod only at this point.",
+        "Tier": "3 - Suggested",
+        "Category": [
+          "Graphics Improvement",
+          "Immersion"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "http://deadlystream.com/files/file/1068-k1-galaxy-map-fix-pack/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "7c11497d-de47-8eee-b80a-967b984a2822",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults.",
+              "When coming back to install this mod",
+              "If you are not intending to play in widescreen, install the base mod only at this point"
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 1
+          },
+          "MethodContext": {
+            "Method": "TSLPatcher",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "Heading": "Galaxy Map Fix",
+        "InstallationMethod": "TSLPatcher",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[Galaxy Map Fix Pack](http://deadlystream.com/files/file/1068-k1-galaxy-map-fix-pack/)",
+        "WidescreenOnly": false
+      }
+    },
+    {
+      "original_index": 185,
+      "raw": {
+        "Guid": "267b10d2-bab0-8e3a-a258-f9b6d6f9d71b",
+        "Name": "4GB Patcher",
+        "Author": "Daniel Pistelli",
+        "Description": "This is a program which modifies your game's executable file to be able to utilize up to 4 gigabytes of RAM, since KOTOR is a 32-bit application and by default can only utilize 2 gigabytes. This will help the game run smoothly even with the larger texture throughput this build creates, and also reduces issues caused by a memory leak which is native to the game, preventing crashes and savegame corruption.",
+        "Directions": "If you intend to add widescreen support, *proceed to the below section and* **FULLY** *apply your chosen widescreen resolution* **AND** *all additional widescreen support mods you choose to use* **BEFORE** *completing this step*. Once you are done applying all your chosen widescreen content, you are then free to apply this patch.\n    \n    Additionally, **DO NOT** apply this step with the Steam version of the game, unless you have applied the below widescreen patch! Without the modified widescreen .exe, Steam's executable copy is encrypted in such a way that executing this patcher will break it and prevent the game from launching. Although it's unfortunate to not have access to the patch, it doesn't introduce any fatal errors or shortcomings if you are on Steam and choose not to apply widescreen so it can be used; I recommend just being sure to exit your game and restart the application from the top once every four hours or so!",
+        "Tier": "1 - Essential",
+        "Category": [
+          "Patch"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [
+          {
+            "Action": "Move",
+            "Source": [
+              "<<modDirectory>>\\i\\*"
+            ],
+            "Destination": "<<kotorDirectory>>\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://ntcore.com/?page_id=371": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "267b10d2-bab0-8e3a-a258-f9b6d6f9d71b",
+            "DraftInstructionCount": 1,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults.",
+              "Installation method is unsupported, mixed, or exceeds 256 characters; explicit archive-aware interpretation is required.",
+              "If you intend to add widescreen support, proceed to the below section and FULLY apply your chosen widescreen resolution AND all additional widescreen support mods you choose to use BEFORE completing this step",
+              "Although it's unfortunate to not have access to the patch, it doesn't introduce any fatal errors or shortcomings if you are on Steam and choose not to apply widescreen so it can be used"
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 1
+          },
+          "MethodContext": {
+            "Method": "Executable",
+            "MethodTruncated": false,
+            "Kind": "Unsupported",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "InstallationMethod": "Executable",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "NameFieldContent": "[4GB Patcher](https://ntcore.com/?page_id=371)",
+        "WidescreenOnly": false
+      },
+      "canonical": {
+        "Guid": "267b10d2-bab0-8e3a-a258-f9b6d6f9d71b",
+        "Name": "4GB Patcher",
+        "Author": "Daniel Pistelli",
+        "Description": "This is a program which modifies your game's executable file to be able to utilize up to 4 gigabytes of RAM, since KOTOR is a 32-bit application and by default can only utilize 2 gigabytes. This will help the game run smoothly even with the larger texture throughput this build creates, and also reduces issues caused by a memory leak which is native to the game, preventing crashes and savegame corruption.",
+        "Directions": "If you intend to add widescreen support, *proceed to the below section and* **FULLY** *apply your chosen widescreen resolution* **AND** *all additional widescreen support mods you choose to use* **BEFORE** *completing this step*. Once you are done applying all your chosen widescreen content, you are then free to apply this patch.\n    \n    Additionally, **DO NOT** apply this step with the Steam version of the game, unless you have applied the below widescreen patch! Without the modified widescreen .exe, Steam's executable copy is encrypted in such a way that executing this patcher will break it and prevent the game from launching. Although it's unfortunate to not have access to the patch, it doesn't introduce any fatal errors or shortcomings if you are on Steam and choose not to apply widescreen so it can be used; I recommend just being sure to exit your game and restart the application from the top once every four hours or so!",
+        "Tier": "1 - Essential",
+        "Category": [
+          "Patch"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [
+          {
+            "Action": "Move",
+            "Source": [
+              "<<modDirectory>>/i/*"
+            ],
+            "Destination": "<<kotorDirectory>>\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://ntcore.com/?page_id=371": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "267b10d2-bab0-8e3a-a258-f9b6d6f9d71b",
+            "DraftInstructionCount": 1,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults.",
+              "Installation method is unsupported, mixed, or exceeds 256 characters; explicit archive-aware interpretation is required.",
+              "If you intend to add widescreen support, proceed to the below section and FULLY apply your chosen widescreen resolution AND all additional widescreen support mods you choose to use BEFORE completing this step",
+              "Although it's unfortunate to not have access to the patch, it doesn't introduce any fatal errors or shortcomings if you are on Steam and choose not to apply widescreen so it can be used"
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 1
+          },
+          "MethodContext": {
+            "Method": "Executable",
+            "MethodTruncated": false,
+            "Kind": "Unsupported",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "InstallationMethod": "Executable",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "NameFieldContent": "[4GB Patcher](https://ntcore.com/?page_id=371)",
+        "WidescreenOnly": false
+      }
+    },
+    {
+      "original_index": 187,
+      "raw": {
+        "Guid": "6c3c7165-297e-80eb-b9f8-d47506dab2d5",
+        "Name": "KOTOR High Resolution Menus",
+        "Author": "ndix UR",
+        "Description": "Edits your game's .exe file to allow the in-game menus to be represented at your game's edited resolution rather than the permanent 800x600 of the default port. This will only work on the GoG, 4-disk, MacOS, and UniWS-patched Steam versions of the game; for it to be effective, the game must *already be patched* to your widescreen resolution of choice (IE, make sure you've applied UniWS first)!",
+        "Directions": "Make a copy of your swkotor.exe (only AFTER having applied the UniWS widescreen patch) and paste it into the extracted mod folder with the .bat file within. Run the .bat file (NOT the .exe!) and input the necessary data. The .bat will generate a new file called swkotor.exe, as well as swkotor.exe.bak\u2014*swkotor.exe is the correct file*, and the file with .bak appended at the end is a backup which you can safely delete. Take the new swkotor.exe file and replace the one in your main game directory with it, then move the HR Menus files for your selected resolution into your override folder.",
+        "Tier": "1 - Essential",
+        "Category": [
+          "Graphics Improvement"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [
+          {
+            "Action": "Move",
+            "Source": [
+              "<<modDirectory>>\\o\\*"
+            ],
+            "Destination": "<<kotorDirectory>>\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          },
+          {
+            "Action": "Move",
+            "Source": [
+              "<<modDirectory>>\\n\\*"
+            ],
+            "Destination": "<<kotorDirectory>>\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          },
+          {
+            "Action": "Move",
+            "Source": [
+              "<<modDirectory>>\\o\\*"
+            ],
+            "Destination": "<<kotorDirectory>>",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          },
+          {
+            "Action": "Move",
+            "Source": [
+              "<<modDirectory>>\\H\\*"
+            ],
+            "Destination": "<<kotorDirectory>>\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/1159-kotor-high-resolution-menus/?tab=comments": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "6c3c7165-297e-80eb-b9f8-d47506dab2d5",
+            "DraftInstructionCount": 4,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults.",
+              "Installation method is unsupported, mixed, or exceeds 256 characters; explicit archive-aware interpretation is required."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": ".bat Patcher with Loose-File Components",
+            "MethodTruncated": false,
+            "Kind": "Unsupported",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "Heading": "HR Menus",
+        "InstallationMethod": ".bat Patcher with Loose-File Components",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[KOTOR High Resolution Menus](https://deadlystream.com/files/file/1159-kotor-high-resolution-menus/?tab=comments)",
+        "WidescreenOnly": true
+      },
+      "canonical": {
+        "Guid": "6c3c7165-297e-80eb-b9f8-d47506dab2d5",
+        "Name": "KOTOR High Resolution Menus",
+        "Author": "ndix UR",
+        "Description": "Edits your game's .exe file to allow the in-game menus to be represented at your game's edited resolution rather than the permanent 800x600 of the default port. This will only work on the GoG, 4-disk, MacOS, and UniWS-patched Steam versions of the game; for it to be effective, the game must *already be patched* to your widescreen resolution of choice (IE, make sure you've applied UniWS first)!",
+        "Directions": "Make a copy of your swkotor.exe (only AFTER having applied the UniWS widescreen patch) and paste it into the extracted mod folder with the .bat file within. Run the .bat file (NOT the .exe!) and input the necessary data. The .bat will generate a new file called swkotor.exe, as well as swkotor.exe.bak\u2014*swkotor.exe is the correct file*, and the file with .bak appended at the end is a backup which you can safely delete. Take the new swkotor.exe file and replace the one in your main game directory with it, then move the HR Menus files for your selected resolution into your override folder.",
+        "Tier": "1 - Essential",
+        "Category": [
+          "Graphics Improvement"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [
+          {
+            "Action": "Move",
+            "Source": [
+              "<<modDirectory>>/o/*"
+            ],
+            "Destination": "<<kotorDirectory>>\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          },
+          {
+            "Action": "Move",
+            "Source": [
+              "<<modDirectory>>/n/*"
+            ],
+            "Destination": "<<kotorDirectory>>\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          },
+          {
+            "Action": "Move",
+            "Source": [
+              "<<modDirectory>>/o/*"
+            ],
+            "Destination": "<<kotorDirectory>>",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          },
+          {
+            "Action": "Move",
+            "Source": [
+              "<<modDirectory>>/H/*"
+            ],
+            "Destination": "<<kotorDirectory>>\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/1159-kotor-high-resolution-menus/?tab=comments": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "6c3c7165-297e-80eb-b9f8-d47506dab2d5",
+            "DraftInstructionCount": 4,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults.",
+              "Installation method is unsupported, mixed, or exceeds 256 characters; explicit archive-aware interpretation is required."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": ".bat Patcher with Loose-File Components",
+            "MethodTruncated": false,
+            "Kind": "Unsupported",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "Heading": "HR Menus",
+        "InstallationMethod": ".bat Patcher with Loose-File Components",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[KOTOR High Resolution Menus](https://deadlystream.com/files/file/1159-kotor-high-resolution-menus/?tab=comments)",
+        "WidescreenOnly": true
+      }
+    }
+  ],
+  "archives": [
+    {
+      "role": "editable",
+      "filename": "KOTOR Editable Executable.rar",
+      "sha256": "dfbc0b189b407c91784fd4a76e7b3c9d47c6835934b5db7addd85e8bf4ade4d4",
+      "bytes": 1363680
+    },
+    {
+      "role": "uniws",
+      "filename": "uniws.zip",
+      "sha256": "c14f35e5bfe65cdda8de74e160183c0c6bf0602413bc32c26af0a3473e5a5c18",
+      "bytes": 306225
+    },
+    {
+      "role": "hrmenus",
+      "filename": "k1hrm-1.5.7z",
+      "sha256": "2a5f766e7ab73b109dd63cef3bf7fc95227fee9b43254c747b882e72e1acc2de",
+      "bytes": 1975821
+    },
+    {
+      "role": "galaxy",
+      "filename": "HR Menu Patch.zip",
+      "sha256": "dc89cf3de0827eb952201ec3871043aa1533acb3df4d2f6101c9b84f1f879df4",
+      "bytes": 157779
+    },
+    {
+      "role": "fourgb",
+      "filename": "4gb_patch.zip",
+      "sha256": "1e13c263dc55e85cf62e3e30c6b2ce936d4c7e16e3bba3e311a5a8bed4be16ca",
+      "bytes": 21464
+    }
+  ],
+  "assets": [
+    {
+      "archive": "editable",
+      "path": "KOTOR Editable Executable/Readme.txt",
+      "sha256": "781a0b2c004b1e4815bb2d957d0ce91fc8361fe922b845bb639a2e709ff7801a",
+      "bytes": 209
+    },
+    {
+      "archive": "editable",
+      "path": "KOTOR Editable Executable/swkotor.exe",
+      "sha256": "761f9466f456a83909036baebb5c43167d722387be66e54617ba20a8c49e9886",
+      "bytes": 4042752
+    },
+    {
+      "archive": "uniws",
+      "path": "patches.ini",
+      "sha256": "45710218fc2555ed634fb1ae81943fa3d6034b63171822c51091758b3784daf1",
+      "bytes": 13766
+    },
+    {
+      "archive": "uniws",
+      "path": "uniws.exe",
+      "sha256": "c0cecad9532690e093cdbaf23ad930e43b075f809db8c9d158caa0c3e1a730ed",
+      "bytes": 594432
+    },
+    {
+      "archive": "hrmenus",
+      "path": "hires_patcher.bat",
+      "sha256": "115ee7093aa6c5098ddf970bd129a46f7399768aec8455e6f4f8d478f6d86af3",
+      "bytes": 579
+    },
+    {
+      "archive": "hrmenus",
+      "path": "hires_patcher.pl",
+      "sha256": "90591595fb4961f200d0b4fb513c0d2fb29b218b0cab2e58699ce1285d5675b5",
+      "bytes": 10466
+    },
+    {
+      "archive": "hrmenus",
+      "path": "README.pdf",
+      "sha256": "a1d74be0615ebae279c8e9139bcbe690c2eefbb074ec1ea52665f9b9a45b06a0",
+      "bytes": 113201
+    },
+    {
+      "archive": "hrmenus",
+      "path": "LICENSE.txt",
+      "sha256": "230184f60bae2feaf244f10a8bac053c8ff33a183bcc365b4d8b876d2b7f4809",
+      "bytes": 35823
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/abchrgen.gui",
+      "sha256": "e67047107406fe63c067eadd8ed3095d696f5441e35022d7ed33beed8892d6ef",
+      "bytes": 28748
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/abilities.gui",
+      "sha256": "97062ba496b609d5a6dcdb96a589d98153b19f144d859164f0e32013d276baf0",
+      "bytes": 14906
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/areatransition.gui",
+      "sha256": "57895ae2ddf2285829042e737315049c148e2febb03c2ed5bc47d3d9eb32b201",
+      "bytes": 2576
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/barkbubble.gui",
+      "sha256": "99942f9b8b149edd84f777bd553a2bf8311b732256d3cd93828a4bc2f28ae73c",
+      "bytes": 1466
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/character.gui",
+      "sha256": "65166e836dd55c62defbf6a9656eadf56dbd11ec5391db86bf09a3dc6f43e99b",
+      "bytes": 42691
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/classsel.gui",
+      "sha256": "d076e7c62ca71b5e6b8ad87859c72795f00e39d372442ef66804bd7c416c4085",
+      "bytes": 12175
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/computer.gui",
+      "sha256": "6ba2517247ca7ebab5bb7c5ab735cfdf164fe4df710df5bee1a0eae4f6ddc65c",
+      "bytes": 14154
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/computercamera.gui",
+      "sha256": "d5665730e0a307cdb3db61d7a2e4c64e526c83fcd7e90e8263d747126d79f402",
+      "bytes": 1426
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/confirm.gui",
+      "sha256": "b0c875b3c54f45bdf39660c4cf56e9b2283097a38568e34a9139b7db36b8650c",
+      "bytes": 4602
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/container.gui",
+      "sha256": "4a15e425e45774110bc734ae6251dd894f28d88b7adac6d41bf2202b13fc6125",
+      "bytes": 6142
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/credits.gui",
+      "sha256": "cb1b4b3e93ca5a05b687766238b8b336a4f95fc781c4c182f6b0d9229f94074a",
+      "bytes": 2435
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/custpnl.gui",
+      "sha256": "008f2955d3cd644f1604b7a6ee0f0178dc4795ff12b5aca231f3273c9094ae55",
+      "bytes": 15799
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/debug.gui",
+      "sha256": "03483f19c06a99a0c22291f85f5c077eb718dc40ef679d3919982a910886918d",
+      "bytes": 3122
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/equip.gui",
+      "sha256": "9e03a221b99d2160ab8f4460cb1dc1557d577b6769b7997b7546abf767f016ea",
+      "bytes": 30331
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/fade.gui",
+      "sha256": "b12688ac5605e136ce2496be0e7ee817ee6a0fc532db0793e11a610c4e2b989e",
+      "bytes": 1452
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/ftchrgen.gui",
+      "sha256": "935e86a551647b05f24869aa74cc03cccd132f31db14a2b5889721cb91b2003a",
+      "bytes": 11371
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/galaxymap.gui",
+      "sha256": "96b1d1596b6693baa274f6ebd14ca537565cbd4cc97ea7c0d392e34c7458f348",
+      "bytes": 17933
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/inventory.gui",
+      "sha256": "d04452f4edd1982fd3c45b030669220d66ceb92091be8d4ce4022ec54382c8be",
+      "bytes": 13501
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/journal.gui",
+      "sha256": "fb3ea8d955d40c80df7c95104610dd3c408d210254c302450836598bc0e60471",
+      "bytes": 8660
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/leveluppnl.gui",
+      "sha256": "b0b40cdf5981f32bd9293b8fbf41a4e57f7e046d9aa371d67047de1322d94231",
+      "bytes": 12875
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/loadscreen.gui",
+      "sha256": "e8eaf78450cdece2e9426e64b49f8163e48c7b99593fa1349bd13bd58b74c0ec",
+      "bytes": 3258
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/maincg.gui",
+      "sha256": "0b5becffd443a37e2fd0cd80d32edc4c12b2749cec80abaa57e38f43a747d845",
+      "bytes": 25285
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/maininterface.gui",
+      "sha256": "94e5cf1cc82f4a58440f2ee1af934b4e958936eec531cbc61589f658c309a5f8",
+      "bytes": 62131
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/mainmenu.gui",
+      "sha256": "860cbf4c6ec9e17b6ff468e62c8f9dc66a7b2482a44948798397a3ac4d136ea0",
+      "bytes": 11354
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/mainmenu10x7.gui",
+      "sha256": "e4679642b6a42b201a85b8ae2cebf1a7bf40f9327a92dd660bc6d9d7a52c1106",
+      "bytes": 11354
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/mainmenu12x9.gui",
+      "sha256": "4c95fbd54278e6e431c377080a7ebe2c9c33ee506b4152e3ea62b6cb26b0c572",
+      "bytes": 11354
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/mainmenu16x12.gui",
+      "sha256": "9183f4af042986cd04826f052f650b40b8a22ecdd0b2a8b94b5a9bfa26522faa",
+      "bytes": 11354
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/mainmenu8x6.gui",
+      "sha256": "263382c58ab3a8d4494989918f62dba646bd004c3e1fe2f4df13a6aa1dcee9cc",
+      "bytes": 11354
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/map.gui",
+      "sha256": "39087b42eb0deef4b2b1b6ea89d61b5f86f053633a4c21465fb9345d4651e763",
+      "bytes": 7347
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/messages.gui",
+      "sha256": "63eb3ebb29a85125bafcf07a524f15552c2bf32c5b8a518c80cff7bb62de5c62",
+      "bytes": 7171
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/mi8x6.gui",
+      "sha256": "b960ffdf6242d89ad80d5c6fffb7c97751387e7dc049080fb1eb7abd5490e197",
+      "bytes": 62131
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/mipc10x7.gui",
+      "sha256": "ece1a41218261a2475a7fb4b15091ad5c5fda843c9a3953b0080cb4ce9cb4487",
+      "bytes": 91895
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/mipc12x9.gui",
+      "sha256": "632c14dd23fb40747e2b7e030b72ae7b1dbb9ee792539ef71377a1733ef5b14c",
+      "bytes": 91895
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/mipc16x12.gui",
+      "sha256": "39afae778f2f3acd75fea72e450e81452c799b492c7097a0dd0d1fc4f8983ad4",
+      "bytes": 91895
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/mipc210x7.gui",
+      "sha256": "6114d914ec99c4a04b33ebed6f71aff9112fbc28badf540b5327a920084854a2",
+      "bytes": 76322
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/mipc212x9.gui",
+      "sha256": "e8b7a41c9e79243ac230bab8beb00358d7a2a7f34f281d60fdf9e47dd8d0b004",
+      "bytes": 76322
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/mipc216x12.gui",
+      "sha256": "8ad11fbc2df39471f6cc0abf48af7da2029dffd502768506eb4f7059554ae0ae",
+      "bytes": 76322
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/mipc28x6.gui",
+      "sha256": "27f0f6123fda3a3ca9af9180d2316b34bda7adf3f0fae07b3e6ab2a03be387a3",
+      "bytes": 76322
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/mipc8x6.gui",
+      "sha256": "393938eefcd00c0f99618b4ee9a2378d68876b464548efdb91ac01b7d3a4aa99",
+      "bytes": 91895
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/name.gui",
+      "sha256": "fdada02e9e4a7d19eb941871952e6db24f742fc9898c48b7615673b415f042ef",
+      "bytes": 5078
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/ntscpat.gui",
+      "sha256": "b09dccaf7d573b285e0914135c6b906d4519c67d8ba10a1f86645a33293c01a1",
+      "bytes": 675
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/optautopause.gui",
+      "sha256": "0dbb53eae16f75c3f247d77d45d3730f927a37e327104f522d12239a5ccec830",
+      "bytes": 12433
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/optfeedback.gui",
+      "sha256": "13e13453336ca5e117c889ca02657da989d1170d54b0e803c3b83a2efe34635b",
+      "bytes": 7454
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/optgameplay.gui",
+      "sha256": "00ad0b86a5780d3fd1ce5560437ba8a457d665c5b0a73d7ce3e941988a69a3f6",
+      "bytes": 15415
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/optgraphics.gui",
+      "sha256": "8220e2a77e124db05eeceff9fcfbd25de7a9ba28c0bd8e9941b9adb00b607c14",
+      "bytes": 10631
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/optgraphicsadv.gui",
+      "sha256": "0f7f786ab78bcb76121174d323b4ef2067120ba015cb80ce702d75a87f3526f6",
+      "bytes": 17180
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/optionsingame.gui",
+      "sha256": "8de1ed0eaf5b378be4d3b9cd840a5e33eef544e8ae8bb97c3a89bac59f3f4871",
+      "bytes": 10942
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/optionsmain.gui",
+      "sha256": "fd01dbfbe2ea4b4024d4b3b40fec80e4e8fce6b313ccae9479eb430e4e688666",
+      "bytes": 8441
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/optkeyentry.gui",
+      "sha256": "d6a7efd271c799e7b1d6ce5f1d9c2859d76b4184084e042c0fa06b48e2579170",
+      "bytes": 5308
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/optkeymapping.gui",
+      "sha256": "a596a8f60af8b737424b002e2c0bb3fc51b540ecd6179685e803bc87fb6b796b",
+      "bytes": 8697
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/optmouse.gui",
+      "sha256": "30d2c0b65c25d753c83313e9be8c8a4375dfa7aeff44c5cf8633e322fcc143a3",
+      "bytes": 7763
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/optresolution.gui",
+      "sha256": "556c906671c8385f16595cd07decc6b98d79f727609e3b4139ca804453da8993",
+      "bytes": 5362
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/optsound.gui",
+      "sha256": "dc593f18a4279aa11f233f9e18cf5960f3ad00c4573cf39ba448891657ca455c",
+      "bytes": 11471
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/optsoundadv.gui",
+      "sha256": "c4569fca745acb81c24e7047d57dac4802326c4830d3206437273fa98761063f",
+      "bytes": 9724
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/partyselection.gui",
+      "sha256": "919246d2f2eb9b0495c3a9bff5b1204aef5a8973077b0e70d7d0e058bf5dbcc5",
+      "bytes": 30119
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/pause.gui",
+      "sha256": "c4e175a53d8289436a14c37f34c42010684d2458f2f8a719160f1e3f08e9bd8d",
+      "bytes": 2916
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/pazaakgame.gui",
+      "sha256": "ef077ab6a37ecb75028b2dd36031cf3f259bdf6fc47cb8cf0cd4a83ceef4bd20",
+      "bytes": 51153
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/pazaaksetup.gui",
+      "sha256": "bf4226239e0df80b40308df34bfdf7082d507ac4c7d90b02526ca772b8849cbc",
+      "bytes": 53649
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/pazaakwager.gui",
+      "sha256": "92d0368302c5ea41799564ae0b85c47bc5af0c9fc56df98c6cd0b93750f564db",
+      "bytes": 6562
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/portcust.gui",
+      "sha256": "dbc91540f0e9ce8982fb621dbbcbda544bf457d5293a9c51da56fff25119ccd9",
+      "bytes": 9340
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/pwrlvlup.gui",
+      "sha256": "2fa4506a97c267b7fe443d4dcdaba021163735704a2254cb5b2e9720a00562e2",
+      "bytes": 11368
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/qorcpnl.gui",
+      "sha256": "4b270988f0b1a3e3fb59a895529551537df3da0659270affb5fce6da0c49b864",
+      "bytes": 6595
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/questitem.gui",
+      "sha256": "9d335bc7d41edf2118a5b67da7dbd7b4adbf9bd86ce4bebe4606a1d7d28598db",
+      "bytes": 6207
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/quickpnl.gui",
+      "sha256": "cf73c5e2d629fe1871c4937c55148a3f98c93184848cca4c1a40f13a9dc008e8",
+      "bytes": 9502
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/saveload.gui",
+      "sha256": "19c2a2b56a4ecb479d202df1de62b651d8434215f5b1606c1b50e7d354ac170d",
+      "bytes": 9566
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/savename.gui",
+      "sha256": "d727d45eab69c799c2f498da18f7924feaf07be63381809b59e6d838436b3803",
+      "bytes": 3763
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/scriptselect.gui",
+      "sha256": "396fe4991b7b4e6b772c1a770230bc9522ccb7863ea86fcd91e9ff23b166387a",
+      "bytes": 7477
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/skchrgen.gui",
+      "sha256": "7b7f3b4d9be84f38a2e0497ecfffb559b83c1732f1093a09449749b373a3e867",
+      "bytes": 34599
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/skillinfo.gui",
+      "sha256": "63941065676ea55bc3c6b0fc56be5bebd8a26c7c76f7619ebfdd4122d034369d",
+      "bytes": 4618
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/splashscreen.gui",
+      "sha256": "4a1e7ab44db93f52f8d8b3a4d25d24b3afacf061684486a3aba83b9f016f9b2a",
+      "bytes": 1234
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/store.gui",
+      "sha256": "ec1b6be75de43ee4702399fd9e918be81cbfcf8f01aa6dfaf9cf1c6d44de2a26",
+      "bytes": 13059
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/titlemovie.gui",
+      "sha256": "7f8564fba1f53f785587b792ebf8a9a3bc24f970eb7872ea29bcc348d1332345",
+      "bytes": 4479
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/tooltip10x8.gui",
+      "sha256": "77bc35096f79aaa02b08e70d35e459d9f72a806da7adeeb17b39444ba52fc8a7",
+      "bytes": 1446
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/tooltip12x9.gui",
+      "sha256": "018610392dbe296c1aa2fd8733e366fac453fb76d3d60b74311b2e0751294f09",
+      "bytes": 1446
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/tooltip16x12.gui",
+      "sha256": "f3b7b3d1f0078187ab8669ce8f0449902398be820b057205cfa0490c470aa067",
+      "bytes": 1446
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/tooltip6x4.gui",
+      "sha256": "8d41c45384766a5f5c30c2eca71800d1500048e6f218b44bfe3439c85ecb2c2b",
+      "bytes": 1446
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/tooltip8x6.gui",
+      "sha256": "69f139fd8721deebddc318d1ad3ec2e0fd29b1292aaa0b8efed37324cc86a56a",
+      "bytes": 1446
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/top.gui",
+      "sha256": "a09ef22a6c01db85e9a7824ec421da99bd92e831d73938689aedb4765df2ce4f",
+      "bytes": 12083
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/upgrade.gui",
+      "sha256": "0257eb3531e17db14e12e023f14bb57ba509460e9ffed4a47d149f34f82bc219",
+      "bytes": 23162
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/upgradeitems.gui",
+      "sha256": "6b41e31def67a66773b7e00ae62e0d86b3dfc406a820b68874404378ded3fe47",
+      "bytes": 7012
+    },
+    {
+      "archive": "hrmenus",
+      "path": "16-by-9/gui.1920x1080/upgradesel.gui",
+      "sha256": "7aaa506f1a55af989eeb1787e0027f0df4d3385c199f90fdaf1315a82b468bb2",
+      "bytes": 8756
+    },
+    {
+      "archive": "galaxy",
+      "path": "16-by-9/gui.1920x1080/galaxymap.gui",
+      "sha256": "054ab565204f56337b7caab20789176246da39406edc981d6ff4a0400ad5d09a",
+      "bytes": 17933
+    }
+  ],
+  "source_provenance": {
+    "editable": "pinned guide line46 links DS2377; publisher EditableEXE link targets https://deadlystream.com/files/file/1320-kotor-editable-executable/; publisher/readme attribute FairLight",
+    "uniws": "https://www.wsgf.org/article/universal-widescreen-uniws-patcher -> https://www.wsgf.org/downloads/uniws.zip ; exact1024x768interface section including movies",
+    "hrmenus": "https://deadlystream.com/files/file/1159-kotor-high-resolution-menus/?tab=comments ; exact published Perl/BAT/README and1920GUI tree",
+    "galaxy": "https://deadlystream.com/files/file/1068-k1-galaxy-map-fix-pack/ optional public row38716; acquired bytes equal existing known original-download mirror",
+    "fourgb": "Actual original NTCore4GB executable 980bf5eb62d30c749e5fbf7593e9d25094a4d849a959aa2b7b3fc979b1c93b5a in isolated rootless Wine CLI argument mode, exit0/strictwait/backup exact. Fixed HRMenus input 63698d8aba343621591646b03e2a8fafd4a170befbe9dce65fc4f873b5429bf0 -> full output d739e41e79f89ee98e666f66deb22a8f85da5b44908c4e9fcfcb24fea723f959. Writes COFF LAA 0x926 0f01->2f01 AND PE checksum 0x968 f7733e00->11533e00. Local authenticated public-input receipt SHA256 3bedb3233e3cbc45c44483c036ff86575ef2e0350804decd54189bd9b08bbb0b. Not game/whole-component/native consumer proof.",
+    "hrmenus_vendor_fixed_input": "Actual original Perl SHA256 90591595fb4961f200d0b4fb513c0d2fb29b218b0cab2e58699ce1285d5675b5 args1920/1080/0 exit0 full output 63698d8aba343621591646b03e2a8fafd4a170befbe9dce65fc4f873b5429bf0. Receipt SHA256 9066daa9858f18a425842d7e8cb9ca7736e677bd3de9b558d060aef4aec2c7ea. Not whole-component/native consumer proof."
+  },
+  "source_plan_sha256": "1b402ba085625c4863795069eaacaef0f53e8ea7179e56a5bd150d88eb9c0a74",
+  "uniws_edits": [
+    {
+      "offset": 2034789,
+      "expected": "2003",
+      "replacement": "8007"
+    },
+    {
+      "offset": 2034799,
+      "expected": "5802",
+      "replacement": "3804"
+    },
+    {
+      "offset": 2671843,
+      "expected": "0004",
+      "replacement": "8007"
+    },
+    {
+      "offset": 2671859,
+      "expected": "0005",
+      "replacement": "0000"
+    },
+    {
+      "offset": 2671866,
+      "expected": "4006",
+      "replacement": "0000"
+    },
+    {
+      "offset": 15724,
+      "expected": "8002",
+      "replacement": "8007"
+    },
+    {
+      "offset": 15736,
+      "expected": "e001",
+      "replacement": "3804"
+    },
+    {
+      "offset": 2054971,
+      "expected": "8002",
+      "replacement": "8007"
+    },
+    {
+      "offset": 2054979,
+      "expected": "e001",
+      "replacement": "3804"
+    }
+  ],
+  "hrmenus_edits": [
+    {
+      "offset": 46791,
+      "expected": "80fd",
+      "replacement": "80f8"
+    },
+    {
+      "offset": 47724,
+      "expected": "80fd",
+      "replacement": "80f8"
+    },
+    {
+      "offset": 46810,
+      "expected": "20fe",
+      "replacement": "c8fb"
+    },
+    {
+      "offset": 47747,
+      "expected": "20fe",
+      "replacement": "c8fb"
+    },
+    {
+      "offset": 43621,
+      "expected": "8002",
+      "replacement": "8007"
+    },
+    {
+      "offset": 2697561,
+      "expected": "8002",
+      "replacement": "8007"
+    },
+    {
+      "offset": 2697395,
+      "expected": "8002",
+      "replacement": "8007"
+    },
+    {
+      "offset": 43653,
+      "expected": "e001",
+      "replacement": "3804"
+    },
+    {
+      "offset": 2697579,
+      "expected": "e001",
+      "replacement": "3804"
+    },
+    {
+      "offset": 2697411,
+      "expected": "e001",
+      "replacement": "3804"
+    }
+  ],
+  "vendor_output_equivalence_scope": "exact-fixed-public-input-UniWS-HRMenus-FourGB-executable-chain-only",
+  "uniws_vendor_output_equivalence_proven": true,
+  "uniws_vendor_witness": {
+    "scope": "exact-fixed-editable-input-and-1920x1080-1024-interface-movies-on-UniWS-stage-only",
+    "repository": "kolto-labs/ModSync.rs",
+    "workflow_run_id": 43673160202,
+    "run_attempt": 1,
+    "workflow_head": "b80dc4adaddb4af89bf59b83359c76075cc439f3",
+    "artifact_id": 14144809187,
+    "artifact_sha256": "2ac09a02ad317a02a26a1e8fb245c950b5a5e68f40cf3e2c86be5e6bee9f694a",
+    "inspection_status": "verified",
+    "inspection_receipt_sha256": "e0d39844f84d61f31d7ba4a412ac3357317709445585a4124ea588fd3e352037",
+    "runtime_report_sha256": "1170e2d40468c7c6df61c560f7d1fc83a6631f788ccb3283f10bf059e921b53c",
+    "status": "vendor_differential_verified",
+    "input_sha256": "761f9466f456a83909036baebb5c43167d722387be66e54617ba20a8c49e9886",
+    "input_bytes": 4042752,
+    "output_sha256": "5fd092af0c1d914df814832d181e868a40517b1ad0fc15d01eef56039878f514",
+    "output_bytes": 4042752,
+    "vendor_success_dialog_observed": true,
+    "final_quiescent": true,
+    "exact_candidate_match": true,
+    "source_inputs_unchanged": true,
+    "resolution": [
+      1920,
+      1080
+    ],
+    "interface": "Star Wars: KOTOR (1024x768 interface)",
+    "changed_byte_count": 15,
+    "changed_ranges": [
+      [
+        15725,
+        15726
+      ],
+      [
+        15736,
+        15738
+      ],
+      [
+        2034789,
+        2034791
+      ],
+      [
+        2034799,
+        2034801
+      ],
+      [
+        2054972,
+        2054973
+      ],
+      [
+        2054979,
+        2054981
+      ],
+      [
+        2671843,
+        2671845
+      ],
+      [
+        2671860,
+        2671861
+      ],
+      [
+        2671866,
+        2671868
+      ]
+    ],
+    "hrmenus_vendor_equivalence_proven": false,
+    "fourgb_vendor_equivalence_proven": false,
+    "game_launch_proven": false
+  },
+  "ini_creation": {
+    "path": "swkotor.ini",
+    "baseline_present": false,
+    "baseline_engine_sha": "ca5520d829fdda55385f2c01974a23f83e71b032",
+    "absence_evidence_sha256": "e2334b9ff91d4540bc9616489a2a229011790da8c7cba30ee5cf81e7a689dfaa",
+    "policy": "create-only-on-explicit-None-reject-every-existing-input",
+    "encoding": "ASCII",
+    "line_endings": "CRLF",
+    "content": "[Graphics Options]\r\nWidth=1920\r\nHeight=1080\r\n\r\n[Display Options]\r\nWidth=1920\r\nHeight=1080\r\n",
+    "bytes": 91,
+    "sha256": "6dff4a2a50e5527ab31021084dc9f0032dcf414ac72f9fc779de71beb47102ce",
+    "game_launch_proven": false
+  },
+  "hrmenus_vendor_output_equivalence_proven": true,
+  "fourgb_vendor_output_equivalence_proven": true,
+  "hrmenus_vendor_witness": {
+    "receipt_sha256": "9066daa9858f18a425842d7e8cb9ca7736e677bd3de9b558d060aef4aec2c7ea",
+    "input_sha256": "5fd092af0c1d914df814832d181e868a40517b1ad0fc15d01eef56039878f514",
+    "output_sha256": "63698d8aba343621591646b03e2a8fafd4a170befbe9dce65fc4f873b5429bf0",
+    "output_bytes": 4042752,
+    "program_sha256": "90591595fb4961f200d0b4fb513c0d2fb29b218b0cab2e58699ce1285d5675b5",
+    "exit_code": 0,
+    "scope": "exact-fixed-public-input-executable-only-no-component-install-or-gameplay-proof"
+  },
+  "fourgb_vendor_witness": {
+    "receipt_sha256": "3bedb3233e3cbc45c44483c036ff86575ef2e0350804decd54189bd9b08bbb0b",
+    "input_sha256": "63698d8aba343621591646b03e2a8fafd4a170befbe9dce65fc4f873b5429bf0",
+    "output_sha256": "d739e41e79f89ee98e666f66deb22a8f85da5b44908c4e9fcfcb24fea723f959",
+    "output_bytes": 4042752,
+    "program_sha256": "980bf5eb62d30c749e5fbf7593e9d25094a4d849a959aa2b7b3fc979b1c93b5a",
+    "exit_code": 0,
+    "scope": "exact-fixed-public-input-executable-only-no-component-install-or-gameplay-proof"
+  }
+}

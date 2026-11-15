@@ -37,7 +37,7 @@ pub(super) fn intake(value: &Value) -> Result<Intake> {
     // Rust extensions are explicit scalar names, never extra legacy enum values.
     // Appending enum indices would activate old numeric/comma-OR combinations.
     if let Value::String(name) = value
-        && matches!(name.as_str(), "ExtractTo" | "CopyFile")
+        && matches!(name.as_str(), "ExtractTo" | "CopyFile" | "K1Widescreen")
     {
         return Ok(Intake {
             raw_choose: false,

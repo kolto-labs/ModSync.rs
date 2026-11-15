@@ -6,6 +6,7 @@ from cache import link_key
 import gui_diag
 from fullrun_contract import require_gui_phases
 import fullrun_guide_choices
+import k1_widescreen_inputs
 import hashlib
 import json
 import math
@@ -929,6 +930,8 @@ def bind_archives(command, source, guide, converted, archives, archive_map, priv
     except (OSError, ValueError, AttributeError):
         review["bind_failed"] = "archive_map_unreadable"
         return converted
+    already_native = set((report.get("native_k1_profile") or {}).get("bound_owners", []))
+    bindings = [binding for binding in bindings if binding["componentGuid"] not in already_native]
     if not bindings:
         return converted
     for binding in bindings:
@@ -968,6 +971,61 @@ def bind_archives(command, source, guide, converted, archives, archive_map, priv
         return converted
     review["bound"] = count
     return bound if count else converted
+
+
+def bind_native_k1(command, source, guide, converted, archives, private, report, env):
+    """Bind only the fixed original three-owner profile; preserve every other model."""
+    roles = {"6c3c7165-297e-80eb-b9f8-d47506dab2d5": "hrmenus",
+             "7c11497d-de47-8eee-b80a-967b984a2822": "galaxy",
+             "267b10d2-bab0-8e3a-a258-f9b6d6f9d71b": "fourgb"}
+    canonical, bound = private / "k1-canonical-input.toml", private / "k1-native-bound.toml"
+    # Compare the actual native loader's input, including its established path
+    # and list normalizations, rather than weakening preservation comparisons.
+    run(command + ["convert", str(converted), str(canonical), "--format", "toml",
+                   "--compact-instruction-defaults"], source, private, "canonicalize_k1_input", report, env)
+    run(command + ["convert", str(canonical), str(bound), "--format", "toml",
+                   "--source-path", str(archives), "--k1-widescreen-profile", k1_widescreen_inputs.PROFILE_ID,
+                   "--k1-source-guide", str(guide), "--k1-galaxy-namespace", "Vanilla",
+                   "--compact-instruction-defaults"], source, private, "bind_k1_widescreen", report, env)
+    canonical_model, bound_model = private / "k1-canonical-model.json", private / "k1-bound-model.json"
+    for path, target, stage in ((canonical, canonical_model, "observe_k1_input_model"),
+                                (bound, bound_model, "observe_k1_bound_model")):
+        run(command + ["convert", str(path), str(target), "--format", "json"],
+            source, private, stage, report, env)
+    before, after = (json.loads(path.read_text(encoding="utf-8")) for path in (canonical_model, bound_model))
+    originals, generated = before.get("thisMod"), after.get("thisMod")
+    if (not isinstance(originals, list) or not isinstance(generated, list)
+            or len(originals) != 197 or [item.get("Guid") for item in originals]
+            != [item.get("Guid") for item in generated]):
+        raise Blocked("native_k1_source_inventory_changed")
+    expected_root = dict(before)
+    expected_root["K1WidescreenSchedule"] = after.get("K1WidescreenSchedule")
+    expected_root["thisMod"] = generated
+    if expected_root != after:
+        raise Blocked("native_k1_unexpected_root_metadata_change")
+    observed = set()
+    for original, current in zip(originals, generated):
+        identity = original["Guid"]
+        if identity not in roles:
+            if current != original:
+                raise Blocked("native_k1_changed_other_component")
+            continue
+        record = current.get("DraftReview", {})
+        binding = current.get("K1WidescreenBinding", {})
+        steps = current.get("Instructions", [])
+        if (binding.get("InputComponent") != original or binding.get("Role") != roles[identity]
+                or binding.get("SourceGuideSha256") != k1_widescreen_inputs.GUIDE_SHA256
+                or record.get("Generator") != "resolved-k1-widescreen" or record.get("RequiresReview") is not True
+                or len(steps) != 1 or steps[0].get("Action") != "K1Widescreen"
+                or steps[0].get("Arguments") != roles[identity]):
+            raise Blocked("native_k1_binding_does_not_preserve_original_owner")
+        observed.add(identity)
+    if observed != set(roles):
+        raise Blocked("native_k1_owner_missing")
+    report["native_k1_profile"] = {"profile": k1_widescreen_inputs.PROFILE_ID,
+        "source_guide_sha256": k1_widescreen_inputs.GUIDE_SHA256, "galaxy_namespace": "Vanilla",
+        "bound_owners": sorted(observed), "input_sha256": digest(canonical), "output_sha256": digest(bound)}
+    return bound
 
 
 def vendor_language_selection(game, guide, report):
@@ -3569,6 +3627,8 @@ def execute(args, report):
             report.setdefault("draft_review", {})["binding_source"] = {
                 "kind": "original-guide-draft-before-local-inference", "sha256": digest(converted),
                 "source_order_policy": fullrun_guide_choices.source_order_policy(original_guids)}
+            if guide.parent.name == "k1" and report["guide_sha256"] == k1_widescreen_inputs.GUIDE_SHA256:
+                converted = bind_native_k1(command, source, guide, converted, archives, private, report, env)
         reviewed = private / "converted-reviewed.toml"
         review_input = bind_archives(command, source, guide, converted, archives,
                                      args.archive_map, private, report, env,
@@ -3603,8 +3663,13 @@ def execute(args, report):
     skipped = []
     if args.restore_report is not None:
         skipped = load_policy_skips(args.restore_report.resolve(strict=True), guide)
-    skipped = merge_lane_skips(skipped, load_lane_skips(
-        guide.parent.name, implementation=args.implementation))
+    lane_skips = load_lane_skips(guide.parent.name, implementation=args.implementation)
+    if args.implementation == "rust" and report.get("native_k1_profile"):
+        retired = [item for item in lane_skips if item.get("section") == "Mod List"
+                   and item.get("heading") == "4GB Patcher" and item.get("severity") == "warning"]
+        report["superseded_lane_skips"] = retired
+        lane_skips = [item for item in lane_skips if item not in retired]
+    skipped = merge_lane_skips(skipped, lane_skips)
     report["component_count"] = coverage(
         guide, converted, report, args.implementation, skipped)
     gui_rust = args.implementation == "rust" and args.mode == "gui"

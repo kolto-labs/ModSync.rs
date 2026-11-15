@@ -4904,3 +4904,41 @@ CLI and GUI lanes of run43697716927, with zero warnings/errors/failures and
 full-manifest evidence of6 added/2 changed files. That reduced eight-owner
 workflow still failed later at Companion; it is not a whole-guide success or
 a claim of cross-lane byte equality.
+
+
+The original pinned K1 guide now has a closed native 1920x1080 profile for its
+HR Menus, whole Galaxy Map Vanilla component, and final 4GB owner. Six public
+publisher inputs are discovered without provider credentials and verified
+against compiled archive/member byte pins. Auxiliary cache objects remain
+separate from the retained archive index. The original protected executable is
+replaced only from the verified editable distribution; its complete UniWS,
+HR Menus and original 4GB output hashes were independently observed, including
+the 4GB checksum write. The original INI must be physically absent before the
+91-byte CRLF configuration may be transactionally created.
+
+Bindings preserve all original owner metadata and complete source order.
+A closed schedule defers the whole Galaxy component until after widescreen
+owners and runs 4GB last; original WidescreenOnly flags remain provenance.
+Only the full197-definition guide or its established196-definition partition
+without Remastered Cutscenes is admitted. CLI phase preparation, desktop
+selection/counts and the read-only phase-plan command share that schedule.
+Each component is reconstructed from freshly authenticated input archives at
+review and runtime. Public receipt hashes cannot authorize modified actions.
+Individual-action execution cannot bypass the whole-guide schedule.
+
+Native K1 publication requires the root lock and owned component checkpoint.
+Galaxy performs its complete native Vanilla installation in a private game
+projection, requires a fresh zero-warning/error/failure result and changed
+whole-game manifest, then publishes that result and the exact widescreen
+overlay through the engine VFS transaction. Validation runs no external program
+and leaves game/mod inputs unchanged. Production formatting, lib/bin builds and
+strict Clippy pass with and without desktop features. Authoring and phase
+planning receipts are separate from the pending actual CLI/GUI installation,
+checkpoint recovery and whole-guide proof; no gameplay claim is made.
+
+The Companion shape gate distinguishes the parser's23 flattened field operations
+from the installer's19 file operations, and requires both counts plus the exact
+12-copy/7-GFF inventory and defaults before and after adaptation. K1 nested
+option trees cannot carry native bindings, generator or action markers; this
+prevents both ordinary Choose execution and recorded actions from bypassing
+the closed whole-guide schedule.

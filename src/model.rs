@@ -513,6 +513,8 @@ impl Guide {
             !compact || canonical_format(format) == Some("toml"),
             "Compact instruction defaults require TOML output"
         );
+        // The closed execution exception never rewrites stored source order.
+        crate::k1_widescreen_recipe::execution_order(self)?;
         let explicit_order = self.source_order()?.is_some();
         ensure!(
             !explicit_order || matches!(canonical_format(format), Some("toml" | "json")),
@@ -822,6 +824,14 @@ impl Guide {
                 );
             }
         }
+        if let Some(order) = crate::k1_widescreen_recipe::execution_order(self)? {
+            self.validate_source_order(&order)?;
+            return Ok(order
+                .into_iter()
+                .filter(|&i| chosen(i))
+                .map(|i| &self.components[i])
+                .collect());
+        }
         if let Some(order) = self.source_order()? {
             self.validate_source_order(&order)?;
             return Ok(order
@@ -933,8 +943,9 @@ impl Guide {
     /// missing references but still refuses a cycle: C# writes an empty guide there.
     /// Returns the warning lines C# logs when `ignore_errors` lets errors through.
     pub fn sort_like_dependency_resolver(&mut self, ignore_errors: bool) -> Result<Vec<String>> {
+        let execution = crate::k1_widescreen_recipe::execution_order(self)?;
         if let Some(order) = self.source_order()? {
-            self.validate_source_order(&order)?;
+            self.validate_source_order(execution.as_deref().unwrap_or(&order))?;
             self.reorder(order);
             return Ok(Vec::new());
         }
@@ -966,8 +977,9 @@ impl Guide {
     /// InstallBefore/InstallAfter reference on any top-level component, selected or not,
     /// stops the run; otherwise the components take the resolver's order, as in convert.
     pub fn sort_for_install(&mut self) -> Result<()> {
+        let execution = crate::k1_widescreen_recipe::execution_order(self)?;
         if let Some(order) = self.source_order()? {
-            self.validate_source_order(&order)?;
+            self.validate_source_order(execution.as_deref().unwrap_or(&order))?;
             self.reorder(order);
             return Ok(());
         }

@@ -173,6 +173,16 @@ fn notes(notes: &[String], expected: usize, kind: &str) -> Result<()> {
 /// editor transaction validates the entire resulting guide before publication.
 pub fn resolve(component: &mut Component, resolution: &Resolution) -> Result<()> {
     ensure!(
+        component
+            .metadata
+            .get("DraftReview")
+            .and_then(|review| review.get("Generator"))
+            .and_then(Value::as_str)
+            != Some(crate::k1_widescreen_recipe::GENERATOR)
+            && !component.metadata.contains_key("K1WidescreenBinding"),
+        "K1 widescreen requires its dedicated independent whole-component replay verifier"
+    );
+    ensure!(
         identity(component)? == resolution.expected_identity,
         "Draft changed since the resolution was prepared"
     );
@@ -447,6 +457,11 @@ pub fn verify_archive_derived(
         record.get("RequiresReview").and_then(Value::as_bool) == Some(true),
         "Draft is not awaiting review"
     );
+    if record.get("Generator").and_then(Value::as_str)
+        == Some(crate::k1_widescreen_recipe::GENERATOR)
+    {
+        return verify_k1_widescreen(component, root, options, cancelled);
+    }
     if record
         .get("Generator")
         .and_then(Value::as_str)
@@ -582,6 +597,32 @@ pub fn verify_archive_derived(
     };
     let mut cleared = component.clone();
     clear_subtree(&mut cleared, &versioned_verification(&verification)?, 0)?;
+    *component = cleared;
+    Ok(())
+}
+
+fn verify_k1_widescreen(
+    component: &mut Component,
+    root: &Path,
+    options: &archive::Options,
+    cancelled: &AtomicBool,
+) -> Result<()> {
+    let record = component
+        .metadata
+        .get("DraftReview")
+        .context("Missing K1 generated draft")?;
+    const KEYS: [&str; 4] = ["RequiresReview", "Result", "Generator", "Derivations"];
+    ensure!(
+        record.as_object().is_some_and(
+            |o| o.len() == KEYS.len() && o.keys().all(|key| KEYS.contains(&key.as_str()))
+        ) && record["RequiresReview"] == true
+            && !pending_masters(component, 0),
+        "K1 dedicated review requires unchanged pending provenance without resolution history"
+    );
+    let replayed = crate::k1_widescreen_recipe::replay(component, root, options, cancelled)?;
+    let verification = crate::k1_widescreen_recipe::verification(&replayed)?;
+    let mut cleared = component.clone();
+    clear_subtree(&mut cleared, &verification, 0)?;
     *component = cleared;
     Ok(())
 }

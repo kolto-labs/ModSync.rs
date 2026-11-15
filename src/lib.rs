@@ -59,6 +59,10 @@ pub mod wizard;
 #[cfg(target_os = "macos")]
 pub mod native_url;
 
+mod galaxy_map;
+mod k1_widescreen;
+pub mod k1_widescreen_recipe;
+
 mod guid;
 mod json_native;
 pub mod resource_watcher;

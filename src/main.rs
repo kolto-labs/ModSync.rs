@@ -310,6 +310,9 @@ enum Action {
         #[arg(long)]
         exclude_incoming_only: bool,
     },
+    /// Print the selected execution order and shared base/remaining phase plan.
+    /// Reads only the supplied guide; never validates or installs game content.
+    PhasePlan { input: PathBuf },
     /// Print the resolved selection without downloading or installing.
     Selection(SelectionArgs),
     /// Simulate instructions without changing the game or mod directory.
@@ -677,6 +680,15 @@ struct ConversionProcessing {
     download: bool,
     #[arg(long)]
     source_path: Option<PathBuf>,
+    /// Bind the pinned K1 widescreen profile to its three original guide owners.
+    #[arg(long, requires_all = ["source_path", "k1_source_guide", "k1_galaxy_namespace"])]
+    k1_widescreen_profile: Option<String>,
+    /// Original pinned K1 Markdown guide used to reconstruct complete source context.
+    #[arg(long, requires = "k1_widescreen_profile")]
+    k1_source_guide: Option<PathBuf>,
+    /// Explicit Galaxy Map Fix Pack namespace; this fixed profile admits Vanilla.
+    #[arg(long, requires = "k1_widescreen_profile", value_parser = ["Vanilla"])]
+    k1_galaxy_namespace: Option<String>,
     /// JSON object mapping guide link URLs to archive filename(s) in --source-path; mapped links bypass filename matching in --auto-generate-local.
     #[arg(long, requires = "source_path")]
     archive_map: Option<PathBuf>,
@@ -1295,6 +1307,26 @@ fn process_conversion_inner(
     input: Option<&std::path::Path>,
     cancelled: &std::sync::Arc<std::sync::atomic::AtomicBool>,
 ) -> Result<()> {
+    if let Some(profile) = &options.k1_widescreen_profile {
+        modsync::k1_widescreen_recipe::bind_guide(
+            guide,
+            profile,
+            options
+                .k1_galaxy_namespace
+                .as_deref()
+                .context("K1 namespace required")?,
+            options
+                .k1_source_guide
+                .as_deref()
+                .context("K1 source guide required")?,
+            options
+                .source_path
+                .as_deref()
+                .context("K1 source archives required")?,
+            &modsync::archive::Options::default(),
+            cancelled,
+        )?;
+    }
     if let Some(path) = &options.spoiler_free {
         let text = modsync::editor::read_document(path)?;
         let overlay = modsync::spoiler::apply_markdown(guide, &text)?;
@@ -3146,6 +3178,52 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                     .iter()
                     .all(|item| item.status == modsync::download_queue::Status::Completed),
                 "One or more downloads failed"
+            );
+            Ok(())
+        }
+        Some(Action::PhasePlan { input }) => {
+            use modsync::phase::{Phase, component_phase};
+            let mut guide = load_validation_guide(&input, true)?;
+            guide.ordering.widescreen_last = true;
+            let ordered = guide.ordered()?;
+            let execution_order: Vec<_> = ordered
+                .iter()
+                .map(|component| component.guid.as_str())
+                .collect();
+            let base: Vec<_> = ordered
+                .iter()
+                .filter(|component| component_phase(component) == Phase::Base)
+                .map(|component| component.guid.as_str())
+                .collect();
+            let remaining: Vec<_> = ordered
+                .iter()
+                .filter(|component| component_phase(component) == Phase::Remaining)
+                .map(|component| component.guid.as_str())
+                .collect();
+            ensure!(
+                execution_order
+                    .iter()
+                    .copied()
+                    .eq(base.iter().chain(&remaining).copied()),
+                "Selected execution order cannot be represented by Base then Remaining phases"
+            );
+            let base_all: Vec<_> = guide
+                .components
+                .iter()
+                .filter(|component| component_phase(component) == Phase::Base)
+                .map(|component| component.guid.as_str())
+                .collect();
+            let remaining_all: Vec<_> = guide
+                .components
+                .iter()
+                .filter(|component| component_phase(component) == Phase::Remaining)
+                .map(|component| component.guid.as_str())
+                .collect();
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&serde_json::json!({"schema_version":1,
+                "execution_order":execution_order,"base":base,"remaining":remaining,
+                "base_all":base_all,"remaining_all":remaining_all,"installed":false}))?
             );
             Ok(())
         }

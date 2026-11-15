@@ -349,6 +349,13 @@ impl ContextState<'_> {
             is_valid: true,
             ..Default::default()
         };
+        if instructions(component).any(|instruction| instruction.action == "K1Widescreen") {
+            outcome.is_valid = false;
+            outcome.errors.push(
+                "K1Widescreen requires root-aware engine validation with its authenticated archives and game inputs".into(),
+            );
+            return Ok(outcome);
+        }
         if instructions(component)
             .any(|instruction| matches!(instruction.action.as_str(), "ExtractTo" | "CopyFile"))
         {

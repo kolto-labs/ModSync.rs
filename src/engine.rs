@@ -2,6 +2,7 @@ mod authoring;
 pub use authoring::AuthoringActionReport;
 mod checkpoint_coordinator;
 mod cleanlist;
+mod k1_widescreen;
 mod managed;
 mod source_resolution;
 pub use managed::{ManagedLiveEdit, ManagedRunReport};
@@ -1913,6 +1914,15 @@ impl Engine {
                 "CopyFile" => {
                     self.copy_file_destination(instruction)?;
                 }
+                "K1Widescreen" => {
+                    crate::k1_widescreen_recipe::inspect_role(component)?
+                        .context("Unbound K1 native action")?;
+                    ensure!(
+                        instruction.destination == "<<kotorDirectory>>",
+                        "K1 action requires the compiled game destination"
+                    );
+                    self.path(&instruction.destination, false)?;
+                }
                 "Copy" | "Move" | "CleanList" | "DelDuplicate"
                     if instruction.destination.is_empty() =>
                 {
@@ -2498,14 +2508,14 @@ impl Engine {
         ensure!(
             !self.checkpoint_history_forbidden
                 || !(self.component_checkpoints || runner_checkpoint || continuation_checkpoint),
-            "--no-checkpoint conflicts with required component checkpoints for supplied installers or checkpointed phase continuation"
+            "--no-checkpoint conflicts with required component checkpoints for native K1 operations, supplied installers or checkpointed phase continuation"
         );
         if (runner_checkpoint || continuation_checkpoint) && !self.component_checkpoints {
             self.component_checkpoints = true;
             emit(Event {
                 component: String::new(),
                 step: 0,
-                message: "Supplied installer execution or checkpointed phase continuation requires retained component checkpoints for all installation roots".into(),
+                message: "Native K1 operations, supplied installer execution or checkpointed phase continuation require retained component checkpoints for all installation roots".into(),
             });
         }
         ensure!(
@@ -2959,9 +2969,6 @@ impl Engine {
     fn requires_external_writer_checkpoint(&self, guide: &Guide) -> Result<bool> {
         let provided = self.settings.provided_installer.is_some();
         let execute = self.settings.execute_runner.is_some() || provided;
-        if !provided && !execute {
-            return Ok(false);
-        }
         fn visit(
             engine: &Engine,
             component: &Component,
@@ -2980,6 +2987,7 @@ impl Engine {
                     continue;
                 }
                 match instruction.action.as_str() {
+                    "K1Widescreen" => return Ok(true),
                     "Execute" | "Run" if execute => return Ok(true),
                     "Patcher" if provided => return Ok(true),
                     "Choose" => {
@@ -3168,7 +3176,13 @@ impl Engine {
                 self.stage_managed_writes = self.install
                     && matches!(
                         instruction.action.as_str(),
-                        "Extract" | "ExtractTo" | "Copy" | "CopyFile" | "Move" | "Rename"
+                        "Extract"
+                            | "ExtractTo"
+                            | "Copy"
+                            | "CopyFile"
+                            | "Move"
+                            | "Rename"
+                            | "K1Widescreen"
                     );
                 if let Some(managed) = &mut self.managed {
                     managed.action = instruction.action.clone();
@@ -3217,6 +3231,12 @@ impl Engine {
             "{} has unreviewed draft instructions; review them before installation",
             c.name
         );
+        crate::k1_widescreen_recipe::verify_runtime(
+            c,
+            &self.settings.roots.mods,
+            &self.settings.archive,
+            &self.settings.cancelled,
+        )?;
         ensure!(
             c.metadata
                 .get("UnresolvedMasters")
@@ -4386,6 +4406,7 @@ impl Engine {
                 )?;
                 self.process_path(i, path, &[], contract.as_ref(), emit)?;
             }
+            "K1Widescreen" => self.execute_k1_widescreen(component, i, emit)?,
             "Execute" | "Run" => self.process(i, emit)?,
             other => bail!("Unsupported action {other}; refusing to skip it"),
         }

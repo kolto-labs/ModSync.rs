@@ -15,6 +15,7 @@ import artstore_client
 import fullrun_archive_manifest
 import cache
 import gui_diag
+import k1_widescreen_inputs
 import fullrun_contract as contract
 
 HERE = Path(__file__).resolve().parent
@@ -101,6 +102,12 @@ def uncached_options(games):
     return options
 
 
+def native_k1_scope(guide_root):
+    path = Path(guide_root) / "content/k1/full.md"
+    return (not path.is_symlink() and path.is_file()
+            and cache.digest(path) == k1_widescreen_inputs.GUIDE_SHA256)
+
+
 def refresh(args, games):
     guides(args.guides, games)
     fullrun_archive_manifest.recover(args.cache, args.guides, games)
@@ -108,6 +115,7 @@ def refresh(args, games):
     cache_root.parent.mkdir(parents=True, exist_ok=True)
     evidence = Path(args.output)
     receipts = []
+    k1_auxiliary_verified = False
     # Restore verifies every required archive; the cache cap is a storage policy,
     # never permission to count an unfetched OVER_LIMIT object as verified.
     for game in games:
@@ -125,10 +133,21 @@ def refresh(args, games):
                 raise ValueError("Archive verification did not restore every required guide input")
             receipts.append({"game": game, "restored": sum(entry["status"] == "restored" for entry in entries),
                              "policy_skipped": sum(entry["status"] == cache.UNCACHED_SKIPPED for entry in entries)})
+            if game == "k1" and native_k1_scope(args.guides):
+                auxiliary = k1_widescreen_inputs.ensure(
+                    Path(temporary), cache_root, evidence / "k1-native-inputs.json")
+                if auxiliary.get("ok") is not True:
+                    raise ValueError("Pinned K1 native inputs unavailable; inspect encrypted acquisition evidence")
+                receipts[-1]["native_widescreen_inputs_verified"] = 6
+                k1_auxiliary_verified = True
     manifest_path = cache_root / "manifest.json"
     document = json.loads(manifest_path.read_text())
     cache.prune(cache_root, document, 2684354560)
     key = cache_key(manifest_path)
+    if k1_auxiliary_verified:
+        # An existing immutable cache key cannot acquire new auxiliary objects.
+        identity = key + k1_widescreen_inputs.PROFILE_SHA256 + k1_widescreen_inputs.GALAXY_PROFILE_SHA256
+        key = "mod-archives-" + hashlib.sha256(identity.encode()).hexdigest()[:16]
     contract.emit_outputs({"archive_cache_key": key})
     contract.write_json(evidence / "cache-receipt.json", {
         "archive_cache_key": key, "games": games, "status": "verified", "verification": receipts})
@@ -249,6 +268,11 @@ def install(args):
              *options, *remote_options()], temp / "restore-private.log")
     if getattr(args, "prune_restored_object_cache", False):
         prune_restored_object_cache(args, work / "archives", temp / "restore.json", temp / "archive-map.json")
+    if args.game == "k1" and native_k1_scope(args.guides):
+        auxiliary = k1_widescreen_inputs.ensure(
+            work / "archives", Path(args.cache), temp / "k1-native-inputs.json")
+        if auxiliary.get("ok") is not True:
+            raise ValueError("Pinned K1 native inputs unavailable; inspect encrypted acquisition evidence")
     try:
         checked([sys.executable, str(HERE / "ports.py"), "--implementation", "rust", "--mode", args.mode, "--complete-guide", "--max-quarantine", "0",
                  "--source", args.engine, "--guide", str(Path(args.guides) / "content" / args.game / "full.md"),
