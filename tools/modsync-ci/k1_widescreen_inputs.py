@@ -13,6 +13,7 @@ import io
 import json
 import os
 from pathlib import Path
+import re
 import stat
 import tempfile
 import time
@@ -218,11 +219,14 @@ class _Page(io.BytesIO):
 
 def _publisher(pin, target):
     page, file_id, row_id = SOURCES[pin["role"]]
-    endpoint = page + "?do=download" if file_id else page
+    # Resolve the publisher's public landing page first. Download buttons carry
+    # session/CSRF state which a guessed ?do=download request does not establish.
+    endpoint = page
     deadline = time.monotonic() + PUBLISHER_SECONDS
     selected = False
+    landing_retries = 0
     args = SimpleNamespace(timeout=30, retries=2)
-    for _ in range(4):
+    for _ in range(7):
         _require(time.monotonic() < deadline, "publisher-total-deadline")
         _https(endpoint)
         with cache.request(endpoint, args, {"Referer": page} if file_id else {}) as response:
@@ -232,8 +236,16 @@ def _publisher(pin, target):
                 _require(file_id is not None, "publisher-html-rejected")
                 body = b"".join(_stream(response, MAX_HTML, deadline))
                 item = {"provider": "deadlystream", "url": page}
-                rows = cache.page_rows(_Page(body, response.geturl()), item,
-                    selections={file_id: [{"file": pin["filename"], "r": row_id}]})
+                try:
+                    rows = cache.page_rows(_Page(body, response.geturl()), item,
+                        selections={file_id: [{"file": pin["filename"], "r": row_id}]})
+                except cache.LandingVariance:
+                    _require(landing_retries < 2, "publisher-landing-unavailable")
+                    delay = 4 * 2 ** landing_retries
+                    landing_retries += 1
+                    _require(time.monotonic() + delay < deadline, "publisher-total-deadline")
+                    time.sleep(delay)
+                    continue
                 _require(len(rows) == 1, "publisher-row-count")
                 row = rows[0]
                 _require(row["name"] in (None, pin["filename"]), "publisher-row-name")
@@ -383,6 +395,15 @@ def ensure(archives_root: Path, cache_root: Path, report_path: Path, *, remote=T
         # HTTP status distinguish provider failures without exposing those URLs.
         report["failure_category"] = type(error).__name__[:96]
         status = getattr(error, "code", None)
+        if isinstance(error, ValueError):
+            # cache.request deliberately reduces HTTP failures to this fixed
+            # format, retaining neither the response body nor request URL.
+            match = re.fullmatch(r"HTTP ([1-5][0-9]{2})", str(error))
+            if match:
+                status = int(match[1])
+        cause = getattr(error, "cause", None)
+        if isinstance(cause, str) and re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]{0,95}", cause):
+            report["failure_network_cause"] = cause
         if type(status) is int and 100 <= status <= 599:
             report["failure_http_status"] = status
         if report["entries"]:
