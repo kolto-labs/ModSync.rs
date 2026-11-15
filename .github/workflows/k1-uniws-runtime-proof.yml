@@ -85,7 +85,7 @@ jobs:
           assert digest(candidate)=='5fd092af0c1d914df814832d181e868a40517b1ad0fc15d01eef56039878f514'
           report={'status':'running','scope':'actual UniWS on disposable editable executable only','resolution':[1920,1080],'interface':'Star Wars: KOTOR (1024x768 interface)','candidate_sha256':digest(candidate),'original_sha256':digest(original),'candidate_writes':writes,'actions':[]}
           env=os.environ.copy(); env.update(WINEPREFIX=str(prefix),WINEARCH='win32',WINEDLLOVERRIDES='mscoree,mshtml=',WINEDEBUG='-all')
-          process=None; wm=None; snapshots=0; captured={}
+          process=None; wm=None; snapshots=0; captured={}; server_quiescent=False; primary_failure=False
           def save(): (evidence/'runtime.json').write_text(json.dumps(report,indent=2))
           def capture(label):
               global snapshots
@@ -180,6 +180,7 @@ jobs:
                   assert report['vendor_success_dialog_observed'], 'Vendor success dialog not observed'
                   ui.press('enter'); time.sleep(1); ui.hotkey('alt','f4'); process.wait(timeout=30)
               subprocess.run(['wineserver','-w'],env=env,check=True,timeout=60)
+              server_quiescent=True
               observed=target.read_bytes(); time.sleep(2); assert target.read_bytes()==observed
               assert len(observed)==len(original)
               ranges=[]
@@ -194,14 +195,19 @@ jobs:
               assert observed==candidate, 'Actual vendor bytes differ from nine-write candidate'
               report['status']='vendor_differential_verified'
           except BaseException as error:
+              primary_failure=True
               report.update(status='failed',failure_category=type(error).__name__,failure=str(error)[:1000])
               try: capture('failure')
               except BaseException: pass
               raise
           finally:
               try:
-                  subprocess.run(['wineserver','-k'],env=env,timeout=30,check=True)
-                  subprocess.run(['wineserver','-w'],env=env,timeout=30,check=True)
+                  # A strict post-vendor wait already proves quiescence on the normal path.
+                  if not server_quiescent:
+                      subprocess.run(['wineserver','-k'],env=env,timeout=30,check=True)
+                      subprocess.run(['wineserver','-w'],env=env,timeout=30,check=True)
+                      server_quiescent=True
+                  report['final_quiescent']=server_quiescent
                   observed=target.read_bytes(); ranges=[]
                   for i,(a,b) in enumerate(zip(original,observed)):
                       if a!=b:
@@ -211,7 +217,7 @@ jobs:
               except BaseException as error:
                   report['cleanup_or_final_observation_error']=type(error).__name__
                   report['status']='failed'
-                  raise
+                  if not primary_failure: raise
               finally:
                   if wm is not None: wm.terminate()
                   save()
