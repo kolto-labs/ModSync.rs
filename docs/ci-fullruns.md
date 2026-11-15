@@ -30,13 +30,13 @@ Manual dispatch defaults to operation `full`, profile **Minimal**, download mode
 | operation | Required stages | Side effects |
 | --- | --- | --- |
 | check | Plan + tooling | Public contract-only plan/verdict |
-| full | Plan + tooling + games + archives + install matrix + P2P loopback | Explicitly admitted acquisition/install; optional producer cache writes |
+| full | Plan + tooling + games + archives + install matrix + P2P device proof | Explicitly admitted acquisition/install; optional producer cache writes |
 | games | Plan + tooling + baseline preparation/verification | Optional verified sealed-cache and encrypted-backup publication |
 | archives | Plan + tooling + archive preparation | Optional bounded public-mod cache save |
 | install | Plan + tooling + requested install lanes | Consume existing verified inputs; producers intentionally skipped |
 | seed | Plan + tooling + reviewed staged import | Dry-run by default; explicit import uses the seed environment |
 | retain-inputs | Plan + tooling + verified K1 auxiliary retention | Explicit ciphertext publication and independent restore verification; no game installation |
-| p2p | Plan + tooling + production CLI loopback | Random synthetic transfer and wrong-hash rejection |
+| p2p | Plan + tooling + production two-device seeding | Isolated device-to-device transfer, wrong-hash rejection and reverse seeding through ModSync |
 
 Select K1/TSL/both and CLI/GUI/both. Install matrices use `fail-fast: false`; valid lanes still attempt recovery when another producer/lane fails. The final collector requires every job in the requested scope to succeed and preserves a failed verdict. Skipped, cancelled, absent and incomplete required work fails that scope. Nonproducer operations ignore the shared producer-write checkbox.
 
@@ -44,11 +44,17 @@ Cancellation has separate `quick`, `installation` and explicit `retention` scope
 
 The stage workflows are reusable **inside this repository**. The operator entry point can run each stage separately without duplicating its implementation. Branch pushes run only the quick path; a manual `check` remains available. `seed` is intentionally skipped during `full`: staged import is an explicit separate operation. There are no periodic downloads or release publication. The mod-builds variant retains its own event policy independently.
 
+### Peer seeding and archive import
+
+The required `p2p` stage uses two private Linux network namespaces connected only to each other, with separate filesystem views, home directories and caches. Production ModSync authors the torrent, seeds on device 1 and downloads on device 2. The proof checks exact payload bytes, SHA-256 and the actual sender upload counter. A fresh receiver must reject a wrong SHA-256 after a real transfer. Device 2 then seeds its downloaded archive back to a fresh device-1 workspace after the original is moved outside both views. Tracker/proxy-list acquisition is disabled and the devices have no Internet route. The bounded public receipt records isolation, transfer outcomes and cleanup.
+
+The legacy operation named `seed` is an optional staged archive-store import. Its S3/rclone credentials belong only to that import; ModSync peer seeding runs in the required `p2p` stage without those credentials. The two-device proof requires Linux namespace provisioning and fails when isolation cannot be established.
+
 ## Configuration and credentials
 
 ### Minimum setup
 
-1. **Quick checks, fork tooling contracts and P2P loopback:** no custom secrets. These results establish no installation coverage. Trusted PR installation and eligible dispatches require the private-stage configuration below.
+1. **Quick checks, fork tooling contracts and P2P device proof:** no custom secrets. These results establish no installation coverage. Trusted PR installation and eligible dispatches require the private-stage configuration below.
 2. **Full runs:** expose `CACHE_ENCRYPTION_KEY` (at least 32 bytes) through [Actions secrets](https://github.com/kolto-labs/ModSync.rs/settings/secrets/actions). Existing encrypted games/archive packs need their original matching key; a new key cannot unlock them. For diagnostics, set the **public** native age recipient in the `DIAGNOSTICS_ENCRYPTION_RECIPIENT` [Actions variable](https://github.com/kolto-labs/ModSync.rs/settings/variables/actions). Generate a dedicated identity with `age-keygen -o diagnostics.agekey`, store the private file offline, and obtain its public recipient with `age-keygen -y diagnostics.agekey`. CI needs no diagnostics decryption secret. Do not upload the private identity, reuse the game key for diagnostics, or send either private key in chat. Backwards compatibility: when no recipient is configured, an independent `DIAGNOSTICS_ENCRYPTION_KEY` secret (at least 32 bytes) retains the original authenticated envelope format. A configured recipient takes precedence and never silently falls back on encryption failure. Admission validates its checksum; native preparation checks encryption before acquisition. When that route is selected, the caller does not forward the legacy diagnostics secret.
 3. **Verified inputs:** use sealed baselines already available to this repository for both games, plus access to every archive in the pinned guide. Same-repository artifact reads use the built-in read-only token. For a cold start, point `FULLRUN_ARTIFACT_REPOSITORY` at an authorized legacy artifact repository and provide an `ARTSTORE_READ_TOKEN` limited to Actions read on that repository. The legacy token is only needed for inputs not available locally; do not remove it until both games and dependent archive inputs are independently available. Other existing options are per-game pinned encrypted seeds or explicitly enabled, licensed Steam acquisition.
 
@@ -115,7 +121,7 @@ A successful profile install requires an installed Rust report, matching request
 
 The inherited runner still does its existing conversions, reviewed omissions, quarantine and GUI receipt checks. This integration does not claim independent app-selection parity, independent creator journeys, cross-lane per-mod barriers or native-platform full-guide parity. Those product/harness capabilities remain separate work. `cross_lane_parity: unverified` is explicit in plans/verdicts.
 
-Removing the synthetic CLI/native-GUI workflow entry points does not establish any new product proof. The real install matrix still covers both CLI and GUI routes. P2P loopback is not external reachability/seeding proof. Manual package artifacts are not releases.
+Removing the synthetic CLI/native-GUI workflow entry points does not establish any new product proof. The real install matrix still covers both CLI and GUI routes. P2P receipts prove direct transfer between isolated emulated devices. Internet discovery and NAT traversal require their own evidence. Manual package artifacts are not releases.
 
 Rust tests and custom Rust harnesses remain frozen. Production builds use only lib/bin targets; no `--all-targets` or Rust test execution is introduced.
 

@@ -5158,3 +5158,8 @@ installation use the same translation. Original archive and INI identities remai
 provenance; the effective INI digest is recorded separately. Unreachable sections
 are classified only for exact source/configuration identities with complete active
 and inactive section coverage; arbitrary parser warnings remain failures.
+
+
+### Isolated peer-seeding CI proof
+
+The P2P workflow now invokes production ModSync on two emulated Linux devices with separate filesystem, PID and network namespaces. It requires a byte-identical transfer from device 1 to device 2 with matching sender upload accounting, wrong-hash rejection on a fresh receiver after network transfer, and reverse seeding of the downloaded archive after removing the original from both device views. The controller provisions isolation and verifies bytes; ModSync performs torrent authoring, seeding and downloading. The legacy `seed` operation remains a separately labelled staged archive-store import. Hosted execution of this revised proof remains pending publication; local runtime results are recorded outside the repository.

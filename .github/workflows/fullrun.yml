@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       operation:
-        description: Run one stage independently or compose the complete single-lane install pipeline
+        description: Full pipeline or independent stage; p2p proves peer seeding, seed imports staged archives
         type: choice
         options: [full, check, games, archives, install, seed, retain-inputs, p2p]
         default: full
@@ -206,6 +206,7 @@ jobs:
       MOD_CACHE_S3_READ_SECRET_ACCESS_KEY: ${{ vars.MOD_CACHE_BUCKET && secrets.MOD_CACHE_S3_READ_SECRET_ACCESS_KEY || '' }}
       MOD_CACHE_S3_ENDPOINT: ${{ vars.MOD_CACHE_BUCKET && secrets.MOD_CACHE_S3_ENDPOINT || '' }}
   seed:
+    name: Optional archive-store import
     needs: plan
     if: ${{ needs.plan.outputs.operation == 'seed' }}
     uses: ./.github/workflows/cache-seed.yml
