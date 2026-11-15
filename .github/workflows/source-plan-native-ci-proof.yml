@@ -187,7 +187,8 @@ jobs:
               run('original-convert',[binary,'convert',guide,whole,'--format','json','--parse-directions'])
               original=json.loads(whole.read_text()); assert isinstance(original,list) and len(original)==spec['count']
               inventory=[component['Guid'] for component in original]; assert len(set(inventory))==spec['count'] and inventory[spec['index']]==spec['guid']
-              indices=([0] if game_id=='k2' else [])+[spec['index']]
+              if game_id=='k2':assert inventory[1]==vendor
+              indices=([1] if game_id=='k2' else [])+[spec['index']]
               selected=[copy.deepcopy(original[index]) for index in indices]; assert [c['Guid'] for c in selected]==guids
               projected.write_text(json.dumps({'ModSyncSourceOrder':guids,'thisMod':selected},indent=2))
               report.update(original_source_inventory=inventory,original_component_indices=indices,selected_guids=guids,full_source_component_count=len(original))
