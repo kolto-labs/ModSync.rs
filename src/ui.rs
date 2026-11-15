@@ -2103,6 +2103,20 @@ impl App {
         self.refresh_input_stamp();
     }
 
+    fn external_program_trust_control(&mut self, ui: &mut egui::Ui) {
+        if ui
+            .checkbox(
+                &mut self.allow_processes,
+                "Trust this guide to run external programs",
+            )
+            .changed()
+        {
+            self.validated = false;
+            self.conflicts = None;
+            validation_page::clear_report(&mut self.validation_report, &mut self.validation_page);
+        }
+    }
+
     fn surface(&mut self, ui: &mut egui::Ui, ctx: &egui::Context, surface: usize) {
         let mut summary_action = None;
         let mut preference_save = false;
@@ -2706,20 +2720,7 @@ impl App {
                 ui.label("Validation simulates file changes. Installation keeps a recovery copy of both folders.");
                 ui.label(format!("Game: {}", self.game));
                 ui.label(format!("Mods: {}", self.mods));
-                if ui
-                    .checkbox(
-                        &mut self.allow_processes,
-                        "Trust this guide to run external programs",
-                    )
-                    .changed()
-                {
-                    self.validated = false;
-                    self.conflicts = None;
-                    validation_page::clear_report(
-                        &mut self.validation_report,
-                        &mut self.validation_page,
-                    );
-                }
+                self.external_program_trust_control(ui);
                 Self::path_row(ui, "FOMOD archive", &mut self.fomod_archive, false);
                 if let Some(component) = self
                     .guide

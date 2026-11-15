@@ -4857,7 +4857,7 @@ impl Engine {
                     "Built-in OdyPatcher did not write its install log"
                 );
                 if let Some(before) = strict_before {
-                    let receipt = reviewed_patcher::finish(
+                    let mut receipt = reviewed_patcher::finish(
                         before,
                         base,
                         destination,
@@ -4865,6 +4865,11 @@ impl Engine {
                         &installer.log.all_logs,
                         &self.settings.cancelled,
                     )?;
+                    receipt["ComponentGuid"] = serde_json::json!(
+                        contract
+                            .context("Reviewed Patcher outcome lost its authority")?
+                            .component_guid()
+                    );
                     emit(Event {
                         component: "Patcher".into(),
                         step: 0,

@@ -68,7 +68,7 @@ jobs:
         timeout-minutes: 5
         run: |
           env -i PATH="$PATH" HOME="$HOME" RUNNER_TEMP="$RUNNER_TEMP" ENGINE_SHA="$ENGINE_SHA" python - <<'PY'
-          import hashlib,json,os,stat,struct,subprocess,sys
+          import base64,hashlib,json,os,stat,struct,subprocess,sys
           from pathlib import Path
           root=Path(os.environ['RUNNER_TEMP']); game=root/'k1-pe-game'; evidence=root/'k1-pe-evidence'
           with (evidence/'normalize.log').open('wb') as log:
@@ -111,6 +111,17 @@ jobs:
           # Check original bytes remained unchanged after the in-memory derivation.
           with executable.open('rb') as stream: assert hashlib.file_digest(stream,'sha256').hexdigest()==report['sha256']
           (evidence/'pe-metadata.json').write_text(json.dumps(report,indent=2))
+          # Original configuration bytes stay inside independently encrypted diagnostics.
+          ini=game/'swkotor.ini'
+          ini_report={'engine_sha':os.environ['ENGINE_SHA'],'path':'swkotor.ini','present':ini.exists(),'written_to_game':False}
+          if ini.exists():
+              assert not ini.is_symlink() and ini.resolve().is_relative_to(game.resolve())
+              fd=os.open(ini,os.O_RDONLY|os.O_NOFOLLOW)
+              with os.fdopen(fd,'rb') as stream:
+                  info=os.fstat(stream.fileno()); assert stat.S_ISREG(info.st_mode) and info.st_size<=1024*1024
+                  original=stream.read(1024*1024+1); assert len(original)==info.st_size
+              ini_report.update(bytes=len(original),sha256=hashlib.sha256(original).hexdigest(),content_base64=base64.b64encode(original).decode('ascii'))
+          (evidence/'ini-metadata.json').write_text(json.dumps(ini_report,indent=2))
           PY
       - name: Retain encrypted metadata only
         if: success() || failure()

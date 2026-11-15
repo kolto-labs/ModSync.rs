@@ -1,0 +1,204 @@
+name: Observe pinned UniWS K1 vendor differential
+on:
+  push:
+    branches: [fix/fullrun-ci-credentials]
+    paths: [.github/workflows/k1-uniws-runtime-proof.yml]
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  vendor:
+    if: github.repository == 'kolto-labs/ModSync.rs' && github.ref == 'refs/heads/fix/fullrun-ci-credentials'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Prepare disposable vendor runtime
+        timeout-minutes: 10
+        run: |
+          umask 077
+          mkdir -p "$RUNNER_TEMP/uniws-evidence" "$RUNNER_TEMP/uniws-private/home"
+          sudo dpkg --add-architecture i386
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=60 update -qq
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=60 install -y --no-install-recommends age unrar wine wine64 wine32:i386 xvfb xauth xdotool openbox scrot python3-tk tesseract-ocr
+          python -m pip install PyAutoGUI==0.9.54 pytesseract==0.3.13 Pillow==11.3.0
+      - name: Acquire and verify exact public publisher inputs
+        timeout-minutes: 8
+        run: |
+          env -i PATH="$PATH" HOME="$RUNNER_TEMP/uniws-private/home" RUNNER_TEMP="$RUNNER_TEMP" python - <<'PY'
+          import hashlib,json,os,subprocess,sys,zipfile
+          from pathlib import Path
+          from types import SimpleNamespace
+          sys.path.insert(0,'tools/modsync-ci'); import cache
+          root=Path(os.environ['RUNNER_TEMP'])/'uniws-private'; evidence=root.parent/'uniws-evidence'
+          objects=root/'cache'; (objects/'objects').mkdir(parents=True,mode=0o700)
+          args=SimpleNamespace(max_bytes=4*1024*1024,timeout=30,retries=2,download_timeout=240,integrity_timeout=120,backend_timeout=240,max_age=14,force=False)
+          pins=[('editable','https://deadlystream.com/files/file/1320-kotor-editable-executable/','dfbc0b189b407c91784fd4a76e7b3c9d47c6835934b5db7addd85e8bf4ade4d4',1363680),
+                ('uniws','https://www.wsgf.org/downloads/uniws.zip','c14f35e5bfe65cdda8de74e160183c0c6bf0602413bc32c26af0a3473e5a5c18',306225)]
+          receipt={'scope':'public vendor input-only differential, no game baseline or executable compatibility proof','guide_revision':'67dc5fd8da6abde324c51d32eee3d04687070dd6','guide_sha256':'44067788c6cb7a83b38d468817f273ce5cc901cd5e000c0f9ff65f8af15fc6ed','editable_link_basis':'guide DS2377 publisher EditableEXE link to DS1320','inputs':[],'credentials_used':False}
+          paths={}
+          for label,url,sha,size in pins:
+              provider,direct=cache.provider(url); item={'id':cache.key_for(url),'url':url,'provider':provider,'direct':direct,'guides':[]}
+              entry=cache.refresh_one(item,{},objects,args); path=cache.object_path(objects,entry)
+              assert path.stat().st_size==size and hashlib.sha256(path.read_bytes()).hexdigest()==sha
+              paths[label]=path; receipt['inputs'].append({'label':label,'url':url,'sha256':sha,'bytes':size,'entry':entry})
+          executable=root/'editable-original.bin'
+          with executable.open('wb') as stream:
+              subprocess.run(['unrar','p','-inul','-p-',str(paths['editable']),'KOTOR Editable Executable/swkotor.exe'],stdout=stream,check=True,timeout=60)
+          assert executable.stat().st_size==4042752 and hashlib.sha256(executable.read_bytes()).hexdigest()=='761f9466f456a83909036baebb5c43167d722387be66e54617ba20a8c49e9886'
+          vendor=root/'vendor'; vendor.mkdir(mode=0o700)
+          expected={'uniws.exe':(594432,'c0cecad9532690e093cdbaf23ad930e43b075f809db8c9d158caa0c3e1a730ed'),'patches.ini':(13766,'45710218fc2555ed634fb1ae81943fa3d6034b63171822c51091758b3784daf1')}
+          with zipfile.ZipFile(paths['uniws']) as archive:
+              assert set(archive.namelist())==set(expected) and len(archive.infolist())==2
+              for name,(size,sha) in expected.items():
+                  info=archive.getinfo(name); assert info.file_size==size and not info.is_dir()
+                  assert (info.external_attr>>16)&0o170000 in (0,0o100000)
+                  data=archive.read(name); assert len(data)==size and hashlib.sha256(data).hexdigest()==sha
+                  (vendor/name).write_bytes(data)
+          receipt['vendor_members']=expected
+          (evidence/'acquisition.json').write_text(json.dumps(receipt,indent=2))
+          PY
+      - name: Drive actual UniWS UI and compare complete executable bytes
+        timeout-minutes: 9
+        run: |
+          env -i PATH="$PATH" HOME="$RUNNER_TEMP/uniws-private/home" RUNNER_TEMP="$RUNNER_TEMP" \
+            xvfb-run -a -s '-screen 0 1280x800x24 -nolisten tcp' python - <<'PY'
+          import hashlib,json,os,re,shutil,subprocess,time
+          from pathlib import Path
+          import pyautogui as ui
+          import pytesseract
+          root=Path(os.environ['RUNNER_TEMP'])/'uniws-private'; evidence=root.parent/'uniws-evidence'
+          prefix=root/'prefix'; game=root/'disposable-target'; game.mkdir(mode=0o700)
+          target=game/'swkotor.exe'; original=(root/'editable-original.bin').read_bytes(); target.write_bytes(original)
+          digest=lambda data:hashlib.sha256(data).hexdigest()
+          writes=[(2034789,'2003','8007'),(2034799,'5802','3804'),(2671843,'0004','8007'),(2671859,'0005','0000'),(2671866,'4006','0000'),(15724,'8002','8007'),(15736,'e001','3804'),(2054971,'8002','8007'),(2054979,'e001','3804')]
+          candidate=bytearray(original)
+          for offset,before,after in writes:
+              assert candidate[offset:offset+2]==bytes.fromhex(before)
+              candidate[offset:offset+2]=bytes.fromhex(after)
+          assert digest(candidate)=='5fd092af0c1d914df814832d181e868a40517b1ad0fc15d01eef56039878f514'
+          report={'status':'running','scope':'actual UniWS on disposable editable executable only','resolution':[1920,1080],'interface':'Star Wars: KOTOR (1024x768 interface)','candidate_sha256':digest(candidate),'original_sha256':digest(original),'candidate_writes':writes,'actions':[]}
+          env=os.environ.copy(); env.update(WINEPREFIX=str(prefix),WINEARCH='win32',WINEDLLOVERRIDES='mscoree,mshtml=',WINEDEBUG='-all')
+          process=None; wm=None; snapshots=0
+          def save(): (evidence/'runtime.json').write_text(json.dumps(report,indent=2))
+          def capture(label):
+              global snapshots
+              assert snapshots<24; snapshots+=1
+              image=ui.screenshot(); image.save(evidence/(label+'.png'))
+              data=pytesseract.image_to_data(image,output_type=pytesseract.Output.DICT,timeout=20)
+              lines={}
+              for i,text in enumerate(data['text']):
+                  if text.strip(): lines.setdefault((data['block_num'][i],data['par_num'][i],data['line_num'][i]),[]).append(i)
+              rows=[]
+              for indices in lines.values():
+                  rows.append({'text':' '.join(data['text'][i] for i in indices),'x':min(data['left'][i] for i in indices),'y':min(data['top'][i] for i in indices),'right':max(data['left'][i]+data['width'][i] for i in indices),'bottom':max(data['top'][i]+data['height'][i] for i in indices),'words':[{'text':data['text'][i],'x':data['left'][i],'y':data['top'][i],'right':data['left'][i]+data['width'][i],'bottom':data['top'][i]+data['height'][i]} for i in indices]})
+              assert len(rows)<500
+              (evidence/(label+'.json')).write_text(json.dumps(rows,indent=2)); return rows
+          def row(rows,pattern):
+              found=[r for r in rows if re.fullmatch(pattern,r['text'],re.I)]
+              if not found: found=[word for r in rows for word in r['words'] if re.fullmatch(pattern,word['text'],re.I)]
+              assert len(found)==1, 'UI anchor absent or ambiguous: '+pattern
+              return found[0]
+          def click(r): ui.click((r['x']+r['right'])/2,(r['y']+r['bottom'])/2)
+          try:
+              save()
+              with (evidence/'wineboot.log').open('wb') as log:
+                  subprocess.run(['wineboot','-u'],env=env,stdout=log,stderr=subprocess.STDOUT,check=True,timeout=120)
+                  subprocess.run(['wineserver','-w'],env=env,stdout=log,stderr=subprocess.STDOUT,check=True,timeout=60)
+              # Only the disposable prefix and target are drive-mapped. No host Z: traversal.
+              drives=prefix/'dosdevices'
+              for path in drives.iterdir():
+                  if path.is_symlink() and path.name!='c:': path.unlink()
+              (drives/'d:').symlink_to(game,target_is_directory=True)
+              for path in (prefix/'drive_c').rglob('*'):
+                  if path.is_symlink() and not path.resolve().is_relative_to(prefix.resolve()): path.unlink()
+              vendor=prefix/'drive_c'/'uniws'; shutil.copytree(root/'vendor',vendor)
+              wm=subprocess.Popen(['openbox'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+              with (evidence/'vendor.log').open('wb') as log:
+                  process=subprocess.Popen(['wine',r'C:\uniws\uniws.exe'],cwd=vendor,env=env,stdout=log,stderr=subprocess.STDOUT)
+                  time.sleep(8); rows=capture('01-initial')
+                  # Exact form resource: Game group x7,y4; combo immediately below caption.
+                  anchor=row(rows,r'Game'); ui.click(anchor['x']+220,anchor['bottom']+14)
+                  ui.press('home'); ui.press('down',presses=8,interval=0.12); ui.press('enter'); time.sleep(2)
+                  rows=capture('02-interface'); assert any('1024x768' in r['text'].replace(' ','').lower() and 'kotor' in r['text'].lower() for r in rows)
+                  report['actions'].append('selected exact KOTOR 1024x768 interface, OCR confirmed'); save()
+                  # Vendor-owned Find searches only C: prefix and D: disposable target.
+                  click(row(rows,r'Find it for me\.*'))
+                  for attempt in range(6):
+                      time.sleep(5); rows=capture('03-folder-'+str(attempt))
+                      if not any('searching' in r['text'].lower() for r in rows): break
+                  assert not any('searching' in r['text'].lower() for r in rows), 'Vendor search did not settle'
+                  # Resolution edits are the native controls immediately right of their labels.
+                  width=row(rows,r'(?:Screen )?Width:'); ui.click(width['right']+35,(width['y']+width['bottom'])/2); ui.hotkey('ctrl','a'); ui.write('1920')
+                  # Height may share an OCR line with adjacent width text: refuse ambiguity.
+                  height=row(rows,r'Height:'); ui.click(height['right']+35,(height['y']+height['bottom'])/2); ui.hotkey('ctrl','a'); ui.write('1080')
+                  rows=capture('04-ready'); text=' '.join(r['text'] for r in rows)
+                  assert '1920' in text and '1080' in text
+                  report['actions'].append('entered 1920x1080, OCR confirmed'); save()
+                  click(row(rows,r'Patch')); time.sleep(4); rows=capture('05-result')
+                  report['vendor_success_dialog_observed']=any('game successfully patched' in r['text'].lower() for r in rows)
+                  assert report['vendor_success_dialog_observed'], 'Vendor success dialog not observed'
+                  ui.press('enter'); time.sleep(1); ui.hotkey('alt','f4'); process.wait(timeout=30)
+              subprocess.run(['wineserver','-w'],env=env,check=True,timeout=60)
+              observed=target.read_bytes(); time.sleep(2); assert target.read_bytes()==observed
+              assert len(observed)==len(original)
+              ranges=[]
+              for i,(a,b) in enumerate(zip(original,observed)):
+                  if a!=b:
+                      if ranges and ranges[-1][1]==i: ranges[-1][1]=i+1
+                      else:ranges.append([i,i+1])
+              report.update(observed_sha256=digest(observed),observed_bytes=len(observed),changed_byte_count=sum(b-a for a,b in ranges),changed_ranges=ranges[:128],changed_range_count=len(ranges),exact_candidate_match=observed==candidate,quiescent=True)
+              assert (root/'editable-original.bin').read_bytes()==original
+              for name in ('uniws.exe','patches.ini'): assert (vendor/name).read_bytes()==(root/'vendor'/name).read_bytes()
+              report['source_inputs_unchanged']=True
+              assert observed==candidate, 'Actual vendor bytes differ from nine-write candidate'
+              report['status']='vendor_differential_verified'
+          except BaseException as error:
+              report.update(status='failed',failure_category=type(error).__name__,failure=str(error)[:1000])
+              try: capture('failure')
+              except BaseException: pass
+              raise
+          finally:
+              try:
+                  subprocess.run(['wineserver','-k'],env=env,timeout=30,check=True)
+                  subprocess.run(['wineserver','-w'],env=env,timeout=30,check=True)
+                  observed=target.read_bytes(); ranges=[]
+                  for i,(a,b) in enumerate(zip(original,observed)):
+                      if a!=b:
+                          if ranges and ranges[-1][1]==i: ranges[-1][1]=i+1
+                          else:ranges.append([i,i+1])
+                  report.update(final_observed_sha256=digest(observed),final_observed_bytes=len(observed),final_changed_ranges=ranges[:128],final_changed_range_count=len(ranges),final_candidate_match=observed==candidate)
+              except BaseException as error:
+                  report['cleanup_or_final_observation_error']=type(error).__name__
+                  report['status']='failed'
+                  raise
+              finally:
+                  if wm is not None: wm.terminate()
+                  save()
+          PY
+      - name: Bound metadata evidence before encryption
+        id: bounded
+        if: success() || failure()
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          root=Path(os.environ['RUNNER_TEMP'])/'uniws-evidence'; total=0
+          for path in root.iterdir():
+              assert path.is_file() and not path.is_symlink() and path.suffix in ('.json','.png','.log')
+              if path.suffix=='.log' and path.stat().st_size>4*1024*1024:
+                  with path.open('rb') as stream: stream.seek(-4*1024*1024,2); tail=stream.read()
+                  path.write_bytes(b'[bounded final 4 MiB log tail]\n'+tail)
+              assert path.stat().st_size<=16*1024*1024
+              total+=path.stat().st_size
+          assert total<=64*1024*1024
+          PY
+      - name: Retain bounded encrypted metadata only
+        if: (success() || failure()) && steps.bounded.outcome == 'success'
+        uses: ./.github/actions/retain-fullrun-evidence
+        with:
+          source: ${{ runner.temp }}/uniws-evidence
+          name: k1-uniws-runtime-${{ github.run_id }}-${{ github.run_attempt }}
+          encryption-recipient: ${{ vars.DIAGNOSTICS_ENCRYPTION_RECIPIENT }}

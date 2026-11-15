@@ -449,6 +449,11 @@ impl Guide {
     }
 
     pub fn render(&self, format: &str) -> Result<String> {
+        let explicit_order = self.source_order()?.is_some();
+        ensure!(
+            !explicit_order || matches!(canonical_format(format), Some("toml" | "json")),
+            "ModSyncSourceOrder is preserved only by TOML and JSON exports"
+        );
         const CONTENT_FIELDS: &[&str] = &[
             "preambleContent",
             "epilogueContent",
@@ -497,6 +502,7 @@ impl Guide {
                 let mut budget = crate::json_native::ValueBudget::default();
                 crate::json_native::to_toml_pretty(&value, &mut budget)?
             }
+            "json" if explicit_order => serde_json::to_string_pretty(self)?,
             "json" => serde_json::to_string_pretty(&self.components)?,
             "xml" => crate::xml::render(&serde_json::to_value(&self.components)?)?,
             "yaml" => {
@@ -537,6 +543,146 @@ impl Guide {
             .flat_map(|c| std::iter::once(c).chain(c.options.iter().filter(|o| o.is_selected)))
             .map(|c| c.guid.to_ascii_lowercase())
             .collect()
+    }
+
+    /// Explicit exhaustive top-level order. This is guide metadata, never an
+    /// approval or a component edit; legacy guides have no such policy.
+    fn source_order(&self) -> Result<Option<Vec<usize>>> {
+        let Some(value) = self.metadata.get("ModSyncSourceOrder") else {
+            return Ok(None);
+        };
+        let entries = value
+            .as_array()
+            .context("ModSyncSourceOrder must be an array")?;
+        ensure!(
+            !entries.is_empty()
+                && entries.len() <= 10_000
+                && entries.len() == self.components.len(),
+            "ModSyncSourceOrder must exhaustively name 1..10000 top-level components"
+        );
+        let canonical = |text: &str| -> Result<()> {
+            let parsed = uuid::Uuid::parse_str(text)
+                .context("ModSyncSourceOrder requires GUID identities")?;
+            ensure!(
+                parsed.hyphenated().to_string() == text,
+                "ModSyncSourceOrder requires canonical lowercase GUID identities"
+            );
+            Ok(())
+        };
+        let mut inventory = BTreeMap::new();
+        for (index, component) in self.components.iter().enumerate() {
+            canonical(&component.guid)?;
+            ensure!(
+                inventory.insert(component.guid.as_str(), index).is_none(),
+                "Duplicate source-order component identity"
+            );
+        }
+        let mut seen = BTreeSet::new();
+        let mut order = Vec::with_capacity(entries.len());
+        for entry in entries {
+            let guid = entry
+                .as_str()
+                .context("ModSyncSourceOrder entries must be strings")?;
+            canonical(guid)?;
+            ensure!(seen.insert(guid), "Duplicate ModSyncSourceOrder entry");
+            order.push(
+                *inventory
+                    .get(guid)
+                    .context("ModSyncSourceOrder contains an unknown top-level GUID")?,
+            );
+        }
+        Ok(Some(order))
+    }
+
+    fn validate_source_order(&self, order: &[usize]) -> Result<()> {
+        let resolution = self.resolve_dependencies()?;
+        ensure!(
+            resolution.errors.is_empty() && resolution.order.is_some(),
+            "ModSyncSourceOrder has invalid or circular InstallBefore/InstallAfter references: {}",
+            listed_errors(&resolution.errors).join("\n")
+        );
+        let index: BTreeMap<_, _> = self
+            .components
+            .iter()
+            .enumerate()
+            .map(|(i, c)| (crate::guid::key_ascii(&c.guid), i))
+            .collect();
+        let mut positions = vec![0; order.len()];
+        for (position, &index) in order.iter().enumerate() {
+            positions[index] = position;
+        }
+        let mut next = vec![Vec::new(); order.len()];
+        let mut indegree = vec![0usize; order.len()];
+        let mut edge = |from: usize, to: usize| -> Result<()> {
+            if self.components[from].is_selected && self.components[to].is_selected {
+                ensure!(
+                    positions[from] < positions[to],
+                    "ModSyncSourceOrder contradicts a selected dependency/order edge"
+                );
+            }
+            if !next[from].contains(&to) {
+                next[from].push(to);
+                indegree[to] += 1;
+            }
+            Ok(())
+        };
+        for (i, component) in self.components.iter().enumerate() {
+            for dependency in component
+                .dependencies
+                .iter()
+                .chain(&component.install_after)
+            {
+                if let Some(&j) = index.get(&crate::guid::key_ascii(dependency)) {
+                    edge(j, i)?;
+                } else if component.dependencies.contains(dependency) {
+                    // An immediate selected option belongs to its top-level owner.
+                    for (j, owner) in self.components.iter().enumerate() {
+                        if i != j
+                            && owner.options.iter().any(|option| {
+                                option.is_selected
+                                    && crate::guid::key_ascii(&option.guid)
+                                        == crate::guid::key_ascii(dependency)
+                            })
+                        {
+                            edge(j, i)?;
+                        }
+                    }
+                }
+            }
+            for before in &component.install_before {
+                if let Some(&j) = index.get(&crate::guid::key_ascii(before)) {
+                    edge(i, j)?;
+                }
+            }
+        }
+        let mut queue: std::collections::VecDeque<_> =
+            (0..order.len()).filter(|&i| indegree[i] == 0).collect();
+        let mut visited = 0;
+        while let Some(i) = queue.pop_front() {
+            visited += 1;
+            for &j in &next[i] {
+                indegree[j] -= 1;
+                if indegree[j] == 0 {
+                    queue.push_back(j);
+                }
+            }
+        }
+        ensure!(
+            visited == order.len(),
+            "ModSyncSourceOrder contains a dependency/order cycle"
+        );
+        if self.ordering.widescreen_last {
+            let mut remaining = false;
+            for &i in order.iter().filter(|&&i| self.components[i].is_selected) {
+                let widescreen = crate::phase::widescreen(&self.components[i]);
+                ensure!(
+                    !remaining || widescreen,
+                    "ModSyncSourceOrder cannot be represented by Base then Remaining phases"
+                );
+                remaining |= widescreen;
+            }
+        }
+        Ok(())
     }
 
     /// The order C# installs the selected components in
@@ -608,6 +754,14 @@ impl Guide {
                     c.name
                 );
             }
+        }
+        if let Some(order) = self.source_order()? {
+            self.validate_source_order(&order)?;
+            return Ok(order
+                .into_iter()
+                .filter(|&i| chosen(i))
+                .map(|i| &self.components[i])
+                .collect());
         }
         if preserve_input_order {
             return Ok(selected);
@@ -712,6 +866,11 @@ impl Guide {
     /// missing references but still refuses a cycle: C# writes an empty guide there.
     /// Returns the warning lines C# logs when `ignore_errors` lets errors through.
     pub fn sort_like_dependency_resolver(&mut self, ignore_errors: bool) -> Result<Vec<String>> {
+        if let Some(order) = self.source_order()? {
+            self.validate_source_order(&order)?;
+            self.reorder(order);
+            return Ok(Vec::new());
+        }
         let Resolution { errors, order } = self.resolve_dependencies()?;
         let listed = listed_errors(&errors);
         ensure!(
@@ -740,6 +899,11 @@ impl Guide {
     /// InstallBefore/InstallAfter reference on any top-level component, selected or not,
     /// stops the run; otherwise the components take the resolver's order, as in convert.
     pub fn sort_for_install(&mut self) -> Result<()> {
+        if let Some(order) = self.source_order()? {
+            self.validate_source_order(&order)?;
+            self.reorder(order);
+            return Ok(());
+        }
         let Resolution { errors, order } = self.resolve_dependencies()?;
         ensure!(
             errors.is_empty(),

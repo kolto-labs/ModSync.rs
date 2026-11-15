@@ -1496,7 +1496,7 @@ fn load_resolved_archives(
                             filename,
                         )?)
                     && !filename.chars().any(char::is_control)
-                    && modsync::paths::relative(filename, false)?
+                    && modsync::paths::literal_relative(filename)?
                         .components()
                         .count()
                         == 1,

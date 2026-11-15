@@ -3601,7 +3601,8 @@ def execute(args, report):
                 args.archive_map.resolve(strict=True),
                 Path(__file__).resolve().with_name("seed_pins.json"),
                 guide_step_list(guide.read_text(encoding="utf-8"), "rust")[0],
-                report.get(SKIPPED_REPORT_KEY, []), baseline_applicability=applicability)
+                report.get(SKIPPED_REPORT_KEY, []), baseline_applicability=applicability,
+                source_order=True)
         except (ValueError, OSError, subprocess.SubprocessError) as error:
             raise Blocked("documented_linux_guide_selection_refused: " + str(error)) from error
         report["guide_selection"] = receipt
@@ -3612,6 +3613,7 @@ def execute(args, report):
         report["converted_component_count"] = receipt["admitted_component_count"]
         report["admitted_component_count"] = receipt["admitted_component_count"]
         report["component_count"] = receipt["admitted_component_count"]
+        report["source_order"] = receipt["source_order_policy"]
         report["converted_sha256"] = digest(converted)
         inactive = {item["component_guid"] for item in receipt["inactive"]
                     if item["component_guid"] is not None}

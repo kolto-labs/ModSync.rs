@@ -153,6 +153,9 @@ def require_complete(report, mode, expected_guide_sha256=None):
             raise ValueError("guide selection recipe does not match installed lane input or source coverage")
         if mode == "gui" and set((report.get("gui") or {}).get("completed_guids", [])) != admitted:
             raise ValueError("GUI receipt does not cover every admitted recipe component")
+        if ("source_order_policy" in selection or "source_order" in report) and (
+                report.get("source_order") != selection.get("source_order_policy")):
+            raise ValueError("source-order provenance differs from admitted lane input")
     if mode == "gui":
         gui = report.get("gui")
         scope = report.get("gui_not_covered")

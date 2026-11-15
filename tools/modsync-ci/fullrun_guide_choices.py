@@ -248,8 +248,29 @@ def verify_alternative(game, archives, restore_report, archive_map, pins_path):
             "acquisition_source": entry["source"], "objects": objects}
 
 
+def declare_source_order(text, expected_guids):
+    """Add explicit order without changing any projected component definition."""
+    document = tomllib.loads(text)
+    components = document.get("thisMod", document.get("Components", []))
+    expected = [identity(guid) for guid in expected_guids]
+    observed = [identity(component.get("Guid")) for component in components]
+    if (not expected or len(expected) > 10000 or len(set(expected)) != len(expected)
+            or observed != expected or "ModSyncSourceOrder" in document):
+        raise ValueError("source-order projection inventory mismatch")
+    rewritten = "ModSyncSourceOrder = " + json.dumps(expected) + "\n\n" + text
+    updated = tomllib.loads(rewritten)
+    if updated.pop("ModSyncSourceOrder") != expected or updated != document:
+        raise ValueError("source-order policy changed component definitions")
+    return rewritten
+
+
+def source_order_policy(guids):
+    return {"name": "ModSyncSourceOrder", "version": 1,
+            "ordered_guids_sha256": hashlib.sha256(json.dumps(guids).encode()).hexdigest()}
+
+
 def project(guide, converted, archives, restore_report, archive_map, pins_path, source_steps, skip_records,
-            *, baseline_applicability=None):
+            *, baseline_applicability=None, source_order=False):
     guide, converted = Path(guide), Path(converted)
     game = guide.parent.name
     if game not in CONFIG or digest(guide) != CONFIG[game]["guide_sha256"]:
@@ -339,6 +360,9 @@ def project(guide, converted, archives, restore_report, archive_map, pins_path, 
         raise ValueError("guide selection chosen alternative is still omitted")
     projected = project_text(original_bytes.decode("utf-8"), inactive_ids, recipe=recipe).encode("utf-8")
     original_ids = [item["component_guid"] for item in component_map]
+    admitted_ids = [item for item in original_ids if item not in inactive_ids]
+    if source_order:
+        projected = declare_source_order(projected.decode("utf-8"), admitted_ids).encode("utf-8")
     receipt = {"schema_version": 1, "recipe": recipe, "claim": CLAIM, "game": game,
                "source_guide_sha": GUIDE_SHA, "source_guide_sha256": cfg["guide_sha256"],
                "original_input_sha256": hashlib.sha256(original_bytes).hexdigest(),
@@ -346,8 +370,10 @@ def project(guide, converted, archives, restore_report, archive_map, pins_path, 
                "restore_report_sha256": digest(restore_report), "archive_map_sha256": digest(archive_map),
                "original_component_count": len(original_ids), "admitted_component_count": len(original_ids) - inactive_count,
                "inactive_component_count": inactive_count, "inactive_guide_choice_count": len(active_rules),
-               "original_guids": original_ids, "admitted_guids": [item for item in original_ids if item not in inactive_ids],
+               "original_guids": original_ids, "admitted_guids": admitted_ids,
                "original_component_map": component_map, "inactive": inactive, "selected_alternative": selected}
+    if source_order:
+        receipt["source_order_policy"] = source_order_policy(admitted_ids)
     if recipe == ASPYR_RECIPE:
         receipt["baseline_applicability"] = copy.deepcopy(baseline_applicability)
     validate_receipt(receipt)
@@ -505,5 +531,12 @@ def _validate_receipt_v2(receipt):
 def validate_receipt(receipt):
     """Dispatch only the two closed documented installation recipes."""
     if isinstance(receipt, dict) and receipt.get("recipe") == ASPYR_RECIPE:
-        return _validate_receipt_v2(receipt)
-    return _validate_receipt_v1(receipt)
+        admitted = _validate_receipt_v2(receipt)
+    else:
+        admitted = _validate_receipt_v1(receipt)
+    if "source_order_policy" in receipt:
+        policy = receipt["source_order_policy"]
+        if (not isinstance(policy, dict) or type(policy.get("version")) is not int
+                or policy != source_order_policy(receipt["admitted_guids"])):
+            raise ValueError("source-order policy provenance mismatch")
+    return admitted

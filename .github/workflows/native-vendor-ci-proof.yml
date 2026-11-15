@@ -186,6 +186,8 @@ jobs:
                   assert verification['Reviewer']=='modsync-ci-tool' and verification['IdentityVersion']==2
                   assert {k:v for k,v in component.items() if k!='DraftReview'}=={k:v for k,v in original.items() if k!='DraftReview'}
               run('native-model-export',[binary,'convert',reviewed,model,'--format','toml'])
+              # Explicit guide order survives native dependency sorting without changing owners.
+              original_model=model.read_text(); model.write_text('ModSyncSourceOrder = '+json.dumps(guids)+'\n\n'+original_model)
               report['toml_reload_review_controls']=[]
               for index,guid in enumerate(guids):
                   label='toml-draft-review-'+str(index)
@@ -233,7 +235,7 @@ jobs:
               total=0
               if (root/'gui-work').is_dir():
                   for index,path in enumerate(sorted((root/'gui-work').rglob('*'))):
-                      if path.is_symlink() or not path.is_file() or path.suffix not in ('.log','.json'): continue
+                      if path.is_symlink() or not path.is_file() or path.suffix not in ('.log','.json','.png'): continue
                       if not path.resolve().is_relative_to((root/'gui-work').resolve()): continue
                       size=path.stat().st_size
                       if size>16*1024*1024 or total+size>64*1024*1024: continue

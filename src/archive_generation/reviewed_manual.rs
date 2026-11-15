@@ -104,9 +104,13 @@ struct NativeTranslation {
 /// Cannot be constructed from authored JSON. Issued only for a known, cleared
 /// compiled recipe and its exact native instruction.
 pub(crate) struct NativePatcherContract {
+    component_guid: String,
     translation: NativeTranslation,
 }
 impl NativePatcherContract {
+    pub(crate) fn component_guid(&self) -> &str {
+        &self.component_guid
+    }
     pub(crate) fn verify_staged(&self, base: &Path, cancelled: &AtomicBool) -> Result<()> {
         ensure!(
             !base.join("tslpatchdata/namespaces.ini").exists(),
@@ -655,6 +659,7 @@ pub(crate) fn native_patcher_contract(
         return Ok(None);
     }
     Ok(Some(NativePatcherContract {
+        component_guid: recipe.component_guid.clone(),
         translation: translation.clone(),
     }))
 }
