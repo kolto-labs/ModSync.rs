@@ -136,6 +136,13 @@ impl NativePatcherContract {
     pub(crate) fn component_guid(&self) -> &str {
         &self.component_guid
     }
+    pub(crate) fn companion_selector_compatibility(&self) -> bool {
+        self.component_guid == "f27d4b13-b349-8c56-b9b7-620cdc133579"
+            && self.translation.installer.sha256
+                == "638aaeea4e40ffb6c592f68787f2140318a0dec7f2cde85908806ce3b5bc5131"
+            && self.translation.changes_ini.sha256
+                == "5a2eed7f0ecd47a24f20540f9f231146c1730dc7810df6ed23c77d309c5d72a2"
+    }
     pub(crate) fn verify_staged(&self, base: &Path, cancelled: &AtomicBool) -> Result<()> {
         let parent = self.translation.installer_parent()?;
         ensure!(

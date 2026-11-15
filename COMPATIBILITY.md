@@ -4885,3 +4885,22 @@ public source archives and owned validation roots; they are not install proof.
 All production formatting/build/strict Clippy checks pass with and without
 desktop features. Archive decoding uses bounded private scratch and runs no
 external programs or game/mod writes during validation.
+
+
+The exact original Companion Starting Armors installer now has a passing hosted
+reference witness (run43699420485): its own success log passes, Wine is quiescent,
+and both DescIdentified(lang-1) assignments preserve the complete localized
+fields. Only the original compiled owner and raw EXE/INI pins select a native
+compatibility adapter. It verifies the original seven-GFF/19-operation shape
+and both original deferred values, then represents the two existing fields as
+empty localized deltas. Their operations remain counted; StrRef/substrings and
+all other modifiers remain intact, and genuinely missing fields still fail.
+Staged raw bytes are checked before normalization in real and exact-prediction
+paths. Source archives/INIs and the OdyPatcher dependency pin are unchanged.
+Native CLI/GUI success after this adapter still requires the hosted proof.
+
+Bao-Dur independently completed all8 configured operations in both actual
+CLI and GUI lanes of run43697716927, with zero warnings/errors/failures and
+full-manifest evidence of6 added/2 changed files. That reduced eight-owner
+workflow still failed later at Companion; it is not a whole-guide success or
+a claim of cross-lane byte equality.

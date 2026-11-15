@@ -19,6 +19,7 @@ pub struct CheckpointRunReport {
     pub checkpoint_id: String,
     pub generation: u64,
 }
+mod companion_selector;
 mod patcher_prediction;
 mod patcher_prepare;
 mod provided_installer;
@@ -4496,7 +4497,7 @@ impl Engine {
                     !self.exact_patcher_prediction || self.patcher_invocation.is_none(),
                     "Configured external patcher effects require a matching verified real-disk checkpoint; native OdyPatcher prediction cannot stand in for this backend"
                 );
-                self.simulate_patcher(base, &dest, &i.arguments, emit)?;
+                self.simulate_patcher(base, &dest, &i.arguments, native_contract, emit)?;
                 return Ok(());
             }
             self.check_patcher_backend()?;
@@ -4829,6 +4830,7 @@ impl Engine {
             Some(odypatcher::PatchLogger::new()),
         )
         .map_err(|error| anyhow::anyhow!("Prepare built-in OdyPatcher: {error}"))?;
+        companion_selector::adapt(contract, &mut installer)?;
         installer
             .validate_configured_paths()
             .map_err(|error| anyhow::anyhow!("Unsafe native patch configuration: {error}"))?;

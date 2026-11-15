@@ -20,6 +20,7 @@ impl Engine {
         base: &Path,
         destination: &Path,
         arguments: &str,
+        contract: Option<&crate::archive_generation::reviewed_manual::NativePatcherContract>,
         emit: &mut impl FnMut(Event),
     ) -> Result<()> {
         ensure!(!self.install, "Native prediction cannot run on live roots");
@@ -115,10 +116,14 @@ impl Engine {
             }
         }
         let ini = mods.join(configuration.strip_prefix(package)?);
+        if let Some(contract) = contract {
+            contract.verify_staged(&mods, &self.settings.cancelled)?;
+        }
         super::patcher_prepare::normalize(&mods, &self.settings.cancelled)?;
         let mut installer =
             odypatcher::ModInstaller::new(&mods, &game, &ini, Some(odypatcher::PatchLogger::new()))
                 .map_err(|error| anyhow::anyhow!("Prepare native prediction: {error}"))?;
+        super::companion_selector::adapt(contract, &mut installer)?;
         installer
             .validate_configured_paths()
             .map_err(|error| anyhow::anyhow!("Unsafe native prediction configuration: {error}"))?;
