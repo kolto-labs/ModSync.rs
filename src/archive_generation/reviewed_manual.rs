@@ -13,11 +13,36 @@ use std::{
 };
 
 pub(crate) const GENERATOR: &str = "reviewed-manual-file-effects";
-const BOOK: &str = include_str!("reviewed_manual_k2.json");
-const GUIDE_SHA: &str = "f442bdf574031623ed577609730d887069b9bc8e38e8e2f38ecc43a7e7487d5f";
-const PLAN_SHA: &str = "0add8c1aeb7cdfad3df4b21761e135c150aa7832cf3fc0edabe01a91245a9258";
 const BINDING: &str = "AuthoredRecipeBinding";
-const BOOK_SHA256: &str = "f85240122267d088f7b52c1746c2edb2fdb8795846889f4158dcf59b4fd91d60";
+struct BookSpec {
+    filename: &'static str,
+    content: &'static str,
+    sha256: &'static str,
+    guide_sha256: &'static str,
+    plan_sha256: &'static str,
+    count: usize,
+    kind: &'static str,
+}
+const BOOKS: [BookSpec; 2] = [
+    BookSpec {
+        filename: "reviewed_manual_k2.json",
+        content: include_str!("reviewed_manual_k2.json"),
+        sha256: "f85240122267d088f7b52c1746c2edb2fdb8795846889f4158dcf59b4fd91d60",
+        guide_sha256: "f442bdf574031623ed577609730d887069b9bc8e38e8e2f38ecc43a7e7487d5f",
+        plan_sha256: "0add8c1aeb7cdfad3df4b21761e135c150aa7832cf3fc0edabe01a91245a9258",
+        count: 57,
+        kind: "ReviewedManualK2FileEffects",
+    },
+    BookSpec {
+        filename: "reviewed_manual_k1.json",
+        content: include_str!("reviewed_manual_k1.json"),
+        sha256: "b04b7331b5001f81698feb5571460ea9e2e486d032956abb22967d704254c338",
+        guide_sha256: "44067788c6cb7a83b38d468817f273ce5cc901cd5e000c0f9ff65f8af15fc6ed",
+        plan_sha256: "1b402ba085625c4863795069eaacaef0f53e8ea7179e56a5bd150d88eb9c0a74",
+        count: 66,
+        kind: "ReviewedManualK1FileEffects",
+    },
+];
 
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -108,44 +133,56 @@ fn check(cancelled: &AtomicBool) -> Result<()> {
     );
     Ok(())
 }
-pub(crate) fn databook_digest() -> String {
-    format!("{:x}", Sha256::digest(BOOK.as_bytes()))
-}
-fn book() -> Result<Book> {
-    ensure!(BOOK.len() <= 16 * 1024 * 1024, "Recipe book exceeds bound");
+fn load_book(spec: &BookSpec) -> Result<Book> {
     ensure!(
-        databook_digest() == BOOK_SHA256,
+        spec.content.len() <= 16 * 1024 * 1024,
+        "Recipe book exceeds bound"
+    );
+    ensure!(
+        format!("{:x}", Sha256::digest(spec.content.as_bytes())) == spec.sha256,
         "Compiled recipe book differs from reviewed source proof"
     );
-    let book: Book = serde_json::from_str(BOOK)?;
+    let book: Book = serde_json::from_str(spec.content)?;
     ensure!(
         book.schema == 1
-            && book.source_guide_sha256 == GUIDE_SHA
-            && book.source_plan_sha256 == PLAN_SHA
-            && book.recipes.len() == 57,
+            && book.source_guide_sha256 == spec.guide_sha256
+            && book.source_plan_sha256 == spec.plan_sha256
+            && book.recipes.len() == spec.count,
         "Recipe book identity or scope changed"
     );
-    let mut identities = BTreeSet::new();
-    for recipe in &book.recipes {
-        ensure!(
-            identities.insert(&recipe.component_guid),
-            "Duplicate recipe identity"
-        );
-    }
     Ok(book)
 }
+/// Validate both compiled books before resolving an identity. Duplicate identities
+/// are fatal even when the caller requested a different component.
+fn find_recipe(guid: &str) -> Result<Option<(&'static BookSpec, Recipe)>> {
+    let mut identities = BTreeSet::new();
+    let mut selected = None;
+    for spec in &BOOKS {
+        for recipe in load_book(spec)?.recipes {
+            ensure!(
+                identities.insert(recipe.component_guid.clone()),
+                "Duplicate recipe identity across compiled books"
+            );
+            if recipe.component_guid == guid {
+                selected = Some((spec, recipe));
+            }
+        }
+    }
+    Ok(selected)
+}
 pub(crate) fn has_recipe(guid: &str) -> Result<bool> {
-    Ok(book()?
-        .recipes
-        .iter()
-        .any(|recipe| recipe.component_guid == guid))
+    Ok(find_recipe(guid)?.is_some())
+}
+/// Verification identity belongs to the exact compiled book admitting this GUID.
+pub(crate) fn verification_identity(guid: &str) -> Result<(String, String)> {
+    let (spec, _) = find_recipe(guid)?.context("Recipe identity not admitted")?;
+    Ok((spec.filename.into(), spec.sha256.into()))
 }
 /// Filename admission exception for an exact compiled recipe/archive pair only.
 /// This grants neither recipe approval nor permission to skip byte verification.
 pub fn allows_literal_filename(guid: &str, filename: &str) -> Result<bool> {
-    Ok(book()?.recipes.iter().any(|recipe| {
-        recipe.component_guid == guid && recipe.archives.iter().any(|pin| pin.filename == filename)
-    }))
+    Ok(find_recipe(guid)?
+        .is_some_and(|(_, recipe)| recipe.archives.iter().any(|pin| pin.filename == filename)))
 }
 fn literal(value: &str) -> Result<String> {
     ensure!(
@@ -402,13 +439,9 @@ pub(crate) fn bind(
     cancelled: &AtomicBool,
 ) -> Result<()> {
     check(cancelled)?;
-    let book = book()?;
-    let recipe = book
-        .recipes
-        .iter()
-        .find(|recipe| recipe.component_guid == component.guid)
+    let (spec, recipe) = find_recipe(&component.guid)?
         .context("No reviewed file-effect recipe for this component")?;
-    let mut bound = canonical_context(recipe, component)?;
+    let mut bound = canonical_context(&recipe, component)?;
     ensure!(
         bound.guid.len() == 36
             && bound
@@ -605,8 +638,8 @@ pub(crate) fn bind(
         .map(|item| json!({"Filename":item.filename,"Sha256":item.sha256,"Bytes":item.bytes}))
         .collect();
     bound.instructions = instructions;
-    let binding = json!({"Schema":1,"Kind":"ReviewedManualK2FileEffects","DatabookSha256":databook_digest(),
-        "SourceGuideSha256":GUIDE_SHA,"SourcePlanSha256":PLAN_SHA,"Recipe":recipe,
+    let binding = json!({"Schema":1,"Kind":spec.kind,"DatabookSha256":spec.sha256,
+        "SourceGuideSha256":spec.guide_sha256,"SourcePlanSha256":spec.plan_sha256,"Recipe":recipe,
         "InputComponent":recipe.canonical_input_component,"Archives":inventories.values().collect::<Vec<_>>()});
     ensure!(
         serde_json::to_vec(&binding)?.len() <= 16 * 1024 * 1024,
@@ -640,12 +673,7 @@ pub(crate) fn replay(
             .cloned()
             .context("Missing recipe input context")?,
     )?;
-    let book = book()?;
-    let recipe = book
-        .recipes
-        .iter()
-        .find(|recipe| recipe.component_guid == component.guid)
-        .context("Recipe identity not admitted")?;
+    let (_, recipe) = find_recipe(&component.guid)?.context("Recipe identity not admitted")?;
     let filenames: Vec<_> = recipe
         .archives
         .iter()
@@ -724,19 +752,15 @@ pub(crate) fn verify_runtime(
         return Ok(());
     };
     check(cancelled)?;
-    let book = book()?;
-    let recipe = book
-        .recipes
-        .iter()
-        .find(|recipe| recipe.component_guid == component.guid)
-        .context("Runtime recipe is not in compiled databook")?;
+    let (spec, recipe) =
+        find_recipe(&component.guid)?.context("Runtime recipe is not in compiled databook")?;
     let original: Component = serde_json::from_value(
         binding
             .get("InputComponent")
             .cloned()
             .context("Missing recipe context")?,
     )?;
-    canonical_context(recipe, &original)?;
+    canonical_context(&recipe, &original)?;
     let object = binding.as_object().context("Invalid recipe binding")?;
     const BINDING_KEYS: [&str; 7] = [
         "Schema",
@@ -753,11 +777,11 @@ pub(crate) fn verify_runtime(
                 .keys()
                 .all(|key| BINDING_KEYS.contains(&key.as_str()) || key == "Archives")
             && binding.get("Schema") == Some(&json!(1))
-            && binding.get("Kind") == Some(&json!("ReviewedManualK2FileEffects"))
-            && binding.get("DatabookSha256") == Some(&json!(databook_digest()))
-            && binding.get("SourceGuideSha256") == Some(&json!(GUIDE_SHA))
-            && binding.get("SourcePlanSha256") == Some(&json!(PLAN_SHA))
-            && binding.get("Recipe") == Some(&serde_json::to_value(recipe)?)
+            && binding.get("Kind") == Some(&json!(spec.kind))
+            && binding.get("DatabookSha256") == Some(&json!(spec.sha256))
+            && binding.get("SourceGuideSha256") == Some(&json!(spec.guide_sha256))
+            && binding.get("SourcePlanSha256") == Some(&json!(spec.plan_sha256))
+            && binding.get("Recipe") == Some(&serde_json::to_value(&recipe)?)
             && binding.get("InputComponent") == Some(&recipe.canonical_input_component),
         "Runtime recipe provenance changed"
     );
@@ -835,8 +859,8 @@ pub(crate) fn verify_runtime(
     ensure!(
         verification
             == &json!({"Reviewer":draft::review::VERIFIER_NAME,"Kind":draft::review::VERIFICATION_KIND,
-        "ToolVersion":concat!("ModSync.rs/",env!("CARGO_PKG_VERSION")),"ArchiveSha256":databook_digest(),
-        "ArchiveFilename":"reviewed_manual_k2.json","ReplayDigest":replay_digest(&replayed)?,"IdentityVersion":2}),
+        "ToolVersion":concat!("ModSync.rs/",env!("CARGO_PKG_VERSION")),"ArchiveSha256":spec.sha256,
+        "ArchiveFilename":spec.filename,"ReplayDigest":replay_digest(&replayed)?,"IdentityVersion":2}),
         "Runtime recipe verification does not match unchanged replayed model"
     );
     check(cancelled)

@@ -604,12 +604,14 @@ fn verify_reviewed_manual(
     );
     let replayed =
         crate::archive_generation::reviewed_manual::replay(component, root, options, cancelled)?;
+    let (archive_filename, archive_sha256) =
+        crate::archive_generation::reviewed_manual::verification_identity(&component.guid)?;
     let verification = Verification {
         reviewer: VERIFIER_NAME.into(),
         kind: VERIFICATION_KIND.into(),
         tool_version: concat!("ModSync.rs/", env!("CARGO_PKG_VERSION")).into(),
-        archive_sha256: crate::archive_generation::reviewed_manual::databook_digest(),
-        archive_filename: "reviewed_manual_k2.json".into(),
+        archive_sha256,
+        archive_filename,
         replay_digest: crate::archive_generation::reviewed_manual::replay_digest(&replayed)?,
     };
     let mut cleared = component.clone();
