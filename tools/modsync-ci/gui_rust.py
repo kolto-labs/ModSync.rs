@@ -116,6 +116,12 @@ INSTALLATION_COMPONENT_STEP_PATTERN = re.compile(
     r"(?:\[Error\]\s*)?(?:Error\s*:\s*)?(?P<component>.+?)\s*/\s*step\s+"
     r"(?P<step>\d+)\s*\((?P<action>[^)]*)\)", re.IGNORECASE)
 PATCHER_ERROR_PATTERN = re.compile(r"\[Error\]|Could\s+not\s+find\s+the\s+file", re.IGNORECASE)
+# Successful structured receipts preserve the original vendor's failure_regex
+# strings. A bare quoted "Error: " array value is provenance, not an error.
+# Match only that empty label followed by a JSON delimiter; quoted messages
+# containing actual error details and all unquoted error markers stay visible.
+QUOTED_ERROR_PATTERN_LABEL = re.compile(
+    r'''["'“”‘’]\s*ERROR\s*:\s*["'“”‘’](?=\s*[,}\]])''', re.IGNORECASE)
 NEXT_PATTERN = r"\bNext\b"
 PAUSE_SHARING_PATTERN = r"Pause\s*sharing\s*to\s*edit"
 PAUSE_SHARING_RETRY_SECONDS = 5
@@ -867,12 +873,20 @@ def drive(args, private, result):
         if INSTALLATION_FAILURE_MARKER.search(text):
             record_installation_failure(result, text.splitlines())
             raise Blocked("installation_stopped")
-        if re.search(
+        visible_failure_text = QUOTED_ERROR_PATTERN_LABEL.sub(
+            lambda match: re.sub(r"[^\n]", " ", match.group()), text)
+        failure = re.search(
             r"validation (?:failed|stopped|did not complete)|installation (?:failed|stopped|review blocked)|"
             r"review remains open|requires? review|unreviewed|inputs changed|"
             r"result discarded|not applied|recovery required|\bERROR\s*:",
-            text, re.IGNORECASE,
-        ):
+            visible_failure_text, re.IGNORECASE,
+        )
+        if failure:
+            result["visible_failure"] = {
+                "stage": result.get("stage"),
+                "matched": failure.group()[:160],
+                "ocr_context": text[max(0, failure.start() - 80):failure.end() + 160],
+            }
             raise Blocked("visible_review_validation_or_install_error")
         return shot, data, lines
 
