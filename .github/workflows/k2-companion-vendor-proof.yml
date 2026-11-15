@@ -26,7 +26,7 @@ jobs:
           sudo rm -rf -- /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
           sudo dpkg --add-architecture i386
           sudo apt-get -o Acquire::Retries=3 update -qq
-          sudo apt-get -o Acquire::Retries=3 install -y --no-install-recommends age bubblewrap wine wine32:i386 wine64 xvfb xauth xdotool zstd openssl python3-pip
+          sudo apt-get -o Acquire::Retries=3 install -y --no-install-recommends age bubblewrap wine wine32:i386 wine64 xvfb xauth xdotool imagemagick tesseract-ocr zstd openssl python3-pip
           /usr/bin/python3 -m pip install --target "$RUNNER_TEMP/companion-python" pykotor==2.3.12
         env:
           RECIPIENT: ${{ vars.DIAGNOSTICS_ENCRYPTION_RECIPIENT }}
@@ -141,6 +141,39 @@ jobs:
                       assert target.is_relative_to(prefix) or target==Path('/game'),str(p)
           state={'status':'starting','quiescent':False,'scope':'original single-component reference on recovered clean baseline'}
           def save(): (work/'runtime.json').write_text(json.dumps(state,indent=2))
+          original_action=manual.run_gui_action
+          def observe_modal():
+              # Pixels stay disposable in the isolated namespace. Only bounded
+              # text from these original installer dialogs enters encrypted evidence.
+              observation=[]
+              for title in ('^Browse for Folder$','^Information$'):
+                  found=subprocess.run(['/usr/bin/xdotool','search','--onlyvisible','--name',title],capture_output=True,timeout=10)
+                  if found.returncode not in (0,1): raise RuntimeError('window query failed')
+                  for window in found.stdout.decode('ascii').split()[:2]:
+                      assert window.isdecimal()
+                      image=work/'modal.png'
+                      try:
+                          subprocess.run(['/usr/bin/import','-window',window,str(image)],check=True,stdout=log,stderr=log,timeout=10)
+                          assert image.is_file() and image.stat().st_size<=4*1024*1024
+                          text=subprocess.run(['/usr/bin/tesseract',str(image),'stdout','--psm','6'],capture_output=True,check=True,timeout=20).stdout
+                          assert len(text)<=8192
+                          observation.append({'title':title,'text':text.decode('utf-8')})
+                      finally: image.unlink(missing_ok=True)
+              if observation:
+                  state.setdefault('dialog_observations',[]).append(observation)
+                  assert len(state['dialog_observations'])<=12
+                  save()
+              return any(item['title']=='^Information$' for item in observation)
+          def observed_action(action,operation,roots,tools,action_log,deadline):
+              if 'wait_log' in action:
+                  time.sleep(2)
+                  if observe_modal(): raise RuntimeError('original installer stopped at observed Information dialog')
+              result=original_action(action,operation,roots,tools,action_log,deadline)
+              if 'click' in action:
+                  time.sleep(0.5)
+                  observe_modal()
+              return result
+          manual.run_gui_action=observed_action
           with (work/'runtime.log').open('wb') as log:
               try:
                   save()
