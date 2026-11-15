@@ -161,11 +161,19 @@ jobs:
                   row(rows,r'Patch',zone=(0.85,0.82,1.0,1.0))
                   report['actions'].append('selected isolated D: target in vendor folder tree, Patch control OCR confirmed'); save()
                   # Resolution edits are the native controls immediately right of their labels.
-                  width=row(rows,r'(?:Screen\s+)?Width:?'); ui.click(width['right']+35,(width['y']+width['bottom'])/2); ui.hotkey('ctrl','a'); ui.write('1920')
+                  # Native vendor edits ignore Ctrl+A; select their whole line with Home/Shift+End.
+                  width=row(rows,r'(?:Screen\s+)?Width:?'); ui.click(width['right']+35,(width['y']+width['bottom'])/2); ui.press('home'); ui.hotkey('shift','end'); ui.write('1920')
                   # Height may share an OCR line with adjacent width text: refuse ambiguity.
-                  height=row(rows,r'Height:?'); ui.click(height['right']+35,(height['y']+height['bottom'])/2); ui.hotkey('ctrl','a'); ui.write('1080')
-                  rows=capture('04-ready'); text=' '.join(r['text'] for r in rows)
-                  assert '1920' in text and '1080' in text
+                  height=row(rows,r'Height:?'); ui.click(height['right']+35,(height['y']+height['bottom'])/2); ui.press('home'); ui.hotkey('shift','end'); ui.write('1080')
+                  ui.press('tab'); rows=capture('04-ready')
+                  # Retained pinned-vendor captures locate the two edit interiors in the 2x client image.
+                  report['resolution_ocr']={}
+                  with Image.open(evidence/'04-ready.png') as image:
+                      assert image.size==(captured['width']*2,captured['height']*2) and image.width>=532 and image.height>=468
+                      for name,box,value in [('width',(216,438,322,466),'1920'),('height',(424,438,530,466),'1080')]:
+                          edit=image.crop(box); edit.save(evidence/('04-ready-'+name+'.png'))
+                          report['resolution_ocr'][name]=' '.join(pytesseract.image_to_string(edit,config='--psm 7',timeout=20).split())
+                          assert report['resolution_ocr'][name]==value, 'Exact vendor resolution edit not observed: '+name
                   report['actions'].append('entered 1920x1080, OCR confirmed'); save()
                   click(row(rows,r'Patch',zone=(0.85,0.82,1.0,1.0))); time.sleep(4); rows=capture('05-result')
                   report['vendor_success_dialog_observed']=any('game successfully patched' in r['text'].lower() for r in rows)
