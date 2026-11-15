@@ -95,7 +95,7 @@
 <dt>Refuses what it does not understand</dt>
 <dd>An unknown instruction or field stops the guide instead of being skipped. A mod with no instructions cannot be installed.</dd>
 <dt>Outside programs are opt-in</dt>
-<dd>Patchers and other programs never run during validation. On the command line they only run with <code>--allow-processes</code>. In the desktop app, <strong>Let mods run their patcher or installer</strong> under <strong>Settings</strong> &gt; <strong>Patcher</strong> controls them; it is on by default because most builds need it.</dd>
+<dd>External patcher executables and other programs require <code>--allow-processes</code> on the command line. The default linked OdyPatcher library runs within ModSync. Validation reads patcher inputs without launching programs. In the desktop app, <strong>Let mods run their patcher or installer</strong> under <strong>Settings</strong> &gt; <strong>Patcher</strong> controls them; it is on by default because most builds need it.</dd>
 <dt>Downloads are checked</dt>
 <dd>Direct downloads must be real archives with the expected checksum, and never overwrite a file you already have.</dd>
 <dt>Temporary space you choose</dt>

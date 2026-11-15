@@ -58,7 +58,9 @@ pub enum PatcherEngine {
 pub struct Settings {
     pub roots: Roots,
     pub allow_processes: bool,
+    /// Explicit external executable. OdyPatcher with None uses the linked library.
     pub patcher: Option<PathBuf>,
+    /// Defaults to OdyPatcher. Saved preferences and CLI options may override it.
     pub patcher_engine: PatcherEngine,
     pub provided_installer: Option<ProvidedInstallerRunner>,
     pub archive: archive::Options,
@@ -724,6 +726,8 @@ impl Engine {
             "Archive scratch directory must be outside game and mod trees"
         );
         settings.archive.scratch_dir = Some(scratch);
+        // The default is the pinned library, even when PATH or packaged resources
+        // contain an OdyPatcher executable. External OdyPatcher requires a path.
         let (patcher_invocation, patcher_resolution_error) = if settings
             .provided_installer
             .is_some()

@@ -787,14 +787,14 @@ struct InstallArgs {
     /// Trust this guide to run programs with your user permissions.
     #[arg(long)]
     allow_processes: bool,
-    /// Patcher executable for Patcher instructions.
+    /// External executable for Patcher instructions (overrides the linked OdyPatcher default).
     #[arg(
         long,
         visible_alias = "kpatcher-path",
         visible_alias = "odypatcher-path"
     )]
     patcher: Option<PathBuf>,
-    /// CLI patcher backend for Patcher instructions.
+    /// Patcher backend (saved preference, otherwise linked OdyPatcher).
     #[arg(long, value_enum, ignore_case = true)]
     patcher_engine: Option<PatcherEngineArg>,
     /// Existing scratch folder outside the game and mod trees (defaults to system temp).

@@ -77,11 +77,44 @@ modsync convert  guide.toml guide.json
 
 Every command and option is in the [CLI reference](https://kolto-labs.github.io/ModSync.rs/cli-reference.html).
 
+## Patcher backend
+
+ModSync links [OdyPatcher](https://github.com/kolto-labs/OdyPatcher) as a library.
+Its implementation is maintained in that repository. `Cargo.toml` pins revision
+`9b9ee8d1d25e2e97c87df4521a13965ced1e0b3f`, and `Cargo.lock` records the same
+Git commit and dependency graph. Use `cargo build --locked` to preserve that graph.
+A self-contained ModSync executable includes the compiled library.
+
+Fresh settings select this linked library for `Patcher` steps, including NSS
+compilation. An OdyPatcher executable on `PATH` or in packaged resources leaves
+this default in effect. Existing saved backend and executable preferences are
+honored by the CLI and desktop. Empty saved executable fields use the selected
+backend's default.
+
+To select an external OdyPatcher executable explicitly, run
+
+```sh
+modsync install --input guide.toml --game-dir /path/to/game --source-dir /path/to/mods \
+  --patcher-engine ody-patcher --patcher /path/to/odypatcher --allow-processes
+```
+
+Use `--patcher-engine holo-patcher` or `--patcher-engine k-patcher` for those
+backends. `--patcher` takes precedence over the executable saved for the selected
+backend. Invalid configured paths fail with the path and cause in the error.
+External execution requires `--allow-processes`. The linked library runs within
+ModSync and needs no external-process permission.
+
+The production CI workflow compiles and lints the library and CLI with both
+feature configurations. `--no-default-features` disables the desktop feature.
+Current production CI sets no runtime patcher override. Backend selection follows
+runtime settings and `--patcher-engine` / `--patcher`. Any verification run passing
+those flags exercises an explicit backend override.
+
 ## Safety in brief
 
 - Validation never changes the game or mod folders and never runs external programs.
 - Installation validates first, snapshots both folders, follows guide order and stops at the first failure. After a failure, run `restore`, fix the cause and rerun the whole guide from the start. Never append a failed mod at the end.
-- Patchers and other external programs run only when you allow them (`--allow-processes`).
+- External patcher executables and other programs require `--allow-processes`. The default linked OdyPatcher library runs inside ModSync.
 
 Details: [Safety and recovery](https://kolto-labs.github.io/ModSync.rs/safety.html).
 

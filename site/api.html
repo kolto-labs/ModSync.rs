@@ -188,7 +188,7 @@ let report = engine.install_observed_report(
     },
 )?;</code></pre>
 <p>The engine checks the cancel flag between steps. A cancelled or failed install returns an error. Once it has started changing files, it leaves the recovery snapshot in place, so restore before you try again (see the next section). If you do not need progress, <code>engine.install(&amp;guide, |event| ...)</code> does the same work and returns <code>Result&lt;()&gt;</code>.</p>
-<p>Steps that run a patcher or another program need <code>settings.allow_processes = true</code>. Set <code>settings.patcher</code> to the program's path and <code>settings.patcher_engine</code> to a <code>PatcherEngine</code> value if you do not want the built-in OdyPatcher library.</p>
+<p><code>Settings::new</code> selects the linked OdyPatcher library with <code>patcher = None</code> and <code>patcher_engine = PatcherEngine::OdyPatcher</code>. It runs within ModSync. Its source lives in the <a href="https://github.com/kolto-labs/OdyPatcher">OdyPatcher repository</a>, at the exact Git revision pinned in <code>Cargo.toml</code> and <code>Cargo.lock</code>. To select an external executable, set <code>settings.patcher</code> to its path, <code>settings.patcher_engine</code> to its backend, and <code>settings.allow_processes = true</code>. Execute and Run steps also require this permission.</p>
 </section>
 
 <section id="restore">

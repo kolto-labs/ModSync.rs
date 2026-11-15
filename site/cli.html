@@ -112,10 +112,10 @@ modsync install  --input KOTOR1_Full.toml --game-dir /path/to/game --source-dir 
 
 <section id="patchers">
 <h2>Patchers and programs</h2>
-<p>Steps that run a patcher or another program need <code>--allow-processes</code>. The built-in OdyPatcher library is used by default. To use a patcher program instead:</p>
+<p>The default linked OdyPatcher library runs within ModSync. Its source and exact dependency revision are described in the <a href="faq.html#odypatcher">OdyPatcher FAQ</a>. External patcher executables and other programs require <code>--allow-processes</code>. To select an external OdyPatcher executable explicitly, run</p>
 <pre class="code" data-lang="Terminal" tabindex="0"><code>modsync install --input guide.toml --game-dir /path/to/game --source-dir /path/to/mods \
-  --allow-processes --patcher /path/to/odypatcher</code></pre>
-<p>Pick HoloPatcher or KPatcher with <code>--patcher-engine holo-patcher</code> or <code>--patcher-engine k-patcher</code>. The patch files are staged in a private copy, so the mod's original configuration is left alone. If a patch fails, its error and warning lines and the end of its log are printed before the error.</p>
+  --allow-processes --patcher-engine ody-patcher --patcher /path/to/odypatcher</code></pre>
+<p>Saved backend and executable preferences are honored. Explicit CLI options take precedence. Invalid configured paths report the path and cause. Pick HoloPatcher or KPatcher with <code>--patcher-engine holo-patcher</code> or <code>--patcher-engine k-patcher</code>. The patch files are staged in a private copy, so the mod's original configuration is left alone. If a patch fails, its error and warning lines and the end of its log are printed before the error.</p>
 <p>Programs run directly, without a shell, with your user permissions. Windows programs need a Windows host.</p>
 </section>
 

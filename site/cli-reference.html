@@ -146,9 +146,9 @@ modsync conflicts --input &lt;guide&gt; --game-dir &lt;folder&gt; --source-dir &
 <tr><td><code>--fomod-skip</code></td><td>none</td><td>Skips the FOMOD setup step. Installers that are still unresolved stop the run.</td><td>Off</td></tr>
 <tr><td><code>--interactive</code></td><td>none</td><td>Asks you to set up FOMOD installers in the terminal.</td><td>Off</td></tr>
 <tr><td><code>--non-interactive</code></td><td>none</td><td>Turns off the terminal FOMOD prompts. Cannot be used with <code>--interactive</code>.</td><td>Off</td></tr>
-<tr><td><code>--allow-processes</code></td><td>none</td><td>Allows steps that run a patcher or another program, using your user permissions.</td><td>Off</td></tr>
-<tr><td><code>--patcher</code></td><td>file</td><td>Patcher program to use for patcher steps. Also accepted as <code>--kpatcher-path</code> or <code>--odypatcher-path</code>.</td><td>The built-in OdyPatcher library</td></tr>
-<tr><td><code>--patcher-engine</code></td><td><code>ody-patcher</code>, <code>k-patcher</code> or <code>holo-patcher</code></td><td>Which patcher backend runs patcher steps. Not case sensitive.</td><td>Built-in OdyPatcher</td></tr>
+<tr><td><code>--allow-processes</code></td><td>none</td><td>Allows external patcher executables and Execute/Run programs, using your user permissions. Linked OdyPatcher runs within ModSync.</td><td>Off</td></tr>
+<tr><td><code>--patcher</code></td><td>file</td><td>Explicit external patcher executable, overriding the saved path. Also accepted as <code>--kpatcher-path</code> or <code>--odypatcher-path</code>.</td><td>Saved executable, otherwise linked OdyPatcher</td></tr>
+<tr><td><code>--patcher-engine</code></td><td><code>ody-patcher</code>, <code>k-patcher</code> or <code>holo-patcher</code></td><td>Which patcher backend runs patcher steps. Not case sensitive.</td><td>Saved backend, otherwise OdyPatcher</td></tr>
 <tr><td><code>--direct-markdown</code></td><td>none</td><td>Installs a Markdown guide in the order it is written. <strong>Install only.</strong> Cannot be combined with selection, profile or FOMOD options.</td><td>Off</td></tr>
 <tr><td><code>--phase</code></td><td><code>all</code>, <code>base</code> or <code>remaining</code></td><td>Runs all selected components, only the base build, or the verified remaining part after a checkpoint.</td><td><code>all</code></td></tr>
 <tr><td><code>--managed</code></td><td>none</td><td>Uses managed deployment. Needs <code>--component-checkpoints</code>. <strong>Install only.</strong></td><td>Off</td></tr>
@@ -222,7 +222,7 @@ rm /tmp/modsync.pause      # carries on</code></pre>
 
 <section id="patchers">
 <h2>Patchers</h2>
-<p>Patcher steps run a program, so they need your permission. Use <code>--allow-processes</code> on <code>install</code>, or the explicit trust option on the commands below.</p>
+<p>Guide Patcher steps use the linked OdyPatcher library by default. Selecting an external executable requires <code>--allow-processes</code> on <code>install</code>. The standalone commands below also require explicit trust.</p>
 
 <h3 id="holopatcher"><code>holopatcher</code></h3>
 <p>Runs a HoloPatcher backend on its own, outside a guide install. You can use it to test a patcher run. Nothing is checked against a guide.</p>
@@ -1281,7 +1281,7 @@ modsync deadlystream-sign-in --username YOUR_NAME --save</code></pre>
 <pre class="code" data-lang="Terminal" tabindex="0"><code>modsync easy import-archive my-session /path/to/mods/texture-pack.7z</code></pre>
 
 <h3 id="easy-apply"><code>easy apply</code></h3>
-<p>Runs exactly one saved action from the history, the next one, with a checkpoint that can be recovered. It can run a patcher, but only if you allow processes.</p>
+<p>Runs exactly one saved action from the history, the next one, with a checkpoint that can be recovered. It uses linked OdyPatcher by default. External patcher executables require process permission.</p>
 <pre class="code" data-lang="Terminal" tabindex="0"><code>modsync easy apply &lt;directory&gt; --source-dir &lt;folder&gt; --game-dir &lt;folder&gt; --component &lt;number&gt; --instruction &lt;number&gt; [options]</code></pre>
 <div class="table"><table>
 <thead><tr><th>Argument or option</th><th>Value</th><th>What it does</th><th>Default</th></tr></thead>
@@ -1291,7 +1291,7 @@ modsync deadlystream-sign-in --username YOUR_NAME --save</code></pre>
 <tr><td><code>--game-dir</code></td><td>folder</td><td>Your game folder. Required.</td><td>None</td></tr>
 <tr><td><code>--component</code></td><td>number</td><td>The component to act on. Required.</td><td>None</td></tr>
 <tr><td><code>--instruction</code></td><td>number</td><td>The instruction to run inside that component. Required.</td><td>None</td></tr>
-<tr><td><code>--allow-processes</code></td><td>none</td><td>Allows a patcher or other program to run, using your user permissions.</td><td>Off</td></tr>
+<tr><td><code>--allow-processes</code></td><td>none</td><td>Allows external patcher executables and other programs to run, using your user permissions.</td><td>Off</td></tr>
 <tr><td><code>--patcher</code></td><td>file</td><td>The patcher program to use.</td><td>Built-in</td></tr>
 <tr><td><code>--expected-revision</code></td><td>revision</td><td>Refuses to run if the guide has changed since this revision.</td><td>No check</td></tr>
 <tr><td><code>--provided-request-dir</code></td><td>folder</td><td>A private folder of request files that explicitly selects the installers you supply. Cannot be used with <code>--patcher</code>. Needs <code>--provided-xvfb</code>.</td><td>None</td></tr>

@@ -117,7 +117,7 @@ cargo run -- install  --input examples/demo.toml --game-dir demo-work/game --sou
 
 <section id="patchers">
 <h2>Mods that use a patcher</h2>
-<p>Many KOTOR mods come with a TSLPatcher-style installer instead of plain files. ModSync runs that patch step for you. In the desktop app, <strong>Let mods run their patcher or installer</strong> under <strong>Settings</strong> &gt; <strong>Patcher</strong> is on by default, because most builds need it, and <strong>Patcher for TSLPatcher mods</strong> chooses which patcher program to use. On the command line, outside programs only run when you add <code>--allow-processes</code>.</p>
+<p>Many KOTOR mods come with a TSLPatcher-style installer instead of plain files. ModSync runs that patch step for you using the linked OdyPatcher library by default. Its implementation is maintained in the <a href="https://github.com/kolto-labs/OdyPatcher">OdyPatcher repository</a> and compiled into ModSync at a pinned revision. In the desktop app, <strong>Let mods run their patcher or installer</strong> under <strong>Settings</strong> &gt; <strong>Patcher</strong> is on by default, because most builds need it, and <strong>Patcher for TSLPatcher mods</strong> chooses which patcher program to use. On the command line, outside programs only run when you add <code>--allow-processes</code>.</p>
 <p>Windows programs need a Windows computer. ModSync does not run them through Wine for you.</p>
 </section>
 
