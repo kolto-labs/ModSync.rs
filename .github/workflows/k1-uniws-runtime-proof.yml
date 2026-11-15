@@ -23,7 +23,7 @@ jobs:
           sudo dpkg --add-architecture i386
           sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=60 update -qq
           sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=60 install -y --no-install-recommends age unrar wine wine64 wine32:i386 xvfb xauth xdotool openbox scrot python3-tk tesseract-ocr
-          python -m pip install PyAutoGUI==0.9.54 pytesseract==0.3.13 Pillow==11.3.0
+          python -m pip install --target "$RUNNER_TEMP/uniws-python" PyAutoGUI==0.9.54 pytesseract==0.3.13 Pillow==11.3.0
       - name: Acquire and verify exact public publisher inputs
         timeout-minutes: 8
         run: |
@@ -63,7 +63,7 @@ jobs:
       - name: Drive actual UniWS UI and compare complete executable bytes
         timeout-minutes: 9
         run: |
-          env -i PATH="$PATH" HOME="$RUNNER_TEMP/uniws-private/home" RUNNER_TEMP="$RUNNER_TEMP" \
+          env -i PATH="$PATH" HOME="$RUNNER_TEMP/uniws-private/home" RUNNER_TEMP="$RUNNER_TEMP" PYTHONPATH="$RUNNER_TEMP/uniws-python" \
             xvfb-run -a -s '-screen 0 1280x800x24 -nolisten tcp' python - <<'PY'
           import hashlib,json,os,re,shutil,subprocess,time
           from pathlib import Path

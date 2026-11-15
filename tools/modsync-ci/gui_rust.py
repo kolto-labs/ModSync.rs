@@ -884,10 +884,10 @@ def drive(args, private, result):
               flush=True)
         time.sleep(NAV_SETTLE_SECONDS)
 
-    def click(label, optional=False, window=None, pattern=None):
+    def click(label, optional=False, window=None, pattern=None, scales=(2,)):
         result["stage"] = label
         mark()
-        point = locate(label, optional, window, pattern)
+        point = locate(label, optional, window, pattern, scales=scales)
         if point is None:
             return
         press(point, label)
@@ -1082,7 +1082,11 @@ def drive(args, private, result):
             transition("validation_page", VALIDATION_NAV_LABEL, VALIDATION_PAGE_MARKER,
                        "validation_page_not_reached")
             if getattr(args, "complete_guide", False) and plan.get("needs_process_trust"):
-                click("Trust this guide to run external programs", window=NAV_WINDOW_SECONDS)
+                # Actual native screenshots can OCR the leading g as q at 2x.
+                # Require the whole checkbox label; retry native scale as well.
+                click("Trust this guide to run external programs", window=NAV_WINDOW_SECONDS,
+                      pattern=r"\bTrust\s+this\s+[gq]uide\s+to\s+run\s+external\s+programs\b",
+                      scales=(2, 1))
                 result["external_program_trust"] = "native_checkbox_in_fresh_desktop"
             transition("validation_start", "Run validation", VALIDATION_STARTED_MARKER,
                        "validation_not_started")
