@@ -379,6 +379,12 @@ def ensure(archives_root: Path, cache_root: Path, report_path: Path, *, remote=T
         report["ok"] = len(report["entries"]) == 6 and all(entry["status"] == "verified" for entry in report["entries"])
     except Exception as error:
         report["failure_code"] = str(error) if isinstance(error, InputError) else "input-acquisition-failed"
+        # Exception messages can contain capability URLs; the class and bounded
+        # HTTP status distinguish provider failures without exposing those URLs.
+        report["failure_category"] = type(error).__name__[:96]
+        status = getattr(error, "code", None)
+        if type(status) is int and 100 <= status <= 599:
+            report["failure_http_status"] = status
         if report["entries"]:
             report["entries"][-1]["status"] = "failed"
     _report(report_path, report)

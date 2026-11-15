@@ -52,6 +52,23 @@ jobs:
           sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=60 install -y --no-install-recommends age xvfb xauth xdotool pkg-config libssl-dev zstd openssl python3-tk tesseract-ocr libxkbcommon-x11-dev libx11-dev libxcursor-dev libxrandr-dev libxi-dev libgl1-mesa-dev libwayland-dev scrot
           python -m pip install PyAutoGUI==0.9.54 pytesseract==0.3.13 Pillow==11.3.0
           rustup toolchain install 1.95.0 --profile minimal
+      - name: Acquire six fixed public native inputs with production helper
+        timeout-minutes: 20
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          ARTSTORE_TOKEN: ${{ github.token }}
+          ARTSTORE_REPOSITORY: ${{ github.repository }}
+        run: |
+          python - <<'PY'
+          import os,sys
+          from pathlib import Path
+          sys.path.insert(0,'tools/modsync-ci')
+          import k1_widescreen_inputs
+          assert os.environ['ARTSTORE_REPOSITORY']==os.environ['GITHUB_REPOSITORY']=='kolto-labs/ModSync.rs'
+          root=Path(os.environ['RUNNER_TEMP'])
+          result=k1_widescreen_inputs.ensure(root/'archives',root/'public-input-cache',root/'k1-focused-evidence'/'public-input-provenance.json')
+          assert result['ok'] is True and len(result['entries'])==6
+          PY
       - name: Build production application with no acquisition credentials
         timeout-minutes: 40
         run: |
@@ -95,7 +112,7 @@ jobs:
               assert digest(book_path)=='b04b7331b5001f81698feb5571460ea9e2e486d032956abb22967d704254c338'
               recipe=next(item for item in json.loads(book_path.read_text())['recipes'] if item['component_guid']=='a3670a2f-f382-86e0-9696-020080fb3a43')
               assert recipe['source_component_index']==0 and recipe['archives']
-              archives=root/'archives'; archives.mkdir(mode=0o700)
+              archives=root/'archives'; archives.mkdir(mode=0o700,exist_ok=True)
               material=[]; packs={}
               for pin in recipe['archives']:
                   assert Path(pin['filename']).name==pin['filename']
@@ -112,23 +129,6 @@ jobs:
               report.update(status='failed',failure_category=type(error).__name__); raise
           finally:
               (evidence/'material-provenance.json').write_text(json.dumps(report,indent=2))
-          PY
-      - name: Acquire six fixed public native inputs with production helper
-        timeout-minutes: 20
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          ARTSTORE_TOKEN: ${{ github.token }}
-          ARTSTORE_REPOSITORY: ${{ github.repository }}
-        run: |
-          python - <<'PY'
-          import os,sys
-          from pathlib import Path
-          sys.path.insert(0,'tools/modsync-ci')
-          import k1_widescreen_inputs
-          assert os.environ['ARTSTORE_REPOSITORY']==os.environ['GITHUB_REPOSITORY']=='kolto-labs/ModSync.rs'
-          root=Path(os.environ['RUNNER_TEMP'])
-          result=k1_widescreen_inputs.ensure(root/'archives',root/'public-input-cache',root/'k1-focused-evidence'/'public-input-provenance.json')
-          assert result['ok'] is True and len(result['entries'])==6
           PY
       - name: Bind, independently review and execute actual Base then Remaining
         timeout-minutes: 65
