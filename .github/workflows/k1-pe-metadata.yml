@@ -1,0 +1,121 @@
+name: Inspect retained K1 PE metadata without changing game bytes
+on:
+  push:
+    branches: [fix/fullrun-ci-credentials]
+    paths: [.github/workflows/k1-pe-metadata.yml]
+  workflow_dispatch:
+    inputs:
+      engine_sha:
+        description: Reviewed immutable target commit containing this workflow
+        required: true
+        type: string
+permissions: {contents: read, actions: read}
+jobs:
+  metadata:
+    if: github.repository == 'kolto-labs/ModSync.rs' && github.ref == 'refs/heads/fix/fullrun-ci-credentials'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      ENGINE_SHA: ${{ inputs.engine_sha || github.sha }}
+    steps:
+      - name: Admit reviewed source pin
+        run: |
+          [[ "$ENGINE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          test "$ENGINE_SHA" = "$GITHUB_SHA"
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ inputs.engine_sha || github.sha }}
+          persist-credentials: false
+      - name: Prepare metadata tools and disposable space
+        timeout-minutes: 10
+        env:
+          RECIPIENT: ${{ vars.DIAGNOSTICS_ENCRYPTION_RECIPIENT }}
+        run: |
+          umask 077
+          test "$(git rev-parse HEAD)" = "$ENGINE_SHA"
+          mkdir -p "$RUNNER_TEMP/k1-pe-evidence"
+          sudo rm -rf -- /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=60 update -qq
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=60 install -y --no-install-recommends age zstd openssl
+          test -n "$RECIPIENT"
+          age --encrypt --recipient "$RECIPIENT" </dev/null >/dev/null
+      - name: Recover authenticated target-owned baseline
+        timeout-minutes: 40
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          CACHE_ENCRYPTION_KEY: ${{ secrets.CACHE_ENCRYPTION_KEY }}
+        run: |
+          python - <<'PY' >"$RUNNER_TEMP/k1-pe-evidence/acquisition.log" 2>&1
+          import hashlib,json,os,sys
+          from pathlib import Path
+          sys.path.insert(0,'tools/modsync-ci')
+          import artstore_client,fullrun_baseline
+          root=Path(os.environ['RUNNER_TEMP']); evidence=root/'k1-pe-evidence'
+          assert os.environ['GITHUB_REPOSITORY']=='kolto-labs/ModSync.rs'
+          result=fullrun_baseline.recover('k1',root/'k1-pe-sealed',root/'k1-pe-game',audit_backup=False)
+          assert result['available'] and result['origin'].startswith('artifact:current:kolto-labs/ModSync.rs:')
+          artifact_id=int(result['origin'].rsplit(':',1)[1])
+          client=artstore_client.ArtifactsClient(os.environ['GITHUB_REPOSITORY'],os.environ['GITHUB_TOKEN'])
+          matches=[a for a in client.list_artifacts() if int(a['id'])==artifact_id]
+          assert len(matches)==1
+          h=hashlib.sha256()
+          with (root/'k1-pe-sealed'/'baseline.seal').open('rb') as stream:
+              for data in iter(lambda:stream.read(4*1024*1024),b''):h.update(data)
+          result.update(artifact=matches[0],sealed_sha256=h.hexdigest(),engine_sha=os.environ['ENGINE_SHA'])
+          (evidence/'baseline-receipt.json').write_text(json.dumps(result,indent=2))
+          PY
+      - name: Normalize baseline names and inspect executable read-only
+        timeout-minutes: 5
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" RUNNER_TEMP="$RUNNER_TEMP" ENGINE_SHA="$ENGINE_SHA" python - <<'PY'
+          import hashlib,json,os,stat,struct,subprocess,sys
+          from pathlib import Path
+          root=Path(os.environ['RUNNER_TEMP']); game=root/'k1-pe-game'; evidence=root/'k1-pe-evidence'
+          with (evidence/'normalize.log').open('wb') as log:
+              subprocess.run([sys.executable,'tools/modsync-ci/game_cache.py','normalize-case','--game','k1','--game-dir',str(game),'--label','PE metadata only'],stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,check=True,timeout=180)
+          executable=game/'swkotor.exe'; assert not executable.is_symlink() and executable.resolve().is_relative_to(game.resolve())
+          fd=os.open(executable,os.O_RDONLY|os.O_NOFOLLOW)
+          with os.fdopen(fd,'rb') as stream:
+              info=os.fstat(stream.fileno()); assert stat.S_ISREG(info.st_mode) and 64<=info.st_size<=64*1024*1024
+              data=stream.read(64*1024*1024+1); assert len(data)==info.st_size
+          def u16(offset): assert 0<=offset<=len(data)-2; return struct.unpack_from('<H',data,offset)[0]
+          def u32(offset): assert 0<=offset<=len(data)-4; return struct.unpack_from('<I',data,offset)[0]
+          assert data[:2]==b'MZ'; pe=u32(0x3c); assert 64<=pe<=len(data)-24 and data[pe:pe+4]==b'PE\0\0'
+          machine=u16(pe+4); sections=u16(pe+6); optional_size=u16(pe+20); characteristics=u16(pe+22); optional=pe+24
+          assert 1<=sections<=96 and optional_size>=2 and optional+optional_size+sections*40<=len(data)
+          magic=u16(optional); report={'schema':1,'scope':'read-only exact executable metadata; no patch or install performed',
+              'engine_sha':os.environ['ENGINE_SHA'],'filename':'swkotor.exe','bytes':len(data),'sha256':hashlib.sha256(data).hexdigest(),
+              'pe_offset':pe,'machine':machine,'optional_magic':magic,'optional_header_bytes':optional_size,'sections':sections,
+              'coff_characteristics':characteristics,'large_address_aware':bool(characteristics&0x20),
+              'executable_image':bool(characteristics&0x2),'dll':bool(characteristics&0x2000),'candidate':None,
+              'format_reference':'https://learn.microsoft.com/en-us/windows/win32/debug/pe-format'}
+          # PE32 x86 only. A different platform is evidence, never an inferred applicability waiver.
+          if machine==0x14c and magic==0x10b and characteristics&0x2 and not characteristics&0x2000:
+              assert optional_size>=96
+              directories=u32(optional+92); assert directories<=16 and 96+directories*8<=optional_size
+              security=(u32(optional+128),u32(optional+132)) if directories>4 else (0,0)
+              assert security==(0,0) or (security[0]>0 and security[1]>0 and security[0]+security[1]<=len(data))
+              for index in range(sections):
+                  header=optional+optional_size+index*40; size=u32(header+16); position=u32(header+20)
+                  assert not size or (position>0 and position+size<=len(data))
+              patched=bytearray(data); struct.pack_into('<H',patched,pe+22,characteristics|0x20)
+              changes=[i for i,(a,b) in enumerate(zip(data,patched)) if a!=b]
+              assert changes==([] if characteristics&0x20 else [pe+22])
+              report.update(image_base=u32(optional+28),size_of_image=u32(optional+56),size_of_headers=u32(optional+60),
+                  checksum=u32(optional+64),subsystem=u16(optional+68),dll_characteristics=u16(optional+70),
+                  certificate_table_file_offset=security[0],certificate_table_bytes=security[1])
+              report['candidate']={'algorithm':'PE32 x86 COFF Characteristics OR 0x0020 only; every other byte unchanged, including CheckSum',
+                  'sha256':hashlib.sha256(patched).hexdigest(),'bytes':len(patched),'changed_offsets':changes,
+                  'already_large_address_aware':not changes,'written_to_disk':False,
+                  'caution':'Header flag evidence alone does not prove compatibility, signature validity or a complete guide installation.'}
+          # Check original bytes remained unchanged after the in-memory derivation.
+          with executable.open('rb') as stream: assert hashlib.file_digest(stream,'sha256').hexdigest()==report['sha256']
+          (evidence/'pe-metadata.json').write_text(json.dumps(report,indent=2))
+          PY
+      - name: Retain encrypted metadata only
+        if: success() || failure()
+        uses: ./.github/actions/retain-fullrun-evidence
+        with:
+          source: ${{ runner.temp }}/k1-pe-evidence
+          name: k1-pe-metadata-${{ github.run_id }}-${{ github.run_attempt }}
+          encryption-recipient: ${{ vars.DIAGNOSTICS_ENCRYPTION_RECIPIENT }}
