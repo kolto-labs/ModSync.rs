@@ -9,7 +9,7 @@ use serde_json::{Value, json};
 use std::collections::BTreeMap;
 
 #[derive(Clone, Debug, Serialize)]
-pub(super) struct Program {
+pub(in crate::archive_generation) struct Program {
     pub step_id: String,
     pub source_heading: String,
     pub effects: Vec<Effect>,
@@ -18,7 +18,7 @@ pub(super) struct Program {
 /// Ordinals are zero-based positions in the ORIGINAL operation array. They are
 /// identity even when two original operations have otherwise identical fields.
 #[derive(Clone, Debug, Serialize)]
-pub(super) enum Effect {
+pub(in crate::archive_generation) enum Effect {
     Extract {
         ordinal: usize,
         source: String,
@@ -51,7 +51,7 @@ pub(super) enum Effect {
     },
 }
 impl Effect {
-    pub(super) fn ordinal(&self) -> usize {
+    pub(in crate::archive_generation) fn ordinal(&self) -> usize {
         match self {
             Self::Extract { ordinal, .. }
             | Self::Copy { ordinal, .. }
@@ -69,7 +69,7 @@ const GUI_INSTALLERS: [&str; 4] = [
     "69b8aa25bb70af2ad9e4468756538c1736c02cecd1da2fd24448d7fdf18fcff0",
 ];
 
-pub(super) fn legacy_gui_installer(sha256: &str) -> bool {
+pub(in crate::archive_generation) fn legacy_gui_installer(sha256: &str) -> bool {
     GUI_INSTALLERS.contains(&sha256)
 }
 const CLI_INSTALLERS: [&str; 4] = [
@@ -152,7 +152,10 @@ fn archive_pin(path: &str, pins: &BTreeMap<String, String>, step: &str) -> Resul
     Ok(sha.clone())
 }
 
-pub(super) fn compile(step: &Value, archive_sha256: &BTreeMap<String, String>) -> Result<Program> {
+pub(in crate::archive_generation) fn compile(
+    step: &Value,
+    archive_sha256: &BTreeMap<String, String>,
+) -> Result<Program> {
     fields(
         step,
         &["id", "source_heading", "operations"],

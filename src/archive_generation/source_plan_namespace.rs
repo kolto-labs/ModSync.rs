@@ -25,7 +25,7 @@ use std::{
 mod certified_nss;
 mod inactive_sections;
 pub(crate) use certified_nss::CertifiedProgramNss;
-mod original_plan_protocol;
+pub(super) mod original_plan_protocol;
 mod source_revisions;
 mod source_revisions_enlightenment;
 mod source_revisions_uniform;
@@ -690,6 +690,77 @@ pub(crate) fn allows_literal_filename(guid: &str, filename: &str) -> Result<bool
 pub(crate) fn effective_ini_text(guid: &str, raw: &str) -> Result<Option<String>> {
     inactive_sections::effective_swoop_ini(guid, raw)
 }
+/// Interpret the byte-pinned HQ INI after the caller authenticates its source program.
+pub(crate) fn effective_hq_ini_text(raw: &str) -> Result<String> {
+    inactive_sections::effective_hq_ini(raw)
+}
+/// Validate the entire original authored program and its freshly replayed
+/// pre-run deletion before interpreting the one intentionally absent HQ source.
+fn hq_native_ini(
+    row: &Row,
+    original: &Component,
+    package: &Path,
+    raw: &str,
+    cancelled: &AtomicBool,
+) -> Result<Option<(String, Value)>> {
+    const GUID: &str = "97c5f09c-0521-82df-beec-0896382e83f9";
+    if row.guid != GUID {
+        return Ok(None);
+    }
+    let compiled = programs()?
+        .get(GUID)
+        .context("HQ original source program absent")?;
+    ensure!(
+        row.game == "k1"
+            && row.archive.filename == "High Quality Blasters 1.1.zip"
+            && row.archive.sha256
+                == "7450288a232020e2b7ea7b408cb0d19e86783b364d57b1f3de4c1b5939671f63"
+            && row.archive.bytes == 24860026
+            && row.ini.path == "High Quality Blasters 1.1/tslpatchdata/changes.ini"
+            && row.ini.sha256 == "17084e0e86b8de5d18b6118c8f33150dce9dd99fbfd4c7d659f3c4cd89ccaa43"
+            && row.ini.bytes == 9650
+            && row.namespace.is_none()
+            && row.step_id == "step-137"
+            && compiled.step["id"] == "step-137"
+            && row.original_step == compiled.step
+            && row.component_index == compiled.index
+            && row.step_index == compiled.index
+            && row.raw_component == compiled.raw
+            && row.canonical_component == serde_json::to_value(&compiled.original)?
+            && serde_json::to_value(original)? == serde_json::to_value(&compiled.original)?
+            && compiled.step["operations"][1]
+                == json!({"type":"delete","path":"{extract}/step-137/1/High Quality Blasters 1.1/tslpatchdata/keblastore.utm"})
+            && compiled.step["operations"][2]["type"] == "gui_patcher",
+        "HQ source omission lacks the entire exact original program authority"
+    );
+    let missing = "High Quality Blasters 1.1/tslpatchdata/keblastore.utm";
+    ensure!(
+        !row.members
+            .iter()
+            .any(|member| member.path.eq_ignore_ascii_case(missing)),
+        "HQ source omission is absent from the replayed inventory"
+    );
+    check(cancelled)?;
+    ordinary(&fs::symlink_metadata(package)?, true)?;
+    let data = package.join("tslpatchdata");
+    ordinary(&fs::symlink_metadata(&data)?, true)?;
+    for member in fs::read_dir(&data)? {
+        check(cancelled)?;
+        ensure!(
+            !member?.file_name().eq_ignore_ascii_case("keblastore.utm"),
+            "HQ author-deleted source remains in the fresh native package"
+        );
+    }
+    let effective = inactive_sections::effective_hq_ini(raw)?;
+    let receipt = json!({"Policy":"exact-hq-author-deleted-store-source-v1",
+        "OriginalDeleteOperation":1,"OriginalNativeOperation":2,
+        "RawIniSha256":row.ini.sha256,"EffectiveIniSha256":sha(effective.as_bytes()),
+        "OmittedGffListEntry":"File6=keblastore.utm","OmittedClosedSection":"keblastore.utm",
+        "OriginalGuideExpectedMissingSourceErrors":1,"NativeEffectiveMissingSourceErrors":0,
+        "OriginalSourceProgramSha256":value_digest(&row.original_step)?});
+    Ok(Some((effective, receipt)))
+}
+
 pub(crate) fn canonical_context(component: &Component) -> Result<Component> {
     let original = if let Some(entry) = compiled()?.entries.get(&component.guid) {
         &entry.original
@@ -725,6 +796,34 @@ pub(crate) fn contains_native(component: &Component) -> bool {
     visit(component, 0)
 }
 
+/// Preserve the Windows-1252 right apostrophe in the exact original Dodonna
+/// namespace map and configurations. Every non-ASCII byte is authenticated.
+pub(crate) fn decode_ini_bytes(bytes: &[u8]) -> Result<String> {
+    const DODONNA: [&str; 3] = [
+        "0d5512aff2bb525a920705e2f0572a39f9db2aa2f23d13dd7e8c1829f1b950ef",
+        "2390f1a9bc7758759056f57b69f45ccb4fb57d9e2325730f68d2ef6a605235d2",
+        "4f6e5e5d4fda6150835ae16042da91e12174972caae253606ff65b7a1965a935",
+    ];
+    if DODONNA.contains(&sha(bytes).as_str()) {
+        ensure!(
+            bytes.iter().all(|byte| byte.is_ascii() || *byte == 0x92),
+            "Pinned legacy INI contains an unexpected encoding byte"
+        );
+        return Ok(bytes
+            .iter()
+            .map(|byte| {
+                if *byte == 0x92 {
+                    '\u{2019}'
+                } else {
+                    char::from(*byte)
+                }
+            })
+            .collect());
+    }
+    odypatcher::patcher::encoding::decode_bytes_with_fallbacks(bytes)
+        .map_err(|error| anyhow::anyhow!("Decode selected namespace INI: {error}"))
+}
+
 fn read_ini(path: &Path) -> Result<(String, ConfigParser)> {
     let file = crate::paths::open_regular_read(path)?;
     ensure!(
@@ -734,8 +833,7 @@ fn read_ini(path: &Path) -> Result<(String, ConfigParser)> {
     let mut bytes = Vec::new();
     file.take(MAX_INI + 1).read_to_end(&mut bytes)?;
     ensure!(bytes.len() as u64 <= MAX_INI, "Namespace INI exceeds bound");
-    let text = odypatcher::patcher::encoding::decode_bytes_with_fallbacks(&bytes)
-        .map_err(|e| anyhow::anyhow!("Decode selected namespace INI: {e}"))?;
+    let text = decode_ini_bytes(&bytes)?;
     let parser =
         ConfigParser::read_string(text.trim_start_matches('\u{feff}'), OptionXform::Identity)
             .map_err(|e| anyhow::anyhow!("Parse selected namespace INI: {e}"))?;
@@ -815,10 +913,17 @@ fn validate_graph(parser: &ConfigParser) -> Result<()> {
         Ok((total, depth))
     }
     let mut memo = BTreeMap::new();
-    let mut total = 0usize;
+    let referenced: BTreeSet<_> = graph.values().flat_map(|(_, edges)| edges.iter()).collect();
+    // Validate every definition, including unreachable cycles and unknown edges.
     for name in graph.keys() {
+        cost(name, &graph, &mut BTreeSet::new(), &mut memo)?;
+    }
+    let mut total = 0usize;
+    // Each expansion root already includes its descendants. Counting every
+    // descendant again would charge a single authored traversal repeatedly.
+    for name in graph.keys().filter(|name| !referenced.contains(name)) {
         total = total
-            .checked_add(cost(name, &graph, &mut BTreeSet::new(), &mut memo)?.0)
+            .checked_add(memo[name].0)
             .context("Namespace graph aggregate overflow")?;
         ensure!(
             total <= MAX_ENTRIES,
@@ -832,6 +937,10 @@ fn validate_source_graph(guid: &str, text: &str, parser: &ConfigParser) -> Resul
     if let Some(view) = source_revisions_uniform::effective_graph_text(guid, text)? {
         let view = ConfigParser::read_string(&view, OptionXform::Identity)
             .map_err(|error| anyhow::anyhow!("Parse authenticated active graph: {error}"))?;
+        validate_graph(&view)
+    } else if let Some(view) = inactive_sections::effective_korriban_graph(guid, text, parser)? {
+        let view = ConfigParser::read_string(&view, OptionXform::Identity)
+            .map_err(|error| anyhow::anyhow!("Parse authenticated Korriban graph: {error}"))?;
         validate_graph(&view)
     } else {
         validate_graph(parser)
@@ -885,7 +994,10 @@ fn selected_ini(entry: &Entry, tree: &Path, cancelled: &AtomicBool) -> Result<()
             "Original positional namespace ID differs"
         );
         ensure!(
-            field(&parser, &selection.id, "IniName") == Some(selection.ini_name.as_str())
+            field(&parser, &selection.id, "IniName")
+                .filter(|value| !value.trim().is_empty())
+                .unwrap_or(odypatcher::patcher::namespaces::PatcherNamespace::DEFAULT_INI_FILENAME)
+                == selection.ini_name
                 && field(&parser, &selection.id, "DataPath").unwrap_or("") == selection.data_path,
             "Namespace selected DataPath/INI differs"
         );
@@ -991,6 +1103,29 @@ impl AdmittedNamespace {
     }
     pub(crate) fn original_program_run(&self) -> Option<&Value> {
         self.run_identity.as_ref()
+    }
+    /// Available only through the freshly issued original-program witness.
+    /// Call before parsing the private native staging INI. External installers
+    /// retain their original INI and authored missing-source behavior.
+    pub(crate) fn native_ini_translation(
+        &self,
+        base: &Path,
+        raw: &str,
+        cancelled: &AtomicBool,
+    ) -> Result<Option<(String, Value)>> {
+        if self.row.guid != "97c5f09c-0521-82df-beec-0896382e83f9" {
+            return Ok(None);
+        }
+        let identity = self
+            .run_identity
+            .as_ref()
+            .context("HQ native interpretation needs original-program issuance")?;
+        ensure!(
+            identity["OriginalOperation"] == 2 && identity["StepId"] == "step-137",
+            "HQ native interpretation has a different original run ordinal"
+        );
+        self.verify_staged(base, cancelled)?;
+        hq_native_ini(&self.row, &self.expected, base, raw, cancelled)
     }
     pub(crate) fn certified_program_nss(&self) -> Option<&CertifiedProgramNss> {
         self.certified_nss.as_ref()
@@ -1409,7 +1544,18 @@ fn validate_configuration(
 )> {
     let row = &entry.row;
     let (raw_text, raw_parser) = read_ini(&tree.join(literal(&row.ini.path)?))?;
-    let (text, parser) = if let Some(text) = effective_ini_text(&row.guid, &raw_text)? {
+    let package = tree.join(
+        Path::new(&row.installer.path)
+            .parent()
+            .context("Native package root absent")?,
+    );
+    let hq = hq_native_ini(row, &entry.original, &package, &raw_text, cancelled)?;
+    let effective = if let Some((text, _)) = hq {
+        Some(text)
+    } else {
+        effective_ini_text(&row.guid, &raw_text)?
+    };
+    let (text, parser) = if let Some(text) = effective {
         let parser = ConfigParser::read_string(&text, OptionXform::Identity)
             .map_err(|error| anyhow::anyhow!("Parse translated legacy INI: {error}"))?;
         (text, parser)
@@ -1475,7 +1621,13 @@ fn validate_configuration(
     let game = if row.game == "k1" { 1 } else { 2 };
     ensure!(
         (config.game_number.is_none_or(|n| n == game)
-            || (row.disabled_lookup_game_hint
+            || ((row.disabled_lookup_game_hint
+                || (row.guid == "0c2079ec-5d23-8e69-8106-cbed77b3a58d"
+                    && row.game == "k1"
+                    && row.archive.sha256
+                        == "f4f670d319c9e69f76c044ebf6b6a0130a7e725d186f1ee8c5683417262f1ed7"
+                    && row.ini.sha256
+                        == "2c436590a8d3a8652e41d57bf2d48464d86a1c88eba332bc1ab58721d3cef3e7"))
                 && field(&parser, "Settings", "LookupGameFolder") == Some("0")
                 && (config.patches_nss.is_empty() || certified_nss.is_some())))
             && (config.patches_nss.is_empty() || certified_nss.is_some())
@@ -1499,6 +1651,14 @@ fn validate_configuration(
         let source = selected_data
             .join(folder(&base.sourcefolder)?)
             .join(literal(&base.sourcefile.replace('\\', "/"))?);
+        let relative = source
+            .strip_prefix(tree)?
+            .to_str()
+            .context("Non UTF8 configured source")?;
+        let source = inventory_member(row.members.iter(), relative)?
+            .filter(|member| !member.directory)
+            .map(|member| tree.join(&member.path))
+            .unwrap_or(source);
         if source.is_file() {
             ensure!(
                 source.canonicalize()?.starts_with(tree),
@@ -1526,7 +1686,11 @@ fn validate_configuration(
                         .components()
                         .count()
                         == 1,
-                "Selected namespace configured source needs a supported current loose/module resource"
+                "Selected namespace configured source needs a supported current loose/module resource: {}/{}, destination {}, replace {}",
+                base.sourcefolder,
+                base.sourcefile,
+                base.destination,
+                base.replace_file
             );
             let mut seed = None;
             if module {
@@ -2343,7 +2507,8 @@ fn program_namespace(
             .nth(index)
             .context("Original namespace selection out of range")?;
         let ini_name = field(&parser, id, "IniName")
-            .context("Original namespace IniName absent")?
+            .filter(|value| !value.trim().is_empty())
+            .unwrap_or(odypatcher::patcher::namespaces::PatcherNamespace::DEFAULT_INI_FILENAME)
             .to_owned();
         let data_path = field(&parser, id, "DataPath").unwrap_or("").to_owned();
         let ini = Path::new(&map_path)
@@ -2758,6 +2923,17 @@ fn derive_program(
                 let run_identity = optional_proof_fields(
                     json!({"ProgramAuthoritySha256":authority,"OwnerGuid":entry.original.guid,"StepId":program.step_id,"OriginalOperation":ordinal,"InstructionIndex":run_index,"OriginalNamespaceIndex":namespace,"ExtractionSlot":slot_name,"RunOrdinal":runs.len()}),
                 );
+                let mut run_identity = run_identity;
+                let (raw_ini, _) = read_ini(&slot.tree.path().join(literal(&row.ini.path)?))?;
+                if let Some((_, interpretation)) = hq_native_ini(
+                    &row,
+                    &entry.original,
+                    &slot.tree.path().join(parent),
+                    &raw_ini,
+                    cancelled,
+                )? {
+                    run_identity["NativeIniInterpretation"] = interpretation;
+                }
                 runs.insert(
                     run_index,
                     AdmittedNamespace {

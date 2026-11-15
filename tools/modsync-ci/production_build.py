@@ -25,6 +25,7 @@ from datetime import datetime, timezone
 REPOSITORY = "kolto-labs/ModSync.rs"
 REFS = {"refs/heads/fix/fullrun-ci-credentials", "refs/heads/feat/ci-fullruns-testing", "refs/heads/main"}
 WORKFLOW = ".github/workflows/production-build.yml"
+FULLRUN_WORKFLOW = ".github/workflows/fullrun.yml"
 TOOLCHAIN = "1.95.0"
 MAX_BINARY = 256 * 1024 * 1024
 MAX_ZIP = MAX_BINARY + 16 * 1024 * 1024
@@ -57,11 +58,44 @@ def regular(path, limit):
 
 def identity():
     env = os.environ
-    require(env.get("GITHUB_REPOSITORY") == REPOSITORY and env.get("GITHUB_REF") in REFS,
-            "Only the exact owned repository and branch are admitted")
-    head = env.get("GITHUB_SHA", "")
+    source_ref, head = env.get("GITHUB_REF"), env.get("GITHUB_SHA", "")
+    if env.get("GITHUB_EVENT_NAME") == "pull_request" and env.get("GITHUB_EVENT_PATH"):
+        import evidence_receipt
+        source = evidence_receipt.source_identity(env)
+        source_ref, head = source["source_ref"], source["source_sha"]
     require(re.fullmatch(r"[0-9a-f]{40}", head), "Invalid exact head")
-    return {"repository": REPOSITORY, "ref": env["GITHUB_REF"], "head_sha": head}
+    ident = {"repository": env.get("GITHUB_REPOSITORY"), "ref": source_ref, "head_sha": head}
+    require(source_admitted(ident), "Only an admitted owned repository and source branch may build")
+    return ident
+
+
+def fullrun_execution(ident):
+    """Original caller execution fields survive the consumer's source selector normalization."""
+    reference = os.environ.get("GITHUB_WORKFLOW_REF", "")
+    prefix = REPOSITORY + "/" + FULLRUN_WORKFLOW + "@"
+    if not reference.startswith(prefix):
+        return None
+    event = os.environ.get("GITHUB_EVENT_NAME", "")
+    execution_ref = reference[len(prefix):]
+    require(event in ("push", "pull_request", "workflow_dispatch"), "Unexpected full-run producer event")
+    require((re.fullmatch(r"refs/pull/[1-9][0-9]*/merge", execution_ref) is not None)
+            if event == "pull_request" else execution_ref == ident["ref"],
+            "Full-run caller execution reference differs")
+    workflow_sha = os.environ.get("GITHUB_WORKFLOW_SHA", "")
+    require(re.fullmatch(r"[0-9a-f]{40}", workflow_sha), "Missing exact caller workflow SHA")
+    return {"workflow_ref": reference, "workflow_sha": workflow_sha, "event": event}
+
+
+def source_admitted(ident):
+    if ident.get("repository") != REPOSITORY or not re.fullmatch(r"[0-9a-f]{40}", ident.get("head_sha", "")):
+        return False
+    if fullrun_execution(ident) is None:
+        return ident.get("ref") in REFS
+    reference = ident.get("ref")
+    if not isinstance(reference, str) or not reference.startswith("refs/heads/"):
+        return False
+    return subprocess.run(["git", "check-ref-format", reference], stdin=subprocess.DEVNULL,
+                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False).returncode == 0
 
 
 def recipe(mode, root=ROOT):
@@ -82,7 +116,7 @@ def recipe(mode, root=ROOT):
             for filename in names:
                 if not filename.endswith((".pyc", ".pyo")):
                     files.add((Path(parent) / filename).relative_to(root).as_posix())
-    for name in ("Cargo.toml", "Cargo.lock", "build.rs", "rust-toolchain", "rust-toolchain.toml", WORKFLOW):
+    for name in ("Cargo.toml", "Cargo.lock", "build.rs", "rust-toolchain", "rust-toolchain.toml", WORKFLOW, FULLRUN_WORKFLOW):
         if (root / name).exists():
             files.add(name)
     require("Cargo.lock" in files and WORKFLOW in files and len(files) <= 30000,
@@ -117,9 +151,16 @@ def produce(args):
     ident = identity()
     require(not os.environ.get("GITHUB_TOKEN") and not os.environ.get("CACHE_ENCRYPTION_KEY"),
             "Producer must not receive acquisition credentials")
-    require(os.environ["GITHUB_WORKFLOW_SHA"] == ident["head_sha"]
-            and os.environ["GITHUB_WORKFLOW_REF"] == REPOSITORY + "/" + WORKFLOW + "@" + ident["ref"],
-            "Producer workflow identity differs")
+    caller = fullrun_execution(ident)
+    if caller is None:
+        require(os.environ["GITHUB_WORKFLOW_SHA"] == ident["head_sha"]
+                and os.environ["GITHUB_WORKFLOW_REF"] == REPOSITORY + "/" + WORKFLOW + "@" + ident["ref"],
+                "Producer workflow identity differs")
+    else:
+        require(caller["workflow_sha"] == os.environ["GITHUB_SHA"],
+                "Caller workflow differs from original Actions execution SHA")
+    require(subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
+            == ident["head_sha"], "Production checkout differs from admitted source head")
     before = recipe(args.mode)
     clean = {"HOME": os.environ["HOME"], "PATH": os.environ["PATH"], "RUSTUP_TOOLCHAIN": TOOLCHAIN,
              **before["build_environment"]}
@@ -153,7 +194,8 @@ def produce(args):
               "recipe": before, "recipe_sha256": digest(stable(before)),
               "compiler": compiler, "cargo": cargo,
               "binary": {"filename": "modsync", "bytes": len(body), "sha256": digest(body)}}
-    require(record["job"] == "production" and record["event"] in ("push", "workflow_dispatch"),
+    require(record["job"] == "production" and record["event"] in
+            (("push", "pull_request", "workflow_dispatch") if caller else ("push", "workflow_dispatch")),
             "Unexpected producer context")
     out = Path(args.output)
     out.mkdir(parents=True, exist_ok=False)
@@ -259,32 +301,52 @@ def fetch_once(api, ident, expected, mode):
     repo = api.get("")
     require(repo["full_name"] == REPOSITORY and str(repo["id"]) == os.environ["GITHUB_REPOSITORY_ID"]
             and str(repo["owner"]["id"]) == os.environ["GITHUB_REPOSITORY_OWNER_ID"], "Repository API identity differs")
-    try:
-        workflow = api.get("/actions/workflows/production-build.yml")
-    except urllib.error.HTTPError as error:
-        if error.code == 404:
-            raise ProducerAbsent() from None
-        raise
-    require(workflow["path"] == WORKFLOW, "Producer workflow path differs")
-    query = urllib.parse.urlencode({"head_sha": ident["head_sha"], "branch": ident["ref"].removeprefix("refs/heads/"), "per_page": 100})
-    runs = api.get(f"/actions/workflows/{workflow['id']}/runs?{query}")["workflow_runs"]
-    require(len(runs) < 100, "Ambiguous producer run inventory exceeds bound")
-    if not runs:
-        raise ProducerAbsent()
+    caller = fullrun_execution(ident)
+    if caller:
+        run_id = os.environ.get("GITHUB_RUN_ID", "")
+        attempt = os.environ.get("GITHUB_RUN_ATTEMPT", "")
+        require(re.fullmatch(r"[1-9][0-9]*", run_id) and re.fullmatch(r"[1-9][0-9]*", attempt),
+                "Missing same-run execution identity")
+        current_run = api.get(f"/actions/runs/{run_id}")
+        require(current_run.get("id") == int(run_id) and current_run.get("run_attempt") == int(attempt),
+                "Full-run execution or attempt differs")
+        workflow = {"id": current_run["workflow_id"], "path": FULLRUN_WORKFLOW}
+        runs = [current_run]
+    else:
+        try:
+            workflow = api.get("/actions/workflows/production-build.yml")
+        except urllib.error.HTTPError as error:
+            if error.code == 404:
+                raise ProducerAbsent() from None
+            raise
+        require(workflow["path"] == WORKFLOW, "Producer workflow path differs")
+        query = urllib.parse.urlencode({"head_sha": ident["head_sha"], "branch": ident["ref"].removeprefix("refs/heads/"), "per_page": 100})
+        runs = api.get(f"/actions/workflows/{workflow['id']}/runs?{query}")["workflow_runs"]
+        require(len(runs) < 100, "Ambiguous producer run inventory exceeds bound")
+        if not runs:
+            raise ProducerAbsent()
     # A newer pending/failed attempt cannot be bypassed by an older successful
     # artifact. A matrix CLI job can finish while its GUI sibling is building.
     for run in sorted(runs, key=lambda row: row["id"], reverse=True)[:1]:
-        require(run["workflow_id"] == workflow["id"] and run["path"] == WORKFLOW
+        require(run["workflow_id"] == workflow["id"] and run["path"] == workflow["path"]
                 and run["head_sha"] == ident["head_sha"] and run["head_branch"] == ident["ref"].removeprefix("refs/heads/")
-                and run["event"] in ("push", "workflow_dispatch") and run["repository"]["id"] == repo["id"]
+                and (run["event"] == caller["event"] if caller else run["event"] in ("push", "workflow_dispatch"))
+                and run["repository"]["id"] == repo["id"]
                 and run["head_repository"]["id"] == repo["id"], "Producer run identity differs")
         attempt = run["run_attempt"]
         current = api.get(f"/actions/runs/{run['id']}/attempts/{attempt}")
         require(all(current[key] == run[key] for key in ("id", "run_attempt", "head_sha", "workflow_id", "path", "event")), "Producer attempt differs")
+        require(current.get("repository", {}).get("id") == repo["id"]
+                and current.get("head_repository", {}).get("id") == repo["id"]
+                and current.get("head_branch") == ident["ref"].removeprefix("refs/heads/"),
+                "Producer attempt repository/source differs")
+        producer_execution = caller or {"workflow_ref": REPOSITORY + "/" + WORKFLOW + "@" + ident["ref"],
+                                        "workflow_sha": ident["head_sha"], "event": run["event"]}
         name = artifact_name(mode, ident["head_sha"], run["id"], attempt)
         jobs = api.get(f"/actions/runs/{run['id']}/attempts/{attempt}/jobs?per_page=100")
         require(jobs["total_count"] <= 100, "Producer job inventory exceeds bound")
-        selected = [job for job in jobs["jobs"] if job["name"] == "production-" + mode]
+        job_name = ("production / " if caller else "") + "production-" + mode
+        selected = [job for job in jobs["jobs"] if job["name"] == job_name]
         require(len(selected) <= 1, "Duplicate producer job")
         if not selected and current["status"] == "completed":
             require(current["conclusion"] == "success", "Known producer failed before mode job")
@@ -323,8 +385,8 @@ def fetch_once(api, ident, expected, mode):
         outer_identity = {**ident, "schema": 1, "mode": mode,
                           "repository_id": str(repo["id"]), "repository_owner_id": str(repo["owner"]["id"]),
                           "run_id": str(run["id"]), "run_attempt": str(attempt), "event": run["event"],
-                          "workflow_ref": REPOSITORY + "/" + WORKFLOW + "@" + ident["ref"],
-                          "workflow_sha": ident["head_sha"], "job": "production",
+                          "workflow_ref": producer_execution["workflow_ref"],
+                          "workflow_sha": producer_execution["workflow_sha"], "job": "production",
                           "recipe_sha256": digest(stable(expected)), "encryption": "modsync-seal-v1"}
         require(all(outer.get(k) == v for k, v in outer_identity.items())
                 and outer.get("ciphertext_sha256") == digest(cipher)
@@ -348,8 +410,9 @@ def fetch_once(api, ident, expected, mode):
             require(digest(record_body) == outer.get("inner_provenance_sha256"), "Inner build manifest digest differs")
             record = json.loads(record_body)
         wanted = {**ident, "schema": 1, "mode": mode, "repository_id": str(repo["id"]), "repository_owner_id": str(repo["owner"]["id"]),
-                  "run_id": str(run["id"]), "run_attempt": str(attempt), "workflow_ref": REPOSITORY + "/" + WORKFLOW + "@" + ident["ref"],
-                  "workflow_sha": ident["head_sha"], "job": "production", "event": run["event"], "recipe": expected,
+                  "run_id": str(run["id"]), "run_attempt": str(attempt),
+                  "workflow_ref": producer_execution["workflow_ref"],
+                  "workflow_sha": producer_execution["workflow_sha"], "job": "production", "event": run["event"], "recipe": expected,
                   "recipe_sha256": digest(stable(expected))}
         require(all(record.get(k) == v for k, v in wanted.items()), "Inner build identity/source recipe differs")
         require(set(record) == set(wanted) | {"compiler", "cargo", "binary"}, "Unexpected inner provenance fields")
@@ -372,6 +435,7 @@ def fetch(args):
             and regular(source_root / "tools/modsync-ci/production_build.py", MAX_JSON)
             == regular(Path(__file__), MAX_JSON), "Source checkout producer/helper differs from trusted workflow checkout")
     expected = recipe(args.mode, root=source_root)
+    caller = fullrun_execution(ident)
     api = API()
     require(0 <= args.wait_seconds <= 3600, "Wait bound must be between 0 and 3600 seconds")
     deadline = time.monotonic() + args.wait_seconds
@@ -429,6 +493,7 @@ def fetch(args):
             print(f"Verified production {args.mode} binary: run={verified['producer_run_id']} artifact={verified['artifact_id']} sha256={digest(binary)}")
             return 0
         if time.monotonic() >= deadline:
+            require(not caller, "Required same-run production artifact is missing, expired or not ready")
             print("Exact-head production build unavailable (absent, expired or not ready); local build permitted")
             return 3
         time.sleep(min(45, max(0, next_deadline - time.monotonic())))

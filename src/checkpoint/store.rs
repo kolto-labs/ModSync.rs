@@ -156,6 +156,9 @@ impl Store {
                 || lock.guards_checkpoint_context(&canonical_bytes(&context.participants)?),
             "New Windows participants require acquire_lock_with_context before any lock/state writes"
         );
+        if let Some(binding) = &context.backend_binding {
+            binding.validate()?;
+        }
         self.ensure_no_unfinished_install_sessions()?;
         super::history::validate_definitions(&context.ordered_components)?;
         ensure!(
@@ -212,6 +215,7 @@ impl Store {
             &mut observe,
         )?;
         if !context.initial_completed_components.is_empty() {
+            self.verify_completion_backend(context.backend_binding.as_ref())?;
             recovery::verify_completion_manifest(
                 &self.roots,
                 &context.initial_completed_components,
@@ -222,6 +226,7 @@ impl Store {
         let checkpoint_id = uuid::Uuid::new_v4().to_string();
         let operation_id = uuid::Uuid::new_v4().to_string();
         let session = Session {
+            backend_binding: context.backend_binding.clone(),
             schema_version: SCHEMA_VERSION,
             session_id: session_id.clone(),
             created_utc: chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Millis, true),
@@ -241,6 +246,7 @@ impl Store {
             safety_session_id: None,
         };
         let checkpoint = Checkpoint {
+            backend_binding: context.backend_binding.clone(),
             schema_version: SCHEMA_VERSION,
             checkpoint_id: checkpoint_id.clone(),
             session_id: session_id.clone(),

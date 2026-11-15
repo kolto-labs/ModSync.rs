@@ -2,6 +2,78 @@ use super::*;
 use crate::checkpoint::{ExpectedHead, InstallContext, ResumePlan, Store};
 
 impl Engine {
+    /// Build checkpoint authority from current engine configuration and full
+    /// authored definitions. Selection changes between Base and Remaining do
+    /// not alter source authority, while instructions and recipe bindings do.
+    pub(super) fn checkpoint_backend_binding(
+        &self,
+        guide: &Guide,
+    ) -> Result<Option<crate::checkpoint::BackendBinding>> {
+        use crate::checkpoint::{BackendBinding, BackendKind};
+        let backend = match self.settings.patcher_engine {
+            PatcherEngine::OdyPatcher if self.patcher_invocation.is_none() => return Ok(None),
+            PatcherEngine::OdyPatcher => BackendKind::OdyPatcher,
+            PatcherEngine::KPatcher => BackendKind::KPatcher,
+            PatcherEngine::HoloPatcher => BackendKind::HoloPatcher,
+            PatcherEngine::ModPackaged => BackendKind::ModPackaged,
+        };
+        let mut invocation = if backend == BackendKind::ModPackaged {
+            serde_json::json!({"kind": "modPackaged", "programAuthority": "authenticatedOriginalComponentPackage"})
+        } else {
+            backend_contract::invocation_identity(
+                self.patcher_invocation
+                    .as_ref()
+                    .context("Checkpoint backend invocation is unavailable")?,
+                &self.settings.cancelled,
+            )?
+        };
+        if backend == BackendKind::ModPackaged {
+            let runner = self
+                .settings
+                .execute_runner
+                .as_ref()
+                .context("Mod-packaged checkpoint requires a configured installer runner")?;
+            let identity = |path: &std::path::Path| {
+                backend_contract::invocation_identity(
+                    &crate::patcher::Invocation::Native {
+                        program: path.to_path_buf(),
+                    },
+                    &self.settings.cancelled,
+                )
+            };
+            let windows = runner
+                .windows
+                .as_ref()
+                .map(|windows| -> Result<serde_json::Value> {
+                    Ok(serde_json::json!({
+                        "wine": identity(&windows.executable)?,
+                        "wineserver": identity(&windows.wineserver)?,
+                    }))
+                })
+                .transpose()?;
+            invocation["runner"] = serde_json::json!({
+                "xvfb": identity(&runner.xvfb)?, "windows": windows,
+            });
+        }
+        fn remove_component_selection(component: &mut serde_json::Value) {
+            if let Some(object) = component.as_object_mut() {
+                object.remove("IsSelected");
+                if let Some(serde_json::Value::Array(options)) = object.get_mut("Options") {
+                    for option in options {
+                        remove_component_selection(option);
+                    }
+                }
+            }
+        }
+        let mut authority = serde_json::to_value(guide)?;
+        if let Some(serde_json::Value::Array(components)) = authority.get_mut("thisMod") {
+            for component in components {
+                remove_component_selection(component);
+            }
+        }
+        Ok(Some(BackendBinding::new(backend, &invocation, &authority)?))
+    }
+
     pub(super) fn run_checkpointed(
         &mut self,
         guide: &Guide,
@@ -32,6 +104,7 @@ impl Engine {
             .map(serde_json::to_value)
             .collect::<std::result::Result<Vec<_>, _>>()?;
         let context = InstallContext {
+            backend_binding: self.checkpoint_backend_binding(guide)?,
             initial_completed_components: definitions[..self.completed.len()].to_vec(),
             ordered_components: definitions,
             participants: self
@@ -201,6 +274,9 @@ impl Engine {
             let (lock, intent) = self.checkpoint_process.as_ref().context(
                 "Checkpoint external execution requires the active Materializing operation",
             )?;
+            eprintln!(
+                "Windows checkpoint Job Object execution retains its explicit one MiB per-stream limit; complete live forwarding is unavailable on this route"
+            );
             return crate::patcher::checkpoint_job::Lease::prepare(
                 lock,
                 &self.settings.roots,
@@ -208,6 +284,10 @@ impl Engine {
             )?
             .run(command, timeout, &self.settings.cancelled);
         }
-        crate::patcher::standalone::run_command(command, timeout, &self.settings.cancelled)
+        crate::patcher::standalone::run_command_streaming(
+            command,
+            timeout,
+            &self.settings.cancelled,
+        )
     }
 }

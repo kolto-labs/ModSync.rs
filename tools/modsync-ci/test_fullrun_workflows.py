@@ -33,17 +33,30 @@ class WorkflowGraph(unittest.TestCase):
     def test_matrix_has_no_fail_fast_and_honest_final_collector(self):
         main = yaml.load((ROOT / ".github/workflows/fullrun.yml").read_text(), Loader=yaml.BaseLoader)
         self.assertEqual(main["jobs"]["install"]["strategy"]["fail-fast"], "false")
+        self.assertEqual(main["jobs"]["install"]["strategy"]["matrix"]["patcher_backend"],
+                         ["ody-patcher", "holo-patcher", "mod-packaged"])
         gate = main["jobs"]["result"]
         self.assertIn("always()", gate["if"])
-        self.assertEqual(set(gate["needs"]), {"plan","toolkit","games","archives","install","seed","retain_inputs","p2p"})
+        self.assertEqual(set(gate["needs"]), {"plan","toolkit","production","games","archives","install","comparison","seed","retain_inputs","p2p"})
+        collector = next(step for step in gate["steps"] if "NEEDS_JSON" in step.get("env", {}))
+        self.assertIn("REQUIRE_COMPARISON", collector["env"])
+        self.assertIn("REQUIRE_PRODUCTION", collector["env"])
+        producer = main["jobs"]["production"]
+        self.assertEqual(producer["uses"], "./.github/workflows/production-build.yml")
+        self.assertEqual(producer["with"]["modes"], "${{ needs.plan.outputs.modes }}")
+        self.assertIn("!= 'quick'", producer["if"])
+        self.assertIn("production", main["jobs"]["install"]["needs"])
     def test_install_admits_skipped_producers_but_not_cancelled_or_invalid_plans(self):
         main = yaml.load((ROOT / ".github/workflows/fullrun.yml").read_text(), Loader=yaml.BaseLoader)
         expression = main["jobs"]["install"]["if"][3:-2].strip()
-        for operation, plan, cancelled, expected in (("install","success",False,True),
-                                                    ("full","success",False,True),
-                                                    ("install","failure",False,False),
-                                                    ("install","success",True,False)):
+        for operation, plan, production, cancelled, expected in (("install","success","success",False,True),
+                                                    ("full","success","success",False,True),
+                                                    ("install","failure","success",False,False),
+                                                    ("install","success","failure",False,False),
+                                                    ("install","success","skipped",False,False),
+                                                    ("install","success","success",True,False)):
             value = expression.replace("needs.plan.outputs.operation", repr(operation)).replace("needs.plan.result", repr(plan))
+            value = value.replace("needs.production.result", repr(production))
             for name, result in (("success",False),("failure",False),("cancelled",cancelled)):
                 value = value.replace(name+"()", repr(result))
             value = value.replace("&&", " and ").replace("||", " or ").replace("!", " not ")

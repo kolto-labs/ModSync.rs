@@ -3,6 +3,8 @@ use super::{ComponentIdentity, SCHEMA_VERSION, Store};
 use anyhow::Result;
 use serde::Serialize;
 
+mod export;
+
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct HistoryEntry {
@@ -45,6 +47,7 @@ impl Store {
             parent_session_id: session.parent_session_id,
             parent_checkpoint_id: session.parent_checkpoint_id,
             entries: history
+                .entries
                 .into_iter()
                 .map(|checkpoint| HistoryEntry {
                     checkpoint_id: checkpoint.checkpoint_id,
@@ -52,7 +55,7 @@ impl Store {
                     sequence: checkpoint.sequence,
                     kind: checkpoint.kind,
                     component: checkpoint.component,
-                    completed_components: checkpoint.completed_components.len(),
+                    completed_components: checkpoint.completed_components,
                     file_count: checkpoint.file_count,
                     total_bytes: checkpoint.total_bytes,
                 })

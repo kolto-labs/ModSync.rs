@@ -60,6 +60,18 @@ enum Action {
     Maintenance(maintenance_cli::MaintenanceArgs),
     /// Open the desktop installer (also the default with no command).
     Gui {
+        /// Stream full desktop installation and validation events to stderr.
+        #[arg(long)]
+        stream_output: bool,
+        /// Retain verified component boundaries for desktop installation.
+        #[arg(long)]
+        component_checkpoints: bool,
+        /// Select the patcher for this desktop invocation.
+        #[arg(long, value_enum)]
+        patcher_engine: Option<PatcherEngineArg>,
+        /// Explicit executable for the selected desktop patcher.
+        #[arg(long, requires = "patcher_engine")]
+        patcher: Option<PathBuf>,
         #[command(flatten)]
         execute_runner: execute_runner_cli::ExecuteRunnerArgs,
         #[arg(long)]
@@ -817,7 +829,7 @@ struct InstallArgs {
         visible_alias = "odypatcher-path"
     )]
     patcher: Option<PathBuf>,
-    /// CLI patcher backend for Patcher instructions.
+    /// Patcher backend; mod-packaged runs each authenticated shipped installer GUI.
     #[arg(long, value_enum, ignore_case = true)]
     patcher_engine: Option<PatcherEngineArg>,
     /// Existing scratch folder outside the game and mod trees (defaults to system temp).
@@ -1211,6 +1223,8 @@ enum PatcherEngineArg {
     K,
     #[value(name = "holo-patcher", alias = "Holopatcher", alias = "holopatcher")]
     Holo,
+    #[value(name = "mod-packaged", alias = "ModPackaged")]
+    ModPackaged,
 }
 impl From<PatcherEngineArg> for PatcherEngine {
     fn from(value: PatcherEngineArg) -> Self {
@@ -1218,6 +1232,7 @@ impl From<PatcherEngineArg> for PatcherEngine {
             PatcherEngineArg::Ody => Self::OdyPatcher,
             PatcherEngineArg::K => Self::KPatcher,
             PatcherEngineArg::Holo => Self::HoloPatcher,
+            PatcherEngineArg::ModPackaged => Self::ModPackaged,
         }
     }
 }
@@ -1683,6 +1698,10 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             GuiInvocation::default(),
         ),
         Some(Action::Gui {
+            stream_output,
+            component_checkpoints,
+            patcher_engine,
+            patcher,
             execute_runner,
             settings_dir,
             input,
@@ -1702,6 +1721,9 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             protocol,
             allow_multiple_instances,
             GuiInvocation {
+                stream_output,
+                component_checkpoints,
+                patcher_override: patcher_engine.map(|engine| (engine.into(), patcher)),
                 execute_runner: execute_runner.build()?,
                 easy_session,
                 probe: GuiProbe {
@@ -3902,6 +3924,9 @@ struct GuiProbe {
 
 #[derive(Default)]
 struct GuiInvocation {
+    stream_output: bool,
+    component_checkpoints: bool,
+    patcher_override: Option<(PatcherEngine, Option<PathBuf>)>,
     execute_runner: Option<modsync::engine::ProvidedInstallerRunner>,
     probe: GuiProbe,
     easy_session: Option<PathBuf>,
@@ -3917,6 +3942,9 @@ fn gui(
     invocation: GuiInvocation,
 ) -> Result<()> {
     let GuiInvocation {
+        stream_output,
+        component_checkpoints,
+        patcher_override,
         execute_runner,
         probe,
         easy_session,
@@ -3939,6 +3967,9 @@ fn gui(
             protocol,
             allow_multiple_instances,
             ui::LaunchContext {
+                stream_output,
+                component_checkpoints,
+                patcher_override,
                 execute_runner,
                 probe,
                 easy_session,
@@ -3954,6 +3985,9 @@ fn gui(
             settings_dir,
             protocol,
             allow_multiple_instances,
+            stream_output,
+            component_checkpoints,
+            patcher_override,
             execute_runner,
             probe.nexus_mods_api_key,
             probe.nexus_api_base,

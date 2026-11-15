@@ -1,5 +1,5 @@
-name: Full-run P2P loopback diagnostic
-# Loopback transfer and wrong-hash rejection; does not prove remote seeder reachability.
+name: Full-run P2P isolated device proof
+# Two private network/mount namespaces; real transfer, hash refusal and reseeding.
 on:
   workflow_call:
     inputs:
@@ -9,7 +9,7 @@ on:
       MODSYNC_SOURCE_TOKEN: {required: false}
 permissions: {contents: read}
 jobs:
-  loopback:
+  isolated-devices:
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     env: {RUSTUP_TOOLCHAIN: 1.95.0}
@@ -29,7 +29,7 @@ jobs:
       - name: Prepare production CLI toolchain
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends pkg-config libssl-dev
+          sudo apt-get install -y --no-install-recommends pkg-config libssl-dev iproute2 bubblewrap util-linux ca-certificates
           rustup toolchain install 1.95.0 --profile minimal
       - name: Prefetch locked engine dependencies without persistent Git credentials
         working-directory: .
@@ -74,5 +74,12 @@ jobs:
       - name: Build production CLI only
         working-directory: .
         run: cargo build --locked --no-default-features --lib --bin modsync -j2
-      - name: Verify byte transfer and wrong-hash rejection
-        run: python tools/modsync-ci/p2p_loopback.py --binary target/debug/modsync
+      - name: Verify isolated device transfer, hash rejection and reverse seeding
+        run: python tools/modsync-ci/p2p_loopback.py --binary target/debug/modsync --receipt artifacts/p2p-devices.json
+      - name: Upload bounded public P2P receipt
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: p2p-devices-receipt
+          path: artifacts/p2p-devices.json
+          if-no-files-found: warn

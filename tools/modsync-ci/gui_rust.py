@@ -51,6 +51,7 @@ import tomllib
 import uuid
 
 import gui_diag
+import live_output
 
 
 WORKER_LOGS = (("worker", "driver.log", gui_diag.TAIL_LINES),)
@@ -148,6 +149,24 @@ class Blocked(Exception):
 
 EXECUTE_RUNNER_PATHS = ("execute_request_dir", "execute_xvfb", "execute_wine",
                         "execute_wineserver", "execute_wine_prefix")
+
+
+def patcher_arguments(args):
+    backend = getattr(args, "patcher_engine", None)
+    patcher = getattr(args, "patcher", None)
+    if patcher is not None and backend != "holo-patcher":
+        raise Blocked("patcher_path_requires_holo_patcher_backend")
+    if backend == "holo-patcher" and patcher is None:
+        raise Blocked("holo_patcher_requires_explicit_executable")
+    result = [] if backend is None else ["--patcher-engine", backend]
+    if patcher is not None:
+        path = Path(patcher).resolve(strict=True)
+        if not (path.is_file() or (path.is_dir() and (path / "PyKotor/Tools/HoloPatcher/src/holopatcher/__main__.py").is_file())):
+            raise Blocked("patcher_executable_missing")
+        result += ["--patcher", str(path)]
+    if backend in ("holo-patcher", "mod-packaged") and not execute_runner_arguments(args):
+        raise Blocked("external_backend_requires_execute_runner")
+    return result
 
 
 def execute_runner_arguments(args):
@@ -471,6 +490,46 @@ def review_required(value):
     return False
 
 
+def query_run(runner, command, private, **options):
+    """Keep injectable query adapters; production queries stream both file channels."""
+    if runner is not subprocess.run:
+        return runner(command, **options)
+    capture = options.pop("capture_output", False)
+    text = options.pop("text", False)
+    timeout = options.pop("timeout", None)
+    stdout = stderr = None
+    try:
+        if capture:
+            stdout = (private / "selection-query-stdout.log").open("wb")
+            stderr = (private / "selection-query-stderr.log").open("wb")
+            options.update(stdout=stdout, stderr=stderr)
+        process = live_output.Popen(command, **options)
+        try:
+            process.wait(timeout=timeout)
+        except BaseException:
+            process.kill()
+            process.wait()
+            raise
+        process.check_output()
+        result = subprocess.CompletedProcess(command, process.returncode)
+        if capture:
+            stdout.close()
+            stderr.close()
+            paths = (private / "selection-query-stdout.log", private / "selection-query-stderr.log")
+            if any(path.stat().st_size > 16 * 1024 ** 2 for path in paths):
+                raise Blocked("selection_query_output_exceeds_16_MiB_bound")
+            result.stdout, result.stderr = [path.read_bytes() for path in paths]
+            if text:
+                result.stdout = result.stdout.decode("utf-8", errors="replace")
+                result.stderr = result.stderr.decode("utf-8", errors="replace")
+        return result
+    finally:
+        if stdout is not None:
+            stdout.close()
+        if stderr is not None:
+            stderr.close()
+
+
 def query_application_reviews(binary, driven_input, components, private, run=subprocess.run):
     """Validate existing receipts with the production reader; never apply its operations."""
     owners = list(review_owners(components))
@@ -499,7 +558,7 @@ def query_application_reviews(binary, driven_input, components, private, run=sub
         command = [str(binary), "guide-draft-review", str(driven_input), identity]
         try:
             with output.open("w", encoding="utf-8") as stdout, log.open("w", encoding="utf-8") as stderr:
-                completed = run(command, cwd=private, env=environment, stdin=subprocess.DEVNULL,
+                completed = query_run(run, command, private, cwd=private, env=environment, stdin=subprocess.DEVNULL,
                                 stdout=stdout, stderr=stderr, timeout=QUERY_TIMEOUT_SECONDS)
             if completed.returncode or output.stat().st_size > 16 * 1024 * 1024:
                 raise ValueError("query failed or output exceeds bound")
@@ -607,7 +666,7 @@ def query_application_phase_plan(binary, driven_input, plan, private, complete_g
     before = digest(driven_input)
     try:
         with output.open("w", encoding="utf-8") as stdout, log.open("w", encoding="utf-8") as stderr:
-            completed = run(command, cwd=private, env=environment, stdin=subprocess.DEVNULL,
+            completed = query_run(run, command, private, cwd=private, env=environment, stdin=subprocess.DEVNULL,
                             stdout=stdout, stderr=stderr, timeout=QUERY_TIMEOUT_SECONDS)
         if (completed.returncode or output.stat().st_size > 4 * 1024 * 1024
                 or log.stat().st_size > 4 * 1024 * 1024 or digest(driven_input) != before):
@@ -684,7 +743,7 @@ def query_application_selection(binary, driven_input, game_dir, select_all, priv
         command += ["--select-visible-search", ""]
     log = private / "selection-query.log"
     try:
-        completed = run(command, cwd=private, env=environment, stdin=subprocess.DEVNULL,
+        completed = query_run(run, command, private, cwd=private, env=environment, stdin=subprocess.DEVNULL,
                         capture_output=True, text=True, timeout=QUERY_TIMEOUT_SECONDS)
     except (OSError, subprocess.SubprocessError) as error:
         log.write_text(type(error).__name__ + "\n", encoding="utf-8")
@@ -1155,11 +1214,14 @@ def drive(args, private, result):
                 raise Blocked(reason)
             time.sleep(0.5)
 
-    command = [str(args.binary), "gui", "--allow-multiple-instances",
+    command = [str(args.binary), "gui", "--stream-output", "--component-checkpoints", "--allow-multiple-instances",
                "--input", str(driven_input), "--game-dir", str(args.game_dir),
                "--source-dir", str(args.archives),
                "--settings-dir", str(private / "settings")]
+    command.extend(patcher_arguments(args))
     command.extend(execute_runner_arguments(args))
+    result["launch_command"] = command.copy()
+    plan["needs_process_trust"] = plan.get("needs_process_trust", False) or getattr(args, "patcher_engine", None) in ("holo-patcher", "mod-packaged")
     seed_telemetry_config(private / "settings")
     save(private / "command.json", command)
     environment = os.environ.copy()
@@ -1174,7 +1236,7 @@ def drive(args, private, result):
     os.environ["OMP_THREAD_LIMIT"] = "1"
     try:
         with (private / "desktop.log").open("wb") as log:
-            process = subprocess.Popen(command, cwd=private, env=environment,
+            process = live_output.Popen(command, cwd=private, env=environment,
                                        stdout=log, stderr=subprocess.STDOUT)
             mark("first_screenshot")
             dismiss_telemetry_prompt()
@@ -1188,7 +1250,7 @@ def drive(args, private, result):
                 wait_for_selection_summary(observe_summary, plan, result, private)
             transition("validation_page", VALIDATION_NAV_LABEL, VALIDATION_PAGE_MARKER,
                        "validation_page_not_reached")
-            if getattr(args, "complete_guide", False) and plan.get("needs_process_trust"):
+            if plan.get("needs_process_trust"):
                 # Actual native screenshots can OCR the leading g as q at 2x.
                 # Require the whole checkbox label; retry native scale as well.
                 click("Trust this guide to run external programs", window=NAV_WINDOW_SECONDS,
@@ -1293,6 +1355,8 @@ def drive(args, private, result):
             except subprocess.TimeoutExpired:
                 process.kill()
                 process.wait()
+        if process is not None:
+            process.check_output()
 
 
 def verify_receipt(args, result, check_time, expected_ids):
@@ -1367,6 +1431,7 @@ def execute(args, result):
     for name in ("binary", "input", "game_dir", "archives"):
         setattr(args, name, getattr(args, name).resolve(strict=True))
     execute_runner_arguments(args)
+    patcher_arguments(args)
     if not args.binary.is_file() or not os.access(args.binary, os.X_OK):
         raise Blocked("executable_required")
     if args.input.suffix.lower() != ".toml":
@@ -1446,7 +1511,7 @@ def execute(args, result):
                         for step in component.get("Instructions", []) if isinstance(step, dict))
                     or any(needs_process(option) for option in component.get("Options", [])
                            if isinstance(option, dict) and option.get("IsSelected") is True))
-        plan["needs_process_trust"] = any(needs_process(component)
+        plan["needs_process_trust"] = getattr(args, "patcher_engine", None) in ("holo-patcher", "mod-packaged") or any(needs_process(component)
             for component, keep in zip(components, plan["selection"]) if keep)
         metadata = document.get("metadata", {})
         warning = metadata.get("widescreenWarningContent", metadata.get("WidescreenWarningContent",
@@ -1469,13 +1534,14 @@ def execute(args, result):
     failure = None
     try:
         with (private / "driver.log").open("wb") as log:
-            process = subprocess.Popen(command, stdout=log, stderr=subprocess.STDOUT,
+            process = live_output.Popen(command, stdout=log, stderr=subprocess.STDOUT,
                                        start_new_session=True)
             try:
                 code = process.wait(timeout=args.timeout + 15)
             except subprocess.TimeoutExpired:
                 timed_out = True
                 raise Blocked("isolated_desktop_timeout") from None
+        process.check_output()
         worker = private / "result.json"
         if not worker.is_file():
             raise Blocked("isolated_worker_failed_before_report")
@@ -1514,6 +1580,8 @@ def main():
         parser.add_argument("--" + name.replace("_", "-"), type=Path,
                             help="explicit Windows Execute runner path; supply all five runner "
                                  "paths together (external-program trust remains required)")
+    parser.add_argument("--patcher-engine", choices=("ody-patcher", "holo-patcher", "mod-packaged"))
+    parser.add_argument("--patcher", type=Path)
     parser.add_argument("--deselect", action="append", default=[], metavar="GUID",
                         help="reviewed policy skip: written IsSelected=false into a private copy and "
                              "reported as skipped_by_reviewed_policy, never as covered (repeatable)")

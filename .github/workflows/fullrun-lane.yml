@@ -10,6 +10,7 @@ on:
       guide_sha: {type: string, required: true}
       game: {type: string, required: true}
       mode: {type: string, required: true}
+      patcher_backend: {type: string, default: ody-patcher}
       plan_id: {type: string, required: true}
       archive_cache_key: {type: string, default: ''}
       artifact_repository: {type: string, default: ''}
@@ -31,6 +32,7 @@ jobs:
     env:
       GAME: ${{ inputs.game }}
       MODE: ${{ inputs.mode }}
+      PATCHER_ENGINE: ${{ inputs.patcher_backend }}
       PLAN_ID: ${{ inputs.plan_id }}
       INSTALL_PROFILE: ${{ inputs.install_profile }}
       DOWNLOAD_MODE: ${{ inputs.download_mode }}
@@ -76,9 +78,12 @@ jobs:
           rustup toolchain install 1.95.0 --profile minimal
           packages=(age 7zip 7zip-rar unrar megatools libarchive-tools pkg-config libssl-dev)
           if [[ "$INSTALL_PROFILE" == exhaustive ]]; then packages+=(btrfs-progs); fi
-          if [[ "$GAME" == k2 ]]; then
+          if [[ "$GAME" == k2 || "$PATCHER_ENGINE" != ody-patcher ]]; then
             sudo dpkg --add-architecture i386
             packages+=(wine wine64 wine32:i386 xvfb xauth)
+          fi
+          if [[ "$PATCHER_ENGINE" == mod-packaged ]]; then
+            packages+=(xdotool tesseract-ocr scrot gcc-mingw-w64-i686)
           fi
           if [[ "$MODE" == gui ]]; then
             packages+=(xvfb xauth python3-tk tesseract-ocr libxkbcommon-x11-dev libx11-dev libxcursor-dev libxrandr-dev libxi-dev libgl1-mesa-dev libwayland-dev scrot)
@@ -89,6 +94,14 @@ jobs:
             age --encrypt --recipient "$DIAGNOSTICS_ENCRYPTION_RECIPIENT" </dev/null >/dev/null
           fi
           python -m pip install pykotor==2.3.12 gdown==5.2.0
+          if [[ "$PATCHER_ENGINE" == holo-patcher ]]; then
+            python -m pip install loggerplus==0.1.3 ply==3.11 charset-normalizer==3.5.2 defusedxml==0.7.1
+            python tools/modsync-ci/bootstrap_holopatcher.py --directory "$RUNNER_TEMP/holopatcher-resources" \
+              --logs "$RUNNER_TEMP/lane-evidence/holopatcher-bootstrap"
+          fi
+          if [[ "$PATCHER_ENGINE" == mod-packaged ]]; then
+            python -m pip install pytesseract==0.3.13 Pillow==11.3.0
+          fi
           python tools/modsync-ci/bootstrap_rclone.py --directory "$RUNNER_TEMP/rclone"
       - name: Install native GUI input libraries
         if: ${{ inputs.mode == 'gui' }}
@@ -210,6 +223,7 @@ jobs:
           path: ${{ runner.temp }}/mod-cache/k1-widescreen-inputs
           key: ${{ steps.k1-public-key.outputs.key }}
       - name: Install the admitted full guide and require complete coverage
+        id: installation
         env:
           ARTSTORE_REPOSITORY: ${{ inputs.artifact_repository || github.repository }}
           GITHUB_TOKEN: ${{ github.token }}
@@ -227,16 +241,33 @@ jobs:
           if [[ -z "${MOD_CACHE_BUCKET:-}" ]]; then
             unset RCLONE_CONFIG_MODCACHE_ACCESS_KEY_ID RCLONE_CONFIG_MODCACHE_SECRET_ACCESS_KEY RCLONE_CONFIG_MODCACHE_ENDPOINT
           fi
+          backend_options=(--patcher-engine "$PATCHER_ENGINE")
+          if [[ "$PATCHER_ENGINE" == holo-patcher ]]; then
+            backend_options+=(--patcher "$RUNNER_TEMP/holopatcher-resources")
+          fi
           python tools/modsync-ci/fullrun_stage.py install --engine . --guides guide-input \
             --game "$GAME" --mode "$MODE" --game-dir "$FULLRUN_STORAGE_ROOT/game" \
             --cache "$RUNNER_TEMP/mod-cache" --work-dir "$FULLRUN_STORAGE_ROOT/lane-work" --output "$RUNNER_TEMP/lane-evidence" \
-            --prune-restored-object-cache --install-profile "$INSTALL_PROFILE" --download-mode "$DOWNLOAD_MODE"
+            --prune-restored-object-cache --install-profile "$INSTALL_PROFILE" --download-mode "$DOWNLOAD_MODE" \
+            "${backend_options[@]}"
+      - name: Compress complete comparison manifests
+        if: steps.installation.outcome == 'success'
+        run: |
+          python tools/modsync-ci/patcher_comparison_artifacts.py pack \
+            --source "$RUNNER_TEMP/lane-evidence/patcher-comparison" --output-dir "$RUNNER_TEMP/comparison-transport"
+      - name: Retain encrypted comparison manifests for the same-run comparison job
+        if: steps.installation.outcome == 'success'
+        uses: ./.github/actions/retain-fullrun-evidence
+        with:
+          source: ${{ runner.temp }}/comparison-transport
+          name: comparison-${{ inputs.game }}-${{ inputs.patcher_backend }}-${{ inputs.mode }}-${{ github.run_id }}-${{ github.run_attempt }}
+          encryption-key: ${{ secrets.CACHE_ENCRYPTION_KEY }}
       - name: Retain encrypted lane evidence
         if: ${{ (success() || failure()) && steps.admission.outcome == 'success' }}
         uses: ./.github/actions/retain-fullrun-evidence
         with:
           source: ${{ runner.temp }}/lane-evidence
-          name: fullrun-${{ inputs.game }}-${{ inputs.mode }}-${{ github.run_id }}-${{ github.run_attempt }}
+          name: fullrun-${{ inputs.game }}-${{ inputs.patcher_backend }}-${{ inputs.mode }}-${{ github.run_id }}-${{ github.run_attempt }}
           encryption-key: ${{ secrets.DIAGNOSTICS_ENCRYPTION_KEY }}
           encryption-recipient: ${{ vars.DIAGNOSTICS_ENCRYPTION_RECIPIENT }}
       - name: Release disposable exhaustive storage

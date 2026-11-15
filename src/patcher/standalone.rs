@@ -1,5 +1,7 @@
 //! Explicitly trusted standalone HoloPatcher execution; no shell or package installation.
 #[cfg(any(target_os = "linux", target_os = "macos"))]
+mod live_output;
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 mod unix_group;
 #[cfg(windows)]
 pub(crate) mod windows;
@@ -91,6 +93,29 @@ pub(crate) fn run_command(
     timeout: Duration,
     cancelled: &AtomicBool,
 ) -> Result<CommandReceipt> {
+    run_command_inner(command, timeout, cancelled, false)
+}
+
+/// Engine route with complete raw forwarding to the parent's private capture.
+/// Receipt strings remain bounded previews. Unix streams permit four GiB each.
+pub(crate) fn run_command_streaming(
+    command: std::process::Command,
+    timeout: Duration,
+    cancelled: &AtomicBool,
+) -> Result<CommandReceipt> {
+    #[cfg(windows)]
+    eprintln!(
+        "External live output is unavailable on the Windows Job Object route; its explicit one MiB output limit remains active"
+    );
+    run_command_inner(command, timeout, cancelled, true)
+}
+
+fn run_command_inner(
+    command: std::process::Command,
+    timeout: Duration,
+    cancelled: &AtomicBool,
+    streaming: bool,
+) -> Result<CommandReceipt> {
     let prelaunch = (|| -> Result<()> {
         ensure!(
             !cancelled.load(Ordering::Acquire),
@@ -121,15 +146,16 @@ pub(crate) fn run_command(
     }
     #[cfg(any(target_os = "linux", target_os = "macos"))]
     {
-        run_unix_command(command, timeout, cancelled)
+        run_unix_command(command, timeout, cancelled, streaming)
     }
     #[cfg(windows)]
     {
+        let _ = streaming;
         windows::run_command(command, timeout, cancelled)
     }
     #[cfg(not(any(target_os = "linux", target_os = "macos", windows)))]
     {
-        let _ = command;
+        let _ = (command, streaming);
         Ok(CommandReceipt::no_child_started(
             anyhow::anyhow!("Owned process-tree execution unavailable on this platform"),
             cancelled,
@@ -143,26 +169,39 @@ fn terminal_receipt(
     outcome: Result<i32>,
     cancelled: &AtomicBool,
 ) -> CommandReceipt {
+    terminal_receipt_mode(stdout, stderr, outcome, cancelled, false)
+}
+
+#[cfg(any(target_os = "linux", target_os = "macos", windows))]
+fn terminal_receipt_mode(
+    stdout: std::fs::File,
+    stderr: std::fs::File,
+    outcome: Result<i32>,
+    cancelled: &AtomicBool,
+    streaming: bool,
+) -> CommandReceipt {
     use std::io::{Read, Seek, SeekFrom};
-    fn read(mut file: std::fs::File) -> (String, Option<String>) {
+    fn read(mut file: std::fs::File, streaming: bool) -> (String, Option<String>) {
         let mut bytes = Vec::new();
         let outcome = (|| -> Result<()> {
             file.seek(SeekFrom::Start(0))?;
             file.take(1024 * 1024 + 1).read_to_end(&mut bytes)?;
             ensure!(
-                bytes.len() <= 1024 * 1024,
+                streaming || bytes.len() <= 1024 * 1024,
                 "External program output truncated at one MiB"
             );
             Ok(())
         })();
+        let truncated = bytes.len() > 1024 * 1024;
         bytes.truncate(1024 * 1024);
-        (
-            String::from_utf8_lossy(&bytes).into_owned(),
-            outcome.err().map(|error| format!("{error:#}")),
-        )
+        let mut preview = String::from_utf8_lossy(&bytes).into_owned();
+        if streaming && truncated {
+            preview.push_str("\n[receipt preview limited to one MiB; complete output streamed to parent stderr]\n");
+        }
+        (preview, outcome.err().map(|error| format!("{error:#}")))
     }
-    let (stdout, out_error) = read(stdout);
-    let (stderr, err_error) = read(stderr);
+    let (stdout, out_error) = read(stdout, streaming);
+    let (stderr, err_error) = read(stderr, streaming);
     let (exit_code, mut failure) = match outcome {
         Ok(code) => (Some(code), None),
         Err(error) => (None, Some(format!("{error:#}"))),
@@ -273,12 +312,17 @@ struct OwnedChild(Option<Child>, bool);
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 impl OwnedChild {
     fn settle(&mut self) -> Result<std::process::ExitStatus> {
+        self.settle_with_output(|| {})
+    }
+
+    fn settle_with_output(&mut self, mut drain: impl FnMut()) -> Result<std::process::ExitStatus> {
         let child = self.0.as_mut().context("Missing child owner")?;
         let group = child.id() as i32;
         let mut lost = self.1;
         let started = Instant::now();
         let mut warned = false;
         loop {
+            drain();
             if !warned && started.elapsed() >= Duration::from_secs(5) {
                 crate::logging::warning(
                     "Waiting for external process-group cleanup; recovery ownership remains held until live writers are gone and membership is verifiable.",
@@ -367,9 +411,13 @@ fn run_unix_command(
     mut command: std::process::Command,
     timeout: Duration,
     cancelled: &AtomicBool,
+    streaming: bool,
 ) -> Result<CommandReceipt> {
     use std::os::unix::process::{CommandExt, ExitStatusExt};
     command.stdin(Stdio::null()).process_group(0);
+    if streaming {
+        live_output::command(&command)?;
+    }
     let launch = (|| -> Result<_> {
         let stdout = tempfile::tempfile()?;
         let stderr = tempfile::tempfile()?;
@@ -388,10 +436,19 @@ fn run_unix_command(
         Err(error) => return Ok(CommandReceipt::no_child_started(error, cancelled)),
     };
     let mut owner = OwnedChild(Some(child), false);
+    let mut output = streaming.then(|| live_output::LiveOutput::new(&stdout, &stderr));
+    let output_limit = if streaming {
+        live_output::STREAM_LIMIT
+    } else {
+        OUTPUT_LIMIT
+    };
     let outcome = (|| -> Result<()> {
         let started = Instant::now();
         let child = owner.0.as_mut().context("Missing child owner")?;
         loop {
+            if let Some(output) = &mut output {
+                output.drain()?;
+            }
             ensure!(
                 !cancelled.load(Ordering::Acquire),
                 "External program cancelled"
@@ -399,9 +456,9 @@ fn run_unix_command(
             ensure!(started.elapsed() < timeout, "External program timed out");
             // Polled ceiling, not a hard disk quota; final reads are strictly bounded.
             ensure!(
-                stdout.metadata()?.len() <= OUTPUT_LIMIT
-                    && stderr.metadata()?.len() <= OUTPUT_LIMIT,
-                "External program output exceeded one MiB per stream"
+                stdout.metadata()?.len() <= output_limit
+                    && stderr.metadata()?.len() <= output_limit,
+                "External program output exceeded its per-stream budget ({output_limit} bytes)"
             );
             let mut information: libc::siginfo_t = unsafe { std::mem::zeroed() };
             let result = unsafe {
@@ -437,11 +494,21 @@ fn run_unix_command(
         }
         Ok(())
     })();
-    let settlement = owner.settle().map(|status| {
-        status
-            .code()
-            .unwrap_or_else(|| 128 + status.signal().unwrap_or(1))
-    });
+    let mut stream_error = None;
+    let settlement = owner
+        .settle_with_output(|| {
+            if let Some(output) = &mut output
+                && stream_error.is_none()
+                && let Err(error) = output.drain()
+            {
+                stream_error = Some(error);
+            }
+        })
+        .map(|status| {
+            status
+                .code()
+                .unwrap_or_else(|| 128 + status.signal().unwrap_or(1))
+        });
     let process_group_quiescent = settlement.is_ok();
     let outcome = match (outcome, settlement) {
         (Ok(()), result) => result,
@@ -451,7 +518,21 @@ fn run_unix_command(
         }
     };
     drop(owner);
-    let mut receipt = terminal_receipt(stdout, stderr, outcome, cancelled);
+    if let Some(output) = &mut output
+        && let Err(error) = output.finish()
+    {
+        stream_error.get_or_insert(error);
+    }
+    let outcome = match (outcome, stream_error) {
+        (Ok(_), Some(error)) => Err(error),
+        (Err(failure), Some(error)) => Err(anyhow::anyhow!("{failure:#}; live output: {error:#}")),
+        (outcome, None) => outcome,
+    };
+    let mut receipt = if streaming {
+        terminal_receipt_mode(stdout, stderr, outcome, cancelled, true)
+    } else {
+        terminal_receipt(stdout, stderr, outcome, cancelled)
+    };
     receipt.process_group_quiescent = process_group_quiescent;
     Ok(receipt)
 }

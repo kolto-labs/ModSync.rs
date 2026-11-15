@@ -6,11 +6,12 @@ name: Engine full-run CI
 on:
   push:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
+    # Draft PRs already receive full coverage; becoming ready must not restart it.
+    types: [opened, synchronize, reopened, labeled, unlabeled]
   workflow_dispatch:
     inputs:
       operation:
-        description: Run one stage independently or compose the complete single-lane install pipeline
+        description: Full pipeline or independent stage; p2p proves peer seeding, seed imports staged archives
         type: choice
         options: [full, check, games, archives, install, seed, retain-inputs, p2p]
         default: full
@@ -131,6 +132,15 @@ jobs:
     with:
       quick: ${{ needs.plan.outputs.install_profile == 'quick' }}
     permissions: {contents: read}
+  production:
+    needs: plan
+    if: ${{ needs.plan.outputs.install_profile != 'quick' && (needs.plan.outputs.operation == 'full' || needs.plan.outputs.operation == 'install') }}
+    uses: ./.github/workflows/production-build.yml
+    with:
+      feature_sha: ${{ needs.plan.outputs.engine_sha }}
+      modes: ${{ needs.plan.outputs.modes }}
+    secrets:
+      CACHE_ENCRYPTION_KEY: ${{ secrets.CACHE_ENCRYPTION_KEY }}
   games:
     needs: plan
     if: ${{ needs.plan.outputs.operation == 'full' || needs.plan.outputs.operation == 'games' }}
@@ -175,13 +185,14 @@ jobs:
       MOD_CACHE_S3_READ_SECRET_ACCESS_KEY: ${{ vars.MOD_CACHE_BUCKET && secrets.MOD_CACHE_S3_READ_SECRET_ACCESS_KEY || '' }}
       MOD_CACHE_S3_ENDPOINT: ${{ vars.MOD_CACHE_BUCKET && secrets.MOD_CACHE_S3_ENDPOINT || '' }}
   install:
-    needs: [plan, games, archives]
-    if: ${{ !cancelled() && needs.plan.result == 'success' && (needs.plan.outputs.operation == 'full' || needs.plan.outputs.operation == 'install') }}
+    needs: [plan, production, games, archives]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.production.result == 'success' && (needs.plan.outputs.operation == 'full' || needs.plan.outputs.operation == 'install') }}
     strategy:
       fail-fast: false
       matrix:
         game: ${{ fromJSON(needs.plan.outputs.games) }}
         mode: ${{ fromJSON(needs.plan.outputs.modes) }}
+        patcher_backend: [ody-patcher, holo-patcher, mod-packaged]
     uses: ./.github/workflows/fullrun-lane.yml
     with:
       install_profile: ${{ needs.plan.outputs.install_profile }}
@@ -194,6 +205,7 @@ jobs:
       guide_sha: ${{ needs.plan.outputs.guide_sha }}
       game: ${{ matrix.game }}
       mode: ${{ matrix.mode }}
+      patcher_backend: ${{ matrix.patcher_backend }}
       plan_id: ${{ needs.plan.outputs.plan_id }}
       archive_cache_key: ${{ needs.archives.outputs.archive_cache_key }}
       artifact_repository: ${{ vars.FULLRUN_ARTIFACT_REPOSITORY || github.repository }}
@@ -205,7 +217,21 @@ jobs:
       MOD_CACHE_S3_READ_ACCESS_KEY_ID: ${{ vars.MOD_CACHE_BUCKET && secrets.MOD_CACHE_S3_READ_ACCESS_KEY_ID || '' }}
       MOD_CACHE_S3_READ_SECRET_ACCESS_KEY: ${{ vars.MOD_CACHE_BUCKET && secrets.MOD_CACHE_S3_READ_SECRET_ACCESS_KEY || '' }}
       MOD_CACHE_S3_ENDPOINT: ${{ vars.MOD_CACHE_BUCKET && secrets.MOD_CACHE_S3_ENDPOINT || '' }}
+  comparison:
+    needs: [plan, install]
+    if: ${{ !cancelled() && (needs.plan.outputs.operation == 'full' || needs.plan.outputs.operation == 'install') && contains(fromJSON(needs.plan.outputs.modes || '[]'), 'cli') && contains(fromJSON(needs.plan.outputs.modes || '[]'), 'gui') }}
+    strategy:
+      fail-fast: false
+      matrix:
+        game: ${{ fromJSON(needs.plan.outputs.games) }}
+    uses: ./.github/workflows/fullrun-compare.yml
+    with:
+      game: ${{ matrix.game }}
+    secrets:
+      CACHE_ENCRYPTION_KEY: ${{ secrets.CACHE_ENCRYPTION_KEY }}
+      DIAGNOSTICS_ENCRYPTION_KEY: ${{ !vars.DIAGNOSTICS_ENCRYPTION_RECIPIENT && secrets.DIAGNOSTICS_ENCRYPTION_KEY || '' }}
   seed:
+    name: Optional archive-store import
     needs: plan
     if: ${{ needs.plan.outputs.operation == 'seed' }}
     uses: ./.github/workflows/cache-seed.yml
@@ -237,7 +263,7 @@ jobs:
       MODSYNC_SOURCE_TOKEN: ${{ secrets.MODSYNC_SOURCE_TOKEN }}
   result:
     name: ${{ github.event_name == 'pull_request' && 'PR installation gate' || github.event_name == 'push' && 'Branch installation result' || 'Manual requested-scope result' }}
-    needs: [plan, toolkit, games, archives, install, seed, retain_inputs, p2p]
+    needs: [plan, toolkit, production, games, archives, install, comparison, seed, retain_inputs, p2p]
     if: ${{ always() && (needs.plan.result != 'success' || needs.plan.outputs.install_profile != 'quick') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 2
@@ -253,6 +279,8 @@ jobs:
           NEEDS_JSON: ${{ toJSON(needs) }}
           OPERATION: ${{ needs.plan.outputs.operation || 'check' }}
           REQUIRE_DOWNLOADER: ${{ needs.plan.outputs.release_candidate || 'false' }}
+          REQUIRE_PRODUCTION: ${{ needs.plan.outputs.operation == 'full' || needs.plan.outputs.operation == 'install' }}
+          REQUIRE_COMPARISON: ${{ (needs.plan.outputs.operation == 'full' || needs.plan.outputs.operation == 'install') && contains(fromJSON(needs.plan.outputs.modes || '[]'), 'cli') && contains(fromJSON(needs.plan.outputs.modes || '[]'), 'gui') }}
         run: python tools/modsync-ci/fullrun_contract.py aggregate --operation "$OPERATION" --output "$RUNNER_TEMP/fullrun-result.json"
       - name: Retain public requested-scope verdict
         if: ${{ success() || failure() }}

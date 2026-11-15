@@ -1,5 +1,5 @@
 # Independent staged-import operation; never coupled to install scheduling.
-name: Full-run verified archive seed
+name: Optional staged archive-store import
 on:
   workflow_call:
     inputs:
@@ -18,6 +18,7 @@ env:
 permissions: {contents: read}
 jobs:
   seed:
+    name: Import verified archives
     runs-on: ubuntu-24.04
     timeout-minutes: 350
     environment: mod-cache-seed

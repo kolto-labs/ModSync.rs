@@ -41,10 +41,10 @@ on:
       STEAM_GUARD_CODES: {required: false}
 permissions:
   contents: read
-# Covers the complete K1/K2 producer invocation across all caller runs in this
-# repository, not merely matrix siblings. Never cancel an active acquisition.
+# Writer and Steam-enabled invocations share one repository-wide acquisition
+# lock. Read-only recovery uses isolated hosted runners and a per-run group.
 concurrency:
-  group: modsync-game-acquisition-${{ github.repository }}
+  group: ${{ (inputs.cache_writer || inputs.allow_steam) && format('modsync-game-acquisition-{0}', github.repository) || format('modsync-game-recovery-{0}-{1}-{2}', github.repository, github.run_id, github.run_attempt) }}
   cancel-in-progress: false
 jobs:
   game:
@@ -56,7 +56,7 @@ jobs:
       actions: read
     strategy:
       fail-fast: false
-      max-parallel: 1
+      max-parallel: ${{ (inputs.cache_writer || inputs.allow_steam) && 1 || 2 }}
       matrix:
         game: ${{ fromJSON(inputs.games) }}
     env:
