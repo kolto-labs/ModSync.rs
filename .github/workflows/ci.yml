@@ -16,7 +16,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  # A manual native run must not cancel the same branch's automatic checks.
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 # Rust tests remain frozen during the parity effort. These jobs deliberately
