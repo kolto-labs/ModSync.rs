@@ -34,7 +34,10 @@ installed final state against prediction, then each install step against supplie
 installers. The dispatch requires provisioned game/mod baselines and a configured
 GUI request consumer for the original installers. `python3 tools/fullrun.py --help`
 describes that consumer contract. Each lane gets fresh copies and private settings,
-scratch and recovery state. Failed copies remain available for diagnosis.
+scratch and recovery state. A single job keeps its raw traces, logs and failed
+copies on the runner, not in GitHub artifacts or job output. See the
+[real-asset runbook](docs/real-asset-fullrun.md) for runner isolation,
+local configuration and how to run without GitHub Actions.
 
 Rust tests remain frozen by AGENTS.md. Production builds, lint and disposable
 production-CLI fixtures provide local verification. Full real-game execution
