@@ -28,11 +28,11 @@ fn libraries() -> Result<(Library, Library, String)> {
     {
         let path = "/usr/lib/libicucore.A.dylib";
         // Fixed system path, no user-authored plugin path.
-        return Ok((
+        Ok((
             unsafe { Library::new(path) }?,
             unsafe { Library::new(path) }?,
             String::new(),
-        ));
+        ))
     }
     #[cfg(target_os = "linux")]
     {
