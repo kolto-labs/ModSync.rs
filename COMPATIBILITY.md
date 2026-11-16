@@ -1,5 +1,136 @@
 # Compatibility and proof boundaries
 
+## Signed-in DeadlyStream downloads - 2026-11-14
+
+`deadlystream_account::sign_in` now also returns the signed-in cookies as a
+`Session` (never serialized or shown by `Debug`), and `check_session` tells
+whether a kept session is still signed in (members get a sign-out link) and
+returns any renewed cookies; a network failure is an error, not a sign-out.
+`download_orchestrator::RunSettings::deadlystream_session` makes DeadlyStream
+page reads signed in (`download_hosts::deadlystream::resolve_with_session`
+seeds the session's one-site cookie jar); a page that fails signed in is read
+again anonymously, and fixture runs never send it. The settings store keeps a
+session like the Nexus key (`Store::deadlystream_session`,
+`save_deadlystream_session`; `deadlyStreamSession` is masked in settings
+output); the password is still never stored. `deadlystream-sign-in --save`
+keeps the session, `deadlystream-status` checks it (forgetting an expired one)
+and `deadlystream-sign-out` forgets it; `fetch-downloads` and `install
+--download` use a kept session. The desktop app keeps its session in the system
+credential store instead. Signed-in downloads were only exercised with an
+invalid session (which fell back to anonymous); a real account was not used.
+Not covered by Rust tests (frozen by AGENTS.md).
+
+## Importing a mod archive - 2026-11-14
+
+`import::prepare` takes a ZIP, 7z or RAR archive that is not part of a guide,
+places it in the mod folder and returns a one-mod guide that installs it.
+Placing holds the mod-folder lock (`recovery::ModRootLock`), keeps the name to
+one safe file name, uses an archive already there only when its SHA-256 matches,
+never replaces a different file of the same name, and publishes the copy with
+no-clobber after checking its SHA-256 against the source. The instructions come
+from `archive_generation::generate_from_archive` (loose game files or a
+TSLPatcher tree; with several patcher options the first is chosen). An archive
+with neither returns None (a manual install) and its copy is removed again.
+`import::archives_in` lists the archives directly inside a folder.
+`modsync import-archive ARCHIVE --source-dir MODS --output GUIDE [--name NAME]`
+writes that guide; `install` then validates and installs it as usual. Installer
+programs (`.exe`) are not imported. Not covered by Rust tests (frozen by
+AGENTS.md).
+
+## Pause and resume - 2026-11-14
+
+`Settings::paused` and `download_orchestrator::RunSettings::paused` are pause
+flags shared like the cancel flag (`pause::hold`, `pause::is_holding`). While a
+flag is set, a download holds between reads (nothing is published until it
+finishes) and new downloads wait to start; checks hold before the next
+component; installs hold before the recovery snapshot and between components
+(after the previous component is committed or checkpointed), never inside one.
+Clearing the flag continues from there in the same process. Cancellation ends
+a hold and then behaves exactly as before, so the recovery snapshot, restore
+and checkpoint rules are unchanged. A held install reports the new
+`install_progress::Phase::Paused` (`"paused"` in `--install-progress-json`).
+`install`, `validate` and `conflicts` take `--pause-file PATH`: while that file
+exists the run holds at the next safe point. A site may drop a download that is
+held for a long time; it is then retried from the start under the normal retry
+rules. Not covered by Rust tests (frozen by AGENTS.md).
+
+## App update check and release notes - 2026-11-14
+
+`app_update::check` asks GitHub for a repository's latest published release
+(drafts and pre-releases are ignored, no release counts as up to date),
+compares up to three numeric version parts, and picks the build for the running
+system (`.exe` on Windows, a `linux` build on Linux, a `.dmg` or mac `.zip` on
+macOS). `app_update::download` fetches that build with the engine's HTTPS
+fetcher into a folder the caller chooses; replacing the running program is up to
+the frontend. `changelog_section` returns one version's notes from a Keep a
+Changelog file. `modsync app-update --repo owner/name --current X [--download
+DIR]` and `modsync changelog-section` expose them. No signature or checksum of
+the downloaded build is verified beyond HTTPS. Not covered by Rust tests
+(frozen by AGENTS.md).
+
+## Mod page details - 2026-11-14
+
+`mod_info::fetch` returns the title, description, author and screenshot links
+for a DeadlyStream file page (parsed from the page's HTML: the file description
+block, profile link and screenshot gallery, falling back to Open Graph tags) or a
+Nexus Mods mod page (from the Nexus API, which needs a saved key; `NexusModInfo`
+now also carries `summary`, `description`, `picture_url` and `author`).
+`fetch_image` fetches one screenshot (and `image_data_url` returns it as a `data:` URL). Requests are HTTPS
+only, limited to those two sites and to bounded sizes, and nothing is written.
+The HTML parsing follows the current site layout and may miss details if it
+changes. `modsync mod-info <url>` prints the details. Not covered by Rust tests
+(frozen by AGENTS.md).
+
+## Library removal and duplicates - 2026-11-14
+
+`Service::remove_from_library` deletes `staging/<component>` for a component
+that has no manifest, under the game lock and checkpoint gate; a deployed
+component is refused until it is uninstalled, and the game directory is never
+touched. `Service::duplicates` (and `duplicate_groups`) groups deployed
+manifests by case-insensitive component name, keeping the most recently
+deployed one; manifests without a name never match. `modsync deployment remove`
+and `modsync deployment duplicates` expose them. Not covered by Rust tests
+(frozen by AGENTS.md).
+
+## Mod build catalog - 2026-11-14
+
+`builds::Catalog` lists the KOTOR Community Portal builds (KOTOR 1 and 2, full
+and spoiler-free, read from the portal's Markdown sources) plus build links a
+player adds, kept in `<settings>/builds/custom.json`. A portal page link is
+mapped to its Markdown source. `fetch` downloads with the bounded instruction
+fetcher into `<settings>/builds/cache/<key>.md`, replacing the saved copy only
+after a complete download, and falls back to the saved copy when the download
+fails. The file is then read like any other instruction file; whether a given
+build parses and validates is decided by the existing Markdown loader, not by
+the catalog. `modsync builds list|add|remove|fetch` exposes it. Not covered by
+Rust tests (frozen by AGENTS.md).
+
+## Finding game installs - 2026-11-14
+
+`game_locator::find_installs` lists KOTOR folders found on this computer: the
+Steam library (registry `SteamPath`, the default Program Files folders and every
+extra library in `libraryfolders.vdf`; the usual, Flatpak and Snap Steam folders
+on Linux) plus, on Windows, the default GOG and Origin/EA folders, the KOTOR
+install folders GOG records in the registry and every folder directly under
+`GOG Games` or GOG Galaxy's `Games` folder. Steam's registry path is shown the
+way Windows spells it. Each candidate
+is classified with `game::detect`, so only folders that look like KOTOR 1 or
+KOTOR 2 are returned. It only reads directories. `modsync detect-games [--json]`
+prints the result. Other stores, custom install folders and macOS app bundles
+are not searched. Not covered by Rust tests (frozen by AGENTS.md).
+
+## DeadlyStream sign-in check - 2026-11-14
+
+`deadlystream_account::sign_in` reads the DeadlyStream login page, takes its
+CSRF key and posts the username and password to the site's login form over
+HTTPS, following at most five redirects that stay on deadlystream.com. A
+member cookie set by the site counts as success; otherwise the site's error
+text is returned. The password is never stored and the session is discarded:
+the acquisition code still downloads anonymously, so signing in does not yet
+unlock files that need an account. `modsync deadlystream-sign-in --username`
+(password from `MODSYNC_DEADLYSTREAM_PASSWORD`) runs the same check. Not covered
+by Rust tests (frozen by AGENTS.md).
+
 ## Bulk selection and option identity — 2026-11-03
 
 The egui installer bulk selection buttons (Select all, Select through tier,

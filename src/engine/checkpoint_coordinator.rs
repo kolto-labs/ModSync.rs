@@ -62,6 +62,14 @@ impl Engine {
             .map(|component| component.name.clone())
             .collect();
         for (index, component) in ordered.iter().enumerate() {
+            // Between committed components: the previous one is checkpointed and
+            // this one has not started, so a pause leaves nothing half applied.
+            self.hold_if_paused(|| {
+                observer.emit(
+                    InstallPhase::Paused,
+                    format!("Paused before: {}", component.name),
+                )
+            });
             let started = std::time::Instant::now();
             let result: Result<()> = (|| {
                 self.check_cancelled()?;

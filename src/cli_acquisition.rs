@@ -35,6 +35,8 @@ pub(crate) struct Options {
     /// Conversion projects every resource owner into acquisition scope, then
     /// restores the authored top-level selection before publishing its guide.
     pub include_unselected_authoring: bool,
+    /// Holds downloads while set ([`modsync::pause`]).
+    pub paused: Option<Arc<AtomicBool>>,
 }
 impl Default for Options {
     fn default() -> Self {
@@ -49,6 +51,7 @@ impl Default for Options {
             fomod_non_interactive: true,
             completed: Vec::new(),
             include_unselected_authoring: false,
+            paused: None,
         }
     }
 }
@@ -242,6 +245,13 @@ fn before_process_inner(
         archive: options.clone(),
         nexus_api_key,
         peer,
+        paused: overrides.paused.clone(),
+        // A saved DeadlyStream sign-in; downloads fall back to anonymous without one.
+        deadlystream_session: Store::from_settings_directory(settings_dir)
+            .and_then(|store| store.deadlystream_session())
+            .ok()
+            .flatten()
+            .map(|(_, session)| session),
         ..Default::default()
     };
     check_cancelled(cancelled)?;

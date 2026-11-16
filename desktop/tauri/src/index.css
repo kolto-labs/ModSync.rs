@@ -1,0 +1,118 @@
+@import "tailwindcss";
+@config "../tailwind.config.js";
+
+@layer base {
+  :root {
+    --background: 210 19% 9%;
+    --foreground: 40 16% 91%;
+    --card: 210 16% 12%;
+    --card-foreground: 40 16% 91%;
+    --primary: 39 59% 64%;
+    --primary-foreground: 210 24% 9%;
+    --secondary: 210 13% 19%;
+    --secondary-foreground: 40 16% 91%;
+    --muted: 210 14% 16%;
+    --muted-foreground: 210 9% 67%;
+    --accent: 210 13% 21%;
+    --accent-foreground: 40 16% 94%;
+    --sidebar: 210 24% 7%;
+    --sidebar-foreground: 210 10% 72%;
+    --sidebar-accent: 39 20% 16%;
+    --sidebar-border: 210 14% 18%;
+    --destructive: 6 70% 52%;
+    --destructive-foreground: 30 20% 98%;
+    --success: 145 45% 48%;
+    --warning: 35 85% 55%;
+    --info: 205 60% 56%;
+    --border: 210 13% 21%;
+    --input: 210 13% 28%;
+    --ring: 39 59% 64%;
+    --radius: 0.3rem;
+  }
+  /* Light theme: same layout and gold accent, darkened enough to read on white. */
+  :root.light {
+    --background: 40 20% 97%;
+    --foreground: 210 22% 13%;
+    --card: 0 0% 100%;
+    --card-foreground: 210 22% 13%;
+    --primary: 36 72% 36%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 40 14% 90%;
+    --secondary-foreground: 210 22% 13%;
+    --muted: 40 14% 93%;
+    --muted-foreground: 210 8% 38%;
+    --accent: 40 16% 89%;
+    --accent-foreground: 210 22% 13%;
+    --sidebar: 40 18% 93%;
+    --sidebar-foreground: 210 10% 28%;
+    --sidebar-accent: 39 48% 84%;
+    --sidebar-border: 40 12% 84%;
+    --destructive: 6 70% 45%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 145 55% 30%;
+    --warning: 30 90% 36%;
+    --info: 205 70% 38%;
+    --border: 40 12% 85%;
+    --input: 40 10% 76%;
+    --ring: 36 72% 36%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    overflow: hidden;
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Quiet surfaces and clear hierarchy for a desktop mod-management tool. */
+.view-header {
+  flex-shrink: 0;
+  padding: 1.4rem 1.5rem 1.1rem;
+  background: hsl(var(--background));
+}
+.view-header h1 {
+  font-family: "Bahnschrift", "Segoe UI", sans-serif;
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.view-header p { margin-top: 0.25rem; }
+.mod-row { border-bottom: 1px solid hsl(var(--border) / 0.5); }
+.mod-row:last-child { border-bottom-color: transparent; }
+button, select { cursor: pointer; }
+button:disabled, select:disabled { cursor: default; }
+:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Thin custom scrollbar that follows the theme colours */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 6px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}

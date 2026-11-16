@@ -1,7 +1,10 @@
 pub mod acquisition;
 pub mod acquisition_guard;
+pub mod app_update;
 pub mod archive;
 pub mod archive_generation;
+pub mod builds;
+pub mod deadlystream_account;
 pub mod deployment;
 pub mod direct_markdown;
 pub mod download;
@@ -13,20 +16,24 @@ pub mod editor;
 pub mod engine;
 pub mod fomod_cli;
 pub mod game;
+pub mod game_locator;
 pub mod host_metadata;
+pub mod import;
 pub mod install_progress;
 pub mod merge;
+pub mod mod_info;
 pub mod model;
 pub mod p2p;
 pub mod patcher;
 pub mod paths;
+pub mod pause;
 pub mod peer_acquire;
 pub mod peer_sharing;
 pub mod phase;
 pub mod recovery;
 pub mod validation;
 
-pub use engine::{Engine, Event, PatcherEngine, Settings};
+pub use engine::{ArchiveListingCache, Engine, Event, PatcherEngine, Settings};
 pub use model::{Component, Guide, Instruction};
 
 mod markdown;
