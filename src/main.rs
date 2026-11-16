@@ -6,6 +6,7 @@ mod easy_cli;
 mod maintenance_cli;
 mod profile_cli;
 mod protocol_cli;
+mod provided_cli;
 use anyhow::{Context, Result, ensure};
 use clap::{Args, CommandFactory, FromArgMatches, Parser, Subcommand, ValueEnum};
 use modsync::{Engine, Guide, PatcherEngine, Settings, download, paths::Roots, recovery};
@@ -311,6 +312,8 @@ enum Action {
     Selection(SelectionArgs),
     /// Simulate instructions without changing the game or mod directory.
     Validate(InstallArgs),
+    /// Predict the ordered final filesystem without changing game or mod roots.
+    Predict(InstallArgs),
     /// Report conflicting simulated game-file writes as JSON, without installing.
     Conflicts(InstallArgs),
     /// Validate, snapshot, then install in dependency order. Stop at the first failure.
@@ -694,6 +697,11 @@ enum ValidationOutput {
 
 #[derive(Args)]
 struct InstallArgs {
+    /// Write SHA-256 inventories at each reached instruction to a fresh directory.
+    #[arg(long)]
+    filesystem_trace: Option<PathBuf>,
+    #[command(flatten)]
+    provided: provided_cli::ProvidedArgs,
     /// Suppress post-download configuration; unresolved installers still block installation.
     #[arg(long)]
     fomod_skip: bool,
@@ -1595,6 +1603,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
         command,
         Some(
             Action::Validate(_)
+                | Action::Predict(_)
                 | Action::Install(_)
                 | Action::FetchDownloads { .. }
                 | Action::FomodInspect { .. }
@@ -3250,10 +3259,19 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             }
             Ok(())
         }
-        Some(action @ (Action::Install(_) | Action::Validate(_) | Action::Conflicts(_))) => {
+        Some(
+            action @ (Action::Install(_)
+            | Action::Validate(_)
+            | Action::Predict(_)
+            | Action::Conflicts(_)),
+        ) => {
+            let predict = matches!(action, Action::Predict(_));
             let install = matches!(action, Action::Install(_));
             let conflicts = matches!(action, Action::Conflicts(_));
-            let (Action::Install(args) | Action::Validate(args) | Action::Conflicts(args)) = action
+            let (Action::Install(args)
+            | Action::Validate(args)
+            | Action::Predict(args)
+            | Action::Conflicts(args)) = action
             else {
                 unreachable!()
             };
@@ -3273,6 +3291,19 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             let mut validation_emitted = false;
             let dispatch_cancelled = modsync::p2p::stop_signal_flag()?;
             let dispatch = (|| -> Result<()> {
+                ensure!(
+                    !predict
+                        || !(args.download
+                            || pipeline_mode
+                            || args.managed
+                            || component_checkpoints
+                            || args.phase != PhaseArg::All),
+                    "Prediction requires an all-phase read-only run without acquisition, managed deployment, checkpoints or validation reports"
+                );
+                ensure!(
+                    args.filesystem_trace.is_none() || install || predict,
+                    "--filesystem-trace requires predict or install"
+                );
                 let refused = [
                     (args.skip_validation, "--skip-validation"),
                     (
@@ -3332,6 +3363,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                     ensure!(input.is_file(), "Input file not found: {}", input.display());
                 }
                 let basic_validation = !install
+                    && !predict
                     && !conflicts
                     && args.phase == PhaseArg::All
                     && !args.full
@@ -3554,6 +3586,15 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                     &settings.cancelled,
                 )?;
                 let mut guide = prepared.guide;
+                settings.provided_installer = args.provided.resolve(args.allow_processes)?;
+                ensure!(
+                    settings.provided_installer.is_none() || component_checkpoints,
+                    "Supplied installer execution requires --component-checkpoints"
+                );
+                ensure!(
+                    install || settings.provided_installer.is_none(),
+                    "Supplied installer configuration requires install"
+                );
                 settings.allow_processes = args.allow_processes;
                 settings.patcher = args.patcher.or_else(|| {
                     patcher_preferences
@@ -3673,7 +3714,24 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                         println!("{} / {}: {}", event.component, event.step, event.message);
                     }
                 };
-                if conflicts {
+                if let Some(directory) = args.filesystem_trace {
+                    engine = engine.with_filesystem_trace(&directory)?;
+                }
+                if predict {
+                    ensure!(
+                        guide
+                            .components
+                            .iter()
+                            .filter(|component| component.is_selected)
+                            .all(|component| !component.instructions.is_empty()),
+                        "Selected components need executable instructions before installation prediction"
+                    );
+                    println!(
+                        "{}",
+                        serde_json::to_string_pretty(&engine.predict(&guide)?)?
+                    );
+                    Ok(())
+                } else if conflicts {
                     let report = if args.phase == PhaseArg::Remaining {
                         engine.analyze_conflicts_remaining(&guide, &prepared.completed)?
                     } else {

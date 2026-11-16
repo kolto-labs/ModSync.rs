@@ -1,5 +1,45 @@
 # Compatibility and proof boundaries
 
+## Ordered filesystem prediction and lane comparison — 2026-11-16
+
+`predict` shares rooted guide loading, selection, phase preparation and instruction
+execution with `install`. It checks instruction order against the original game
+and mod inventories. Native patch bytes are computed in private scratch. External
+program effects require a verified disk checkpoint before authoring can predict
+beyond them. Prediction failures stop the full-run workflow before installation.
+
+`predict` and `install` accept `--filesystem-trace FRESH_DIRECTORY`. The existing
+parent directory must be outside the game and mod roots. Version-1 JSON manifests
+record both root inventories, empty directories, file sizes and SHA-256 content.
+The baseline is followed by every reached instruction, including skipped actions,
+nested option instructions and the enclosing Choose action. `final.json` is captured
+after all instructions complete and before recovery finalization. Workflow
+acceptance also requires the production command to exit successfully. Install
+inventories come from physical tree scans independently of virtual bookkeeping. Unknown content stops capture.
+
+Intermediate hashing reuses a run-local cache on Unix while device, inode, size,
+mtime and ctime match. Other platforms hash files afresh. Every final inventory
+rehashes every file. Reads check descriptor and path metadata and recheck observed
+files and physical directories. These checks detect observable concurrent changes.
+
+`tools/compare_filesystem_traces.py EXPECTED ACTUAL` compares every instruction
+identity and every entry. `--final-only` checks the baseline and final state while
+validating trace completeness. Missing checkpoints, unknown hashes, malformed
+inventories and any path/type/size/content difference fail. Comparisons retain
+one inventory pair in memory. Every path in the traced roots participates.
+
+`.github/workflows/fullrun.yml` runs prediction before mandatory supplied-installer
+and built-in OdyPatcher lanes, with an optional HoloPatcher lane. It checks each
+installed final state against prediction, then each install step against supplied
+installers. The dispatch requires provisioned game/mod baselines and a configured
+GUI request consumer for the original installers. `python3 tools/fullrun.py --help`
+describes that consumer contract. Each lane gets fresh copies and private settings,
+scratch and recovery state. Failed copies remain available for diagnosis.
+
+Rust tests remain frozen by AGENTS.md. Production builds, lint and disposable
+production-CLI fixtures provide local verification. Full real-game execution
+requires the dispatch inputs and runner resources described above.
+
 ## Bulk selection and option identity — 2026-11-03
 
 The egui installer bulk selection buttons (Select all, Select through tier,
