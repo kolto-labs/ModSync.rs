@@ -137,6 +137,7 @@ impl Engine {
             managed: self.managed.as_ref().map(|managed| managed.report.clone()),
             checkpoint: Some(checkpoint.clone()),
         };
+        self.finish_filesystem_trace()?;
         store.finalize_session_with_report(lock, &expected, &self.settings.cancelled, &report)?;
         self.checkpoint_report = Some(checkpoint);
         Ok(())

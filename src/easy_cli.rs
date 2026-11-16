@@ -41,18 +41,8 @@ enum Command {
         /// Abort if the current authoring revision changed before acquiring its lock.
         #[arg(long)]
         expected_revision: Option<String>,
-        /// Private existing request storage; explicitly selects supplied installers.
-        #[arg(long, requires = "provided_xvfb", conflicts_with = "patcher")]
-        provided_request_dir: Option<PathBuf>,
-        /// Installed Xvfb executable; a new owned display is allocated per launch.
-        #[arg(long, requires = "provided_request_dir")]
-        provided_xvfb: Option<PathBuf>,
-        #[arg(long, requires = "provided_request_dir")]
-        provided_wine: Option<PathBuf>,
-        #[arg(long, requires = "provided_request_dir")]
-        provided_wineserver: Option<PathBuf>,
-        #[arg(long, requires = "provided_request_dir")]
-        provided_wine_prefix: Option<PathBuf>,
+        #[command(flatten)]
+        provided: crate::provided_cli::ProvidedArgs,
     },
     /// Read a mod's patcher description, options, and instruction summary.
     PatcherInspect {
@@ -165,52 +155,11 @@ pub(crate) fn run(args: EasyArgs) -> Result<()> {
             allow_processes,
             patcher,
             expected_revision,
-            provided_request_dir,
-            provided_xvfb,
-            provided_wine,
-            provided_wineserver,
-            provided_wine_prefix,
+            provided,
         } => {
             let mut session = Session::open(&directory)?;
             require_revision(&session, expected_revision.as_deref())?;
-            let supplied = provided_request_dir.is_some()
-                || provided_xvfb.is_some()
-                || provided_wine.is_some()
-                || provided_wineserver.is_some()
-                || provided_wine_prefix.is_some();
-            let provided_installer = if supplied {
-                ensure!(
-                    allow_processes,
-                    "Supplied installer execution requires --allow-processes"
-                );
-                ensure!(
-                    patcher.is_none(),
-                    "Do not combine --patcher with supplied installer execution"
-                );
-                let request_dir = provided_request_dir
-                    .context("Supplied runner requires --provided-request-dir")?;
-                let xvfb = provided_xvfb.context("Supplied runner requires --provided-xvfb")?;
-                let windows = match (provided_wine, provided_wineserver, provided_wine_prefix) {
-                    (None, None, None) => None,
-                    (Some(executable), Some(wineserver), Some(prefix)) => {
-                        Some(modsync::engine::WindowsProcessRunner {
-                            executable,
-                            wineserver,
-                            prefix,
-                        })
-                    }
-                    _ => anyhow::bail!(
-                        "Configure --provided-wine, --provided-wineserver and --provided-wine-prefix together"
-                    ),
-                };
-                Some(modsync::engine::ProvidedInstallerRunner {
-                    request_dir,
-                    xvfb,
-                    windows,
-                })
-            } else {
-                None
-            };
+            let provided_installer = provided.resolve(allow_processes)?;
             let mut settings = modsync::Settings::new(&source_dir, &game_dir)?;
             settings.allow_processes = allow_processes;
             settings.patcher = patcher;
