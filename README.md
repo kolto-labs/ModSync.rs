@@ -115,6 +115,7 @@ those flags exercises an explicit backend override.
 - Validation never changes the game or mod folders and never runs external programs.
 - Installation validates first, snapshots both folders, follows guide order and stops at the first failure. After a failure, run `restore`, fix the cause and rerun the whole guide from the start. Never append a failed mod at the end.
 - External patcher executables and other programs require `--allow-processes`. The default linked OdyPatcher library runs inside ModSync.
+- Instructions drafted from a prose guide never install until someone has reviewed them. The drafter will always misread some mods, so review every draft after it is made: see [What drafts get wrong](https://kolto-labs.github.io/ModSync.rs/instruction-files.html#draft-mistakes) and [How to review a draft](https://kolto-labs.github.io/ModSync.rs/instruction-files.html#draft-review).
 
 Details: [Safety and recovery](https://kolto-labs.github.io/ModSync.rs/safety.html).
 

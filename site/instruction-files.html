@@ -143,6 +143,8 @@ Arguments = ".tpc"</code></pre>
 
 <section id="drafting">
 <h2>Drafting from a Markdown guide</h2>
+<div class="note warn"><p><strong>Every draft must be reviewed after it is made.</strong> The drafter reads a guide's written directions with fixed patterns. Guides are written for people, so the drafter will always get some mods wrong, and no draft installs until someone has checked it. Drafting saves typing; it does not replace the review.</p></div>
+<p><strong>What the drafter is for.</strong> It gives a guide author a first set of instructions to correct, when a build exists only as a prose Markdown guide. It is not a way to install a prose guide unattended. Players never need it when a guide ships reviewed instructions; when they open a prose guide anyway, every drafted step waits for review.</p>
 <p>If your build exists only as a prose Markdown guide, ModSync can draft instructions from it for you to check. Drafts stay blocked until each one has been reviewed.</p>
 <pre class="code" data-lang="Terminal" tabindex="0"><code>modsync convert guide.md draft.json --parse-directions
 modsync convert draft.json reviewed.toml --review-draft &lt;component-guid&gt;</code></pre>
@@ -150,6 +152,36 @@ modsync convert draft.json reviewed.toml --review-draft &lt;component-guid&gt;</
 <pre class="code" data-lang="Terminal" tabindex="0"><code>modsync convert guide.toml generated.toml --auto-generate-local --source-path /path/to/mods</code></pre>
 <div class="note warn"><p><strong>A draft is a starting point.</strong> Check every generated action and path before you accept it, then validate the guide. A generated draft is not proof that the prose was understood correctly.</p></div>
 <p>Players can also install straight from a prose guide with <code>install --direct-markdown</code>. It installs in source order, skips 4GB Patcher and widescreen-only entries, and stops before changing the game until every selected draft has been reviewed.</p>
+</section>
+
+<section id="draft-mistakes">
+<h2>What drafts get wrong</h2>
+<p>These are real drafts from the KOTOR 1 Full Build. Each one looks plausible and each one is wrong:</p>
+<ul>
+<li><strong>Folder names guessed from ordinary words.</strong> "Move all the files in the Creatures folder to the override" drafts a move from a folder called <code>files in the Creatures</code>. "Move the files from the Creatures folder" drafts a one-letter folder, <code>f</code>. HD Gizka's directions draft a move from a folder called <code>the</code>.</li>
+<li><strong>Advice read as a choice.</strong> Wording such as "which I recommend against" or "do not download the X file" used to become a preselected option. Those two forms are now skipped, but other loose wording, such as "and install both", can still draft an option nobody asked for.</li>
+<li><strong>Only the guide is read.</strong> The drafter never sees the mod's own readme, so a step the readme asks for and the guide leaves out is missing from the draft.</li>
+<li><strong>An install method alone gives no steps.</strong> "Loose-File Mod" or "TSLPatcher Mod" with no written directions drafts nothing until the archive has been downloaded and looked at. Even then, a mod with several patcher runs or a <code>namespaces.ini</code> stays unresolved.</li>
+</ul>
+</section>
+
+<section id="draft-review">
+<h2>How to review a draft</h2>
+<p>Review means comparing the draft with the downloaded archive, the guide and the mod's readme. For each drafted component:</p>
+<ol>
+<li>Open the mod's archive. Every source path in an <code>Extract</code>, <code>Move</code> or <code>Copy</code> step must exist in it, with the same folder names.</li>
+<li>Check each destination. Loose files normally go to <code>Override</code>; anything aimed at the game folder itself, <code>Modules</code> or <code>StreamWaves</code> needs a reason in the guide or readme.</li>
+<li>Check the options. The ones selected must be the ones the guide recommends, and no option should come from advice against something.</li>
+<li>Compare with the guide and the readme. Nothing either asks for should be missing, and nothing extra should be there.</li>
+<li>Fix what is wrong, then mark the component reviewed and run <code>modsync validate</code>.</li>
+</ol>
+<p>Where to mark a component reviewed:</p>
+<ul>
+<li>Command line: <code>modsync convert draft.json reviewed.toml --review-draft &lt;component-guid&gt;</code>, or <code>modsync guide-draft-review</code>.</li>
+<li>Desktop: <strong>Mark these instructions reviewed</strong> under <strong>Draft instructions and review notes</strong> in a component's details.</li>
+</ul>
+<p>A component with unparsed gaps, conditional drafts or rejected paths cannot be marked reviewed. Fix those steps by hand first. Any later edit to a reviewed component, or to the guide text it was drafted from, needs a new review.</p>
+<p><code>--review-verified-drafts</code> only proves that the same archive drafts the same steps again. It shows the draft is reproducible, not that it installs the mod correctly, and prose drafts are never cleared this way.</p>
 </section>
 
 <section id="tools">
@@ -169,7 +201,7 @@ modsync convert draft.json reviewed.toml --review-draft &lt;component-guid&gt;</
 </section>
 <nav class="pager" aria-label="Previous and next page"><a class="prev" href="faq.html"><small>Previous</small>FAQ</a><a class="next" href="walkthrough-authoring.html"><small>Next</small>Walkthrough: writing a guide</a></nav>
 </main>
-<nav class="docs-outline" aria-label="On this page"><h2>On this page</h2><a href="#what">What an instruction file is</a><a href="#formats">Formats</a><a href="#example">A small example</a><a href="#paths">Folders in instructions</a><a href="#actions">Instruction actions</a><a href="#order">Order, dependencies and options</a><a href="#drafting">Drafting from a Markdown guide</a><a href="#tools">Other tools for guide authors</a></nav>
+<nav class="docs-outline" aria-label="On this page"><h2>On this page</h2><a href="#what">What an instruction file is</a><a href="#formats">Formats</a><a href="#example">A small example</a><a href="#paths">Folders in instructions</a><a href="#actions">Instruction actions</a><a href="#order">Order, dependencies and options</a><a href="#drafting">Drafting from a Markdown guide</a><a href="#draft-mistakes">What drafts get wrong</a><a href="#draft-review">How to review a draft</a><a href="#tools">Other tools for guide authors</a></nav>
 <footer class="docs-foot"><span>ModSync / <a href="https://koltolabs.bodecloud.workers.dev/">Kolto Labs</a>. Built for the KotOR modding community.</span><span><a data-repo="/issues" href="https://github.com/kolto-labs/ModSync.rs/issues">Report a problem</a></span></footer>
 </div>
 </div>

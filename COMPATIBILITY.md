@@ -1302,6 +1302,16 @@ The issue texts keep Rust's wording, without C#'s `ERROR: <component>:` prefix. 
 [gate-collect proof](docs/parity/fomod-gate-collect-proof/README.md), 67/67 checks (22
 fail on `d78aea2`); contract in [fomod-gate-collect.md](docs/parity/fomod-gate-collect.md).
 
+## Drafts need a review after drafting, 2026-11-15 UTC
+
+No behavior changes. The drafter will always misread some guide prose, and every draft
+still needs an explicit review before it installs. The site now says so where players
+and guide authors read it (instruction files, safety, desktop) and lists real
+misreadings from the KOTOR 1 Full Build: folder names guessed from ordinary words
+(`files in the Creatures`, a one-letter `f`, `the`), advice read as options, steps that
+only the mod's readme gives, and method-only entries that draft nothing. How to make a
+reviewed instruction set is in `docs/draft-review.md`.
+
 ## Download recommendations phrased against an option, 2026-11-14 UTC
 
 Markdown drafting turned a download recommendation phrased against something into an
