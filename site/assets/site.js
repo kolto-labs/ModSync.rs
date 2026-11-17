@@ -19,23 +19,27 @@ const root = document.documentElement;
 const toggles = document.querySelectorAll('[data-theme-toggle]');
 const styleToggles = document.querySelectorAll('[data-site-style-toggle]');
 const current = () => root.dataset.theme || 'dark';
+// Site styles, in the order the style button cycles through them.
+const STYLES = ['kolto', 'classic', 'modsync'];
+const STYLE_NAMES = { kolto: 'Kolto Labs', classic: 'Classic', modsync: 'ModSync' };
+// [dark, light] browser chrome colour per style; keep in step with theme-init.js.
+const THEME_COLORS = { kolto: ['#03131c', '#edf5f8'], classic: ['#14110d', '#f5f0e6'], modsync: ['#000116', '#f5f5f5'] };
+const currentStyle = () => (STYLES.includes(root.dataset.siteStyle) ? root.dataset.siteStyle : 'kolto');
+const nextStyle = () => STYLES[(STYLES.indexOf(currentStyle()) + 1) % STYLES.length];
 function syncThemeStyle() {
-  const classic = root.dataset.siteStyle === 'classic';
+  const style = currentStyle();
   for (const button of styleToggles) {
-    const label = classic
-      ? 'Theme: Classic. Switch to Kolto Labs theme'
-      : 'Theme: Kolto Labs. Switch to Classic theme';
-    button.setAttribute('aria-pressed', String(classic));
+    const label = 'Theme: ' + STYLE_NAMES[style] + '. Switch to ' + STYLE_NAMES[nextStyle()] + ' theme';
+    button.setAttribute('aria-pressed', String(style !== 'kolto'));
     button.setAttribute('aria-label', label);
     button.title = label;
   }
-  const logo = classic ? 'assets/modsync-classic.svg' : 'assets/modsync.svg';
+  const logo = style === 'classic' ? 'assets/modsync-classic.svg' : 'assets/modsync.svg';
   for (const image of document.querySelectorAll('[data-project-logo]')) image.src = logo;
   document.querySelector('link[rel="icon"]').href = logo;
-  const light = current() === 'light';
-  document.querySelector('meta[name="theme-color"]').content = classic
-    ? (light ? '#f5f0e6' : '#14110d')
-    : (light ? '#edf5f8' : '#03131c');
+  document.querySelector('meta[name="theme-color"]').content = THEME_COLORS[style][current() === 'light' ? 1 : 0];
+  // Pages with their own widgets (the Marketplace) follow the site's appearance.
+  document.dispatchEvent(new CustomEvent('modsync:appearance', { detail: { style, theme: current() } }));
 }
 function syncToggles() {
   const dark = current() === 'dark';
@@ -59,7 +63,7 @@ for (const button of toggles) {
 // Switching visual identity preserves the light/dark choice.
 for (const button of styleToggles) {
   button.addEventListener('click', () => {
-    const next = root.dataset.siteStyle === 'classic' ? 'kolto' : 'classic';
+    const next = nextStyle();
     root.dataset.siteStyle = next;
     try {
       localStorage.setItem('modsync-site-style', next);

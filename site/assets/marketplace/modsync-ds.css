@@ -1,0 +1,277 @@
+/* ============================================================
+   ModSync — Color System
+   Three signature themes drawn straight from the app's Avalonia
+   styles: K1 (Knights of the Old Republic — deep space blue),
+   TSL (The Sith Lords — jade/teal), and Light (classic installer).
+
+   :root defaults to the K1 theme (the app's hero look).
+   Apply .theme-tsl or .theme-light on any ancestor to switch.
+   ============================================================ */
+
+.ms-scope {
+  /* ---- K1 raw palette (Knights of the Old Republic) ---- */
+  --k1-bg-deep:       #000116;  /* window backdrop */
+  --k1-surface:       #010116;  /* cards, inputs, buttons */
+  --k1-surface-2:     #031332;  /* lists, headers, raised */
+  --k1-border:        #062766;  /* default border / divider */
+  --k1-border-bright: #083388;  /* hovered border */
+  --k1-primary:       #3aaaff;  /* primary text + UI accent */
+  --k1-primary-bright:#62c6ff;  /* link hover */
+  --k1-accent:        #a8b348;  /* olive — hover/highlight + headings */
+  --k1-tier:          #9f7aea;  /* tier badge text */
+  --k1-tier-bg:       #4a2766;  /* tier badge fill */
+
+  /* ---- TSL raw palette (The Sith Lords) ---- */
+  --tsl-bg-deep:       #02110d;
+  --tsl-surface:       #02110d;
+  --tsl-surface-2:     #0a2a22;
+  --tsl-border:        #0d5945;
+  --tsl-border-bright: #18ae88;
+  --tsl-primary:       #18ae88;
+  --tsl-primary-bright:#3fe6c0;
+  --tsl-accent:        #a0e7d6;
+  --tsl-tier:          #bba6ff;
+  --tsl-tier-bg:       #2a2a4a;
+
+  /* ---- Light raw palette (classic Windows installer) ---- */
+  --lt-bg:           #f5f5f5;
+  --lt-surface:      #ffffff;
+  --lt-surface-2:    #f8f8f8;
+  --lt-border:       #d0d0d0;
+  --lt-border-strong:#c0c0c0;
+  --lt-text:         #1e1e1e;
+  --lt-text-strong:  #000000;
+  --lt-muted:        #808080;
+  --lt-accent:       #0078d4;
+  --lt-accent-dark:  #2d5a7f;
+
+  /* ---- Shared semantic colors (consistent across all themes) ---- */
+  --success:      #4caf50;  /* valid / installed */
+  --dependency:   #4caf50;  /* "requires" relationship */
+  --restriction:  #f44336;  /* "conflicts" relationship */
+  --error:        #ff6b6b;  /* mod list error */
+  --error-strong: #ff4444;
+  --warning:      #ffa500;  /* mod list warning */
+  --warning-amber:#ffaa00;
+  --warning-gold: #ffd700;  /* compatibility caution */
+
+  /* ---- Instruction-syntax highlight palette (the editor's
+          TOML/markdown highlighter — a brand signature) ---- */
+  --hl-heading:     #a8b348;
+  --hl-author:      #62c6ff;
+  --hl-description: #ffc857;
+  --hl-masters:     #ff8c42;
+  --hl-category:    #9f7aea;
+  --hl-method:      #50fa7b;  /* installation method */
+  --hl-directions:  #f78c6c;
+  --hl-warning:     #ff6b9d;  /* usage warning */
+  --hl-screenshots: #2fb393;
+  --hl-value:       #b0bec5;
+
+  /* ---- Action verbs (installer instruction types) ---- */
+  --action-extract:   #50fa7b;
+  --action-copy:      #3aaaff;
+  --action-tslpatcher:#a8b348;
+  --action-execute:   #ff8c42;
+  --action-delete:    #ff6b6b;
+
+  /* ============================================================
+     SEMANTIC ALIASES — default = K1. Use THESE in components.
+     ============================================================ */
+  --surface-bg:        var(--k1-bg-deep);
+  --surface-card:      var(--k1-surface);
+  --surface-raised:    var(--k1-surface-2);
+  --surface-hover:     #020228;
+  --border-default:    var(--k1-border);
+  --border-hover:      var(--k1-accent);
+  --text-primary:      var(--k1-primary);
+  --text-secondary:    #888888;
+  --text-heading:      var(--k1-accent);
+  --text-on-accent:    #000116;
+  --brand-primary:     var(--k1-primary);
+  --brand-primary-bright: var(--k1-primary-bright);
+  --brand-accent:      var(--k1-accent);
+  --tier-fill:         var(--k1-tier-bg);
+  --tier-text:         var(--k1-tier);
+  --selected-bg:       #3aaaff1a;  /* primary @ 10% alpha (fixed from Avalonia #AARRGGBB) */
+  --hover-bg:          #3aaaff0a;  /* primary @ 4% alpha */
+  --caret:             #f0f8ff;
+  --window-close:      var(--error-strong);
+
+  /* ---- Marketplace additions ---- */
+  --rating-star:       #ffd700;  /* filled stars, distribution bars */
+  --rating-star-empty: #4a5a7a;  /* empty star outline */
+  --rating-bar-track:  #031332;  /* = surface-raised, redeclared per theme (var() aliases resolve at :root) */
+  --verified:          var(--success);
+  --scrim:             rgba(0, 0, 0, 0.6);
+  /* ---- Neutral web surface (browser build only) ---- */
+  --web-bg: #1a1b1e; --web-card: #25262b; --web-border: #373a40; --web-primary: #3b82f6; --web-success: #22c55e;
+}
+
+/* ============================================================
+   TSL — The Sith Lords (jade / teal)
+   ============================================================ */
+.ms-scope.theme-tsl {
+  --surface-bg:        var(--tsl-bg-deep);
+  --surface-card:      var(--tsl-surface);
+  --surface-raised:    var(--tsl-surface-2);
+  --surface-hover:     var(--tsl-surface-2);
+  --border-default:    var(--tsl-border);
+  --border-hover:      var(--tsl-primary-bright);
+  --text-primary:      var(--tsl-primary);
+  --text-secondary:    #888888;
+  --text-heading:      var(--tsl-accent);
+  --text-on-accent:    #02110d;
+  --brand-primary:     var(--tsl-primary);
+  --brand-primary-bright: var(--tsl-primary-bright);
+  --brand-accent:      var(--tsl-accent);
+  --tier-fill:         var(--tsl-tier-bg);
+  --tier-text:         var(--tsl-tier);
+  --selected-bg:       #0a2a22;
+  --hover-bg:          #0d5945;
+  --caret:             #e0f2f1;
+  --rating-star-empty: #2f6b5a;
+  --rating-bar-track:  #0a2a22;
+  --focus-ring:        0 0 0 2px #3fe6c0;
+  --shadow-glow:       0 0 0 1px #0d5945, 0 0 18px rgba(24, 174, 136, 0.18);
+}
+
+/* ============================================================
+   Light — classic Windows installer
+   ============================================================ */
+.ms-scope.theme-light {
+  --surface-bg:        var(--lt-bg);
+  --surface-card:      var(--lt-surface);
+  --surface-raised:    var(--lt-surface-2);
+  --surface-hover:     #f5f8fc;
+  --border-default:    var(--lt-border);
+  --border-hover:      var(--lt-accent);
+  --text-primary:      var(--lt-text);
+  --text-secondary:    var(--lt-muted);
+  --text-heading:      var(--lt-accent-dark);
+  --text-on-accent:    #ffffff;
+  --brand-primary:     var(--lt-accent);
+  --brand-primary-bright: #2a8ae0;
+  --brand-accent:      var(--lt-accent-dark);
+  --tier-fill:         #f0e8f0;
+  --tier-text:         #6b4c6b;
+  --selected-bg:       #e8f0f8;
+  --hover-bg:          #f5f8fc;
+  --caret:             #1e1e1e;
+  --rating-star:       #b8860b;
+  --rating-star-empty: #b0b0b0;
+  --rating-bar-track:  #e6e6e6;
+  --focus-ring:        0 0 0 2px #0078d4;
+  --shadow-glow:       0 0 0 1px #d0d0d0, 0 0 18px rgba(0, 120, 212, 0.18);
+  --scrim:             rgba(0, 0, 0, 0.45);
+}
+
+/* ============================================================
+   ModSync — Typography
+   The app ships no custom webfonts. The KOTOR themes (K1/TSL)
+   render body text in Verdana; the Light installer theme uses
+   Segoe UI; code, regex previews and TOML use Consolas.
+   These stacks reproduce that faithfully with web-safe fonts.
+   ============================================================ */
+
+.ms-scope {
+  /* ---- Families ---- */
+  --font-ui:      "Segoe UI", "Ubuntu", "Verdana", system-ui, -apple-system, sans-serif;
+  --font-body:    "Verdana", "Segoe UI", system-ui, sans-serif;
+  --font-mono:    "Consolas", "Courier New", ui-monospace, monospace;
+
+  /* The KOTOR themes use Verdana as the canonical body face; the
+     Light theme overrides to Segoe UI for an authentic OS look. */
+  --font-default: var(--font-body);
+
+  /* ---- Type scale (px, matching the Avalonia FontSize values) ---- */
+  --text-2xs: 11px;   /* secondary / badges / captions */
+  --text-xs:  12px;   /* tooltips, status, mono previews */
+  --text-sm:  13px;   /* Light-theme body, labels */
+  --text-md:  14px;   /* KOTOR body, default control text */
+  --text-lg:  16px;   /* dialog confirm, option titles */
+  --text-xl:  18px;   /* dialog titles, step titles, home */
+  --text-2xl: 20px;   /* card titles, step numbers */
+  --text-3xl: 22px;   /* section titles */
+  --text-4xl: 24px;   /* app title, window header */
+  --text-5xl: 28px;   /* welcome title */
+  --text-6xl: 32px;   /* landing hero title */
+
+  /* ---- Weights ---- */
+  --weight-normal:   400;
+  --weight-medium:   500;  /* SemiBold-ish */
+  --weight-semibold: 600;
+  --weight-bold:     700;
+
+  /* ---- Line heights ---- */
+  --leading-tight:  1.2;
+  --leading-snug:   1.35;
+  --leading-normal: 1.5;
+
+  /* ---- Letter spacing ---- */
+  --tracking-tight:  -0.01em;
+  --tracking-normal: 0;
+  --tracking-wide:   0.04em;   /* badges / small caps labels */
+}
+
+.ms-scope.theme-light {
+  --font-default: var(--font-ui);
+}
+
+/* ============================================================
+   ModSync — Spacing, Radius, Borders, Shadows
+   Values lifted from the Avalonia Padding/CornerRadius/BorderThickness
+   conventions across the app's styles.
+   ============================================================ */
+
+.ms-scope {
+  /* ---- Spacing scale (px) ---- */
+  --space-0:  0;
+  --space-1:  2px;    /* StackPanel default margin */
+  --space-2:  4px;
+  --space-3:  6px;
+  --space-4:  8px;    /* badge padding, card gaps */
+  --space-5:  10px;   /* button padding (KOTOR), tooltip */
+  --space-6:  12px;   /* download item padding */
+  --space-7:  15px;   /* step / section padding */
+  --space-8:  16px;   /* summary card padding */
+  --space-9:  24px;   /* landing card padding */
+  --space-10: 32px;   /* hero / page gutters */
+  --space-12: 36px;   /* hero padding */
+
+  /* ---- Corner radius ---- */
+  --radius-none: 0;
+  --radius-xs:  2px;    /* light-theme chips */
+  --radius-sm:  4px;    /* badges, tooltips, download items */
+  --radius-md:  6px;    /* summary cards */
+  --radius-lg:  8px;    /* step/progress sections */
+  --radius-xl:  10px;   /* landing action buttons, info panels */
+  --radius-2xl: 12px;   /* landing step cards, overlays */
+  --radius-3xl: 14px;   /* landing cards & sections */
+  --radius-hero:18px;   /* landing hero */
+  --radius-pill: 999px;
+
+  /* ---- Border widths ---- */
+  --border-thin:   1px;   /* light theme, dividers */
+  --border-base:   2px;   /* KOTOR controls, buttons, inputs */
+
+  /* ---- Elevation / shadows ----
+     KOTOR themes are near-flat (borders do the work); the Light
+     installer + landing surfaces use soft ambient shadows. */
+  --shadow-none:  none;
+  --shadow-sm:    0 1px 2px rgba(0, 0, 0, 0.18);
+  --shadow-card:  0 2px 8px rgba(0, 0, 0, 0.28);
+  --shadow-lg:    0 8px 28px rgba(0, 0, 0, 0.40);
+  --shadow-glow:  0 0 0 1px var(--border-default), 0 0 18px rgba(58, 170, 255, 0.18);
+
+  /* ---- Focus ring ---- */
+  --focus-ring: 0 0 0 2px var(--border-hover);
+
+  /* ---- Layout constants (from MainWindow.axaml) ---- */
+  --sidebar-min:    250px;
+  --window-min-w:   600px;
+  --window-control: 40px;   /* min/max/close hit target */
+  --hit-target:     44px;   /* minimum interactive size */
+  --transition:     140ms ease;  /* @kind other */
+}
+
