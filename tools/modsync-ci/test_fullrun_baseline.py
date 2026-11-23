@@ -112,6 +112,27 @@ class RecoveryTests(unittest.TestCase):
         # Verified once as a candidate and once again at the destination, never copied.
         self.assertEqual(self.verified, [b"cache-good", b"cache-good"])
 
+    def test_a_failed_restore_on_another_filesystem_exits_1_and_leaves_no_game_tree(self):
+        self.cached()
+        calls = []
+
+        def verify_then_fail(game, candidate, destination, environ):
+            calls.append(destination)
+            if len(calls) == 2:  # the restore at the destination fails verification
+                raise subprocess.CalledProcessError(1, ["game_cache.py", "inventory"])
+            return self.verify(game, candidate, destination, environ)
+
+        output = io.StringIO()
+        with self.rename_raising(errno.EXDEV), \
+                mock.patch.object(baseline, "verify_seal", side_effect=verify_then_fail), \
+                mock.patch.dict(os.environ, self.environ, clear=True), contextlib.redirect_stdout(output):
+            code = baseline.main(["--game", "k1", "--seal-dir", str(self.seals), "--game-dir", str(self.game),
+                                  "--required", "--local-only"])
+        self.assertEqual(code, 1)
+        self.assertEqual(len(calls), 2)
+        self.assertFalse(self.game.exists())
+        self.assertIn("::error::No verified k1 baseline", output.getvalue())
+
     def test_other_rename_failures_still_fail_recovery(self):
         self.cached()
         with self.rename_raising(errno.EACCES), self.assertRaises(PermissionError):
