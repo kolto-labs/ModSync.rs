@@ -7,6 +7,7 @@ import tempfile
 import textwrap
 import unittest
 from pathlib import Path
+from unittest import mock
 
 import validator_gate as gate
 
@@ -72,6 +73,30 @@ class Gate(unittest.TestCase):
         code, cases = self.run_gate("print('Error: something unrelated'); sys.exit(1)\n")
         self.assertEqual(code, 1)
         self.assertIn("expected reason", cases["missing-source"]["problems"][0])
+
+    def test_a_hung_validator_fails_each_case_instead_of_crashing_the_gate(self):
+        with mock.patch.object(gate, "TIMEOUT", 0.5):
+            code, cases = self.run_gate("import time; time.sleep(5)\n")
+        self.assertEqual(code, 1)
+        self.assertTrue(all("did not finish" in c["problems"][0] for c in cases.values()))
+        self.assertEqual(len(cases), len(gate.load_cases(gate.FIXTURES / "cases.json")))
+
+    def test_a_validator_that_cannot_start_fails_each_case_instead_of_crashing_the_gate(self):
+        binary = fake(self.temp.name, "sys.exit(0)\n")
+        binary.chmod(0o600)  # present but not executable
+        with contextlib.redirect_stdout(io.StringIO()) as out, contextlib.redirect_stderr(io.StringIO()):
+            code = gate.main(["--binary", str(binary)])
+        self.assertEqual(code, 1)
+        events = [json.loads(line) for line in out.getvalue().splitlines()]
+        self.assertTrue(all("could not start" in e["problems"][0] for e in events if e["event"] == "validator_case"))
+
+    def test_an_unusable_cases_file_is_reported_not_raised(self):
+        binary = fake(self.temp.name, "sys.exit(0)\n")
+        broken = Path(self.temp.name) / "cases.json"
+        broken.write_text("{not json")
+        with contextlib.redirect_stderr(io.StringIO()) as err:
+            self.assertEqual(gate.main(["--binary", str(binary), "--cases", str(broken)]), 2)
+        self.assertIn("unusable cases file", err.getvalue())
 
     def test_a_validator_that_writes_to_the_game_directory_fails(self):
         code, cases = self.run_gate(
