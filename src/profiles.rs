@@ -215,7 +215,9 @@ impl PatcherPreferences {
         };
         Ok(PatcherPreferences {
             engine,
-            executable: setting_text(settings, key)?,
+            // Older settings files can store an empty executable field. Match
+            // saving a blank desktop field, which clears the external override.
+            executable: setting_text(settings, key)?.filter(|path| !path.trim().is_empty()),
         })
     }
 }

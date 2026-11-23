@@ -3,6 +3,7 @@ mod backend_contract;
 pub use authoring::AuthoringActionReport;
 mod checkpoint_coordinator;
 mod cleanlist;
+mod filesystem_trace;
 mod k1_widescreen;
 mod k2_preparation;
 mod managed;
@@ -70,7 +71,9 @@ pub enum PatcherEngine {
 pub struct Settings {
     pub roots: Roots,
     pub allow_processes: bool,
+    /// Explicit external executable. OdyPatcher with None uses the linked library.
     pub patcher: Option<PathBuf>,
+    /// Defaults to OdyPatcher. Saved preferences and CLI options may override it.
     pub patcher_engine: PatcherEngine,
     pub provided_installer: Option<ProvidedInstallerRunner>,
     /// Explicit headless execution for Execute/Run, independent of the Patcher backend.
@@ -563,7 +566,10 @@ fn selection_inspection_uncertain(error: &anyhow::Error) -> bool {
 }
 
 fn selection_file_stamp(path: &Path) -> Result<String> {
-    let metadata = fs::symlink_metadata(path)?;
+    selection_metadata_stamp(&fs::symlink_metadata(path)?)
+}
+
+fn selection_metadata_stamp(metadata: &fs::Metadata) -> Result<String> {
     let base = format!(
         "{:?}/{}/{:?}/{:?}",
         metadata.file_type(),
@@ -596,6 +602,7 @@ pub struct Engine {
     files: BTreeMap<String, (PathBuf, Content)>,
     authoring_inputs: Vec<(PathBuf, PathBuf)>,
     exact_patcher_prediction: bool,
+    filesystem_trace: Option<filesystem_trace::Trace>,
     directories: BTreeMap<String, PathBuf>,
     selection_directory_stamps: BTreeMap<PathBuf, String>,
     install: bool,
@@ -803,6 +810,8 @@ impl Engine {
                 "Mod-packaged source authority cannot be combined with an unbound supplied installer"
             );
         }
+        // The default is the pinned library, even when PATH or packaged resources
+        // contain an OdyPatcher executable. External OdyPatcher requires a path.
         let (patcher_invocation, patcher_resolution_error) = if settings.patcher_engine
             == PatcherEngine::ModPackaged
             || settings.provided_installer.is_some()
@@ -833,6 +842,7 @@ impl Engine {
             files: BTreeMap::new(),
             authoring_inputs: Vec::new(),
             exact_patcher_prediction: false,
+            filesystem_trace: None,
             directories: BTreeMap::new(),
             selection_directory_stamps: BTreeMap::new(),
             install: false,
@@ -1244,9 +1254,14 @@ impl Engine {
     pub fn predict(mut self, guide: &Guide) -> Result<Prediction> {
         self.exact_patcher_prediction = true;
         recovery::ensure_clean(&self.settings.roots)?;
+        recovery::verify_completion(&self.settings.roots, guide, self.completed.len())?;
         let mut events = Vec::new();
         self.fomod_gate(guide, &mut |event| events.push(event))?;
+        self.destination_gate(guide)?;
+        self.archive_source_gate(guide)?;
+        self.begin_filesystem_trace()?;
         self.run(guide, &mut |event| events.push(event))?;
+        self.finish_filesystem_trace()?;
         let mut entries = Vec::with_capacity(self.files.len() + self.directories.len());
         for path in self.directories.values() {
             entries.push(PredictedEntry {
@@ -2342,9 +2357,11 @@ impl Engine {
                     if !is_archive(name) || !registered.insert(crate::fomod::fold_case(name)) {
                         continue;
                     }
-                    let relative_name = relative(name, false).with_context(|| {
-                        format!("Registered FOMOD archive path is unsafe: {name}")
-                    })?;
+                    // A registered archive name is literal; `[`/`]` are ordinary characters.
+                    let relative_name =
+                        crate::paths::literal_relative(name).with_context(|| {
+                            format!("Registered FOMOD archive path is unsafe: {name}")
+                        })?;
                     let path = self.settings.roots.mods.join(&relative_name);
                     let filename = relative_name
                         .file_name()
@@ -2758,6 +2775,7 @@ impl Engine {
             },
         );
         self.install = true;
+        self.begin_filesystem_trace()?;
         if self.component_checkpoints {
             self.run_checkpointed(
                 guide,
@@ -2780,6 +2798,7 @@ impl Engine {
                 InstallPhase::RecordingCompletion,
                 "Recording installation completion",
             );
+            self.finish_filesystem_trace()?;
             recovery::record_completion(&self.settings.roots, guide)?;
             recovery::finish(&self.settings.roots)?;
         }
@@ -3121,7 +3140,10 @@ impl Engine {
         mut progress: Option<&mut InstallObserver<'_>>,
     ) -> Result<()> {
         for (index, c) in ordered.iter().enumerate() {
-            if self.exact_patcher_prediction && c.instructions.is_empty() {
+            if self.exact_patcher_prediction
+                && self.filesystem_trace.is_none()
+                && c.instructions.is_empty()
+            {
                 self.check_component(c)?;
                 continue;
             }
@@ -3305,6 +3327,7 @@ impl Engine {
                     if let Some(observer) = progress.as_deref_mut() {
                         observer.instruction(c, n + 1, "Skipped by instruction conditions".into());
                     }
+                    self.trace_instruction(c, n + 1, instruction, true)?;
                     continue;
                 }
                 if unobserved_external_game_effects
@@ -3315,6 +3338,8 @@ impl Engine {
                         step: n + 1,
                         message: "Delete: game file presence deferred until the original external backend completes".into(),
                     });
+                    // Keep the trace's instruction sequence complete for reached steps.
+                    self.trace_instruction(c, n + 1, instruction, false)?;
                     continue;
                 }
                 let message = if instruction.action == "Patcher" && !self.install {
@@ -3367,6 +3392,7 @@ impl Engine {
                 })?;
                 unobserved_external_game_effects |=
                     !self.install && external_owner && instruction.action == "Patcher";
+                self.trace_instruction(c, n + 1, instruction, false)?;
                 emit(Event {
                     component: c.name.clone(),
                     step: n + 1,

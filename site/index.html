@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ModSync — Your build. In order. | Kolto Labs</title>
+<meta name="description" content="ModSync installs KOTOR 1 and KOTOR 2 mod builds from a guide's instruction file: the mods you pick, in the order the guide sets, with a check first and a snapshot to restore from." />
+<meta name="theme-color" content="#03131c" />
+<link rel="icon" href="assets/modsync.svg" type="image/svg+xml" />
+<link rel="preload" href="assets/fonts/departure-mono.woff2" as="font" type="font/woff2" crossorigin />
+<script src="assets/theme-init.js"></script>
+<link rel="stylesheet" href="assets/site.css" />
+<link rel="stylesheet" href="assets/classic.css" />
+<script src="assets/site.js" defer></script>
+</head>
+<body class="home">
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="mp-top">
+  <div class="wrap">
+    <a class="mark" href="https://koltolabs.bodecloud.workers.dev/" aria-label="Kolto Labs home"><img class="logo" src="assets/kolto-labs.svg" alt="" width="28" height="28" />Kolto Labs</a>
+    <span class="project-name">/ ModSync</span>
+    <nav aria-label="Site">
+      <a href="getting-started.html">Docs</a>
+      <a href="faq.html">FAQ</a>
+      <a data-repo="" href="https://github.com/kolto-labs/ModSync.rs">GitHub</a>
+      <button class="icon-btn" type="button" data-theme-toggle aria-pressed="false" aria-label="Switch appearance">
+        <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z"/></svg>
+        <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+      <button class="icon-btn" type="button" data-site-style-toggle aria-pressed="false" aria-label="Theme: Kolto Labs. Switch to Classic theme" title="Theme: Kolto Labs. Switch to Classic theme">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18h1.4a2 2 0 0 0 1.4-3.4l-.2-.2a1.5 1.5 0 0 1 1.1-2.6H18a3 3 0 0 0 3-3A9 9 0 0 0 12 3Z"/><circle cx="7.5" cy="10" r=".75" fill="currentColor"/><circle cx="11" cy="7" r=".75" fill="currentColor"/><circle cx="16" cy="8" r=".75" fill="currentColor"/></svg>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main id="main" class="wrap mp">
+
+  <header class="mp-head">
+    <p class="mp-crumbs">KotOR I &amp; II / Modding tools</p>
+    <h1>ModSync</h1>
+    <p class="mp-deck">Your build. In order.</p>
+    <p class="mp-tagline">Bring your game. Pick your mods. ModSync follows the guide, checks the install, and keeps a snapshot to restore from.</p>
+    <div class="hero-actions">
+      <a class="btn" href="getting-started.html">Start a mod build</a>
+      <a class="btn secondary" href="walkthrough-authoring.html">Write a guide</a>
+    </div>
+    <p class="hero-note">A Kolto Labs tool for Knights of the Old Republic and The Sith Lords.</p>
+  </header>
+
+  <h2 class="section-label" id="app-preview">[ Inside the app ]</h2>
+
+  <div class="mp-grid">
+
+    <section class="mp-gallery" aria-labelledby="app-preview">
+      <figure class="mp-stage">
+        <img id="stage-img" src="assets/media/01-builds.png" width="1360" height="880" alt="A KotOR I build loaded in ModSync, with installed mods marked Done" />
+      </figure>
+      <ul class="mp-thumbs">
+        <li><a href="assets/media/01-builds.png" data-stage aria-current="true" data-alt="A KotOR I build loaded in ModSync, with installed mods marked Done"><img src="assets/media/01-builds.png" alt="" width="1360" height="880" loading="lazy" /><span>Mod build</span></a></li>
+        <li><a href="assets/media/06-activity.png" data-stage data-alt="The activity log after a check and an install"><img src="assets/media/06-activity.png" alt="" width="1360" height="880" loading="lazy" /><span>Activity</span></a></li>
+        <li><a href="assets/media/tour.gif" data-stage data-alt="Animated tour: mod details, installed mods, conflicts, activity and settings"><img src="assets/media/02-library.png" alt="" width="1360" height="880" loading="lazy" /><span>Play tour</span></a></li>
+        <li><a href="assets/media/library-search.gif" data-stage data-alt="Animated walkthrough of searching installed mods"><img src="assets/media/02-library.png" alt="" width="1360" height="880" loading="lazy" /><span>Play search</span></a></li>
+      </ul>
+      <p class="mp-caption">The desktop app, captured on a test copy of KotOR. Select a still image to stop a clip.</p>
+    </section>
+
+    <aside class="mp-side" aria-label="Download and details">
+      <div class="card mp-get">
+        <a class="btn big" data-repo="/releases" href="https://github.com/kolto-labs/ModSync.rs/releases">
+          <svg viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 1v9M3 6.5 7 10.5 11 6.5M1.5 13h11" stroke="currentColor" stroke-width="1.6"/></svg>
+          <span>Browse releases</span>
+        </a>
+        <p class="mp-get-note">Windows, Linux and macOS.<br />Choose an available build, or <a href="getting-started.html#build">build from source</a>.</p>
+        <dl class="facts">
+          <dt>Games</dt><dd>KotOR I &amp; II</dd>
+          <dt>Includes</dt><dd>App and command line</dd>
+          <dt>License</dt><dd>BSL 1.1</dd>
+        </dl>
+      </div>
+      <nav class="card mp-links" aria-label="Project links">
+        <a data-repo="" href="https://github.com/kolto-labs/ModSync.rs">Source code</a>
+        <a href="getting-started.html">Getting started</a>
+        <a href="desktop.html">Desktop app</a>
+        <a href="status.html">Features and roadmap</a>
+        <a data-repo="/issues" href="https://github.com/kolto-labs/ModSync.rs/issues">Report a problem</a>
+      </nav>
+    </aside>
+
+  </div>
+
+  <nav class="mp-tabs" aria-label="Sections">
+    <a href="#description">Overview</a>
+    <a href="#requirements">Requirements</a>
+    <a href="#installation">Installation</a>
+    <a href="getting-started.html">Docs</a>
+  </nav>
+
+  <div class="mp-body">
+
+    <section id="description" aria-labelledby="h-description">
+      <h2 id="h-description">[ Follow the guide ]</h2>
+      <p>A KotOR mod build is more than a list of downloads. Its guide sets the order, the options, and the steps each mod needs. ModSync reads those instructions and installs the mods you choose, in the order the author intended.</p>
+      <p>Bring your own copy of the game. ModSync contains no mods or game files; each mod belongs to its author. Follow your guide for the required downloads.</p>
+
+      <h3>From guide to game</h3>
+      <ol class="steps">
+        <li><b>Load the guide</b><span>Open the build's instruction file.</span></li>
+        <li><b>Choose your folders</b><span>Your game folder, and the folder with the downloaded mods.</span></li>
+        <li><b>Pick your mods</b><span>One by one, or a whole category at once.</span></li>
+        <li><b>Check, then install</b><span>The check changes nothing. Then every mod installs in order.</span></li>
+      </ol>
+
+      <h3>On the workbench</h3>
+      <ul class="ticks">
+        <li>Follows the guide's install order and dependencies</li>
+        <li>Snapshot before installing, with one-click restore</li>
+        <li>Opens ZIP, 7z, RAR, TAR and GZip archives</li>
+        <li>Runs TSLPatcher-style patchers when you allow it</li>
+        <li>Detects KOTOR, KOTOR 2 and the Aspyr release</li>
+        <li>Spoiler-free names when the guide provides them</li>
+      </ul>
+    </section>
+
+    <div class="mp-pair">
+      <section id="requirements" aria-labelledby="h-requirements">
+        <h2 id="h-requirements">[ Bring your own ]</h2>
+        <ul>
+          <li>Your own installation of KotOR I or II</li>
+          <li>The instruction file for your mod build</li>
+          <li>The build's mods, downloaded into one folder</li>
+          <li>Free space for a copy of your game and mod folders</li>
+        </ul>
+      </section>
+
+      <section id="installation" aria-labelledby="h-installation">
+        <h2 id="h-installation">[ Get started ]</h2>
+        <ol>
+          <li>Back up your game folder.</li>
+          <li><a data-repo="/releases" href="https://github.com/kolto-labs/ModSync.rs/releases">Download ModSync</a> and unzip it anywhere.</li>
+          <li>Open it and follow the four steps above.</li>
+        </ol>
+        <p class="small">New to it? <a href="getting-started.html#demo">Try it on sample folders</a> first. If an install fails, <a href="safety.html">restore and start again</a>.</p>
+      </section>
+    </div>
+
+  </div>
+
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="foot-brand"><a href="https://koltolabs.bodecloud.workers.dev/">Kolto Labs</a><p>Life support for the Odyssey engine.</p><p class="foot-legal">ModSync contains no mods or game files. Mods belong to their authors. An independent community project, not affiliated with Lucasfilm or the game publishers.</p></div>
+    <span><a href="https://koltolabs.bodecloud.workers.dev/projects/">Lab projects</a> <a href="getting-started.html">Docs</a> <a data-repo="/issues" href="https://github.com/kolto-labs/ModSync.rs/issues">Report a problem</a></span>
+  </div>
+</footer>
+
+<script>
+  // Gallery: thumbnails swap the large image. Without JavaScript they open the file.
+  document.querySelectorAll('[data-stage]').forEach(function (link) {
+    link.addEventListener('click', function (event) {
+      event.preventDefault();
+      var img = document.getElementById('stage-img');
+      img.src = link.getAttribute('href');
+      img.alt = link.dataset.alt;
+      document.querySelectorAll('[data-stage]').forEach(function (other) { other.removeAttribute('aria-current'); });
+      link.setAttribute('aria-current', 'true');
+    });
+  });
+</script>
+</body>
+</html>

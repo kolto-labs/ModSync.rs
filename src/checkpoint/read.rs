@@ -179,24 +179,24 @@ pub(super) fn validate_tree(tree: &Tree) -> Result<(u64, u64)> {
     for (name, entry) in &tree.entries {
         let path = crate::paths::stored_relative(name, true)?;
         ensure!(
-            !name.is_empty() && !name.contains('\\') && path.to_str() == Some(name.as_str()),
+            !name.is_empty()
+                && !name.contains('\\')
+                && crate::paths::portable_text(&path).as_deref() == Some(name.as_str()),
             "Checkpoint path is not portable canonical relative text"
         );
         ensure!(
             aliases.insert(crate::unicode_case::ordinal_key(name)),
             "Checkpoint tree contains case aliases"
         );
-        let mut parent = path.parent();
-        while let Some(p) = parent.filter(|p| !p.as_os_str().is_empty()) {
+        // `name` is canonical `/`-separated text (checked above), so its ancestors
+        // are its `/` prefixes, exactly as the tree records them on every platform.
+        let mut rest = name.as_str();
+        while let Some((parent, _)) = rest.rsplit_once('/') {
             ensure!(
-                matches!(
-                    tree.entries
-                        .get(p.to_str().context("Non-UTF8 checkpoint path")?),
-                    Some(Entry::Directory { .. })
-                ),
+                matches!(tree.entries.get(parent), Some(Entry::Directory { .. })),
                 "Checkpoint file ancestor or missing directory entry"
             );
-            parent = p.parent();
+            rest = parent;
         }
         match entry {
             Entry::Directory { mode } => valid_mode(mode)?,

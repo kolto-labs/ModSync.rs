@@ -1,0 +1,159 @@
+name: Full real-asset filesystem parity
+
+# Dispatch only on a trusted, pre-provisioned Linux runner. Baselines are copied
+# separately for every lane. No source game/mod tree is passed to an installer.
+# Run `python3 tools/fullrun.py --help` for the GUI-driver request contract.
+# Keep legal/private game and mod assets on the runner. Uploaded artifacts contain
+# hashes, relative paths, guide identities and installer logs, so select an
+# appropriately private repository and artifact retention period.
+on:
+  workflow_dispatch:
+    inputs:
+      runner_labels:
+        description: JSON labels for the provisioned Linux runner with real assets and build dependencies
+        type: string
+        default: '["self-hosted", "Linux", "modsync-fullrun"]'
+        required: true
+      guide:
+        description: Absolute runner path to the reviewed executable guide
+        type: string
+        required: true
+      game_root:
+        description: Absolute runner path to the complete clean game baseline (read-only input)
+        type: string
+        required: true
+      mods_root:
+        description: Absolute runner path to the real mod archive/executable baseline (read-only input)
+        type: string
+        required: true
+      supplied_runner:
+        description: 'JSON supplied GUI driver config, e.g. {"command":["/opt/modsync/driver","--requests","{request_dir}"],"xvfb":"/usr/bin/Xvfb","wine":"/usr/bin/wine","wineserver":"/usr/bin/wineserver"}'
+        type: string
+        required: true
+      holopatcher:
+        description: Optional absolute runner path to a trusted HoloPatcher executable (enables third install lane)
+        type: string
+        default: ''
+      selection_args:
+        description: JSON array of selection flags/values shared by every lane, e.g. ["--use-file-selection"]
+        type: string
+        default: '["--use-file-selection"]'
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fullrun-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  RUSTUP_TOOLCHAIN: 1.95.0
+  FULLRUN_GUIDE: ${{ inputs.guide }}
+  FULLRUN_GAME_ROOT: ${{ inputs.game_root }}
+  FULLRUN_MODS_ROOT: ${{ inputs.mods_root }}
+  FULLRUN_SELECTION_ARGS: ${{ inputs.selection_args }}
+
+jobs:
+  prediction:
+    runs-on: ${{ fromJSON(inputs.runner_labels) }}
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Build production CLI
+        run: cargo build --locked --no-default-features --lib --bin modsync -j2
+      - name: Predict the complete guide before installation lanes
+        shell: bash
+        run: |
+          python3 tools/fullrun.py --lane predict \
+            --binary "$PWD/target/debug/modsync" \
+            --guide "$FULLRUN_GUIDE" --game-root "$FULLRUN_GAME_ROOT" \
+            --mods-root "$FULLRUN_MODS_ROOT" \
+            --selection-args-json "$FULLRUN_SELECTION_ARGS" \
+            --work-dir "$RUNNER_TEMP/modsync-fullrun-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT-predict" \
+            --output "$GITHUB_WORKSPACE/fullrun-evidence/predict"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fullrun-predict-${{ github.run_id }}-${{ github.run_attempt }}
+          path: fullrun-evidence/predict
+          if-no-files-found: error
+          retention-days: 7
+
+  install:
+    # All install lanes require successful prediction and artifact upload.
+    needs: prediction
+    runs-on: ${{ fromJSON(inputs.runner_labels) }}
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        lane: ${{ fromJSON(inputs.holopatcher != '' && '["supplied", "ody-patcher", "holo-patcher"]' || '["supplied", "ody-patcher"]') }}
+    env:
+      FULLRUN_LANE: ${{ matrix.lane }}
+      FULLRUN_SUPPLIED_RUNNER: ${{ inputs.supplied_runner }}
+      FULLRUN_HOLOPATCHER: ${{ inputs.holopatcher }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: fullrun-predict-${{ github.run_id }}-${{ github.run_attempt }}
+          path: fullrun-reference/predict
+      - name: Build production CLI
+        run: cargo build --locked --no-default-features --lib --bin modsync -j2
+      - name: Install real assets on a fresh disposable copy
+        shell: bash
+        run: |
+          python3 tools/fullrun.py --lane "$FULLRUN_LANE" \
+            --binary "$PWD/target/debug/modsync" \
+            --guide "$FULLRUN_GUIDE" --game-root "$FULLRUN_GAME_ROOT" \
+            --mods-root "$FULLRUN_MODS_ROOT" \
+            --selection-args-json "$FULLRUN_SELECTION_ARGS" \
+            --supplied-runner-json "$FULLRUN_SUPPLIED_RUNNER" \
+            --holopatcher "$FULLRUN_HOLOPATCHER" \
+            --work-dir "$RUNNER_TEMP/modsync-fullrun-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT-$FULLRUN_LANE" \
+            --output "$GITHUB_WORKSPACE/fullrun-evidence/$FULLRUN_LANE"
+      - name: Compare predicted final bytes with installed final bytes
+        shell: bash
+        run: |
+          python3 tools/compare_filesystem_traces.py --final-only \
+            fullrun-reference/predict/trace "fullrun-evidence/$FULLRUN_LANE/trace"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fullrun-${{ matrix.lane }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: fullrun-evidence/${{ matrix.lane }}
+          if-no-files-found: error
+          retention-days: 7
+
+  compare:
+    if: always() && needs.prediction.result == 'success'
+    needs: [prediction, install]
+    runs-on: ${{ fromJSON(inputs.runner_labels) }}
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: fullrun-supplied-${{ github.run_id }}-${{ github.run_attempt }}
+          path: fullrun-reference/supplied
+      - uses: actions/download-artifact@v4
+        with:
+          name: fullrun-ody-patcher-${{ github.run_id }}-${{ github.run_attempt }}
+          path: fullrun-reference/ody-patcher
+      - name: Compare every native step with the real supplied-installer baseline
+        run: python3 tools/compare_filesystem_traces.py fullrun-reference/supplied/trace fullrun-reference/ody-patcher/trace
+      - uses: actions/download-artifact@v4
+        if: always() && inputs.holopatcher != ''
+        with:
+          name: fullrun-holo-patcher-${{ github.run_id }}-${{ github.run_attempt }}
+          path: fullrun-reference/holo-patcher
+      - name: Compare every HoloPatcher step with the real supplied-installer baseline
+        if: always() && inputs.holopatcher != ''
+        run: python3 tools/compare_filesystem_traces.py fullrun-reference/supplied/trace fullrun-reference/holo-patcher/trace

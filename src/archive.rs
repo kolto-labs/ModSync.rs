@@ -219,7 +219,9 @@ fn sevenz_unix_mode(has_attributes: bool, attributes: u32) -> Option<u32> {
 
 /// Permission bits applied to an extracted file: whatever the archive asked for,
 /// but never without owner read/write, so later install steps can read, move and
-/// replace the file.
+/// replace the file. Only Unix applies permission bits, so other targets compile
+/// it for the unit test alone.
+#[cfg(any(unix, test))]
 pub(crate) fn extracted_file_mode(mode: u32) -> u32 {
     (mode & 0o777) | 0o600
 }

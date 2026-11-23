@@ -240,9 +240,10 @@ pub fn resolve(guide: &Guide, nexus_key: Option<String>, cancelled: &AtomicBool)
     report.cancelled |= cancelled.load(Ordering::Acquire);
     Ok(report)
 }
+/// A provider file name is literal: `[` and `]` are ordinary characters, as at install.
 fn checked(name: &str) -> Result<&str> {
     ensure!(
-        name.len() <= 255 && !name.contains(['*', '?', '[', ']']),
+        name.len() <= 255 && !name.contains(['*', '?']),
         "Invalid filename"
     );
     download::one_component(name)

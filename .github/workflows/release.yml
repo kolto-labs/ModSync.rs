@@ -1,0 +1,282 @@
+name: Release
+# Builds every packaged target through the existing package workflow, publishes
+# a GitHub release with those packages, then (optionally) uploads the Windows,
+# Linux and macOS packages to Nexus Mods.
+#
+# Start it either way:
+#   - Actions > Release > Run workflow, entering a version such as 0.2.0, or
+#   - push a tag such as v0.2.0.
+#
+# Nexus Mods publishing is skipped, not failed, unless the repository has the
+# NEXUSMODS_API_KEY secret and at least one per-platform file group variable.
+# See .github/RELEASING.md.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to release (three numbers, for example 0.2.0)
+        required: true
+        type: string
+      prerelease:
+        description: Mark the GitHub release as a pre-release
+        type: boolean
+        default: true
+      nexus:
+        description: Also publish to Nexus Mods when it is configured
+        type: boolean
+        default: true
+  push:
+    tags: ['v[0-9]+.[0-9]+.[0-9]+']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.resolve.outputs.version }}
+      tag: ${{ steps.resolve.outputs.tag }}
+      sha: ${{ steps.resolve.outputs.sha }}
+      prerelease: ${{ steps.resolve.outputs.prerelease }}
+      nexus: ${{ steps.resolve.outputs.nexus }}
+    steps:
+      - name: Resolve version and commit
+        id: resolve
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          EVENT: ${{ github.event_name }}
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_PRERELEASE: ${{ inputs.prerelease }}
+          INPUT_NEXUS: ${{ inputs.nexus }}
+          REF_NAME: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+        run: |
+          if [ "$EVENT" = push ]; then
+            VERSION="${REF_NAME#v}"
+            PRERELEASE=true
+            NEXUS=true
+          else
+            VERSION="${INPUT_VERSION#v}"
+            PRERELEASE="$INPUT_PRERELEASE"
+            NEXUS="$INPUT_NEXUS"
+          fi
+          # The package scripts and Windows resources need exactly three numbers.
+          if ! printf '%s' "$VERSION" | grep -Eq '^(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})$'; then
+            echo "::error::Version must be three numbers such as 0.2.0, got '$VERSION'."
+            exit 1
+          fi
+          TAG="v$VERSION"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "::error::A release named $TAG already exists. Pick a new version."
+            exit 1
+          fi
+          {
+            echo "version=$VERSION"
+            echo "tag=$TAG"
+            echo "sha=$SHA"
+            echo "prerelease=$PRERELEASE"
+            echo "nexus=$NEXUS"
+          } >> "$GITHUB_OUTPUT"
+          echo "Releasing $TAG from $SHA" >> "$GITHUB_STEP_SUMMARY"
+
+  package:
+    needs: prepare
+    permissions:
+      contents: read
+    uses: ./.github/workflows/package-manual.yml
+    with:
+      head_sha: ${{ needs.prepare.outputs.sha }}
+      version: ${{ needs.prepare.outputs.version }}
+
+  github-release:
+    needs: [prepare, package]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TAG: ${{ needs.prepare.outputs.tag }}
+      SHA: ${{ needs.prepare.outputs.sha }}
+      PRERELEASE: ${{ needs.prepare.outputs.prerelease }}
+    steps:
+      - name: Download the packaged targets
+        uses: actions/download-artifact@v4
+        with:
+          pattern: modsync-${{ needs.prepare.outputs.sha }}-*
+          path: lanes
+
+      - name: Collect release files
+        run: |
+          mkdir release
+          # Each lane keeps its packages and package receipts under packages/.
+          # Build receipts and raw binaries stay in the workflow artifacts only.
+          find lanes -path '*/packages/*' -type f \( -name '*.zip' -o -name '*.tar.gz' -o -name '*.receipt.json' \) \
+            -exec cp -n {} release/ \;
+          count=$(find release -type f \( -name '*.zip' -o -name '*.tar.gz' \) | wc -l)
+          if [ "$count" -eq 0 ]; then
+            echo '::error::The package workflow produced no packages.'
+            exit 1
+          fi
+          (cd release && find . -maxdepth 1 -type f \( -name '*.zip' -o -name '*.tar.gz' \) -printf '%f\n' | sort | xargs sha256sum > SHA256SUMS.txt)
+          ls -l release
+
+      - name: Publish the GitHub release
+        run: |
+          flags=(--target "$SHA" --title "ModSync $TAG" --generate-notes)
+          [ "$PRERELEASE" = true ] && flags+=(--prerelease)
+          gh release create "$TAG" "${flags[@]}" release/*
+          echo "Published $TAG with $(ls release | wc -l) files." >> "$GITHUB_STEP_SUMMARY"
+
+  nexus:
+    name: Nexus Mods (${{ matrix.label }})
+    needs: [prepare, github-release]
+    if: needs.prepare.outputs.nexus == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      # One page-version update at a time, while still letting the other
+      # platforms publish if one upload fails.
+      max-parallel: 1
+      matrix:
+        include:
+          - platform: windows
+            label: Windows
+            target: x86_64-pc-windows-msvc
+            file_id_variable: NEXUS_WINDOWS_FILE_ID
+            display_name: ModSync (Windows)
+          - platform: linux
+            label: Linux x86_64
+            target: x86_64-unknown-linux-gnu
+            file_id_variable: NEXUS_LINUX_FILE_ID
+            display_name: ModSync (Linux x86_64)
+          - platform: macos
+            label: macOS Apple Silicon
+            target: aarch64-apple-darwin
+            file_id_variable: NEXUS_MACOS_FILE_ID
+            display_name: ModSync (macOS Apple Silicon)
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TAG: ${{ needs.prepare.outputs.tag }}
+      VERSION: ${{ needs.prepare.outputs.version }}
+      TARGET: ${{ matrix.target }}
+      PLATFORM: ${{ matrix.platform }}
+      MARKER: nexus-published-${{ matrix.platform }}.json
+    steps:
+      # Secrets cannot appear in a job-level `if`, so this step decides whether
+      # the rest of the job runs. Missing configuration is a skip, not a failure,
+      # so forks and repositories without a Nexus page still release cleanly.
+      - name: Check Nexus Mods configuration
+        id: config
+        env:
+          NEXUSMODS_API_KEY: ${{ secrets.NEXUSMODS_API_KEY }}
+          FILE_ID: ${{ vars[matrix.file_id_variable] }}
+          FILE_ID_VARIABLE: ${{ matrix.file_id_variable }}
+          ALL_IDS: ${{ vars.NEXUS_WINDOWS_FILE_ID }} ${{ vars.NEXUS_LINUX_FILE_ID }} ${{ vars.NEXUS_MACOS_FILE_ID }}
+          DISPLAY_NAME: ${{ matrix.display_name }}
+        run: |
+          skip() {
+            echo "::notice::Skipping Nexus Mods for $PLATFORM: $1"
+            echo "Nexus Mods ($PLATFORM) skipped: $1" >> "$GITHUB_STEP_SUMMARY"
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          }
+          [ -n "$NEXUSMODS_API_KEY" ] || skip "secret NEXUSMODS_API_KEY is not set."
+          [ -n "$FILE_ID" ] || skip "variable $FILE_ID_VARIABLE is not set."
+          # From here on the maintainer clearly meant to publish, so bad values fail.
+          if ! [[ "$FILE_ID" =~ ^[1-9][0-9]*$ ]]; then
+            echo "::error::$FILE_ID_VARIABLE must be a Nexus file group ID (a number)."
+            exit 1
+          fi
+          if [ "$(printf '%s\n' $ALL_IDS | grep -cx "$FILE_ID")" -gt 1 ]; then
+            echo "::error::Each platform needs its own Nexus file group, or one upload would archive another."
+            exit 1
+          fi
+          if [ "${#DISPLAY_NAME}" -gt 50 ]; then
+            echo '::error::Nexus file display names must be 50 characters or fewer.'
+            exit 1
+          fi
+          if gh release view "$TAG" --json assets | jq -e --arg m "$MARKER" 'any(.assets[]; .name == $m)' >/dev/null; then
+            skip "$TAG already reached Nexus Mods."
+          fi
+          echo "enabled=true" >> "$GITHUB_OUTPUT"
+
+      - name: Download the released package
+        if: steps.config.outputs.enabled == 'true'
+        run: |
+          gh release download "$TAG" --dir dl --pattern "modsync-$VERSION-$TARGET-*-prerelease.*"
+          rm -f dl/*.receipt.json
+          ls -l dl
+
+      # Nexus Mods takes ZIP archives. Windows and macOS packages already are;
+      # the Linux tar.gz is unpacked and zipped again, keeping file permissions.
+      - name: Build the Nexus archive
+        if: steps.config.outputs.enabled == 'true'
+        run: |
+          pkg=$(find dl -maxdepth 1 -type f \( -name '*.zip' -o -name '*.tar.gz' \) | head -n1)
+          [ -n "$pkg" ] || { echo "::error::No $TARGET package in release $TAG."; exit 1; }
+          out="$PWD/modsync-$VERSION-$PLATFORM-nexus.zip"
+          case "$pkg" in
+            *.zip) cp "$pkg" "$out" ;;
+            *.tar.gz)
+              mkdir unpacked
+              tar -xzf "$pkg" -C unpacked
+              (cd unpacked && zip -qr -X "$out" .)
+              ;;
+          esac
+          echo "archive=$out" >> "$GITHUB_ENV"
+          {
+            echo "ModSync $VERSION for $PLATFORM."
+            echo
+            echo "Installs KOTOR and KOTOR 2 mod builds from ModSync instruction files."
+            echo "Release notes and checksums: https://github.com/$GH_REPO/releases/tag/$TAG"
+          } > description.txt
+
+      - name: Read the file description
+        if: steps.config.outputs.enabled == 'true'
+        id: description
+        run: |
+          delimiter="NEXUS_$(cat /proc/sys/kernel/random/uuid)"
+          {
+            echo "body<<$delimiter"
+            cat description.txt
+            echo "$delimiter"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Upload to Nexus Mods
+        if: steps.config.outputs.enabled == 'true'
+        id: upload
+        uses: Nexus-Mods/upload-action@v1.0.0-beta.11
+        with:
+          api_key: ${{ secrets.NEXUSMODS_API_KEY }}
+          file_id: ${{ vars[matrix.file_id_variable] }}
+          filename: ${{ env.archive }}
+          version: ${{ env.VERSION }}
+          display_name: ${{ matrix.display_name }}
+          description: ${{ steps.description.outputs.body }}
+          category: main
+          allow_mod_manager_download: false
+          primary_mod_manager_download: false
+          archive_existing_version: true
+          update_mod_version: true
+
+      - name: Record the Nexus upload so a retry does not repeat it
+        if: steps.config.outputs.enabled == 'true'
+        env:
+          NEXUS_VERSION_ID: ${{ steps.upload.outputs.version_id }}
+          FILE_ID: ${{ vars[matrix.file_id_variable] }}
+        run: |
+          test -n "$NEXUS_VERSION_ID" || { echo '::error::Nexus Mods returned no version ID.'; exit 1; }
+          jq -n --arg version "$VERSION" --arg platform "$PLATFORM" --arg file "$FILE_ID" --arg id "$NEXUS_VERSION_ID" \
+            '{version: $version, platform: $platform, nexusFileId: $file, nexusVersionId: $id}' > "$MARKER"
+          gh release upload "$TAG" "$MARKER" --clobber
+          echo "Published ModSync $VERSION ($PLATFORM) to Nexus file group $FILE_ID." >> "$GITHUB_STEP_SUMMARY"

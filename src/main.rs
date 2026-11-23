@@ -7,6 +7,7 @@ mod execute_runner_cli;
 mod maintenance_cli;
 mod profile_cli;
 mod protocol_cli;
+mod provided_cli;
 use anyhow::{Context, Result, ensure};
 use clap::{Args, CommandFactory, FromArgMatches, Parser, Subcommand, ValueEnum};
 use modsync::{Engine, Guide, PatcherEngine, Settings, download, paths::Roots, recovery};
@@ -329,6 +330,8 @@ enum Action {
     Selection(SelectionArgs),
     /// Simulate instructions without changing the game or mod directory.
     Validate(InstallArgs),
+    /// Predict the ordered final filesystem without changing game or mod roots.
+    Predict(InstallArgs),
     /// Report conflicting simulated game-file writes as JSON, without installing.
     Conflicts(InstallArgs),
     /// Validate, snapshot, then install in dependency order. Stop at the first failure.
@@ -729,6 +732,11 @@ enum ValidationOutput {
 struct InstallArgs {
     #[command(flatten)]
     execute_runner: execute_runner_cli::ExecuteRunnerArgs,
+    /// Write SHA-256 inventories at each reached instruction to a fresh directory.
+    #[arg(long)]
+    filesystem_trace: Option<PathBuf>,
+    #[command(flatten)]
+    provided: provided_cli::ProvidedArgs,
     /// Suppress post-download configuration; unresolved installers still block installation.
     #[arg(long)]
     fomod_skip: bool,
@@ -822,14 +830,14 @@ struct InstallArgs {
     /// Trust this guide to run programs with your user permissions.
     #[arg(long)]
     allow_processes: bool,
-    /// Patcher executable for Patcher instructions.
+    /// External executable for Patcher instructions (overrides the linked OdyPatcher default).
     #[arg(
         long,
         visible_alias = "kpatcher-path",
         visible_alias = "odypatcher-path"
     )]
     patcher: Option<PathBuf>,
-    /// Patcher backend; mod-packaged runs each authenticated shipped installer GUI.
+    /// Patcher backend (saved preference, otherwise linked OdyPatcher); mod-packaged runs each authenticated shipped installer GUI.
     #[arg(long, value_enum, ignore_case = true)]
     patcher_engine: Option<PatcherEngineArg>,
     /// Existing scratch folder outside the game and mod trees (defaults to system temp).
@@ -1035,6 +1043,13 @@ fn apply_selection(
 }
 
 /// Load and order a guide without mutating authored selection when requested.
+/// Roots for recovery state lookups. Recovery state is keyed by the game root
+/// that `install` used, and `Settings::new` resolves a Steam `steamassets` layout
+/// first, so restore and completion summaries must resolve it the same way.
+fn recovery_roots(source_dir: &std::path::Path, game_dir: &std::path::Path) -> Result<Roots> {
+    Roots::new(source_dir, &modsync::game::resolve_install_root(game_dir))
+}
+
 /// Rooted selection and profiles preserve the flags; legacy rootless validation
 /// retains its reference file-loader default. Ordering checks remain unchanged.
 fn load_validation_guide(input: &std::path::Path, preserve_selection: bool) -> Result<Guide> {
@@ -1546,11 +1561,6 @@ fn load_resolved_archives(
                 !filename.is_empty()
                     && filename.len() <= 255
                     && !filename.contains(['/', '\\', '*', '?'])
-                    && (!filename.contains(['[', ']'])
-                        || modsync::archive_generation::reviewed_manual::allows_literal_filename(
-                            &binding.component_guid,
-                            filename,
-                        )?)
                     && !filename.chars().any(char::is_control)
                     && modsync::paths::literal_relative(filename)?
                         .components()
@@ -1679,6 +1689,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
         command,
         Some(
             Action::Validate(_)
+                | Action::Predict(_)
                 | Action::Install(_)
                 | Action::FetchDownloads { .. }
                 | Action::FomodInspect { .. }
@@ -2644,13 +2655,13 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
         Some(Action::Restore {
             game_dir,
             source_dir,
-        }) => recovery::restore(&Roots::new(&source_dir, &game_dir)?),
+        }) => recovery::restore(&recovery_roots(&source_dir, &game_dir)?),
         Some(Action::CompletionSummary {
             game_dir,
             source_dir,
             json,
         }) => {
-            let summary = recovery::completion_summary(&Roots::new(&source_dir, &game_dir)?)?;
+            let summary = recovery::completion_summary(&recovery_roots(&source_dir, &game_dir)?)?;
             if json {
                 println!("{}", serde_json::to_string_pretty(&summary)?);
             } else if let Some(summary) = summary {
@@ -2743,8 +2754,12 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             // C1/C4: the loaded guide stays pristine for `record`/`save`; selection runs on
             // a separate, transient clone that plan/run/the Peer adapter/`fomod_followups`
             // see instead. No selection change from this run is ever written back.
+            // The clone drafts prose Markdown as `selection`, `validate`, `install` and the
+            // desktop do, so the option GUIDs they print select here and planning sees the
+            // same drafted instructions; drafts are never recorded into the guide.
             let mut guide = Guide::load_preserving_selection(&input)?;
             let mut execution = guide.clone();
+            execution.draft_for_install(&input);
             let has_selector = !select.is_empty()
                 || !option.is_empty()
                 || !selection_flags.select_through_tier.is_empty()
@@ -2914,14 +2929,27 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             };
             // Execution only: dry-run returned above without network discovery. A
             // discovery error after a signal exits 130, as planning and the run do.
+            // Discovery lists every provider page and rereads every archive already in
+            // the mod folder before the first acquisition event, so it reports progress.
             let plan = finish_acquisition_result(
-                orchestrator::discover_with_loopback_ca(
+                orchestrator::discover_observed(
                     &execution,
                     &plan,
                     &plan_options,
                     &run_settings,
                     &cancelled,
                     loopback_ca.as_ref(),
+                    // Human progress on stderr: stdout keeps the C5 contract of
+                    // acquisition events and one summary.
+                    |progress| {
+                        let what = match progress.stage {
+                            orchestrator::DiscoveryStage::Pages => "Checking download pages",
+                            orchestrator::DiscoveryStage::ExistingFiles => {
+                                "Checking files already in the mods folder"
+                            }
+                        };
+                        eprintln!("{what}: {} of {}", progress.done, progress.total);
+                    },
                 ),
                 &cancelled,
             )?;
@@ -3374,10 +3402,19 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             }
             Ok(())
         }
-        Some(action @ (Action::Install(_) | Action::Validate(_) | Action::Conflicts(_))) => {
+        Some(
+            action @ (Action::Install(_)
+            | Action::Validate(_)
+            | Action::Predict(_)
+            | Action::Conflicts(_)),
+        ) => {
+            let predict = matches!(action, Action::Predict(_));
             let install = matches!(action, Action::Install(_));
             let conflicts = matches!(action, Action::Conflicts(_));
-            let (Action::Install(args) | Action::Validate(args) | Action::Conflicts(args)) = action
+            let (Action::Install(args)
+            | Action::Validate(args)
+            | Action::Predict(args)
+            | Action::Conflicts(args)) = action
             else {
                 unreachable!()
             };
@@ -3397,6 +3434,19 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             let mut validation_emitted = false;
             let dispatch_cancelled = modsync::p2p::stop_signal_flag()?;
             let dispatch = (|| -> Result<()> {
+                ensure!(
+                    !predict
+                        || !(args.download
+                            || pipeline_mode
+                            || args.managed
+                            || component_checkpoints
+                            || args.phase != PhaseArg::All),
+                    "Prediction requires an all-phase read-only run without acquisition, managed deployment, checkpoints or validation reports"
+                );
+                ensure!(
+                    args.filesystem_trace.is_none() || install || predict,
+                    "--filesystem-trace requires predict or install"
+                );
                 let refused = [
                     (args.skip_validation, "--skip-validation"),
                     (
@@ -3456,6 +3506,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                     ensure!(input.is_file(), "Input file not found: {}", input.display());
                 }
                 let basic_validation = !install
+                    && !predict
                     && !conflicts
                     && args.phase == PhaseArg::All
                     && !args.full
@@ -3679,6 +3730,15 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                     &settings.cancelled,
                 )?;
                 let mut guide = prepared.guide;
+                settings.provided_installer = args.provided.resolve(args.allow_processes)?;
+                ensure!(
+                    settings.provided_installer.is_none() || component_checkpoints,
+                    "Supplied installer execution requires --component-checkpoints"
+                );
+                ensure!(
+                    install || settings.provided_installer.is_none(),
+                    "Supplied installer configuration requires install"
+                );
                 settings.allow_processes = args.allow_processes;
                 settings.execute_runner = args.execute_runner.build()?;
                 settings.patcher = args.patcher.or_else(|| {
@@ -3800,7 +3860,24 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                         println!("{} / {}: {}", event.component, event.step, event.message);
                     }
                 };
-                if conflicts {
+                if let Some(directory) = args.filesystem_trace {
+                    engine = engine.with_filesystem_trace(&directory)?;
+                }
+                if predict {
+                    ensure!(
+                        guide
+                            .components
+                            .iter()
+                            .filter(|component| component.is_selected)
+                            .all(|component| !component.instructions.is_empty()),
+                        "Selected components need executable instructions before installation prediction"
+                    );
+                    println!(
+                        "{}",
+                        serde_json::to_string_pretty(&engine.predict(&guide)?)?
+                    );
+                    Ok(())
+                } else if conflicts {
                     let report = if args.phase == PhaseArg::Remaining {
                         engine.analyze_conflicts_remaining(&guide, &prepared.completed)?
                     } else {

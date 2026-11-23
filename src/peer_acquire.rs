@@ -23,12 +23,12 @@ use std::{
 
 /// A file name that is safe to create inside a ModSync folder: one path component, no
 /// separators, no drive or parent references. Mirrors `p2p`'s private `safe_file_name`
-/// (built from the same public `paths::relative`), since that helper is not exported.
+/// (built from the same public `paths::literal_relative`), since that helper is not exported.
 fn safe_component_name(name: &str) -> bool {
     !name.is_empty()
         && name.len() <= 255
         && !name.contains(['/', '\\'])
-        && crate::paths::relative(name, false)
+        && crate::paths::literal_relative(name)
             .is_ok_and(|path| path.as_os_str() == std::ffi::OsStr::new(name))
 }
 

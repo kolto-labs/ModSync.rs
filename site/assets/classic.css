@@ -1,0 +1,144 @@
+/* Classic restores the original PR #83 palette and type pairing.
+   Only visual styling changes; content and controls stay shared. */
+@font-face {
+  font-family: 'Instrument Sans'; src: url('fonts/instrument-sans-regular.woff2') format('woff2');
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Instrument Sans'; src: url('fonts/instrument-sans-medium.woff2') format('woff2');
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Instrument Sans'; src: url('fonts/instrument-sans-semibold.woff2') format('woff2');
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Instrument Serif'; src: url('fonts/instrument-serif-italic.woff2') format('woff2');
+  font-weight: 400; font-style: italic; font-display: swap;
+}
+
+:root[data-site-style='classic'] {
+  --font-ui: 'Instrument Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: var(--font-ui);
+  --font-serif: 'Instrument Serif', Georgia, serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SFMono-Regular', Consolas, Menlo, monospace;
+  --radius: 4px;
+  --radius-panel: 8px;
+  --side-w: 288px;
+  --gutter: clamp(16px, 5vw, 56px);
+  --max: 1120px;
+
+  color-scheme: dark;
+  --canvas: #14110d;
+  --surface: #1b1813;
+  --rail: #17140f;
+  --sunken: #0f0d0a;
+  --line: #2d2821;
+  --line-strong: #40392f;
+  --ink: #f4efe6;
+  --text: #ede8df;
+  --muted: #a39a8c;
+  --faint: #7f7669;
+  --accent: #d9714a;
+  --accent-ink: #ec8d66;
+  --accent-fg: #14110d;
+  --selected: #2b1f17;
+  --hover: #231f19;
+  --glow: rgba(217, 113, 74, 0.16);
+  --star: rgba(237, 232, 223, 0.5);
+  --ok: #6fc28f;
+  --warn: #e2b04f;
+  --code-bg: #0e0c09;
+  --code-fg: #ede8df;
+  --code-muted: #8f877b;
+  --code-line: #2d2821;
+  --action: var(--accent);
+  --action-ink: var(--accent-fg);
+}
+:root[data-site-style='classic'][data-theme='light'] {
+  /* Light: a warm parchment version of the same palette. */
+  color-scheme: light;
+  --canvas: #f5f0e6;
+  --surface: #fffcf6;
+  --rail: #efe8db;
+  --sunken: #e9e1d2;
+  --line: #e0d6c4;
+  --line-strong: #c9bda7;
+  --ink: #1e1a14;
+  --text: #2b251d;
+  --muted: #655c4f;
+  --faint: #8a8070;
+  --accent: #b4532c;
+  --accent-ink: #9f4723;
+  --accent-fg: #ffffff;
+  --selected: #f4e2d5;
+  --hover: #ebe3d4;
+  --glow: rgba(180, 83, 44, 0.14);
+  --star: rgba(43, 37, 29, 0.22);
+  --ok: #2f7a4f;
+  --warn: #8a5a00;
+  --code-bg: #17130e;
+  --code-fg: #ede8df;
+  --code-muted: #a39a8c;
+  --code-line: #2c261e;
+}
+
+:root[data-site-style='classic'] :is(h1, h2, h3) {
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+:root[data-site-style='classic'] :is(.mp-top, .docs-side) { border-top: 0; }
+:root[data-site-style='classic'] .mp-head h1 {
+  font: 600 clamp(30px, 4vw, 40px)/1.1 var(--font-ui);
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  text-shadow: none;
+}
+:root[data-site-style='classic'] .mp-deck {
+  font: italic 400 clamp(28px, 4vw, 36px)/1.3 var(--font-serif);
+  color: var(--accent-ink);
+}
+:root[data-site-style='classic'] .mp-crumbs {
+  text-transform: none;
+  letter-spacing: 0.02em;
+  font-size: 12px;
+  color: var(--muted);
+}
+:root[data-site-style='classic'] .mark { font: 600 16px/1.5 var(--font-ui); }
+:root[data-site-style='classic'] .mp-top nav a { font: 400 14px/1.5 var(--font-ui); }
+:root[data-site-style='classic'] .logo { border-radius: 5px; }
+:root[data-site-style='classic'] :is(.card, .btn) { box-shadow: none; }
+:root[data-site-style='classic'] :is(.card, .mp-stage) { border-radius: var(--radius-panel); }
+:root[data-site-style='classic'] .btn { border-radius: var(--radius); }
+:root[data-site-style='classic'] :is(.btn, .btn.big) { font: 600 14px/1.5 var(--font-ui); }
+:root[data-site-style='classic'] .mp-thumbs img { border-radius: 6px; }
+:root[data-site-style='classic'] :is(.mp-body h2, .section-label) {
+  font: 500 24px/1.4 var(--font-ui);
+}
+:root[data-site-style='classic'] .mp-body h3 {
+  color: var(--muted);
+  font: 600 13px/1.5 var(--font-ui);
+}
+:root[data-site-style='classic'] .mp-body .steps li::before {
+  font: 600 18px/1.5 var(--font-ui);
+}
+:root[data-site-style='classic'] .docs-brand { font: 600 15px/1.5 var(--font-ui); }
+:root[data-site-style='classic'] :is(.docs-nav h2, .docs-outline h2) { font-weight: 600; }
+:root[data-site-style='classic'] .docs-article h1 {
+  font: 500 clamp(32px, 4.4vw, 44px)/1.08 var(--font-ui);
+  letter-spacing: -0.03em;
+}
+:root[data-site-style='classic'] .docs-article h1 .classic-serif {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-style: italic;
+  letter-spacing: -0.01em;
+  color: var(--accent-ink);
+}
+:root[data-site-style='classic'] .docs-article h2 { font: 500 24px/1.3 var(--font-ui); }
+:root[data-site-style='classic'] pre.code .s { color: #c8d6a0; }
+:root[data-site-style='classic'] pre.code .k { color: #ec8d66; }
+@media (max-width: 600px) {
+  :root[data-site-style='classic'] .mark { font-size: 14px; }
+  :root[data-site-style='classic'] :is(.section-label, .mp-body h2, .docs-article h2) { font-size: 21px; }
+}

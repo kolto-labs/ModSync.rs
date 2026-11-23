@@ -112,20 +112,30 @@ fn binding(roots: &Roots) -> Result<RootBinding> {
 }
 fn safe_namespace(roots: &Roots, identity: &Identity) -> Result<()> {
     use std::os::windows::fs::MetadataExt;
-    for ancestor in recovery::state_dir(roots).ancestors() {
+    let state = recovery::state_dir(roots);
+    for ancestor in state.ancestors() {
         match fs::symlink_metadata(ancestor) {
             Ok(metadata) => {
                 ensure!(
                     metadata.is_dir() && metadata.file_attributes() & 0x400 == 0,
                     "Unsafe external process namespace"
                 );
-                security::check_ancestor(ancestor, identity)?;
+                if ancestor == state {
+                    security::check_ancestor(ancestor, identity)?;
+                } else {
+                    security::check_outer_ancestor(ancestor, identity)?;
+                }
             }
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
             Err(error) => return Err(error.into()),
         }
     }
     Ok(())
+}
+/// Creates the game-scoped recovery directory privately for the current user, so
+/// the process fence never depends on the game folder's inherited permissions.
+pub(crate) fn create_state_dir(dir: &Path) -> Result<()> {
+    security::create_private_directory(dir, &Identity::current()?)
 }
 fn path(roots: &Roots) -> PathBuf {
     recovery::state_dir(roots).join(FILE_NAME)

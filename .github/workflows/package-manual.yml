@@ -89,7 +89,10 @@ jobs:
           sudo apt-get install -y --no-install-recommends pkg-config libssl-dev libwayland-dev libxkbcommon-dev libx11-dev libxi-dev libxrandr-dev libxcursor-dev libgl1-mesa-dev
       - name: Prepare locked dependency cache
         shell: bash
-        run: cargo +1.95.0 fetch --locked --target "$BUILD_TARGET"
+        # Fetch for every platform, not only BUILD_TARGET: the offline build also
+        # compiles build scripts for the runner itself, and a 32-bit Windows build
+        # on a 64-bit runner needs the x86_64 crates too.
+        run: cargo +1.95.0 fetch --locked
       - name: Produce build receipt and assemble package
         shell: python
         run: |

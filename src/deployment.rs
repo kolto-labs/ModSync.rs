@@ -213,8 +213,8 @@ impl Service {
 
     pub fn resolve_uninitialized(game: &Path, staging: &Path, root: &Path) -> Result<Self> {
         let game = fs::canonicalize(game)?;
-        let staging = managed_path(staging, true)?;
-        let root = managed_path(root, true)?;
+        let staging = canonical_spelling(managed_path(staging, true)?)?;
+        let root = canonical_spelling(managed_path(root, true)?)?;
         ensure!(
             !staging.starts_with(&game)
                 && !game.starts_with(&staging)
@@ -364,7 +364,7 @@ impl Service {
             game.is_dir() && staging.is_dir(),
             "Game and staging paths must be directories"
         );
-        let root = std::path::absolute(root)?;
+        let root = canonical_spelling(std::path::absolute(root)?)?;
         let service = Self {
             game,
             staging,
@@ -2229,6 +2229,13 @@ fn managed_path(path: &Path, directory: bool) -> Result<PathBuf> {
     let mut current = PathBuf::new();
     for part in absolute.components() {
         current.push(part.as_os_str());
+        // A bare Windows prefix (`C:`, `\\?\C:`, `\\server\share`) names a drive's
+        // current directory or the volume device, not a directory on the path, and
+        // querying the device fails with ERROR_INVALID_FUNCTION. The root directory
+        // that follows it is checked like every other ancestor.
+        if matches!(part, std::path::Component::Prefix(_)) {
+            continue;
+        }
         match fs::symlink_metadata(&current) {
             Ok(meta) => {
                 ensure!(!meta.file_type().is_symlink(), "Managed path is a symlink");
@@ -2254,4 +2261,41 @@ fn managed_path(path: &Path, directory: bool) -> Result<PathBuf> {
         }
     }
     Ok(absolute)
+}
+
+/// The spelling the checkpoint store binds participants to: on Windows the verbatim
+/// (`\\?\C:\...`) canonical form of the deepest existing ancestor, with any missing
+/// suffix appended unchanged. The game directory is already held in this form, so
+/// staging and manifest roots given as ordinary `C:\...` paths must match it.
+/// Elsewhere the absolute path is already that spelling.
+fn canonical_spelling(path: PathBuf) -> Result<PathBuf> {
+    #[cfg(windows)]
+    {
+        let mut missing = Vec::new();
+        let mut existing = path.as_path();
+        loop {
+            match fs::symlink_metadata(existing) {
+                Ok(_) => break,
+                Err(error) if error.kind() == ErrorKind::NotFound => {
+                    missing.push(
+                        existing
+                            .file_name()
+                            .context("Managed path lacks an existing ancestor")?
+                            .to_os_string(),
+                    );
+                    existing = existing
+                        .parent()
+                        .context("Managed path lacks an existing ancestor")?;
+                }
+                Err(error) => return Err(error.into()),
+            }
+        }
+        let mut canonical = fs::canonicalize(existing)?;
+        for part in missing.into_iter().rev() {
+            canonical.push(part);
+        }
+        Ok(canonical)
+    }
+    #[cfg(not(windows))]
+    Ok(path)
 }

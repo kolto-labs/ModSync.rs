@@ -1,109 +1,126 @@
-# ModSync.rs
+# ModSync
 
-A Rust desktop app and CLI for installing mods from ModSync instruction files. The desktop wizard and CLI share the same selection, validation, archive, and installation engine. No .NET runtime is required.
+Your build. In order.
 
-This is an initial implementation, not a verified replacement for every feature in the C# application. See [COMPATIBILITY.md](COMPATIBILITY.md) for the supported behavior and remaining differences.
+ModSync is a [Kolto Labs](https://koltolabs.bodecloud.workers.dev/) tool for installing Knights of the Old Republic I and II mod builds. Bring your own game, choose your mods, and follow the guide's install order, with a check before anything changes and a snapshot to restore from. The desktop app and command line share one engine for selection, validation, archives and installation. ModSync contains no mods or game files.
 
-## Run
+**Website and documentation: https://kolto-labs.github.io/ModSync.rs/**
+
+## Documentation
+
+| You want to | Read |
+|---|---|
+| Install a mod build | [Getting started](https://kolto-labs.github.io/ModSync.rs/getting-started.html), then [Walkthrough: your first build](https://kolto-labs.github.io/ModSync.rs/walkthrough-install.html) |
+| Fix a problem | [Troubleshooting](https://kolto-labs.github.io/ModSync.rs/troubleshooting.html), [Safety and recovery](https://kolto-labs.github.io/ModSync.rs/safety.html), [FAQ](https://kolto-labs.github.io/ModSync.rs/faq.html) |
+| Write or convert a guide | [Instruction files](https://kolto-labs.github.io/ModSync.rs/instruction-files.html), [Walkthrough: writing a guide](https://kolto-labs.github.io/ModSync.rs/walkthrough-authoring.html), [Format reference](https://kolto-labs.github.io/ModSync.rs/format-reference.html) |
+| Use the command line | [Command line](https://kolto-labs.github.io/ModSync.rs/cli.html) overview and the full [CLI reference](https://kolto-labs.github.io/ModSync.rs/cli-reference.html) |
+| Use the `modsync` crate | [Library API](https://kolto-labs.github.io/ModSync.rs/api.html) |
+| See what is supported | [Features and roadmap](https://kolto-labs.github.io/ModSync.rs/status.html) and [COMPATIBILITY.md](COMPATIBILITY.md), which records every supported behavior, proof boundary and known difference |
+
+The site's source is in [`site/`](site/) and deploys from `main` through `.github/workflows/pages.yml`.
+
+A Cloudflare Workers deployment is also available at [modsync-site.bodecloud.workers.dev](https://modsync-site.bodecloud.workers.dev/). The site is static HTML, CSS and JavaScript and needs no build step. To deploy the checked-out site's contents to Workers, run these commands from the repository root with Node.js and npm installed.
+
+```sh
+npx wrangler login
+npx wrangler deploy
+```
+
+The root `wrangler.jsonc` publishes only `site/`. Local preview is available with `python3 -m http.server 8000 --directory site` at `http://localhost:8000/`.
+
+## Download
+
+Packaged builds are published on the [Releases page](https://github.com/kolto-labs/ModSync.rs/releases).
+
+## Build from source
 
 Install Rust stable and a C/C++ build toolchain, then:
 
 ```sh
-git clone https://github.com/bodencrouch/ModSync.rs.git
+git clone https://github.com/kolto-labs/ModSync.rs.git
 cd ModSync.rs
-cargo run --release
+cargo run --locked --release                         # desktop app
+cargo build --locked --release --no-default-features # CLI only: ./target/release/modsync
 ```
 
-The default build includes the desktop app. Linux needs an X11 or Wayland session with OpenGL support. File dialogs use the desktop portal. Windows builds need the MSVC C++ tools; macOS needs the Xcode command-line tools. The RAR reader compiles the bundled UnRAR C++ library.
+Linux needs an X11 or Wayland session with OpenGL support, and file dialogs use the desktop portal. Windows builds need the MSVC C++ tools; macOS needs the Xcode command-line tools. The RAR reader compiles the bundled UnRAR C++ library.
 
-For a CLI-only binary:
+## Try it on sample folders
 
-```sh
-cargo build --release --no-default-features
-./target/release/modsync --help
-```
-
-## Try an isolated install
-
-Use empty sample folders. These files are demonstration data, not game assets.
+These files are demonstration data, not game assets.
 
 ```sh
 mkdir -p demo-work/game/Override demo-work/mods
 printf 'sample texture\n' > demo-work/mods/sample.tga
 printf 'old texture\n' > demo-work/game/Override/sample.tpc
-cargo run -- gui --input examples/demo.toml \
-  --game-dir demo-work/game --source-dir demo-work/mods
+cargo run -- gui --input examples/demo.toml --game-dir demo-work/game --source-dir demo-work/mods
 ```
 
-Load a guide, choose components and options, then run validation. Review the report and install. Work runs on a background thread; the Activity panel shows results and lets you request cancellation.
-
-The same install from the CLI:
+Or from the CLI:
 
 ```sh
-cargo run -- validate --input examples/demo.toml \
-  --game-dir demo-work/game --source-dir demo-work/mods --json
-cargo run -- install --input examples/demo.toml \
-  --game-dir demo-work/game --source-dir demo-work/mods
+cargo run -- validate --input examples/demo.toml --game-dir demo-work/game --source-dir demo-work/mods --json
+cargo run -- install  --input examples/demo.toml --game-dir demo-work/game --source-dir demo-work/mods
 ```
 
 The result is `game/Override/sample.tga`; the conflicting `sample.tpc` is removed.
 
-## Use existing guides
+## Common commands
 
 ```sh
 modsync list KOTOR1_Full.toml
 modsync validate --input KOTOR1_Full.toml --game-dir /path/to/game --source-dir /path/to/mods
-modsync convert instructions.toml instructions.json
+modsync install  --input KOTOR1_Full.toml --game-dir /path/to/game --source-dir /path/to/mods
+modsync restore  --game-dir /path/to/game --source-dir /path/to/mods
+modsync convert  guide.toml guide.json
 ```
 
-CLI validation and installation select all top-level components by default, matching ModSync. Use `--use-file-selection` to honor `IsSelected`, or repeat `--select NAME_OR_GUID` (or list several values after one `--select`) to select specific components. Repeat `--option GUID` to enable options. Option defaults from the guide remain intact. Dependencies must be selected explicitly; missing dependencies and incompatible selections stop validation.
+Every command and option is in the [CLI reference](https://kolto-labs.github.io/ModSync.rs/cli-reference.html).
 
-`install` does not use managed deployment unless you pass `--managed` (with `--component-checkpoints`); the settings.json toggle applies to the desktop only. `--no-managed`, the C# CLI spelling for a classic install, is accepted and cannot be combined with `--managed`.
+## Patcher backend
 
-The desktop can save selections as a TOML file. The CLI reads the same file with `--use-file-selection`.
+ModSync links [OdyPatcher](https://github.com/kolto-labs/OdyPatcher) as a library.
+Its implementation is maintained in that repository. `Cargo.toml` pins revision
+`9b9ee8d1d25e2e97c87df4521a13965ced1e0b3f`, and `Cargo.lock` records the same
+Git commit and dependency graph. Use `cargo build --locked` to preserve that graph.
+A self-contained ModSync executable includes the compiled library.
 
-For a prose Markdown guide that is the sole install authority, use `--direct-markdown`. It loads generated draft actions, skips 4GB Patcher and widescreen-only entries, and stops before game writes until every selected draft has been explicitly reviewed. It cannot be combined with component/profile/option/FOMOD selection overrides.
+Fresh settings select this linked library for `Patcher` steps, including NSS
+compilation. An OdyPatcher executable on `PATH` or in packaged resources leaves
+this default in effect. Existing saved backend and executable preferences are
+honored by the CLI and desktop. Empty saved executable fields use the selected
+backend's default.
 
-## Run patchers
-
-Point to an installed OdyPatcher executable:
+To select an external OdyPatcher executable explicitly, run
 
 ```sh
 modsync install --input guide.toml --game-dir /path/to/game --source-dir /path/to/mods \
-  --allow-processes --patcher /path/to/odypatcher
+  --patcher-engine ody-patcher --patcher /path/to/odypatcher --allow-processes
 ```
 
-`Patcher` uses the pinned OdyPatcher library by default. Supplying `--patcher` selects an executable instead (`--install --game-dir … --tslpatchdata … --cli -y` for OdyPatcher). Existing explicitly configured profiles keep their backend. Select `--patcher-engine holo-patcher` for HoloPatcher or `--patcher-engine k-patcher` for KPatcher (which adds `--console` on non-Windows). All backends accept a namespace index or an INI filename in `Arguments`. Installs stage the payload and normalize its INIs in a private copy, preserving the original configuration. Patcher installation retains the explicit trust switch. When the built-in patcher fails, its install log is not kept with the private staging copy, so the engine emits the log's error and warning lines plus up to 200 tail lines to the normal progress output before returning the error, and the returned error names the first three error lines. `Execute` and `Run` invoke the specified local program directly, without a shell. External programs have your user permissions and require the explicit trust switch. Windows executables require a Windows host; no implicit Wine execution is provided.
+Use `--patcher-engine holo-patcher` or `--patcher-engine k-patcher` for those
+backends. `--patcher` takes precedence over the executable saved for the selected
+backend. Invalid configured paths fail with the path and cause in the error.
+External execution requires `--allow-processes`. The linked library runs within
+ModSync and needs no external-process permission.
 
-Validation checks process inputs but does not execute programs or predict their effects. It may reject a later step that requires a file an external program would create. A successful validation report is not proof that an external patcher will succeed.
+The production CI workflow is configured to compile and lint the library and CLI
+with both feature configurations. `--no-default-features` disables the desktop feature.
+Current production CI sets no runtime patcher override. Backend selection follows
+runtime settings and `--patcher-engine` / `--patcher`. Any verification run passing
+those flags exercises an explicit backend override.
 
-## Download archives
+## Safety in brief
 
-```sh
-modsync download https://example.org/mod.zip /path/to/mods/mod.zip --sha256 EXPECTED_HASH
-```
+- Validation never changes the game or mod folders and never runs external programs.
+- Installation validates first, snapshots both folders, follows guide order and stops at the first failure. After a failure, run `restore`, fix the cause and rerun the whole guide from the start. Never append a failed mod at the end.
+- External patcher executables and other programs require `--allow-processes`. The default linked OdyPatcher library runs inside ModSync.
 
-Direct HTTPS ZIP, 7z, RAR, TAR, and GZip downloads are checked before being saved. HTML responses, archive corruption, unsafe names, and checksum mismatches fail. Existing downloads are never overwritten. Nexus/DeadlyStream landing pages and MEGA links remain browser workflows; the desktop exposes guide links for that purpose. Archive expansion and file copies stream through temporary storage. Use `--scratch-dir <existing-folder>` for validate/install to choose storage outside the game and mod trees, and `--max-expanded-bytes <bytes>` to set an optional per-archive expansion budget. Both controls are available under Archive storage in the desktop. Download integrity checks accept the same byte budget.
+Details: [Safety and recovery](https://kolto-labs.github.io/ModSync.rs/safety.html).
 
-For an exact archive published through BitTorrent, a guide maintainer runs `modsync torrent-seed <archive> --tracker <http-announce-url>`. It prints JSON with the magnet URI, the SHA-256 and `torrentInfo`, then seeds until Ctrl+C. The guide records all three for the archive (`Magnet`, `ContentHashSHA256`, `TorrentInfo`). A recipient runs `modsync torrent-download '<magnet-uri>' <output> --sha256 <digest> --torrent-info <base64>`. The torrent must contain one archive. ModSync downloads into temporary storage, requires the authored SHA-256, validates the archive, and publishes it without overwriting an existing file.
+## Development
 
-Peer traffic goes through a SOCKS5 proxy by default, so peers see the proxy's address, not yours. The proxy operator can see your traffic. Use `--peer-proxy socks5://IP:PORT`, or let ModSync try the public list at `--peer-proxy-list-url` (default: monosans/proxy-list). Trackers come from `--tracker-list-url` (default: the ngosang HTTP and HTTPS lists). With no working proxy, the command fails and opens no peer connection. In this mode ModSync opens no listening port and uses no DHT, UPnP, local discovery or UDP trackers. `torrent-seed` then prints `"peer": null`. `--no-proxy` connects directly, with a listening port, DHT and UPnP, and peers see your IP address; it prints the listening peer address, which a recipient can pass as `--peer <address>`.
-
-To share under an authored identity, run `modsync torrent-seed <archive> --authored-magnet '<magnet>' --torrent-info <base64>`. ModSync never creates a new torrent in this mode. It shares a private copy of the archive, never the file itself, and deletes the copy when sharing stops. Sharing stops after 24 hours or an upload ratio of 1.0 (`--share-hours`, `--share-ratio`; 0 means no limit). Uploads are capped at 100 KiB/s (`--upload-kibps`). When sharing stops it prints a second JSON line with `outcome`, `reason`, `infoHash`, `uploadedBytes` and `seconds`.
-
-## Recover a failed install
-
-Installation validates first, locks both folders, and snapshots the game and mod trees. It stops at the first failure. A pending recovery marker prevents another install on top of partial changes.
-
-```sh
-modsync restore --game-dir /path/to/game --source-dir /path/to/mods
-```
-
-Restore verifies the snapshot hashes before changing either folder and verifies restored files afterward. Then fix the cause and rerun from the start, in guide order. Never append a failed early mod to the end of an installation.
-
-Snapshots live beside the game directory in `.modsync-<id>/snapshot`. They require space for full copies of both folders. The most recent successful run's snapshot remains until the next run; `restore` is deliberately limited to unfinished installations. Keep independent backups of valuable game data. The process lock coordinates this app; do not edit either tree with other tools during installation or restoration.
-
-## Check the build
+Production checks:
 
 ```sh
 cargo fmt --all -- --check
@@ -113,25 +130,11 @@ cargo build --locked --no-default-features --lib --bin modsync -j2
 cargo clippy --locked --no-default-features --lib --bin modsync -j2 -- -D warnings
 ```
 
-Rust tests and custom Rust harnesses are frozen during the parity effort; do not
-build or run test targets or use `--all-targets`. CI runs production checks on
-Linux, including a Windows cross-check; native Windows and macOS builds require
-manual dispatch. These gates verify compilation and linting, not full parity.
-See [the cloud bootstrap](docs/parity/cloud/README.md) for isolated production CLI
-proofs and their prerequisites.
+Rust tests and custom Rust harnesses are frozen during the parity effort; do not build or run test targets or use `--all-targets`. CI runs production checks on Linux, including a Windows cross-check; native Windows and macOS builds require manual dispatch. These gates verify compilation and linting, not full parity.
 
-## Attribution
+The pinned C# fixtures in `tests/fixtures/csharp` run in normal Cargo tests. On Linux, `tools/check_formats.py --reference-dll <built-ModSync.Core.dll> --rust <modsync-binary> --output <scratch-folder>` reruns the bidirectional format checks with bubblewrap isolating C# settings/cache and network access. The check compares install-relevant fields and records its scope in `receipt.json`.
 
-Instruction behavior is based on [ModSync](https://github.com/th3w1zard1/ModSync). Its BSL 1.1 license and notices are retained in [LICENSE.txt](LICENSE.txt). Third-party Rust crates retain their respective licenses. `tests/fixtures/version.rar` comes from unrar 0.5.8; its MIT license is included beside the fixture.
-
-## Structured guide conversion
-
-```sh
-modsync convert --input guide.toml --output guide.xml --format xml
-modsync convert --stdin --format yaml < guide.json
-```
-
-TOML, JSON, YAML and XML conversion uses formats readable by the C# application. JSON writes a component array; YAML writes a metadata document followed by component documents. Keep build-level metadata in TOML or YAML. File extensions are case insensitive, and unknown extensions trigger content detection. Markdown can import default prose fields and explicit YAML/TOML instruction comments. Desktop/installer Markdown loading drafts prose into reviewable instructions. Conversion uses `--parse-directions` to opt in. Markdown export remains in progress.
+The in-progress Qt desktop is described in [desktop/qt/README.md](desktop/qt/README.md), and packaging in [packaging/README.md](packaging/README.md).
 
 The pinned C# fixtures in `tests/fixtures/csharp` run in normal Cargo tests. On Linux, `tools/check_formats.py --reference-dll <built-ModSync.Core.dll> --rust <modsync-binary> --output <scratch-folder>` reruns the bidirectional checks with bubblewrap isolating C# settings/cache and network access. The check compares install-relevant fields and records its scope in `receipt.json`.
 
@@ -178,7 +181,7 @@ modsync profile --settings-dir /path/to/settings --action apply --name "Full Bui
 modsync profile --settings-dir /path/to/settings --action activate --name "Full Build"
 ```
 
-`show` and `delete` use `--name`; `clone` and `rename` use `--from` and `--to`. Commands output JSON. Capture updates an existing profile while retaining its creation time. Apply changes selections in the output guide; components absent from the profile retain their current selections. Activate saves `activeProfileName` in settings while preserving unrelated settings. Desktop activation and platform-default settings discovery remain unfinished; these commands require an explicit settings directory. Applying a profile does not itself install anything. The guide loader's existing all-unselected fallback still applies when an exported guide is subsequently reloaded.
+`show` and `delete` use `--name`; `clone` and `rename` use `--from` and `--to`. Commands print a readable summary; add `--json` for JSON output. Capture updates an existing profile while retaining its creation time. Apply changes selections in the output guide; components absent from the profile retain their current selections. Activate saves `activeProfileName` in settings while preserving unrelated settings. Desktop activation and platform-default settings discovery remain unfinished; these commands require an explicit settings directory. Applying a profile does not itself install anything. The guide loader's existing all-unselected fallback still applies when an exported guide is subsequently reloaded.
 
 Use a stored profile directly for validation or installation:
 
@@ -211,5 +214,6 @@ Use the shared installation simulation to report game files written by multiple 
 ```bash
 modsync conflicts --input guide.toml --source-dir /path/to/mods --game-dir /path/to/game
 ```
+## Attribution
 
-The JSON report lists each destination, its writers in install order, the last writer, and per-component conflict counts. The command accepts the same profile, selection, archive-budget and FOMOD choices arguments as `validate`. Neither installation directory is changed. Mod-workspace staging and skipped overwrites are excluded. External program effects cannot be predicted and are identified as a limitation; simulation errors stop the command instead of producing a partial success report.
+Third-party Rust crates retain their respective licenses. `tests/fixtures/version.rar` comes from unrar 0.5.8; its MIT license is included beside the fixture.

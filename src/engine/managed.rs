@@ -93,7 +93,8 @@ impl Engine {
                 managed.report.untracked_live_edits.push(ManagedLiveEdit {
                     component_guid,
                     action: managed.action.clone(),
-                    path: relative.to_string_lossy().into_owned(),
+                    path: crate::paths::portable_text(relative)
+                        .unwrap_or_else(|| relative.to_string_lossy().replace('\\', "/")),
                 });
             }
             // Delete the logical path from both materialized and pending layers.

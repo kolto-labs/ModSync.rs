@@ -82,6 +82,9 @@ impl Lock {
             !dir.starts_with(&roots.mods) && !roots.mods.starts_with(&dir),
             "Recovery directory overlaps mod directory"
         );
+        #[cfg(windows)]
+        crate::patcher::checkpoint_job::create_state_dir(&dir)?;
+        #[cfg(not(windows))]
         fs::create_dir_all(&dir)?;
         let directory_metadata = fs::symlink_metadata(&dir)?;
         ensure!(

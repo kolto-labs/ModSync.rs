@@ -171,6 +171,13 @@ pub(crate) fn local_root(root: &Path) -> Result<PathBuf> {
             "Inference root contains a parent traversal"
         );
         current.push(part);
+        // A bare Windows prefix (`C:`, `\\?\C:`, `\\server\share`) names a drive's
+        // current directory or the volume device, not a directory on the path, and
+        // querying the device fails with ERROR_INVALID_FUNCTION. The root directory
+        // that follows it is checked like every other ancestor.
+        if matches!(part, std::path::Component::Prefix(_)) {
+            continue;
+        }
         ordinary(&current, true)?;
     }
     Ok(absolute)
@@ -491,7 +498,7 @@ fn snapshot_bounded_archive(
             && filename.len() <= 255
             && !filename.contains(['/', '\\', '*', '?'])
             && !filename.chars().any(char::is_control)
-            && crate::paths::relative(filename, false)?
+            && crate::paths::literal_relative(filename)?
                 .components()
                 .count()
                 == 1
@@ -1202,7 +1209,7 @@ pub(crate) fn replay_archive_derivation(
             && filename.len() <= 255
             && !filename.contains(['/', '\\'])
             && !filename.chars().any(char::is_control)
-            && crate::paths::relative(filename, false)?
+            && crate::paths::literal_relative(filename)?
                 .components()
                 .count()
                 == 1
@@ -1569,7 +1576,7 @@ pub fn generate_with_vendor_languages(
                 "Resolved filename is not a safe basename"
             );
             ensure!(
-                crate::paths::relative(filename, false)?
+                crate::paths::literal_relative(filename)?
                     .components()
                     .count()
                     == 1

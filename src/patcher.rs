@@ -215,7 +215,9 @@ fn resolve_in(
     path: Option<&OsStr>,
 ) -> Result<Option<PathBuf>> {
     if let Some(path) = configured {
-        let path = fs::canonicalize(path).context("Configured patcher path is unavailable")?;
+        let path = fs::canonicalize(path).with_context(|| {
+            format!("Configured patcher path is unavailable: {}", path.display())
+        })?;
         ensure!(
             executable(&path),
             "Configured patcher is not an executable regular file: {}",

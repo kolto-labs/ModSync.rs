@@ -511,7 +511,7 @@ fn fetch_inner(
     let disposition = response
         .headers()
         .get(reqwest::header::CONTENT_DISPOSITION)
-        .and_then(|v| v.to_str().ok())
+        .and_then(header_utf8)
         .map(str::to_owned);
     // Every response's bounded prefix is read before any status decision, so a challenge,
     // login or countdown page is a manual boundary whatever its status or content type.
@@ -720,10 +720,13 @@ fn check_cancelled(cancelled: &AtomicBool) -> Result<()> {
 }
 
 /// The one-component rule for any server- or guide-supplied filename: exactly one normal
-/// path component, with the Windows name rules `paths::relative` applies everywhere.
+/// path component, with the Windows name rules `paths::literal_relative` applies
+/// everywhere. A file name is taken literally, never as a pattern, so `[` and `]` are
+/// ordinary characters (DeadlyStream serves many `[K1]_...` archives); `*` and `?` stay
+/// refused because no Windows file can carry them.
 pub fn one_component(name: &str) -> Result<&str> {
     let name = crate::updates::validate_download_file_name(name)?;
-    let relative = crate::paths::relative(name, false)?;
+    let relative = crate::paths::literal_relative(name)?;
     ensure!(
         relative.as_os_str() == name,
         "Downloaded filename {name:?} is not a single file name"
@@ -872,10 +875,13 @@ pub(crate) fn gate_reason(challenge_header: bool, body: &str) -> ManualReason {
     }
 }
 
-/// RFC 6266 `filename*` (RFC 5987, UTF-8) wins over `filename`.
+/// RFC 6266 `filename*` (RFC 5987, UTF-8) wins over `filename`. Parameters are split on
+/// `;` outside quoted strings only, so a quoted name may hold `;`: DeadlyStream sends
+/// `filename="Emperor Turnip&#39;s Gizka.rar"`, which a plain split cut to
+/// `"Emperor Turnip&#39`.
 pub(crate) fn disposition_filename(value: &str) -> Option<String> {
     let mut plain = None;
-    for part in value.split(';').map(str::trim) {
+    for part in disposition_parameters(value) {
         let Some((key, raw)) = part.split_once('=') else {
             continue;
         };
@@ -903,6 +909,30 @@ pub(crate) fn disposition_filename(value: &str) -> Option<String> {
     plain
 }
 
+/// The `;`-separated parts of a Content-Disposition value, trimmed. A `;` inside a
+/// quoted string (where `\` escapes the next character) belongs to the value.
+fn disposition_parameters(value: &str) -> Vec<&str> {
+    let mut parts = Vec::new();
+    let (mut start, mut quoted, mut escaped) = (0, false, false);
+    for (index, character) in value.char_indices() {
+        if escaped {
+            escaped = false;
+            continue;
+        }
+        match character {
+            '\\' if quoted => escaped = true,
+            '"' => quoted = !quoted,
+            ';' if !quoted => {
+                parts.push(value[start..index].trim());
+                start = index + 1;
+            }
+            _ => {}
+        }
+    }
+    parts.push(value[start..].trim());
+    parts
+}
+
 /// Decodes `%XX` before the one-component check, so an encoded separator is still rejected.
 pub(crate) fn percent_decode(text: &str) -> String {
     let bytes = text.as_bytes();
@@ -925,4 +955,11 @@ pub(crate) fn percent_decode(text: &str) -> String {
         }
     }
     String::from_utf8_lossy(&out).into_owned()
+}
+
+/// A header value as UTF-8 text. `HeaderValue::to_str` accepts visible ASCII only, so a
+/// server that sends a file name's UTF-8 bytes in a plain `filename="..."` (DeadlyStream
+/// does, for a name with a long dash) would otherwise look as if it named nothing.
+pub(crate) fn header_utf8(value: &reqwest::header::HeaderValue) -> Option<&str> {
+    std::str::from_utf8(value.as_bytes()).ok()
 }
