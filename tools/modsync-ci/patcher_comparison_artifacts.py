@@ -408,7 +408,8 @@ def main():
                           flush=True)
         summary = comparison.load(output / "summary.json")
         print(json.dumps({key: summary[key] for key in
-                          ("game", "cells", "pairs", "differences", "equal", "component_count")},
+                          ("game", "cells", "pairs", "differences", "equal", "component_count",
+                           "authority", "wrong_lanes", "patcher_components")},
                          sort_keys=True), flush=True)
         return result
     except (ValueError, OSError, KeyError, TypeError, ArtifactError,
