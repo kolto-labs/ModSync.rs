@@ -21,6 +21,9 @@ import ports
 LIMIT = 128 * 1024 * 1024
 BACKENDS = ("ody-patcher", "holo-patcher", "mod-packaged")
 MODES = ("cli", "gui")
+# The lane that runs each mod's own packaged patcher is the reference result.
+# When another lane's tree differs from it, that other lane is the wrong one.
+AUTHORITY = "mod-packaged"
 SCHEMA = "production-patcher-comparison-v1"
 RECEIPT_KEYS = {
     "schema", "game", "backend", "mode", "engine_sha", "binary_sha256", "guide_sha256",
@@ -407,6 +410,49 @@ def differences(left, right):
     return changes
 
 
+def comparison_pairs():
+    """(reference, candidate) cells. Each backend is held against the packaged-patcher
+    lane of the same route; the packaged GUI route is held against its CLI route."""
+    pairs = [((AUTHORITY, mode), (backend, mode)) for mode in MODES
+             for backend in BACKENDS if backend != AUTHORITY]
+    pairs.append(((AUTHORITY, "cli"), (AUTHORITY, "gui")))
+    return pairs
+
+
+def patcher_boundaries(keys, operations):
+    """Boundaries worth hashing: preparation and each component that ran a Patcher
+    operation. Components without a patcher cannot differ between patcher lanes
+    except by carrying an earlier difference, which the earlier boundary already names."""
+    guids = {str(operation[0]).lower() for operation in operations}
+    return [key for key in keys if key == "preparation"
+            or (key.startswith("component/") and key.split("/")[1].lower() in guids)]
+
+
+def judge(trees, operations, load_tree):
+    """Compare every candidate lane with its reference after each patcher component.
+
+    trees maps (backend, mode) to an ordered {boundary key: handle}; load_tree(handle)
+    returns that boundary's game tree. Returns (comparisons, wrong_lanes)."""
+    comparisons, wrong = [], []
+    for reference, candidate in comparison_pairs():
+        keys = patcher_boundaries(list(trees[reference]), operations) + ["final"]
+        result = {"reference": list(reference), "candidate": list(candidate), "boundaries": []}
+        first, count = None, 0
+        for key in keys:
+            ref_handle = list(trees[reference].values())[-1] if key == "final" else trees[reference][key]
+            cand_handle = list(trees[candidate].values())[-1] if key == "final" else trees[candidate][key]
+            changes = differences(load_tree(ref_handle), load_tree(cand_handle))
+            result["boundaries"].append({"key": key, "changes": changes})
+            if changes and first is None:
+                first = key
+            count += len(changes)
+        comparisons.append(result)
+        if count:
+            wrong.append({"lane": list(candidate), "reference": list(reference),
+                          "first_differing_boundary": first, "differences": count})
+    return comparisons, wrong
+
+
 def compare(args):
     require(len(args.receipt) == 6, "Exactly six independently exported receipts are required")
     lanes = []
@@ -526,35 +572,51 @@ def compare(args):
                 "Backend cells used different binaries for the same route")
     output = Path(args.output_dir)
     output.mkdir(mode=0o700, parents=True, exist_ok=False)
+    cells = {(receipt["backend"], receipt["mode"]): (receipt, trees) for receipt, trees in lanes}
+    authority = cells[(AUTHORITY, MODES[0])][0]
+    require(all(receipt["patcher_operations"] == authority["patcher_operations"] for receipt, _ in lanes),
+            "Lanes disagree on which components run a Patcher operation")
+    comparisons, wrong = judge({cell: trees for cell, (_, trees) in cells.items()},
+                               authority["patcher_operations"],
+                               lambda handle: retained(handle[0], handle[1]["document"],
+                                                       handle[1]["sha256"])["game"])
     total, pairs = 0, []
-    for pair_index, ((left, a), (right, b)) in enumerate(itertools.combinations(lanes, 2)):
-        pair = {"left": [left["backend"], left["mode"]], "right": [right["backend"], right["mode"]], "boundaries": []}
-        for boundary_index, key in enumerate([*a, "final"]):
-            left_root, left_boundary = list(a.values())[-1] if key == "final" else a[key]
-            right_root, right_boundary = list(b.values())[-1] if key == "final" else b[key]
-            left_tree = retained(left_root, left_boundary["document"], left_boundary["sha256"])["game"]
-            right_tree = retained(right_root, right_boundary["document"], right_boundary["sha256"])["game"]
-            changes = differences(left_tree, right_tree)
+    for pair_index, result in enumerate(comparisons):
+        pair = {"reference": result["reference"], "candidate": result["candidate"], "boundaries": []}
+        for boundary_index, boundary in enumerate(result["boundaries"]):
+            changes = boundary["changes"]
             total += len(changes)
             observed = Counter(change["change"] for change in changes)
             counts = {kind: observed[kind] for kind in ("added", "removed", "changed")}
             name = f"diff-pair-{pair_index:02}-boundary-{boundary_index:04}.json"
-            write(output / name, {"left": pair["left"], "right": pair["right"],
-                                  "key": key, "changes": changes})
-            pair["boundaries"].append({"key": key, "counts": counts, "document": name,
+            write(output / name, {"reference": pair["reference"], "candidate": pair["candidate"],
+                                  "key": boundary["key"], "changes": changes})
+            pair["boundaries"].append({"key": boundary["key"], "counts": counts, "document": name,
                                        "sha256": file_hash(output / name)})
-            print(json.dumps({"event": "patcher_comparison_diff", "left": pair["left"], "right": pair["right"],
-                              "boundary": key, "counts": counts, "differences": len(changes)}), flush=True)
+            # left/right are kept for existing log consumers: left is the reference lane.
+            print(json.dumps({"event": "patcher_comparison_diff", "left": pair["reference"],
+                              "right": pair["candidate"], "boundary": boundary["key"], "counts": counts,
+                              "differences": len(changes)}), flush=True)
         pairs.append(pair)
-    write(output / "private-diff.json", {"schema": SCHEMA, "game": first["game"], "pairs": pairs})
+    write(output / "private-diff.json", {"schema": SCHEMA, "game": first["game"], "authority": AUTHORITY,
+                                         "pairs": pairs})
     write(output / "summary.json", {"schema": SCHEMA, "game": first["game"], "cells": 6,
-                                    "pairs": 15, "differences": total, "equal": total == 0,
+                                    "pairs": len(pairs), "differences": total, "equal": total == 0,
+                                    "authority": AUTHORITY, "wrong_lanes": wrong,
+                                    "patcher_components": len({str(op[0]).lower() for op in
+                                                               authority["patcher_operations"]}),
                                     "engine_sha": first["engine_sha"], "guide_sha256": first["guide_sha256"],
                                     "profile": first["profile"],
                                     "component_count": len(first["selected_guid_order"])})
-    # A completed comparison reports every difference. Admission and execution
-    # failures still raise, independently of whether the resulting trees agree.
-    return 0
+    for lane in wrong:
+        print(f"::error title=Patcher lane differs from {AUTHORITY}::{first['game']}: "
+              f"{lane['lane'][0]} ({lane['lane'][1]}) differs from {lane['reference'][0]} "
+              f"({lane['reference'][1]}) first at {lane['first_differing_boundary']} "
+              f"({lane['differences']} file differences); {lane['lane'][0]} is the incorrect lane",
+              file=sys.stderr, flush=True)
+    # Admission and execution failures raise above; a completed comparison fails when
+    # any lane disagrees with the packaged-patcher reference.
+    return 1 if wrong else 0
 
 
 def main():
