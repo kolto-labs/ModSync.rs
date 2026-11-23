@@ -18,3 +18,7 @@ __pycache__/
 
 # Local Cloudflare Wrangler state.
 /.wrangler/
+
+# Local agent tool state
+.clawness/
+.cto-toolkit/
