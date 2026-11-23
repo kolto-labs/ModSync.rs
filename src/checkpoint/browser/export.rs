@@ -106,12 +106,17 @@ impl Store {
                 "Export directory overlaps checkpoint inputs"
             );
         }
-        let mut builder = fs::DirBuilder::new();
+        // Only Unix narrows the mode, so the builder is mutable only there: a shared
+        // `let mut` fails `clippy -D warnings` on the Windows cross-check.
         #[cfg(unix)]
-        {
+        let builder = {
             use std::os::unix::fs::DirBuilderExt;
+            let mut builder = fs::DirBuilder::new();
             builder.mode(0o700);
-        }
+            builder
+        };
+        #[cfg(not(unix))]
+        let builder = fs::DirBuilder::new();
         builder.create(destination)?;
         let mut verified = BTreeMap::new();
         let mut documents = Vec::new();
