@@ -108,9 +108,9 @@ pub const ROADF_FIRSTVOLUME: c_uint = 0x0100;
 // RAROpenArchiveDataEx::OpFlags
 pub const ROADOF_KEEPBROKEN: c_uint = 0x0001;
 
-pub type ChangeVolProc = extern "C" fn(*mut c_char, c_int) -> c_int;
-pub type ProcessDataProc = extern "C" fn(*mut c_uchar, c_int) -> c_int;
-pub type Callback = extern "C" fn(UINT, LPARAM, LPARAM, LPARAM) -> c_int;
+pub type ChangeVolProc = extern "system" fn(*mut c_char, c_int) -> c_int;
+pub type ProcessDataProc = extern "system" fn(*mut c_uchar, c_int) -> c_int;
+pub type Callback = extern "system" fn(UINT, LPARAM, LPARAM, LPARAM) -> c_int;
 
 #[repr(C)]
 pub struct Handle { _private: [u8; 0] }
@@ -209,7 +209,7 @@ pub struct OpenArchiveDataEx {
 #[cfg_attr(target_os = "macos", link(name = "c++"))]
 #[cfg_attr(any(target_os = "freebsd", target_os = "openbsd"), link(name = "c++"))]
 #[cfg_attr(any(target_os = "linux", target_os = "netbsd"), link(name = "stdc++"))]
-extern "C" {
+extern "system" {
     pub fn RAROpenArchive(data: *const OpenArchiveData) -> *const Handle;
 
     pub fn RAROpenArchiveEx(data: *const OpenArchiveDataEx) -> *const Handle;
