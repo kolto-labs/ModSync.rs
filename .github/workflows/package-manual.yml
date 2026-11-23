@@ -36,8 +36,8 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: package-artifacts-${{ inputs.head_sha }}-${{ github.run_id }}
-  cancel-in-progress: false
+  group: package-artifacts-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   package:
     strategy:

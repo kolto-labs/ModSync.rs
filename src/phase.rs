@@ -34,6 +34,18 @@ pub(crate) fn widescreen(component: &crate::Component) -> bool {
         .get("WidescreenOnly")
         .and_then(serde_json::Value::as_bool)
         == Some(true)
+        || crate::k1_widescreen_recipe::deferred(component)
+}
+
+/// Shared execution-phase membership for desktop and read-only CLI adapters.
+/// Source WidescreenOnly flags stay intact; closed native deferrals use the same
+/// classification as actual phase preparation.
+pub fn component_phase(component: &crate::Component) -> Phase {
+    if widescreen(component) {
+        Phase::Remaining
+    } else {
+        Phase::Base
+    }
 }
 
 /// Prepare one explicitly requested phase without I/O or changing input selection.

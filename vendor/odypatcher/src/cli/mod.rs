@@ -1,0 +1,479 @@
+//! CLI: interactive run beside the program, or unattended via [`direct`].
+
+pub mod direct;
+
+use std::io::{self, BufRead, Write};
+use std::path::{Path, PathBuf};
+
+use crate::patcher::config::LogLevel;
+use crate::session::{self, Session};
+
+/// What the operator asked for on the command line.
+#[derive(Debug, Clone, Default)]
+pub struct Options {
+    /// Instruction file to run instead of `changes.ini`.
+    pub ini_name: Option<String>,
+    /// Description file to show instead of `info.rtf`.
+    pub info_name: Option<String>,
+    /// Game folder given with `-g`.
+    pub game_folder: Option<String>,
+    /// Install variant, by number or name.
+    pub namespace: Option<String>,
+    /// List the install variants and exit.
+    pub list_namespaces: bool,
+    /// Print what the run would change and exit.
+    pub show_summary: bool,
+    /// Print the mod's description and exit.
+    pub show_info: bool,
+    /// Start without asking for confirmation.
+    pub assume_yes: bool,
+    /// Override how much detail is logged.
+    pub log_level: Option<i32>,
+    /// Run in the terminal instead of opening a window.
+    pub force_terminal: bool,
+    /// Show the help text and exit.
+    pub show_help: bool,
+    /// Show the version and exit.
+    pub show_version: bool,
+
+    /// Game folder for an unattended run.
+    pub game_dir: Option<String>,
+    /// Mod folder for an unattended run.
+    pub tslpatchdata: Option<String>,
+    /// Install variant to use, by position.
+    pub namespace_option_index: Option<usize>,
+    /// Accepted for compatibility; does nothing.
+    pub console: bool,
+    /// Apply the mod.
+    pub install: bool,
+    /// Put the mod's backed-up files back.
+    pub uninstall: bool,
+    /// Check the mod's instructions without a game folder.
+    pub validate: bool,
+    /// Accepted for compatibility; does nothing. The engine lowercases the
+    /// names it writes on its own, as PyKotor does.
+    pub experimental_lowercase_paths: bool,
+}
+
+/// Usage text.
+pub const USAGE: &str = "\
+OdyPatcher, game data patcher and mod installer for KotOR and TSL
+
+Usage:
+  odypatcher [options] [changes.ini] [info.rtf]
+  odypatcher --tslpatchdata <mod> --game-dir <game> --install
+  odypatcher --tslpatchdata <mod> --validate
+
+Options:
+  -g, --game <PATH>      Folder the game is installed in
+  -n, --namespace <N>    Install variant, by number or name
+      --list             List the install variants and exit
+      --summary          Print what the run would change and exit
+      --info             Print the mod's description and exit
+  -y, --yes              Start without asking for confirmation
+      --log-level <0-4>  Override how much detail is logged
+      --cli              Run in the terminal instead of opening a window
+  -h, --help             Show this help
+  -V, --version          Show the version
+
+Experimental:
+      --experimental-lowercase-paths
+                         Accepted for compatibility; does nothing. Files the
+                         patcher writes are given lowercase names anyway.
+
+Running unattended:
+      --tslpatchdata <PATH>          Folder holding the mod
+      --game-dir <PATH>              Folder the game is installed in
+      --namespace-option-index <N>   Installation to use, by position
+      --install                      Apply the mod
+      --uninstall                    Put the mod's backed-up files back
+      --validate                     Check the mod's instructions (no game folder needed)
+      --console                      Accepted for compatibility
+
+  Two bare paths are read as <game> <mod>, and a third as the installation
+  index. Exactly one of --install, --uninstall, or --validate is required, and
+  the exit code says what happened: 0 done, 2 bad arguments, 3 no mod there,
+  4 no such installation, 5 instructions missing, 6 refused, 7 stopped partway,
+  8 finished with errors.
+
+The mod's tslpatchdata folder is expected beside this program.
+More about the games and their tools: https://swkotor.org
+";
+
+/// Read the command line, or report what was wrong with it.
+pub fn parse(args: &[String]) -> Result<Options, String> {
+    let mut options = Options::default();
+    let mut positional: Vec<String> = Vec::new();
+    let mut index = 0usize;
+
+    while index < args.len() {
+        let arg = args[index].as_str();
+
+        let mut take_value = |name: &str| -> Result<String, String> {
+            index += 1;
+            args.get(index)
+                .cloned()
+                .ok_or_else(|| format!("{name} needs a value"))
+        };
+
+        match arg {
+            "-h" | "--help" => options.show_help = true,
+            "-V" | "--version" => options.show_version = true,
+            "-y" | "--yes" => options.assume_yes = true,
+            "--list" => options.list_namespaces = true,
+            "--summary" => options.show_summary = true,
+            "--info" => options.show_info = true,
+            "--cli" | "--no-gui" => options.force_terminal = true,
+            "--console" => options.console = true,
+            "--install" => options.install = true,
+            "--uninstall" => options.uninstall = true,
+            "--validate" => options.validate = true,
+            "--experimental-lowercase-paths" => options.experimental_lowercase_paths = true,
+            "--game-dir" => options.game_dir = Some(take_value("--game-dir")?),
+            "--tslpatchdata" => options.tslpatchdata = Some(take_value("--tslpatchdata")?),
+            "--namespace-option-index" => {
+                let raw = take_value("--namespace-option-index")?;
+                options.namespace_option_index = Some(raw.parse::<usize>().map_err(|_| {
+                    format!("--namespace-option-index wants a whole number, got {raw}")
+                })?);
+            }
+            "-g" | "--game" => options.game_folder = Some(take_value("--game")?),
+            "-n" | "--namespace" => options.namespace = Some(take_value("--namespace")?),
+            "--log-level" => {
+                let raw = take_value("--log-level")?;
+                let level: i32 = raw
+                    .parse()
+                    .map_err(|_| format!("--log-level wants a number from 0 to 4, got {raw}"))?;
+                if !(0..=4).contains(&level) {
+                    return Err(format!(
+                        "--log-level wants a number from 0 to 4, got {level}"
+                    ));
+                }
+                options.log_level = Some(level);
+            }
+            other if other.starts_with('-') => {
+                return Err(format!("unknown option {other}"));
+            }
+            other => {
+                let lowered = other.to_lowercase();
+                if lowered.ends_with(".ini") {
+                    options.ini_name = Some(other.to_string());
+                } else if lowered.ends_with(".rtf") {
+                    options.info_name = Some(other.to_string());
+                } else {
+                    // Anything else is a path, read below as <game> <mod> [index].
+                    positional.push(other.to_string());
+                }
+            }
+        }
+
+        index += 1;
+    }
+
+    apply_positional(&mut options, &positional)?;
+
+    Ok(options)
+}
+
+/// Read bare paths as `<game> <mod> [installation index]`.
+///
+/// A single bare path says nothing on its own, and a fourth has nowhere to go,
+/// so both are refused rather than quietly ignored.
+fn apply_positional(options: &mut Options, positional: &[String]) -> Result<(), String> {
+    match positional.len() {
+        0 => Ok(()),
+        2 | 3 => {
+            options.game_dir = Some(positional[0].clone());
+            options.tslpatchdata = Some(positional[1].clone());
+
+            if let Some(raw) = positional.get(2) {
+                options.namespace_option_index = Some(raw.parse::<usize>().map_err(|_| {
+                    format!("the installation index should be a whole number, got {raw}")
+                })?);
+            }
+
+            Ok(())
+        }
+        1 => Err(format!("unexpected argument {}", positional[0])),
+        _ => Err(format!(
+            "expected at most a game folder, a mod folder, and an installation index, got {} paths",
+            positional.len()
+        )),
+    }
+}
+
+/// Ask the operator for the game folder at the prompt.
+fn ask_game_folder() -> Option<PathBuf> {
+    println!("\nPlease select the folder the game is installed in.");
+    print!("Game folder: ");
+    let _ = io::stdout().flush();
+
+    let answer = read_line()?;
+    if answer.is_empty() {
+        None
+    } else {
+        Some(PathBuf::from(answer))
+    }
+}
+
+/// Read one line from standard input, trimmed of whitespace and quotes.
+fn read_line() -> Option<String> {
+    let mut buffer = String::new();
+    io::stdin().lock().read_line(&mut buffer).ok()?;
+    Some(buffer.trim().trim_matches('"').to_string())
+}
+
+/// True when this invocation should not open a window.
+pub fn stays_in_terminal(options: &Options) -> bool {
+    options.force_terminal
+        || options.show_help
+        || options.show_version
+        || options.list_namespaces
+        || options.show_summary
+        || options.show_info
+        || options.install
+        || options.uninstall
+        || options.validate
+}
+
+/// Run in the terminal, reporting the process exit code.
+pub fn run(options: Options) -> i32 {
+    if options.show_help {
+        print!("{USAGE}");
+        return 0;
+    }
+
+    if options.show_version {
+        println!("{} {}", crate::APP_NAME, crate::VERSION);
+        return 0;
+    }
+
+    if direct::is_requested(&options) {
+        return direct::run(options);
+    }
+
+    let base = session::program_folder();
+    let mut session = Session::discover(
+        &base,
+        options.ini_name.as_deref().unwrap_or("changes.ini"),
+        options.info_name.as_deref().unwrap_or("info.rtf"),
+    );
+
+    if options.list_namespaces {
+        return list_namespaces(&session);
+    }
+
+    if let Err(message) = apply_namespace(&mut session, &options) {
+        eprintln!("{message}");
+        return 2;
+    }
+
+    if !session.has_instructions() {
+        eprintln!(
+            "Cannot find the instruction file \"{}\". Expected it in {}.",
+            session.ini_name(),
+            session.tslpatchdata_path.display()
+        );
+        return 2;
+    }
+
+    if options.show_info {
+        println!("{}", session.info_text());
+        return 0;
+    }
+
+    if options.show_summary {
+        print!("{}", session.summary_text());
+        return 0;
+    }
+
+    if let Some(reason) = session.blocked_reason() {
+        eprintln!("{reason}");
+        return 2;
+    }
+
+    let caption = session.window_caption();
+    println!("{caption}");
+    println!("{}\n", "=".repeat(caption.chars().count()));
+    println!("{}", session.info_text());
+
+    if !confirm(&session, &options) {
+        println!("Cancelled.");
+        return 1;
+    }
+
+    execute(session, options)
+}
+
+/// Print the install variants a mod offers.
+fn list_namespaces(session: &Session) -> i32 {
+    if session.namespaces.is_empty() {
+        println!("This mod offers a single install.");
+        return 0;
+    }
+
+    println!("Install variants:");
+    for (index, entry) in session.namespaces.iter().enumerate() {
+        println!("  {index}. {}", entry.name);
+        if !entry.description.is_empty() {
+            println!("     {}", entry.description);
+        }
+    }
+
+    0
+}
+
+/// Choose the install variant, asking when there is a choice and no answer.
+fn apply_namespace(session: &mut Session, options: &Options) -> Result<(), String> {
+    if session.namespaces.is_empty() {
+        return Ok(());
+    }
+
+    if let Some(wanted) = &options.namespace {
+        let chosen = wanted
+            .parse::<usize>()
+            .ok()
+            .filter(|index| *index < session.namespaces.len())
+            .or_else(|| {
+                session
+                    .namespaces
+                    .iter()
+                    .position(|entry| entry.name.eq_ignore_ascii_case(wanted))
+            })
+            .ok_or_else(|| {
+                format!("No install variant matches \"{wanted}\". Use --list to see them.")
+            })?;
+
+        session.select_namespace(chosen);
+        return Ok(());
+    }
+
+    if options.assume_yes {
+        // Unattended runs take the first variant, as the window would offer.
+        session.select_namespace(0);
+        return Ok(());
+    }
+
+    println!("This mod offers more than one install:");
+    for (index, entry) in session.namespaces.iter().enumerate() {
+        println!("  {index}. {} — {}", entry.name, entry.description);
+    }
+    print!("Choose one [0]: ");
+    let _ = io::stdout().flush();
+
+    let answer = read_line().unwrap_or_default();
+    let chosen = if answer.is_empty() {
+        0
+    } else {
+        answer
+            .parse::<usize>()
+            .ok()
+            .filter(|index| *index < session.namespaces.len())
+            .ok_or_else(|| format!("\"{answer}\" is not one of the choices."))?
+    };
+
+    session.select_namespace(chosen);
+    Ok(())
+}
+
+/// Ask before starting, unless the mod or the operator said not to.
+fn confirm(session: &Session, options: &Options) -> bool {
+    if options.assume_yes || session.starts_without_asking() {
+        return true;
+    }
+
+    print!("\n{} [y/N]: ", session.confirm_message());
+    let _ = io::stdout().flush();
+
+    matches!(
+        read_line().unwrap_or_default().to_lowercase().as_str(),
+        "y" | "yes"
+    )
+}
+
+/// Run the patch and report the exit code.
+fn execute(session: Session, options: Options) -> i32 {
+    let level = options
+        .log_level
+        .and_then(|l| LogLevel::from_int(i64::from(l)).ok())
+        .unwrap_or_else(|| session.log_level());
+
+    let Some(game_folder) = settle_game_folder(&session, &options) else {
+        eprintln!("No game folder was chosen.");
+        return 1;
+    };
+    println!("Game folder: {}", game_folder.display());
+
+    let outcome = session.run_install(&game_folder, direct::printing_logger(level), None, None);
+
+    if let Some(path) = &outcome.log_path {
+        println!("\nInstall log written to {}", path.display());
+    }
+
+    let report = outcome.report;
+    match outcome.result {
+        Ok(()) if report.is_clean() => {
+            println!("\nFinished. All changes have been applied.");
+            0
+        }
+        Ok(()) if !report.completed_with_errors() => {
+            println!(
+                "\nFinished with {} warnings. Check the log for details.",
+                report.warnings
+            );
+            0
+        }
+        Ok(()) => {
+            eprintln!(
+                "\nFinished with {} errors and {} warnings. The mod may not be properly installed.",
+                report.errors, report.warnings
+            );
+            1
+        }
+        Err(err) => {
+            eprintln!("\nStopped: {}", err.simplified());
+            1
+        }
+    }
+}
+
+/// Which game folder to install into: the one named on the command line,
+/// else the mod's registry lookup, else a lone detected install, else the
+/// operator is asked (unless `--yes` said not to).
+fn settle_game_folder(session: &Session, options: &Options) -> Option<PathBuf> {
+    // `--game-dir` also names the game folder, so it stands in for `--game`
+    // when nothing else asked for an unattended run.
+    let named = options
+        .game_folder
+        .clone()
+        .or_else(|| options.game_dir.clone())
+        .map(PathBuf::from);
+    if let Some(named) = named {
+        if named.is_dir() {
+            return Some(named);
+        }
+        eprintln!("The game folder {} does not exist.", named.display());
+    }
+
+    if let Some(found) = session.looked_up_game_folder() {
+        return Some(PathBuf::from(found));
+    }
+
+    let detected = crate::gamepaths::detect();
+    if detected.len() == 1 {
+        println!("Found the game at {}", detected[0].path);
+        return Some(PathBuf::from(&detected[0].path));
+    }
+
+    if options.assume_yes {
+        return None;
+    }
+
+    if !detected.is_empty() {
+        println!("Installed games found:");
+        for install in &detected {
+            println!("  {}", install.path);
+        }
+    }
+    ask_game_folder().filter(|p| Path::new(p).is_dir())
+}

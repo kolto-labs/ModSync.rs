@@ -1,0 +1,218 @@
+# One-time owning-repository retention. No legacy transfer, rollback or new credentials.
+name: Retain verified current Trask archive
+on:
+  workflow_dispatch:
+permissions: {contents: read, actions: read}
+concurrency:
+  group: retain-current-trask-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  TRASK_SHA: 39d1da3da9476dafaa86e2568adae522ee95686b9adb51bff5e5d98c9c9e83ee
+jobs:
+  publish:
+    concurrency: {group: fullrun-mod-cache-writer, cancel-in-progress: false}
+    if: ${{ github.repository == 'kolto-labs/ModSync.rs' && github.ref == 'refs/heads/fix/fullrun-ci-credentials' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    outputs:
+      pack: ${{ steps.stage.outputs.pack }}
+      index: ${{ steps.stage.outputs.index }}
+      pack_id: ${{ steps.pack.outputs.artifact-id }}
+      index_id: ${{ steps.index.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {ref: '${{ github.sha }}', persist-credentials: false, fetch-depth: 0}
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: kolto-labs/mod-builds
+          ref: 67dc5fd8da6abde324c51d32eee3d04687070dd6
+          path: guide-input
+          persist-credentials: false
+      - name: Prepare exact production acquisition tools
+        timeout-minutes: 10
+        run: |
+          set -euo pipefail
+          umask 077
+          git diff --quiet ce2834b346ff736aa36189c49f70e9b8629005b9 HEAD -- tools/modsync-ci
+          mkdir -p "$RUNNER_TEMP/trask/evidence" "$RUNNER_TEMP/trask/objects"
+          sudo timeout 300 apt-get -o Acquire::Retries=2 update -qq
+          sudo timeout 300 apt-get -o Acquire::Retries=2 install -y --no-install-recommends age openssl 7zip 7zip-rar unrar libarchive-tools
+      - name: Reacquire exact current public object without material credentials
+        timeout-minutes: 10
+        run: |
+          umask 077
+          python - <<'PY'
+          import contextlib, json, os, subprocess, sys, time, types
+          from pathlib import Path
+          sys.path.insert(0,'tools/modsync-ci'); import cache
+          base=Path(os.environ['RUNNER_TEMP'])/'trask'; guide=Path('guide-input/content/k1/full.md')
+          assert subprocess.check_output(['git','-C','guide-input','rev-parse','HEAD'],text=True).strip()=='67dc5fd8da6abde324c51d32eee3d04687070dd6'
+          assert cache.digest(guide)=='44067788c6cb7a83b38d468817f273ce5cc901cd5e000c0f9ff65f8af15fc6ed'
+          items=[x for x in cache.discover([str(guide)]) if x['id']=='07d93c7cf8ada06f7edc81d429ff76d10fb51eaa270de815ddcb30d5a264d8a8']
+          assert len(items)==1; item=items[0]
+          assert item['url']=='https://deadlystream.com/files/file/2184-trask-ulgo-without-tutorials/' and item['provider']=='deadlystream'
+          args=types.SimpleNamespace(retries=2,timeout=30,download_timeout=300,integrity_timeout=300,max_bytes=20*1024**2)
+          started=time.monotonic()
+          with (base/'evidence/acquire.log').open('w') as log, contextlib.redirect_stdout(log), contextlib.redirect_stderr(log):
+              entry=cache.refresh_one(item,{},base,args)
+          assert (entry['sha256'],entry['size'],entry['extension'],entry['archive_name'])==(os.environ['TRASK_SHA'],15514430,'7z','Trask Ulgo Without Tutorials.7z')
+          source=cache.object_path(base,entry)
+          assert source.stat().st_size==15514430 and cache.digest(source)==os.environ['TRASK_SHA']
+          receipt={'schema_version':1,'kind':'own-repository-current-provider-retention','repository':os.environ['GITHUB_REPOSITORY'],
+                   'repository_id':os.environ['GITHUB_REPOSITORY_ID'],'sha':os.environ['GITHUB_SHA'],'run_id':os.environ['GITHUB_RUN_ID'],
+                   'run_attempt':os.environ['GITHUB_RUN_ATTEMPT'],'guide_repository':'kolto-labs/mod-builds',
+                   'guide_sha':'67dc5fd8da6abde324c51d32eee3d04687070dd6','guide_sha256':cache.digest(guide),
+                   'url_id':item['id'],'url':cache.clean_url(item['url']),'object':{k:entry[k] for k in ('sha256','size','extension','archive_name')},
+                   'acquisition':'production refresh_one with archive integrity validation','seconds':time.monotonic()-started}
+          (base/'evidence/acquisition.json').write_text(json.dumps(receipt,indent=2,sort_keys=True))
+          PY
+      - name: Seal exactly one object against the complete current index
+        id: stage
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          CACHE_ENCRYPTION_KEY: ${{ secrets.CACHE_ENCRYPTION_KEY }}
+        run: |
+          umask 077
+          python - <<'PY'
+          import json, os, sys, time
+          from pathlib import Path
+          sys.path.insert(0,'tools/modsync-ci'); import artstore, artstore_client, artstore_core as core
+          base=Path(os.environ['RUNNER_TEMP'])/'trask'; repository=os.environ['GITHUB_REPOSITORY']
+          assert repository=='kolto-labs/ModSync.rs'
+          client=artstore_client.ArtifactsClient(repository,os.environ['GITHUB_TOKEN']); listing=client.list_artifacts(include_expired=True)
+          previous=artstore._index_from_listing(client,listing,artstore.INDEX_FETCH_LIMIT,time.time(),strict=True)
+          assert len(previous['blobs'])>=369 and len(previous['packs'])>=14, 'prior inventory unexpectedly incomplete'
+          core.dump_index(previous,base/'prior-index.json')
+          result=artstore.stage([(base/'objects'/os.environ['TRASK_SHA'],os.environ['TRASK_SHA'])],base/'packs',index=previous,max_packs=1)
+          assert not result['skipped'] and not result['deferred'] and len(result['packs'])==1
+          assert len(result['blobs'])==1 and result['blobs'][0]['sha256']==os.environ['TRASK_SHA'] and result['blobs'][0]['size']==15514430
+          assert set(previous['blobs'])<=set(core.load_index(result['index_path'])['blobs'])
+          pack=result['packs'][0]; assert all(p.name.endswith('.part') for p in Path(pack['dir']).iterdir())
+          (base/'stage.json').write_text(json.dumps(result))
+          with open(os.environ['GITHUB_OUTPUT'],'a') as output:
+              output.write('pack='+pack['name']+'\nindex='+result['index_name']+'\n')
+          PY
+      - name: Publish encrypted material pack first
+        id: pack
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ${{ steps.stage.outputs.pack }}
+          path: ${{ runner.temp }}/trask/packs/${{ steps.stage.outputs.pack }}
+          compression-level: 0
+          retention-days: 90
+          if-no-files-found: error
+      - name: Reconcile live packs and preserve every prior blob before index publication
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PACK_ID: ${{ steps.pack.outputs.artifact-id }}
+        run: |
+          umask 077
+          python - <<'PY'
+          import json, os, sys, time
+          from pathlib import Path
+          sys.path.insert(0,'tools/modsync-ci'); import artstore, artstore_client, artstore_core as core
+          base=Path(os.environ['RUNNER_TEMP'])/'trask'; client=artstore_client.ArtifactsClient(os.environ['GITHUB_REPOSITORY'],os.environ['GITHUB_TOKEN'])
+          listing=client.list_artifacts(include_expired=True); now=time.time()
+          stage=json.loads((base/'stage.json').read_text()); staged=core.load_index(stage['index_path']); prior=core.load_index(base/'prior-index.json')
+          current=artstore._index_from_listing(client,listing,artstore.INDEX_FETCH_LIMIT,now,strict=True)
+          merged=core.merge_indexes([current,staged],now); artstore._reconcile(merged,artstore._packs_by_name(listing,now),now)
+          assert set(prior['blobs'])|set(current['blobs'])<=set(merged['blobs'])
+          assert set(prior['packs'])<=set(merged['packs'])
+          for digest,blob in prior['blobs'].items():assert merged['blobs'][digest]['size']==blob['size']
+          blob=merged['blobs'][os.environ['TRASK_SHA']]; assert blob['size']==15514430
+          assert all(str(merged['packs'][p['pack']]['artifact_id'])==os.environ['PACK_ID'] for p in blob['parts'])
+          pack=next(a for a in listing if str(a['id'])==os.environ['PACK_ID']);run=pack['workflow_run']
+          assert run['head_sha']==os.environ['GITHUB_SHA'] and str(run['id'])==os.environ['GITHUB_RUN_ID']
+          assert str(run['repository_id'])==os.environ['GITHUB_REPOSITORY_ID'] and run['head_repository_id']==run['repository_id'] and not pack['expired']
+          core.dump_index(merged,stage['index_path'])
+          receipt=json.loads((base/'evidence/acquisition.json').read_text())
+          receipt.update(pack_artifact=pack,prior_blob_count=len(prior['blobs']),published_blob_count=len(merged['blobs']),
+                         prior_indexes=[{k:a.get(k) for k in ('id','name','digest','workflow_run','expires_at')} for a in listing if a['name'].startswith(core.INDEX_PREFIX) and not artstore._is_dead(a,now)])
+          (Path(stage['index_path']).parent/'producer-provenance.json').write_text(json.dumps(receipt,indent=2,sort_keys=True))
+          PY
+      - name: Publish cumulative index last
+        id: index
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ${{ steps.stage.outputs.index }}
+          path: ${{ runner.temp }}/trask/packs/index
+          retention-days: 90
+          if-no-files-found: error
+      - name: Retain separate encrypted acquisition diagnostics
+        if: ${{ always() && vars.DIAGNOSTICS_ENCRYPTION_RECIPIENT != '' }}
+        uses: ./.github/actions/retain-fullrun-evidence
+        with:
+          source: ${{ runner.temp }}/trask/evidence
+          name: trask-retention-producer-${{ github.run_id }}-${{ github.run_attempt }}
+          encryption-recipient: ${{ vars.DIAGNOSTICS_ENCRYPTION_RECIPIENT }}
+  verify:
+    needs: publish
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {ref: '${{ github.sha }}', persist-credentials: false}
+      - name: Install ordinary material verification readers
+        timeout-minutes: 10
+        run: |
+          sudo timeout 300 apt-get -o Acquire::Retries=2 update -qq
+          sudo timeout 300 apt-get -o Acquire::Retries=2 install -y --no-install-recommends age openssl 7zip 7zip-rar unrar libarchive-tools
+      - name: Verify uploaded API digests and independently restore encrypted object
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          CACHE_ENCRYPTION_KEY: ${{ secrets.CACHE_ENCRYPTION_KEY }}
+          PACK_ID: ${{ needs.publish.outputs.pack_id }}
+          INDEX_ID: ${{ needs.publish.outputs.index_id }}
+          PACK_NAME: ${{ needs.publish.outputs.pack }}
+          INDEX_NAME: ${{ needs.publish.outputs.index }}
+        run: |
+          umask 077
+          python - <<'PY'
+          import hashlib, json, os, re, stat, sys, tempfile, zipfile
+          from pathlib import Path
+          sys.path.insert(0,'tools/modsync-ci'); import artstore, artstore_client, artstore_core as core, cache
+          base=Path(os.environ['RUNNER_TEMP'])/'trask-verify';base.mkdir(mode=0o700);evidence=base/'evidence';evidence.mkdir(mode=0o700)
+          client=artstore_client.ArtifactsClient(os.environ['GITHUB_REPOSITORY'],os.environ['GITHUB_TOKEN']);listing=client.list_artifacts()
+          records=[];index=None;pack_members={}
+          for label in ('PACK','INDEX'):
+              artifact=next(a for a in listing if str(a['id'])==os.environ[label+'_ID']);run=artifact['workflow_run']
+              assert artifact['name']==os.environ[label+'_NAME'] and not artifact['expired']
+              assert run['head_sha']==os.environ['GITHUB_SHA'] and str(run['id'])==os.environ['GITHUB_RUN_ID']
+              assert str(run['repository_id'])==os.environ['GITHUB_REPOSITORY_ID'] and run['head_repository_id']==run['repository_id']
+              assert re.fullmatch(r'sha256:[0-9a-f]{64}',artifact['digest']) and 0<artifact['size_in_bytes']<=32*1024**2
+              path=base/(label+'.zip');client.download_zip(artifact['id'],path,expect_digest=artifact['digest'])
+              assert path.stat().st_size==artifact['size_in_bytes']
+              with zipfile.ZipFile(path) as archive:
+                  if label=='INDEX':
+                      assert set(archive.namelist())=={'index.json','producer-provenance.json'} and len(archive.infolist())==2
+                      for member in archive.infolist():
+                          assert not member.is_dir() and stat.S_IFMT(member.external_attr>>16) in (0,stat.S_IFREG) and member.file_size<=32*1024**2
+                      document=archive.read('index.json');local=base/'index.json';local.write_bytes(document);index=core.load_index(local)
+                      producer=json.loads(archive.read('producer-provenance.json'))
+                      assert producer['repository']==os.environ['GITHUB_REPOSITORY'] and producer['sha']==os.environ['GITHUB_SHA']
+                      assert producer['run_id']==os.environ['GITHUB_RUN_ID'] and producer['run_attempt']==os.environ['GITHUB_RUN_ATTEMPT']
+                      assert producer['object']['sha256']==os.environ['TRASK_SHA'] and producer['object']['size']==15514430
+                  else:
+                      assert len(archive.infolist())==len(set(archive.namelist()))
+                      pack_members={m.filename:m.file_size for m in archive.infolist()}
+                      assert all(re.fullmatch(r'[0-9a-f]{64}\.part',m.filename) and not m.is_dir() and stat.S_IFMT(m.external_attr>>16) in (0,stat.S_IFREG) for m in archive.infolist())
+              records.append({k:artifact[k] for k in ('id','name','digest','workflow_run')});path.unlink()
+          artstore._reconcile(index,artstore._packs_by_name(listing,__import__('time').time()),__import__('time').time())
+          blob=index['blobs'][os.environ['TRASK_SHA']];assert blob['size']==15514430
+          assert all(str(index['packs'][p['pack']]['artifact_id'])==os.environ['PACK_ID'] for p in blob['parts'])
+          assert pack_members=={p['stored_sha256']+'.part':p['stored_size'] for p in blob['parts']}
+          restored=base/'restored.7z'
+          assert artstore.fetch(os.environ['TRASK_SHA'],restored,client=client,index=index,workdir=base/'parts')
+          assert restored.stat().st_size==15514430 and cache.digest(restored)==os.environ['TRASK_SHA']
+          assert cache.validate(restored,300)=='7z'
+          (evidence/'verified.json').write_text(json.dumps({'schema_version':1,'status':'uploaded-ciphertext-independently-restored',
+              'sha256':os.environ['TRASK_SHA'],'size':15514430,'artifacts':records},indent=2))
+          restored.unlink()
+          PY
+      - name: Retain separate encrypted verification diagnostics
+        if: ${{ always() && vars.DIAGNOSTICS_ENCRYPTION_RECIPIENT != '' }}
+        uses: ./.github/actions/retain-fullrun-evidence
+        with:
+          source: ${{ runner.temp }}/trask-verify/evidence
+          name: trask-retention-verifier-${{ github.run_id }}-${{ github.run_attempt }}
+          encryption-recipient: ${{ vars.DIAGNOSTICS_ENCRYPTION_RECIPIENT }}

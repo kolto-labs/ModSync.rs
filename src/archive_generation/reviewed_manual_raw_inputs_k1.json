@@ -1,0 +1,349 @@
+{
+  "schema": 1,
+  "source_guide_sha256": "44067788c6cb7a83b38d468817f273ce5cc901cd5e000c0f9ff65f8af15fc6ed",
+  "source_plan_sha256": "1b402ba085625c4863795069eaacaef0f53e8ea7179e56a5bd150d88eb9c0a74",
+  "recipes": [
+    {
+      "component_guid": "31175a55-b556-8430-9bff-a78d3744eef2",
+      "source_heading": "### CineMalak",
+      "source_component_index": 40,
+      "plan_step_index": 40,
+      "raw_input_component": {
+        "Guid": "31175a55-b556-8430-9bff-a78d3744eef2",
+        "Name": "CineMalak - HD Darth Malak",
+        "Author": "PoopaPoppaPalpatine",
+        "Description": "Built off of Dark Hope's texture above, CineMalak is a redesign intended to make Malak's space pajamas look more like real clothing. This mod does a wonderful job of giving his suit the little things - more realistic cloth textures, stitch lines, armor clasps - that make it both HD *and* believable.",
+        "Directions": "The downloaded file is a loose .tga, not inside an archive. For this mod, just move the downloaded file (N_DarthMalak01.tga) to your override directly.",
+        "Tier": "2 - Recommended",
+        "Category": [
+          "Graphics Improvement"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [
+          {
+            "Action": "Move",
+            "Source": [
+              "<<modDirectory>>\\N_DarthMalak01.tga"
+            ],
+            "Destination": "<<kotorDirectory>>\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/2787-cinemalak-hd-malak-retexture/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "31175a55-b556-8430-9bff-a78d3744eef2",
+            "DraftInstructionCount": 1,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "Loose-File Mod",
+            "MethodTruncated": false,
+            "Kind": "LooseFile",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "Heading": "CineMalak",
+        "InstallationMethod": "Loose-File Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[CineMalak - HD Darth Malak](https://deadlystream.com/files/file/2787-cinemalak-hd-malak-retexture/)",
+        "WidescreenOnly": false
+      },
+      "canonical_input_component": {
+        "Guid": "31175a55-b556-8430-9bff-a78d3744eef2",
+        "Name": "CineMalak - HD Darth Malak",
+        "Author": "PoopaPoppaPalpatine",
+        "Description": "Built off of Dark Hope's texture above, CineMalak is a redesign intended to make Malak's space pajamas look more like real clothing. This mod does a wonderful job of giving his suit the little things - more realistic cloth textures, stitch lines, armor clasps - that make it both HD *and* believable.",
+        "Directions": "The downloaded file is a loose .tga, not inside an archive. For this mod, just move the downloaded file (N_DarthMalak01.tga) to your override directly.",
+        "Tier": "2 - Recommended",
+        "Category": [
+          "Graphics Improvement"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [
+          {
+            "Action": "Move",
+            "Source": [
+              "<<modDirectory>>/N_DarthMalak01.tga"
+            ],
+            "Destination": "<<kotorDirectory>>\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/2787-cinemalak-hd-malak-retexture/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "31175a55-b556-8430-9bff-a78d3744eef2",
+            "DraftInstructionCount": 1,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "Loose-File Mod",
+            "MethodTruncated": false,
+            "Kind": "LooseFile",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "Heading": "CineMalak",
+        "InstallationMethod": "Loose-File Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[CineMalak - HD Darth Malak](https://deadlystream.com/files/file/2787-cinemalak-hd-malak-retexture/)",
+        "WidescreenOnly": false
+      },
+      "canonicalization": {
+        "method": "production-guide-loader",
+        "raw_component_sha256": "17b68aec2df2d3e508725a11aee469411709c7c89cde6ea2e35e4a74ccc7202b",
+        "canonical_component_sha256": "417bd6fcaf67537ccd97c8622278349e780809d908177cf8a6a832e246502730",
+        "cli_binary_sha256": "597fcd1fe2842f64c8f528283adc2b5ea37ee1ba806da72d4680a9ab470380fd",
+        "raw_export_sha256": "6dff78d3e3babebed63a165f224a9a3cc8aa6af6bf878f406d3ced3bb2dd6743",
+        "canonical_export_sha256": "1bb4b9488f245fc1479c34961e98917dcae449cd0df7a2e3b0d97d9103cad737",
+        "source_separator_changes": 1,
+        "root_trailing_separator_changes": 0
+      },
+      "plan_step": {
+        "id": "step-041",
+        "source_heading": "### CineMalak",
+        "operations": [
+          {
+            "type": "copy",
+            "source": "{archives}/N_DarthMalak01.tga",
+            "destination": "{game}/override/N_DarthMalak01.tga"
+          }
+        ]
+      },
+      "archives": [
+        {
+          "filename": "N_DarthMalak01.tga",
+          "sha256": "04160ed9e2eef2c88a3ed644ec2be24e5cd765f67a7cca35106be062e20358cd"
+        }
+      ]
+    },
+    {
+      "component_guid": "c5528694-bee0-87dc-a15a-5ede9f0f4253",
+      "source_heading": "### Bendak Non-Darkside Option",
+      "source_component_index": 149,
+      "plan_step_index": 149,
+      "raw_input_component": {
+        "Guid": "c5528694-bee0-87dc-a15a-5ede9f0f4253",
+        "Name": "Bendak Bounty Non-Darkside Option",
+        "Author": "Thrak Farelle, edited by A Future Pilot",
+        "Description": "Since Selven can be killed as a government contract with no DS points gained, why can't Bendak? This mod allows the player to decide whether they're agreeing to the death match just because they want blood (DS) or because they simply want to ensure Bendak doesn't kill anyone else (LS).",
+        "Directions": "This mod is not a file archive unlike all the other mods you've downloaded, just a single pre-extracted file. When you get the file, just put it directly in your Override folder.",
+        "Tier": "3 - Suggested",
+        "Category": [
+          "Immersion"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [
+          {
+            "Action": "Move",
+            "Source": [
+              "<<modDirectory>>\\i\\*"
+            ],
+            "Destination": "<<kotorDirectory>>\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://drive.google.com/file/d/1NuewBFq390wkZuBkbJzN-mN4sIRlvXGd/view": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "c5528694-bee0-87dc-a15a-5ede9f0f4253",
+            "DraftInstructionCount": 1,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "Loose-File Mod",
+            "MethodTruncated": false,
+            "Kind": "LooseFile",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "Heading": "Bendak Non-Darkside Option",
+        "InstallationMethod": "Loose-File Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "NO"
+        ],
+        "NameFieldContent": "[Bendak Bounty Non-Darkside Option](https://drive.google.com/file/d/1NuewBFq390wkZuBkbJzN-mN4sIRlvXGd/view)",
+        "WidescreenOnly": false
+      },
+      "canonical_input_component": {
+        "Guid": "c5528694-bee0-87dc-a15a-5ede9f0f4253",
+        "Name": "Bendak Bounty Non-Darkside Option",
+        "Author": "Thrak Farelle, edited by A Future Pilot",
+        "Description": "Since Selven can be killed as a government contract with no DS points gained, why can't Bendak? This mod allows the player to decide whether they're agreeing to the death match just because they want blood (DS) or because they simply want to ensure Bendak doesn't kill anyone else (LS).",
+        "Directions": "This mod is not a file archive unlike all the other mods you've downloaded, just a single pre-extracted file. When you get the file, just put it directly in your Override folder.",
+        "Tier": "3 - Suggested",
+        "Category": [
+          "Immersion"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [
+          {
+            "Action": "Move",
+            "Source": [
+              "<<modDirectory>>/i/*"
+            ],
+            "Destination": "<<kotorDirectory>>\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://drive.google.com/file/d/1NuewBFq390wkZuBkbJzN-mN4sIRlvXGd/view": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "c5528694-bee0-87dc-a15a-5ede9f0f4253",
+            "DraftInstructionCount": 1,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "Loose-File Mod",
+            "MethodTruncated": false,
+            "Kind": "LooseFile",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "Heading": "Bendak Non-Darkside Option",
+        "InstallationMethod": "Loose-File Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "NO"
+        ],
+        "NameFieldContent": "[Bendak Bounty Non-Darkside Option](https://drive.google.com/file/d/1NuewBFq390wkZuBkbJzN-mN4sIRlvXGd/view)",
+        "WidescreenOnly": false
+      },
+      "canonicalization": {
+        "method": "production-guide-loader",
+        "raw_component_sha256": "1ed381e235cbb34505cc01af4cb0569a1d67bc3f52609c4bd7466c36af7bc475",
+        "canonical_component_sha256": "de84fdc7cf8ba3366fe98902c600d49f3a296f0e63f55950383fca5475e8fcea",
+        "cli_binary_sha256": "597fcd1fe2842f64c8f528283adc2b5ea37ee1ba806da72d4680a9ab470380fd",
+        "raw_export_sha256": "6dff78d3e3babebed63a165f224a9a3cc8aa6af6bf878f406d3ced3bb2dd6743",
+        "canonical_export_sha256": "1bb4b9488f245fc1479c34961e98917dcae449cd0df7a2e3b0d97d9103cad737",
+        "source_separator_changes": 1,
+        "root_trailing_separator_changes": 0
+      },
+      "plan_step": {
+        "id": "step-150",
+        "source_heading": "### Bendak Non-Darkside Option",
+        "operations": [
+          {
+            "type": "copy",
+            "source": "{archives}/tar02_duelorg021.dlg",
+            "destination": "{game}/override/tar02_duelorg021.dlg"
+          }
+        ]
+      },
+      "archives": [
+        {
+          "filename": "tar02_duelorg021.dlg",
+          "sha256": "6ebb0b909c4ac7496971e3cc1320ce14b04fc67aec167f0feeb0e332181aff57"
+        }
+      ]
+    }
+  ]
+}

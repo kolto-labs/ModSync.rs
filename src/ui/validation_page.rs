@@ -274,6 +274,7 @@ impl App {
         let mut install = false;
         frame(8, 16, 12).show(ui, |ui| {
             ui.set_width((width - 32.0).max(1.0));
+            ui.add_enabled_ui(!busy, |ui| self.external_program_trust_control(ui));
             let compact = width < 560.0;
             ui.horizontal_wrapped(|ui| {
                 ui.spacing_mut().button_padding = egui::vec2(16.0, 10.0);

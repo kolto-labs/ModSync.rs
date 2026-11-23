@@ -1,0 +1,495 @@
+{
+  "schema": 1,
+  "source_guide_sha256": "f442bdf574031623ed577609730d887069b9bc8e38e8e2f38ecc43a7e7487d5f",
+  "source_plan_sha256": "0add8c1aeb7cdfad3df4b21761e135c150aa7832cf3fc0edabe01a91245a9258",
+  "recipes": [
+    {
+      "component_guid": "3eb56efe-013e-8095-80cf-a2584ba2cf94",
+      "source_heading": "### HQ Blasters",
+      "source_component_index": 117,
+      "plan_step_index": 117,
+      "raw_input_component": {
+        "Guid": "3eb56efe-013e-8095-80cf-a2584ba2cf94",
+        "Name": "High Quality Blasters",
+        "Author": "Sithspecter",
+        "Description": "Massively improves the appearance of almost all blaster weapons in-game without grossly altering their original design.",
+        "Directions": "",
+        "Tier": "1 - Essential",
+        "Category": [
+          "Graphics Improvement"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "http://deadlystream.com/files/file/915-high-quality-blasters/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "3eb56efe-013e-8095-80cf-a2584ba2cf94",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "TSLPatcher Mod",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "Heading": "HQ Blasters",
+        "InstallationMethod": "TSLPatcher Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "PARTIAL - Some text will be blank or in English"
+        ],
+        "NameFieldContent": "[High Quality Blasters](http://deadlystream.com/files/file/915-high-quality-blasters/)",
+        "WidescreenOnly": false
+      },
+      "canonical_input_component": {
+        "Guid": "3eb56efe-013e-8095-80cf-a2584ba2cf94",
+        "Name": "High Quality Blasters",
+        "Author": "Sithspecter",
+        "Description": "Massively improves the appearance of almost all blaster weapons in-game without grossly altering their original design.",
+        "Directions": "",
+        "Tier": "1 - Essential",
+        "Category": [
+          "Graphics Improvement"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "http://deadlystream.com/files/file/915-high-quality-blasters/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "3eb56efe-013e-8095-80cf-a2584ba2cf94",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "TSLPatcher Mod",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "Heading": "HQ Blasters",
+        "InstallationMethod": "TSLPatcher Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "PARTIAL - Some text will be blank or in English"
+        ],
+        "NameFieldContent": "[High Quality Blasters](http://deadlystream.com/files/file/915-high-quality-blasters/)",
+        "WidescreenOnly": false
+      },
+      "canonicalization": {
+        "method": "production-guide-loader",
+        "raw_component_sha256": "82235a30bbd8ccb01e6e2d97d0b6e4c3ff712b14c8756c1040446faf44f98492",
+        "canonical_component_sha256": "82235a30bbd8ccb01e6e2d97d0b6e4c3ff712b14c8756c1040446faf44f98492",
+        "cli_binary_sha256": "8840f5a5585fcd5d9a767fde46dc7cdff60cf631550e1c82a69fb366280caeba",
+        "raw_export_sha256": "2a0d2edc7fd7f365d1b0c718c206bb085c870852a4ab450917e3491443b80e15",
+        "canonical_export_sha256": "3c23c98154f00038825e9e746b884b5937a9e80b2ea03c6a1e5b9ca7f00f6a3e",
+        "source_separator_changes": 0,
+        "root_trailing_separator_changes": 0
+      },
+      "plan_step": {
+        "id": "step-118",
+        "source_heading": "### HQ Blasters",
+        "operations": [
+          {
+            "type": "extract",
+            "source": "{archives}/TSL_High_Quality_Blasters.zip",
+            "destination": "{extract}/step-118/1"
+          },
+          {
+            "type": "delete",
+            "path": "{extract}/step-118/1/Install/installlog.rtf"
+          },
+          {
+            "type": "gui_patcher",
+            "patcher": "{extract}/step-118/1/Install/High Quality Blasters Installer.exe",
+            "sha256": "013655cd871a71e0f5b50f80ed0d32308912916ba7e12e2a366f42d992a71b16",
+            "argv": [
+              "/usr/bin/wine",
+              "{extract}/step-118/1/Install/High Quality Blasters Installer.exe"
+            ],
+            "cwd": "{extract}/step-118/1/Install",
+            "success_log": "{extract}/step-118/1/Install/installlog.rtf",
+            "success_markers": [
+              "Done. All changes have been applied."
+            ],
+            "failure_regex": [
+              "Error: ",
+              "Warning: ",
+              "Done\\. Some changes may have been applied"
+            ],
+            "expected_changes": "changed_manifest",
+            "wine_registry": [
+              {
+                "key": "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders",
+                "name": "Desktop",
+                "data": "{game_win}"
+              },
+              {
+                "key": "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders",
+                "name": "Desktop",
+                "data": "{game_win}"
+              }
+            ],
+            "actions": [
+              {
+                "wait_window": "^(High Quality Blasters)",
+                "timeout": 120
+              },
+              {
+                "sleep": 3
+              },
+              {
+                "click": [
+                  502,
+                  433
+                ],
+                "window": "^(High Quality Blasters)"
+              },
+              {
+                "wait_window": "^Browse for Folder$",
+                "timeout": 120
+              },
+              {
+                "sleep": 2
+              },
+              {
+                "click": [
+                  62,
+                  69
+                ],
+                "window": "^Browse for Folder$"
+              },
+              {
+                "sleep": 1
+              },
+              {
+                "click": [
+                  157,
+                  274
+                ],
+                "window": "^Browse for Folder$"
+              },
+              {
+                "wait_log": 600
+              }
+            ]
+          }
+        ]
+      },
+      "archives": [
+        {
+          "filename": "TSL_High_Quality_Blasters.zip",
+          "sha256": "a088f3bf81891ea2713e46e60cdf7926aa30287ed86991788fecc6745f8996c3"
+        }
+      ],
+      "native_patcher": {
+        "operation_index": 2,
+        "extract_operation_index": 0,
+        "installer": {
+          "path": "Install/High Quality Blasters Installer.exe",
+          "bytes": 681984,
+          "sha256": "013655cd871a71e0f5b50f80ed0d32308912916ba7e12e2a366f42d992a71b16"
+        },
+        "changes_ini": {
+          "path": "Install/tslpatchdata/changes.ini",
+          "bytes": 9336,
+          "sha256": "4857fa86e58ee945c2bfcd50a5f9b1c37b47f683553f9455017326386e39dea5"
+        },
+        "inventory_sha256": "e26a50aa41bace2e20bcaab1c953499cdd7c33b6de64489ce5299c8cdd68c5a9",
+        "certificate_sha256": "5fb1f7b690ecab222a8d131a4b50d630cd542c9b10c757cf9591adedb61078e1",
+        "arguments": "changes.ini",
+        "destination": "<<kotorDirectory>>",
+        "success_contract": "native-zero-warnings-changed-game-v1"
+      }
+    },
+    {
+      "component_guid": "2de86e49-571f-8600-931e-5bc2ad5acebe",
+      "source_heading": "### Rescaled Trandoshans",
+      "source_component_index": 121,
+      "plan_step_index": 121,
+      "raw_input_component": {
+        "Guid": "2de86e49-571f-8600-931e-5bc2ad5acebe",
+        "Name": "Rescaled Trandoshans",
+        "Author": "Schizo",
+        "Description": "Canonically Trandoshans are huge, almost as tall as a Wookiee. This mod rescales them to the proper height.",
+        "Directions": "",
+        "Tier": "4 - Optional",
+        "Category": [
+          "Immersion"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/946-re-scaled-trandoshans/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "2de86e49-571f-8600-931e-5bc2ad5acebe",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "TSLPatcher Mod",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "InstallationMethod": "TSLPatcher Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[Rescaled Trandoshans](https://deadlystream.com/files/file/946-re-scaled-trandoshans/)",
+        "WidescreenOnly": false
+      },
+      "canonical_input_component": {
+        "Guid": "2de86e49-571f-8600-931e-5bc2ad5acebe",
+        "Name": "Rescaled Trandoshans",
+        "Author": "Schizo",
+        "Description": "Canonically Trandoshans are huge, almost as tall as a Wookiee. This mod rescales them to the proper height.",
+        "Directions": "",
+        "Tier": "4 - Optional",
+        "Category": [
+          "Immersion"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/946-re-scaled-trandoshans/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "2de86e49-571f-8600-931e-5bc2ad5acebe",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "TSLPatcher Mod",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "InstallationMethod": "TSLPatcher Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[Rescaled Trandoshans](https://deadlystream.com/files/file/946-re-scaled-trandoshans/)",
+        "WidescreenOnly": false
+      },
+      "canonicalization": {
+        "method": "production-guide-loader",
+        "raw_component_sha256": "94aaa64a6c85d328e07695c92510057f5ce5de5be27291dce7d22e701e277703",
+        "canonical_component_sha256": "94aaa64a6c85d328e07695c92510057f5ce5de5be27291dce7d22e701e277703",
+        "cli_binary_sha256": "8840f5a5585fcd5d9a767fde46dc7cdff60cf631550e1c82a69fb366280caeba",
+        "raw_export_sha256": "2a0d2edc7fd7f365d1b0c718c206bb085c870852a4ab450917e3491443b80e15",
+        "canonical_export_sha256": "3c23c98154f00038825e9e746b884b5937a9e80b2ea03c6a1e5b9ca7f00f6a3e",
+        "source_separator_changes": 0,
+        "root_trailing_separator_changes": 0
+      },
+      "plan_step": {
+        "id": "step-122",
+        "source_heading": "### Rescaled Trandoshans",
+        "operations": [
+          {
+            "type": "extract",
+            "source": "{archives}/Rescaled Trandoshans.zip",
+            "destination": "{extract}/step-122/1"
+          },
+          {
+            "type": "delete",
+            "path": "{extract}/step-122/1/Rescaled Trandoshans/installlog.rtf"
+          },
+          {
+            "type": "gui_patcher",
+            "patcher": "{extract}/step-122/1/Rescaled Trandoshans/TSLPatcher.exe",
+            "sha256": "013655cd871a71e0f5b50f80ed0d32308912916ba7e12e2a366f42d992a71b16",
+            "argv": [
+              "/usr/bin/wine",
+              "{extract}/step-122/1/Rescaled Trandoshans/TSLPatcher.exe"
+            ],
+            "cwd": "{extract}/step-122/1/Rescaled Trandoshans",
+            "success_log": "{extract}/step-122/1/Rescaled Trandoshans/installlog.rtf",
+            "success_markers": [
+              "Done. All changes have been applied."
+            ],
+            "failure_regex": [
+              "Error: ",
+              "Warning: ",
+              "Done\\. Some changes may have been applied"
+            ],
+            "expected_changes": "changed_manifest",
+            "wine_registry": [
+              {
+                "key": "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders",
+                "name": "Desktop",
+                "data": "{game_win}"
+              },
+              {
+                "key": "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders",
+                "name": "Desktop",
+                "data": "{game_win}"
+              }
+            ],
+            "actions": [
+              {
+                "wait_window": "^(TrandoRescale)",
+                "timeout": 120
+              },
+              {
+                "sleep": 3
+              },
+              {
+                "click": [
+                  502,
+                  433
+                ],
+                "window": "^(TrandoRescale)"
+              },
+              {
+                "wait_window": "^Browse for Folder$",
+                "timeout": 120
+              },
+              {
+                "sleep": 2
+              },
+              {
+                "click": [
+                  62,
+                  69
+                ],
+                "window": "^Browse for Folder$"
+              },
+              {
+                "sleep": 1
+              },
+              {
+                "click": [
+                  157,
+                  274
+                ],
+                "window": "^Browse for Folder$"
+              },
+              {
+                "wait_log": 600
+              }
+            ]
+          }
+        ]
+      },
+      "archives": [
+        {
+          "filename": "Rescaled Trandoshans.zip",
+          "sha256": "f8939839eac387aa8e120116686baa7281b3226cdb5b941ba7d7389040e5b644"
+        }
+      ],
+      "native_patcher": {
+        "operation_index": 2,
+        "extract_operation_index": 0,
+        "installer": {
+          "path": "Rescaled Trandoshans/TSLPatcher.exe",
+          "bytes": 681984,
+          "sha256": "013655cd871a71e0f5b50f80ed0d32308912916ba7e12e2a366f42d992a71b16"
+        },
+        "changes_ini": {
+          "path": "Rescaled Trandoshans/tslpatchdata/changes.ini",
+          "bytes": 1478,
+          "sha256": "234c8196ef71e982549f99ae55ee0991f4e67350dd41a6ed890fff979bfcfab6"
+        },
+        "inventory_sha256": "e8715c9bb9342c2780f12bc184708c37627d1f52937988fefbcd791eb715476a",
+        "certificate_sha256": "16749d96e1c8eb620ba1f140541e830cfab530a25876d75210fa2334faaa3796",
+        "arguments": "changes.ini",
+        "destination": "<<kotorDirectory>>",
+        "success_contract": "native-zero-warnings-changed-game-v1"
+      }
+    }
+  ]
+}

@@ -308,11 +308,7 @@ pub fn resolve_selected(components: &mut [Component]) {
 }
 
 fn base(component: &Component) -> bool {
-    !component
-        .metadata
-        .get("WidescreenOnly")
-        .and_then(serde_json::Value::as_bool)
-        .unwrap_or(false)
+    !crate::phase::widescreen(component)
 }
 fn cli_tier_priority(tier: &str) -> Option<u8> {
     let normalized = tier.trim().to_ascii_lowercase();

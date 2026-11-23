@@ -17,7 +17,7 @@ use std::{
 };
 
 const INVENTORY_LIMIT: usize = 200_000;
-const METADATA_LIMIT: u64 = 256 * 1024 * 1024;
+const METADATA_LIMIT: u64 = super::history::MAX_HISTORY_BYTES;
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -74,7 +74,7 @@ struct Deletion {
     trash_id: String,
 }
 struct Catalog {
-    sessions: BTreeMap<String, (Session, Head, Vec<Checkpoint>)>,
+    sessions: BTreeMap<String, (Session, Head, super::history::CheckedHistory)>,
     incomplete: BTreeSet<String>,
     objects: BTreeMap<String, u64>,
     orphan_documents: Vec<PathBuf>,
@@ -132,7 +132,7 @@ fn document_budget(path: &Path, total: &mut u64) -> Result<()> {
         .context("Metadata inventory overflow")?;
     ensure!(
         *total <= METADATA_LIMIT,
-        "Lifecycle metadata exceeds 256 MiB budget"
+        "Lifecycle metadata exceeds 64 GiB validation I/O budget"
     );
     Ok(())
 }
@@ -208,10 +208,9 @@ impl Store {
             );
             let history = if has_head {
                 let value = self.checked_history(&session_id)?;
-                add_objects(
-                    &mut result.objects,
-                    value.2.iter().flat_map(super::auxiliary::objects),
-                )?;
+                for checkpoint in value.2.iter(self) {
+                    add_objects(&mut result.objects, super::auxiliary::objects(&checkpoint?))?;
+                }
                 if let Some(receipt) = &value.1.finalization_receipt {
                     add_objects(
                         &mut result.objects,
@@ -235,9 +234,10 @@ impl Store {
                     .context("Unknown checkpoint artifact")?;
                 if has_session {
                     let document = self.read_checkpoint(&session_id, checkpoint_id)?;
-                    if history.as_ref().is_some_and(|(_, _, chain)| {
-                        chain.iter().any(|c| c.checkpoint_id == checkpoint_id)
-                    }) {
+                    if history
+                        .as_ref()
+                        .is_some_and(|(_, _, chain)| chain.contains(checkpoint_id))
+                    {
                         continue;
                     }
                     if has_head && !any_incomplete {
@@ -648,24 +648,27 @@ impl Store {
                 finalization_receipt: None,
                 transition_operation: None,
             };
-            (session_doc, head, vec![document])
+            {
+                let history = super::history::CheckedHistory::pending(&session_doc, &document)?;
+                (session_doc, head, history)
+            }
         } else {
             self.checked_history(session)?
         };
         let checkpoint_id = checkpoint.unwrap_or(&head.checkpoint_id);
-        let document = history
-            .iter()
-            .find(|c| c.checkpoint_id == checkpoint_id)
-            .context("Repair checkpoint is not committed or pending ancestry")?;
-        let mut targets = vec![(session_doc.clone(), document.clone())];
+        history.get(self, checkpoint_id)?;
+        let history = std::sync::Arc::new(history);
+        let mut targets = vec![(
+            session_doc.clone(),
+            history.clone(),
+            checkpoint_id.to_owned(),
+        )];
         let mut receipts = Vec::new();
         if let Some(receipt) = &head.finalization_receipt {
             receipts.push((
                 session_doc.clone(),
-                history
-                    .last()
-                    .context("Current checkpoint missing")?
-                    .clone(),
+                history.clone(),
+                head.checkpoint_id.clone(),
                 receipt.clone(),
             ));
         }
@@ -679,43 +682,66 @@ impl Store {
                 continue;
             }
             let (source, _, source_history) = self.checked_history(&operation.session_id)?;
-            let pending_parent = source_history
-                .iter()
-                .find(|c| c.checkpoint_id == operation.from_checkpoint_id)
-                .context("Pending operation parent missing")?;
-            targets.push((source.clone(), pending_parent.clone()));
+            source_history.get(self, &operation.from_checkpoint_id)?;
+            let source_history = std::sync::Arc::new(source_history);
+            targets.push((
+                source.clone(),
+                source_history.clone(),
+                operation.from_checkpoint_id.clone(),
+            ));
             if let Some(receipt) = &operation.finalization_receipt {
-                let current = source_history
-                    .iter()
-                    .find(|c| c.checkpoint_id == operation.from_checkpoint_id)
-                    .context("Pending receipt checkpoint missing")?;
-                receipts.push((source.clone(), current.clone(), receipt.clone()));
+                receipts.push((
+                    source.clone(),
+                    source_history.clone(),
+                    operation.from_checkpoint_id.clone(),
+                    receipt.clone(),
+                ));
             }
             if let Some(binding) = &operation.transition {
-                let target = source_history
-                    .iter()
-                    .find(|c| c.checkpoint_id == binding.target_checkpoint_id)
-                    .context("Pending restore target missing")?;
-                targets.push((source, target.clone()));
+                source_history.get(self, &binding.target_checkpoint_id)?;
                 targets.push((
-                    self.read_session(&binding.branch_session_id)?,
-                    self.read_checkpoint(
-                        &binding.branch_session_id,
-                        &binding.branch_checkpoint_id,
-                    )?,
+                    source,
+                    source_history.clone(),
+                    binding.target_checkpoint_id.clone(),
+                ));
+                let branch = self.read_session(&binding.branch_session_id)?;
+                let baseline = self
+                    .read_checkpoint(&binding.branch_session_id, &binding.branch_checkpoint_id)?;
+                // Transition branches can be either unpublished or already committed.
+                let branch_history = if safe_path(
+                    &self
+                        .session_directory(&binding.branch_session_id)?
+                        .join("HEAD.json"),
+                )?
+                .is_some()
+                {
+                    self.checked_history(&binding.branch_session_id)?.2
+                } else {
+                    super::history::CheckedHistory::pending(&branch, &baseline)?
+                };
+                targets.push((
+                    branch,
+                    std::sync::Arc::new(branch_history),
+                    binding.branch_checkpoint_id.clone(),
                 ));
                 if let Some(safety) = &binding.safety_session_id {
                     let (safety_session, _, safety_history) = self.checked_history(safety)?;
-                    for safety_checkpoint in safety_history {
-                        targets.push((safety_session.clone(), safety_checkpoint));
+                    let safety_history = std::sync::Arc::new(safety_history);
+                    for boundary in &safety_history.entries {
+                        targets.push((
+                            safety_session.clone(),
+                            safety_history.clone(),
+                            boundary.checkpoint_id.clone(),
+                        ));
                     }
                 }
             }
         }
         let mut wanted = BTreeMap::new();
         let mut candidates: BTreeMap<String, Vec<PathBuf>> = BTreeMap::new();
-        for (context, current) in &targets {
-            add_objects(&mut wanted, super::auxiliary::objects(current))?;
+        for (context, history, checkpoint) in &targets {
+            let current = history.get(self, checkpoint)?;
+            add_objects(&mut wanted, super::auxiliary::objects(&current))?;
             live_candidates(&mut candidates, &self.roots.mods, &current.mods);
             live_candidates(&mut candidates, &self.roots.game, &current.game);
             for (key, snapshot) in &current.auxiliary_snapshots {
@@ -733,7 +759,8 @@ impl Store {
             }
         }
         let mut receipt_sources = BTreeMap::new();
-        for (context, current, receipt) in receipts {
+        for (context, history, checkpoint, receipt) in receipts {
+            let current = history.get(self, &checkpoint)?;
             add_objects(&mut wanted, [(receipt.sha256.clone(), receipt.size)])?;
             let (bytes, expected) = super::finalize::expected_receipt(
                 &self.roots,

@@ -1,0 +1,82 @@
+{
+  "schema": 1,
+  "game": "k1",
+  "entries": [
+    {
+      "component_guid": "8e70428e-2dab-8972-bf4c-6900d4ed8c26",
+      "filename": "JC_s Korriban - Back in Black for K1 v2.3.zip",
+      "sha256": "9e9462731ae2247126be75f08819e5b6d66d7aa50b1a4e5fcc44bcaf10cfd032",
+      "archive_bytes": 1945885,
+      "allowed_extensions": [
+        ".ini",
+        ".nss"
+      ],
+      "maximum_retained_member_bytes": 2097152,
+      "maximum_retained_total_bytes": 8388608,
+      "required_manifest_fields": [
+        "path",
+        "bytes",
+        "sha256",
+        "crc32"
+      ],
+      "scope": "authenticated complete original archive then only original textual INI/NSS members; preserve paths and raw bytes"
+    },
+    {
+      "component_guid": "f49f2fc1-9c7c-81f5-aaa5-1be2067fe595",
+      "filename": "Taris Rapid Transit FULL-1666-1-1-1727167081.rar",
+      "sha256": "27fd874bca4479fac2f244fdc7d59e538757bf301e105f691dffbfbc20c09871",
+      "archive_bytes": 2087151,
+      "allowed_extensions": [
+        ".ini",
+        ".nss"
+      ],
+      "maximum_retained_member_bytes": 2097152,
+      "maximum_retained_total_bytes": 8388608,
+      "required_manifest_fields": [
+        "path",
+        "bytes",
+        "sha256",
+        "crc32"
+      ],
+      "scope": "authenticated complete original archive then only original textual INI/NSS members; preserve paths and raw bytes"
+    },
+    {
+      "component_guid": "3f5cb051-3598-8fb9-abb0-b50ac47d269d",
+      "filename": "Ajunta__39_s Swords.7z",
+      "sha256": "5c1c3e2a23de8a96f7bdf275d0326a8ed79aac786d8e5f096c92e9b799a7bbf9",
+      "archive_bytes": 241822,
+      "allowed_extensions": [
+        ".ini",
+        ".nss"
+      ],
+      "maximum_retained_member_bytes": 2097152,
+      "maximum_retained_total_bytes": 8388608,
+      "required_manifest_fields": [
+        "path",
+        "bytes",
+        "sha256",
+        "crc32"
+      ],
+      "scope": "authenticated complete original archive then only original textual INI/NSS members; preserve paths and raw bytes"
+    },
+    {
+      "component_guid": "34491bab-d2bf-8dfb-af04-20d5ec42c77a",
+      "filename": "Multifire and Autofire-1711-1-2-2-1769975013.7z",
+      "sha256": "b006a7f68cdff71774fed72670b482e8a136b121e052422555c61f9fad02a6e4",
+      "archive_bytes": 11182582,
+      "allowed_extensions": [
+        ".ini",
+        ".nss"
+      ],
+      "maximum_retained_member_bytes": 2097152,
+      "maximum_retained_total_bytes": 8388608,
+      "required_manifest_fields": [
+        "path",
+        "bytes",
+        "sha256",
+        "crc32"
+      ],
+      "scope": "authenticated complete original archive then only original textual INI/NSS members; preserve paths and raw bytes"
+    }
+  ]
+}

@@ -25,6 +25,7 @@ pub mod peer_sharing;
 pub mod phase;
 pub mod recovery;
 pub mod validation;
+pub mod vendor_installer;
 
 pub use engine::{Engine, Event, PatcherEngine, Settings};
 pub use model::{Component, Guide, Instruction};
@@ -57,6 +58,11 @@ pub mod wizard;
 
 #[cfg(target_os = "macos")]
 pub mod native_url;
+
+mod galaxy_map;
+mod k1_widescreen;
+pub mod k1_widescreen_recipe;
+pub mod k2_preparation;
 
 mod guid;
 mod json_native;

@@ -1,0 +1,969 @@
+{
+  "schema": 1,
+  "source_guide_sha256": "f442bdf574031623ed577609730d887069b9bc8e38e8e2f38ecc43a7e7487d5f",
+  "source_plan_sha256": "0add8c1aeb7cdfad3df4b21761e135c150aa7832cf3fc0edabe01a91245a9258",
+  "recipes": [
+    {
+      "component_guid": "f88f9af8-050f-811c-814b-706cb9466483",
+      "source_heading": "### Thematic Jedi Masters",
+      "source_component_index": 102,
+      "plan_step_index": 102,
+      "raw_input_component": {
+        "Guid": "f88f9af8-050f-811c-814b-706cb9466483",
+        "Name": "Thematic Jedi Masters",
+        "Author": "Sniggles & JCarter426",
+        "Description": "The much younger brother of Thematic Sith Lords, Thematic Jedi Masters was born of me discovering that all of the Masters except Atris have the same class (Guardian), and one doesn't even have any Force Points for your encounter! These fights were extremely half-baked, and that's where this mod comes in. Unlike Thematic Sith Lords the design philosophy was not of a rock-paper-scissors style (so you aren't going to find a tremendous glaring weakness with a Master as you might on a Lord) but rather to accentuate a given master's strengths in line with their respective natures.",
+        "Directions": "",
+        "Tier": "2 - Recommended",
+        "Category": [
+          "Mechanics Change"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/2633-thematic-jedi-masters/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "f88f9af8-050f-811c-814b-706cb9466483",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "TSLPatcher Mod",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "InstallationMethod": "TSLPatcher Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[Thematic Jedi Masters](https://deadlystream.com/files/file/2633-thematic-jedi-masters/)",
+        "WidescreenOnly": false
+      },
+      "canonical_input_component": {
+        "Guid": "f88f9af8-050f-811c-814b-706cb9466483",
+        "Name": "Thematic Jedi Masters",
+        "Author": "Sniggles & JCarter426",
+        "Description": "The much younger brother of Thematic Sith Lords, Thematic Jedi Masters was born of me discovering that all of the Masters except Atris have the same class (Guardian), and one doesn't even have any Force Points for your encounter! These fights were extremely half-baked, and that's where this mod comes in. Unlike Thematic Sith Lords the design philosophy was not of a rock-paper-scissors style (so you aren't going to find a tremendous glaring weakness with a Master as you might on a Lord) but rather to accentuate a given master's strengths in line with their respective natures.",
+        "Directions": "",
+        "Tier": "2 - Recommended",
+        "Category": [
+          "Mechanics Change"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/2633-thematic-jedi-masters/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "f88f9af8-050f-811c-814b-706cb9466483",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "TSLPatcher Mod",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "InstallationMethod": "TSLPatcher Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[Thematic Jedi Masters](https://deadlystream.com/files/file/2633-thematic-jedi-masters/)",
+        "WidescreenOnly": false
+      },
+      "canonicalization": {
+        "method": "production-guide-loader",
+        "raw_component_sha256": "711a1196e5b01111839cdbcc42f2d94b8b7f7424bb6994cb740ecd91b273f876",
+        "canonical_component_sha256": "711a1196e5b01111839cdbcc42f2d94b8b7f7424bb6994cb740ecd91b273f876",
+        "cli_binary_sha256": "8840f5a5585fcd5d9a767fde46dc7cdff60cf631550e1c82a69fb366280caeba",
+        "raw_export_sha256": "2a0d2edc7fd7f365d1b0c718c206bb085c870852a4ab450917e3491443b80e15",
+        "canonical_export_sha256": "3c23c98154f00038825e9e746b884b5937a9e80b2ea03c6a1e5b9ca7f00f6a3e",
+        "source_separator_changes": 0,
+        "root_trailing_separator_changes": 0
+      },
+      "plan_step": {
+        "id": "step-103",
+        "source_heading": "### Thematic Jedi Masters",
+        "operations": [
+          {
+            "type": "extract",
+            "source": "{archives}/KOTOR2-Thematic-Jedi-Masters_v1.0.1.zip",
+            "destination": "{extract}/step-103/1"
+          },
+          {
+            "type": "gui_patcher",
+            "patcher": "{extract}/step-103/1/INSTALL.exe",
+            "sha256": "1a267454b2efcd61232332be83f4da4ffe88bd6770c5a0df517880062b1a75e8",
+            "argv": [
+              "/usr/bin/wine",
+              "{extract}/step-103/1/INSTALL.exe"
+            ],
+            "cwd": "{extract}/step-103/1",
+            "success_log": "{extract}/step-103/1/installlog.rtf",
+            "success_markers": [
+              "Done. All changes have been applied."
+            ],
+            "failure_regex": [
+              "Error: ",
+              "Warning: ",
+              "Done\\. Some changes may have been applied"
+            ],
+            "expected_changes": "changed_manifest",
+            "wine_registry": [
+              {
+                "key": "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders",
+                "name": "Desktop",
+                "data": "{game_win}"
+              },
+              {
+                "key": "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders",
+                "name": "Desktop",
+                "data": "{game_win}"
+              }
+            ],
+            "actions": [
+              {
+                "wait_window": "^(Thematic Jedi Masters)",
+                "timeout": 120
+              },
+              {
+                "sleep": 3
+              },
+              {
+                "click": [
+                  502,
+                  433
+                ],
+                "window": "^(Thematic Jedi Masters)"
+              },
+              {
+                "wait_window": "^Browse for Folder$",
+                "timeout": 120
+              },
+              {
+                "sleep": 2
+              },
+              {
+                "click": [
+                  62,
+                  69
+                ],
+                "window": "^Browse for Folder$"
+              },
+              {
+                "sleep": 1
+              },
+              {
+                "click": [
+                  157,
+                  274
+                ],
+                "window": "^Browse for Folder$"
+              },
+              {
+                "wait_log": 600
+              }
+            ]
+          }
+        ]
+      },
+      "archives": [
+        {
+          "filename": "KOTOR2-Thematic-Jedi-Masters_v1.0.1.zip",
+          "sha256": "61adba64bbc1783e06565e324213a4f022a55126a5e409444a5bf4ad5d5c6930"
+        }
+      ],
+      "native_patcher": {
+        "operation_index": 1,
+        "extract_operation_index": 0,
+        "installer": {
+          "bytes": 686080,
+          "path": "INSTALL.exe",
+          "sha256": "1a267454b2efcd61232332be83f4da4ffe88bd6770c5a0df517880062b1a75e8"
+        },
+        "changes_ini": {
+          "bytes": 31382,
+          "path": "tslpatchdata/changes.ini",
+          "sha256": "fed2cb2d42d86e7b232bc5f1c69b1f86a95ad4f74ba934f1f2e8f3b433be297e"
+        },
+        "inventory_sha256": "e8e9c3de498b5f40ae7251e787dddf4a397c0b724b86b357a0d5a035c09f3b10",
+        "certificate_sha256": "40d8b62452e547be7b0ab3929bbe97a440ab514503e7f814d6f76d891532fb81",
+        "arguments": "changes.ini",
+        "destination": "<<kotorDirectory>>",
+        "success_contract": "native-zero-warnings-changed-game-v1"
+      }
+    },
+    {
+      "component_guid": "b83b224a-3c42-83d5-85f4-c89df4a263ae",
+      "source_heading": "### JC's Handmaiden Sisters",
+      "source_component_index": 126,
+      "plan_step_index": 126,
+      "raw_input_component": {
+        "Guid": "b83b224a-3c42-83d5-85f4-c89df4a263ae",
+        "Name": "JC's Handmaiden Sisters",
+        "Author": "JCarter426",
+        "Description": "By default, KOTOR 2 has all the handmaidens look exactly the same, except for Brianna herself. This mod restores the original intended appearance of the other sisters, so it actually makes sense when they say that Brianna honors the face of her mother.",
+        "Directions": "",
+        "Tier": "2 - Recommended",
+        "Category": [
+          "Restored Content",
+          "Immersion"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/810-jcs-handmaiden-sisters/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "b83b224a-3c42-83d5-85f4-c89df4a263ae",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "TSLPatcher Mod",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "InstallationMethod": "TSLPatcher Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[JC's Handmaiden Sisters](https://deadlystream.com/files/file/810-jcs-handmaiden-sisters/)",
+        "WidescreenOnly": false
+      },
+      "canonical_input_component": {
+        "Guid": "b83b224a-3c42-83d5-85f4-c89df4a263ae",
+        "Name": "JC's Handmaiden Sisters",
+        "Author": "JCarter426",
+        "Description": "By default, KOTOR 2 has all the handmaidens look exactly the same, except for Brianna herself. This mod restores the original intended appearance of the other sisters, so it actually makes sense when they say that Brianna honors the face of her mother.",
+        "Directions": "",
+        "Tier": "2 - Recommended",
+        "Category": [
+          "Restored Content",
+          "Immersion"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/810-jcs-handmaiden-sisters/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "b83b224a-3c42-83d5-85f4-c89df4a263ae",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "TSLPatcher Mod",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "InstallationMethod": "TSLPatcher Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[JC's Handmaiden Sisters](https://deadlystream.com/files/file/810-jcs-handmaiden-sisters/)",
+        "WidescreenOnly": false
+      },
+      "canonicalization": {
+        "method": "production-guide-loader",
+        "raw_component_sha256": "9950cd440617aaa12f6d99805fa278da4f4f3619ce3a41a65015d174b8d6afae",
+        "canonical_component_sha256": "9950cd440617aaa12f6d99805fa278da4f4f3619ce3a41a65015d174b8d6afae",
+        "cli_binary_sha256": "8840f5a5585fcd5d9a767fde46dc7cdff60cf631550e1c82a69fb366280caeba",
+        "raw_export_sha256": "2a0d2edc7fd7f365d1b0c718c206bb085c870852a4ab450917e3491443b80e15",
+        "canonical_export_sha256": "3c23c98154f00038825e9e746b884b5937a9e80b2ea03c6a1e5b9ca7f00f6a3e",
+        "source_separator_changes": 0,
+        "root_trailing_separator_changes": 0
+      },
+      "plan_step": {
+        "id": "step-127",
+        "source_heading": "### JC's Handmaiden Sisters",
+        "operations": [
+          {
+            "type": "extract",
+            "source": "{archives}/KOTOR2-Handmaiden-Sisters_v3.0.0.zip",
+            "destination": "{extract}/step-127/1"
+          },
+          {
+            "type": "gui_patcher",
+            "patcher": "{extract}/step-127/1/INSTALL.exe",
+            "sha256": "1a267454b2efcd61232332be83f4da4ffe88bd6770c5a0df517880062b1a75e8",
+            "argv": [
+              "/usr/bin/wine",
+              "{extract}/step-127/1/INSTALL.exe"
+            ],
+            "cwd": "{extract}/step-127/1",
+            "success_log": "{extract}/step-127/1/installlog.rtf",
+            "success_markers": [
+              "Done. All changes have been applied."
+            ],
+            "failure_regex": [
+              "Error: ",
+              "Warning: ",
+              "Done\\. Some changes may have been applied"
+            ],
+            "expected_changes": "changed_manifest",
+            "wine_registry": [
+              {
+                "key": "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders",
+                "name": "Desktop",
+                "data": "{game_win}"
+              },
+              {
+                "key": "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders",
+                "name": "Desktop",
+                "data": "{game_win}"
+              }
+            ],
+            "actions": [
+              {
+                "wait_window": "^(JC's Handmaiden Sisters)",
+                "timeout": 120
+              },
+              {
+                "sleep": 3
+              },
+              {
+                "click": [
+                  502,
+                  433
+                ],
+                "window": "^(JC's Handmaiden Sisters)"
+              },
+              {
+                "wait_window": "^Browse for Folder$",
+                "timeout": 120
+              },
+              {
+                "sleep": 2
+              },
+              {
+                "click": [
+                  62,
+                  69
+                ],
+                "window": "^Browse for Folder$"
+              },
+              {
+                "sleep": 1
+              },
+              {
+                "click": [
+                  157,
+                  274
+                ],
+                "window": "^Browse for Folder$"
+              },
+              {
+                "wait_log": 600
+              }
+            ]
+          }
+        ]
+      },
+      "archives": [
+        {
+          "filename": "KOTOR2-Handmaiden-Sisters_v3.0.0.zip",
+          "sha256": "e42dbe037582156058fc3ab1e539aae6d1887f95a391ec3abe4dd21ea3cd5cf9"
+        }
+      ],
+      "native_patcher": {
+        "operation_index": 1,
+        "extract_operation_index": 0,
+        "installer": {
+          "bytes": 686080,
+          "path": "INSTALL.exe",
+          "sha256": "1a267454b2efcd61232332be83f4da4ffe88bd6770c5a0df517880062b1a75e8"
+        },
+        "changes_ini": {
+          "bytes": 3508,
+          "path": "tslpatchdata/changes.ini",
+          "sha256": "aba43b7f717d94a3ff481ee4cf732992ede8b0186cc97b42b5321e06c68725d9"
+        },
+        "inventory_sha256": "3e1f3beb73418afa1b4dd832e8351c32781734ded120f2e5966393f98756bf05",
+        "certificate_sha256": "9823a06fd6065a9d8963e518b143b358c9350b5629ddc3a628a5c22bf6dcfb40",
+        "arguments": "changes.ini",
+        "destination": "<<kotorDirectory>>",
+        "success_contract": "native-zero-warnings-changed-game-v1"
+      }
+    },
+    {
+      "component_guid": "f27d4b13-b349-8c56-b9b7-620cdc133579",
+      "source_heading": "### Companion Clothes",
+      "source_component_index": 134,
+      "plan_step_index": 134,
+      "raw_input_component": {
+        "Guid": "f27d4b13-b349-8c56-b9b7-620cdc133579",
+        "Name": "Companion Starting Armors",
+        "Author": "Ol' Cappy",
+        "Description": "Giving companions a unique version of their default clothes so they can keep their 'standard' look throughout the entire game while still having mechanically powerful equipment is a very common mod type. I typically don't like these mods, not because I disagree with the premise but because I tend to balk at +10 WIS modifiers on starting gear. Ol' Cappy, in my opinion, does it right here—these are unique clothes for most of the human companions which don't give insane bonuses, but instead small, rational, and most importantly balanced, lore-friendly and internally-consistent bonuses. These items are never going to be the best your team can get, but they are flavorful additions which will let you keep them in their default get a bit longer, if you so choose.",
+        "Directions": "",
+        "Tier": "3 - Suggested",
+        "Category": [
+          "Immersion"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/2145-k2-companion-starting-armors/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "f27d4b13-b349-8c56-b9b7-620cdc133579",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "TSLPatcher Mod",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "Heading": "Companion Clothes",
+        "InstallationMethod": "TSLPatcher Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[Companion Starting Armors](https://deadlystream.com/files/file/2145-k2-companion-starting-armors/)",
+        "WidescreenOnly": false
+      },
+      "canonical_input_component": {
+        "Guid": "f27d4b13-b349-8c56-b9b7-620cdc133579",
+        "Name": "Companion Starting Armors",
+        "Author": "Ol' Cappy",
+        "Description": "Giving companions a unique version of their default clothes so they can keep their 'standard' look throughout the entire game while still having mechanically powerful equipment is a very common mod type. I typically don't like these mods, not because I disagree with the premise but because I tend to balk at +10 WIS modifiers on starting gear. Ol' Cappy, in my opinion, does it right here—these are unique clothes for most of the human companions which don't give insane bonuses, but instead small, rational, and most importantly balanced, lore-friendly and internally-consistent bonuses. These items are never going to be the best your team can get, but they are flavorful additions which will let you keep them in their default get a bit longer, if you so choose.",
+        "Directions": "",
+        "Tier": "3 - Suggested",
+        "Category": [
+          "Immersion"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/2145-k2-companion-starting-armors/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "f27d4b13-b349-8c56-b9b7-620cdc133579",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "TSLPatcher Mod",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "Heading": "Companion Clothes",
+        "InstallationMethod": "TSLPatcher Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[Companion Starting Armors](https://deadlystream.com/files/file/2145-k2-companion-starting-armors/)",
+        "WidescreenOnly": false
+      },
+      "canonicalization": {
+        "method": "production-guide-loader",
+        "raw_component_sha256": "06853a9297aa5c8415604c86d4a750d69f9bbbbb435955ffde4aa6212fc7c508",
+        "canonical_component_sha256": "06853a9297aa5c8415604c86d4a750d69f9bbbbb435955ffde4aa6212fc7c508",
+        "cli_binary_sha256": "8840f5a5585fcd5d9a767fde46dc7cdff60cf631550e1c82a69fb366280caeba",
+        "raw_export_sha256": "2a0d2edc7fd7f365d1b0c718c206bb085c870852a4ab450917e3491443b80e15",
+        "canonical_export_sha256": "3c23c98154f00038825e9e746b884b5937a9e80b2ea03c6a1e5b9ca7f00f6a3e",
+        "source_separator_changes": 0,
+        "root_trailing_separator_changes": 0
+      },
+      "plan_step": {
+        "id": "step-135",
+        "source_heading": "### Companion Clothes",
+        "operations": [
+          {
+            "type": "extract",
+            "source": "{archives}/K2 Companion Starting Armors 1.1.zip",
+            "destination": "{extract}/step-135/1"
+          },
+          {
+            "type": "gui_patcher",
+            "patcher": "{extract}/step-135/1/Install K2 Companion Starting Armors.exe",
+            "sha256": "638aaeea4e40ffb6c592f68787f2140318a0dec7f2cde85908806ce3b5bc5131",
+            "argv": [
+              "/usr/bin/wine",
+              "{extract}/step-135/1/Install K2 Companion Starting Armors.exe"
+            ],
+            "cwd": "{extract}/step-135/1",
+            "success_log": "{extract}/step-135/1/installlog.rtf",
+            "success_markers": [
+              "Done. All changes have been applied."
+            ],
+            "failure_regex": [
+              "Error: ",
+              "Warning: ",
+              "Done\\. Some changes may have been applied"
+            ],
+            "expected_changes": "changed_manifest",
+            "wine_registry": [
+              {
+                "key": "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders",
+                "name": "Desktop",
+                "data": "{game_win}"
+              },
+              {
+                "key": "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders",
+                "name": "Desktop",
+                "data": "{game_win}"
+              }
+            ],
+            "actions": [
+              {
+                "wait_window": "^(Companion Starting Armors)",
+                "timeout": 120
+              },
+              {
+                "sleep": 3
+              },
+              {
+                "click": [
+                  502,
+                  433
+                ],
+                "window": "^(Companion Starting Armors)"
+              },
+              {
+                "wait_window": "^Browse for Folder$",
+                "timeout": 120
+              },
+              {
+                "sleep": 2
+              },
+              {
+                "click": [
+                  62,
+                  69
+                ],
+                "window": "^Browse for Folder$"
+              },
+              {
+                "sleep": 1
+              },
+              {
+                "click": [
+                  157,
+                  274
+                ],
+                "window": "^Browse for Folder$"
+              },
+              {
+                "wait_log": 600
+              }
+            ]
+          }
+        ]
+      },
+      "archives": [
+        {
+          "filename": "K2 Companion Starting Armors 1.1.zip",
+          "sha256": "782bd218cb37ce5313e0ada4f86a9099475bb40913a9a3bc3a063e31323d03c4"
+        }
+      ],
+      "native_patcher": {
+        "operation_index": 1,
+        "extract_operation_index": 0,
+        "installer": {
+          "bytes": 685056,
+          "path": "Install K2 Companion Starting Armors.exe",
+          "sha256": "638aaeea4e40ffb6c592f68787f2140318a0dec7f2cde85908806ce3b5bc5131"
+        },
+        "changes_ini": {
+          "bytes": 2483,
+          "path": "tslpatchdata/changes.ini",
+          "sha256": "5a2eed7f0ecd47a24f20540f9f231146c1730dc7810df6ed23c77d309c5d72a2"
+        },
+        "inventory_sha256": "bf0f2f9701057780bfd57230fc08a57c7cc8fb0c4cd4f94a9488744478eaace4",
+        "certificate_sha256": "d03ab8645c34b647788c3cf4aa85885aafe3aaab2ceb73597354f808d1623593",
+        "arguments": "changes.ini",
+        "destination": "<<kotorDirectory>>",
+        "success_contract": "native-zero-warnings-changed-game-v1"
+      }
+    },
+    {
+      "component_guid": "ee2b251b-720d-8f69-9d38-5a56310f0bb4",
+      "source_heading": "### TOMB",
+      "source_component_index": 143,
+      "plan_step_index": 143,
+      "raw_input_component": {
+        "Guid": "ee2b251b-720d-8f69-9d38-5a56310f0bb4",
+        "Name": "Thematic Obscured Mausoleum Burial",
+        "Author": "Sniggles & JCarter426",
+        "Description": "In brief, this mod serves to fix many idiosyncrasies with the visions encountered in the Tomb of Ludo Kressh, as well as adding more player agency and dynamism into the final encounter with your doppelganger and the vision-Revan. For a full breakdown of all changes, please see the attached document on the mod page.\n\nDo note—the fights here can be quite challenging depending upon your choices. Winning them is not mandatory, however, and you will still be able to continue even if you lose at some point.",
+        "Directions": "",
+        "Tier": "2 - Recommended",
+        "Category": [
+          "Mechanics Change"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/2663-thematic-obscured-mausoleum-burial/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "ee2b251b-720d-8f69-9d38-5a56310f0bb4",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "TSLPatcher",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "Heading": "TOMB",
+        "InstallationMethod": "TSLPatcher",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "NO"
+        ],
+        "NameFieldContent": "[Thematic Obscured Mausoleum Burial](https://deadlystream.com/files/file/2663-thematic-obscured-mausoleum-burial/)",
+        "WidescreenOnly": false
+      },
+      "canonical_input_component": {
+        "Guid": "ee2b251b-720d-8f69-9d38-5a56310f0bb4",
+        "Name": "Thematic Obscured Mausoleum Burial",
+        "Author": "Sniggles & JCarter426",
+        "Description": "In brief, this mod serves to fix many idiosyncrasies with the visions encountered in the Tomb of Ludo Kressh, as well as adding more player agency and dynamism into the final encounter with your doppelganger and the vision-Revan. For a full breakdown of all changes, please see the attached document on the mod page.\n\nDo note—the fights here can be quite challenging depending upon your choices. Winning them is not mandatory, however, and you will still be able to continue even if you lose at some point.",
+        "Directions": "",
+        "Tier": "2 - Recommended",
+        "Category": [
+          "Mechanics Change"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/2663-thematic-obscured-mausoleum-burial/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "ee2b251b-720d-8f69-9d38-5a56310f0bb4",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "TSLPatcher",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "Heading": "TOMB",
+        "InstallationMethod": "TSLPatcher",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "NO"
+        ],
+        "NameFieldContent": "[Thematic Obscured Mausoleum Burial](https://deadlystream.com/files/file/2663-thematic-obscured-mausoleum-burial/)",
+        "WidescreenOnly": false
+      },
+      "canonicalization": {
+        "method": "production-guide-loader",
+        "raw_component_sha256": "a08b96bb374dcfe3c0fa01f8bd3d32299e2f15143a5fe25fdcfdf0620f6cefa8",
+        "canonical_component_sha256": "a08b96bb374dcfe3c0fa01f8bd3d32299e2f15143a5fe25fdcfdf0620f6cefa8",
+        "cli_binary_sha256": "8840f5a5585fcd5d9a767fde46dc7cdff60cf631550e1c82a69fb366280caeba",
+        "raw_export_sha256": "2a0d2edc7fd7f365d1b0c718c206bb085c870852a4ab450917e3491443b80e15",
+        "canonical_export_sha256": "3c23c98154f00038825e9e746b884b5937a9e80b2ea03c6a1e5b9ca7f00f6a3e",
+        "source_separator_changes": 0,
+        "root_trailing_separator_changes": 0
+      },
+      "plan_step": {
+        "id": "step-144",
+        "source_heading": "### TOMB",
+        "operations": [
+          {
+            "type": "extract",
+            "source": "{archives}/KOTOR2-TOMB_v1.0.3.zip",
+            "destination": "{extract}/step-144/1"
+          },
+          {
+            "type": "gui_patcher",
+            "patcher": "{extract}/step-144/1/INSTALL.exe",
+            "sha256": "1a267454b2efcd61232332be83f4da4ffe88bd6770c5a0df517880062b1a75e8",
+            "argv": [
+              "/usr/bin/wine",
+              "{extract}/step-144/1/INSTALL.exe"
+            ],
+            "cwd": "{extract}/step-144/1",
+            "success_log": "{extract}/step-144/1/installlog.rtf",
+            "success_markers": [
+              "Done. All changes have been applied."
+            ],
+            "failure_regex": [
+              "Error: ",
+              "Warning: ",
+              "Done\\. Some changes may have been applied"
+            ],
+            "expected_changes": "changed_manifest",
+            "wine_registry": [
+              {
+                "key": "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders",
+                "name": "Desktop",
+                "data": "{game_win}"
+              },
+              {
+                "key": "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders",
+                "name": "Desktop",
+                "data": "{game_win}"
+              }
+            ],
+            "actions": [
+              {
+                "wait_window": "^(Thematic Korriban Tomb)",
+                "timeout": 120
+              },
+              {
+                "sleep": 3
+              },
+              {
+                "click": [
+                  502,
+                  433
+                ],
+                "window": "^(Thematic Korriban Tomb)"
+              },
+              {
+                "wait_window": "^Browse for Folder$",
+                "timeout": 120
+              },
+              {
+                "sleep": 2
+              },
+              {
+                "click": [
+                  62,
+                  69
+                ],
+                "window": "^Browse for Folder$"
+              },
+              {
+                "sleep": 1
+              },
+              {
+                "click": [
+                  157,
+                  274
+                ],
+                "window": "^Browse for Folder$"
+              },
+              {
+                "wait_log": 600
+              }
+            ]
+          }
+        ]
+      },
+      "archives": [
+        {
+          "filename": "KOTOR2-TOMB_v1.0.3.zip",
+          "sha256": "fd7348b11ae5a3214e9e56add63a285d9396bfeeb6cad1ee1e850d0731dcdaa4"
+        }
+      ],
+      "native_patcher": {
+        "operation_index": 1,
+        "extract_operation_index": 0,
+        "installer": {
+          "bytes": 686080,
+          "path": "INSTALL.exe",
+          "sha256": "1a267454b2efcd61232332be83f4da4ffe88bd6770c5a0df517880062b1a75e8"
+        },
+        "changes_ini": {
+          "bytes": 35454,
+          "path": "tslpatchdata/changes.ini",
+          "sha256": "82e88f244110ee54333e7253915f7d4c7eb1f381d213713827fc8de68f53a2fb"
+        },
+        "inventory_sha256": "077ff588d2edce54a790c3db5ee12c3e93f54933e8707669e832ef92d4c5a9f8",
+        "certificate_sha256": "0e6b1f3c88a615a556471ab870fd5dc1461ad691deb4bb4ec97bf37630250489",
+        "arguments": "changes.ini",
+        "destination": "<<kotorDirectory>>",
+        "success_contract": "native-zero-warnings-changed-game-v1"
+      }
+    }
+  ]
+}

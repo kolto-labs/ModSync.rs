@@ -1,17 +1,10 @@
 name: Production parity gates
-# One run per pull request update or main push. Pushing a PR branch used to start
-# two runs (push + pull_request) of a three-OS matrix, and macOS/Windows runners
-# bill 10x/2x on private repositories; that exhausted the account's included
-# minutes. Linux now carries every gate, including a Windows cross-check, and the
-# native Windows/macOS builds run only on manual dispatch.
+# Every PR update runs the required Linux production checks, including Windows
+# cross-compilation. Native Windows/macOS builds remain opt-in.
 on:
+  # Branch pushes get quick checks from fullrun.yml only (enforced by
+  # tools/modsync-ci/test_fullrun_workflows.py); these gates run per pull request.
   pull_request:
-  # Every commit on main and on feature branches gets checked. A pull request
-  # from a branch in this repository is already covered by that push run, so
-  # the jobs below skip the duplicate pull_request run (see `if:`). Pull
-  # requests from forks still run, because their pushes happen elsewhere.
-  push:
-    branches: ['**']
   workflow_dispatch:
     inputs:
       native:
@@ -19,16 +12,31 @@ on:
         type: boolean
         default: false
 
+permissions:
+  contents: read
+
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  # A manual native run must not cancel the same branch's automatic checks.
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 # Rust tests remain frozen during the parity effort. These jobs deliberately
 # compile only production lib/bin targets; passing is not full parity acceptance.
 jobs:
-  production:
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
+  workflows:
+    name: Validate workflows
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate workflow syntax and expressions
+        uses: docker://rhysd/actionlint:1.7.12
+        with:
+          args: .github/workflows/ci.yml
+
+  production:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.95.0
@@ -63,6 +71,7 @@ jobs:
       - run: cargo clippy --locked --lib --bin modsync --target x86_64-pc-windows-gnu -j2 -- -D warnings
 
   native:
+    timeout-minutes: 60
     if: github.event_name == 'workflow_dispatch' && inputs.native
     strategy:
       fail-fast: false
@@ -84,12 +93,11 @@ jobs:
 
   # Rust test suite. Off while upstream's parity freeze is in effect (AGENTS.md:
   # tests are not compiled or run until full parity). Set the repository
-  # variable RUN_RUST_TESTS to `true` to turn it on for every commit; no
-  # workflow edit is needed. Until then the job is skipped, not failed.
+  # variable RUN_RUST_TESTS to `true` to turn it on with the pull request gates;
+  # no workflow edit is needed. Until then the job is skipped, not failed.
   tests:
-    if: >-
-      vars.RUN_RUST_TESTS == 'true' &&
-      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository)
+    if: vars.RUN_RUST_TESTS == 'true'
+    timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -105,3 +113,34 @@ jobs:
         run: cargo test --locked --no-default-features -j2
       - name: Tests (default build with desktop)
         run: cargo test --locked -j2
+
+  result:
+    name: Required CI result
+    needs: [workflows, production, native, tests]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require every mandatory or requested job to succeed
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+          REQUIRE_NATIVE: ${{ github.event_name == 'workflow_dispatch' && inputs.native }}
+          REQUIRE_TESTS: ${{ vars.RUN_RUST_TESTS == 'true' }}
+        run: |
+          python3 - <<'PYRESULT'
+          import json
+          import os
+          import sys
+
+          results = json.loads(os.environ['NEEDS_JSON'])
+          required = ['workflows', 'production']
+          for job, flag in [('native', 'REQUIRE_NATIVE'), ('tests', 'REQUIRE_TESTS')]:
+              if os.environ[flag] == 'true':
+                  required.append(job)
+          failed = [job for job in required if results.get(job, {}).get('result') != 'success']
+          for job in required:
+              print(f"{job} = {results.get(job, {}).get('result', 'missing')}")
+          if failed:
+              print('::error::Required CI jobs missing, skipped, cancelled or failed: ' + ', '.join(failed))
+              sys.exit(1)
+          PYRESULT

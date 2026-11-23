@@ -28,7 +28,7 @@ validating trace completeness. Missing checkpoints, unknown hashes, malformed
 inventories and any path/type/size/content difference fail. Comparisons retain
 one inventory pair in memory. Every path in the traced roots participates.
 
-`.github/workflows/fullrun.yml` runs prediction before mandatory supplied-installer
+`.github/workflows/fullrun-parity.yml` runs prediction before mandatory supplied-installer
 and built-in OdyPatcher lanes, with an optional HoloPatcher lane. It checks each
 installed final state against prediction, then each install step against supplied
 installers. The dispatch requires provisioned game/mod baselines and a configured
@@ -4898,11 +4898,472 @@ program, download, full-guide or patcher acceptance is claimed. See the native
 widescreen evidence in the selection-availability replay documentation.
 
 
+## Repository-owned CI integration boundary
+
+The full-run workflow now owns its local cache/install/seed/P2P/tooling stages and binds the engine to the triggering source SHA. Every engine branch push requests quick syntax/configuration and workflow checks without acquisition or installation. Same-repository PRs request the full pipeline; fork PRs have separate credential-free tooling checks and cannot enter private installation stages. Ordinary trusted PRs use Full/cache-first; release-candidate PRs require Exhaustive/refresh. Manual dispatch defaults to Minimal/cache-first. The six synthetic CLI/GUI workflow entry points have been removed; real install routes remain in the full-run matrix. The separately owned mod-builds variant binds the triggering guide SHA and retains its own event policy. See [CI operation and proof limits](docs/ci-fullruns.md). Profile completeness validates the pinned full inventory and explicit selected/excluded/applicability partition, and rejects partial selected coverage or incomplete GUI phases; this is single-lane evidence, not cross-route/per-mod parity. Packaging proofs retain their existing limitations. Rust test and custom-harness execution remains frozen; no product feature or parity completion is claimed by the CI migration.
+
+## Full-run diagnostics encryption
+
+Full-run evidence can use a native age X25519 public recipient (`DIAGNOSTICS_ENCRYPTION_RECIPIENT` Actions variable), with its private identity held offline. The legacy independent `DIAGNOSTICS_ENCRYPTION_KEY` secret remains supported with a minimum of 32 bytes. It must be separate from `CACHE_ENCRYPTION_KEY`, whose existing matching value is still needed for game/cache envelopes; the preferred public-recipient route requires no diagnostics private key in CI. Public-key encryption does not authenticate the producer: evidence consumers must verify GitHub artifact/run/commit provenance and the ciphertext receipt. Credential reduction does not establish full-guide installation or change required coverage gates.
+
+## Full-run input recovery and GUI coverage
+
+Full-run archive preparation can recover a same-repository authenticated encrypted URL-to-object manifest. It checks source/transfer/guide provenance and current pins, filters cache metadata to approved fields, and verifies actual restored archive bytes before pruning the accelerator. A cache size limit no longer counts as byte verification. Legacy artifact credentials remain scoped to their selected namespace; manifest discovery uses the owning repository token.
+
+The explicit `--complete-guide` Rust GUI driver path covers native Base and Remaining phases and requires fresh validation, snapshot confirmation, cumulative component receipts and the actual final game-file manifest. Legacy single-phase behavior remains available. Unexplained omissions, missing selected components, partial results and incomplete phase evidence still fail the profile gate. This adds a verification path; real full-guide runtime acceptance remains pending until an exact-head full CI run succeeds.
+
+Modern full-run game-backup recovery downloads each candidate ZIP once with its GitHub digest and size verified, then retains every existing per-part hash/MAC, joined seal, baseline authentication and required-module check. Legacy providers without modern ZIP metadata keep the original member API.
+
+Full-run admission retains the pinned guide's entire converted model (K1 197 components, K2 151) and original order. Minimal excludes the closed measured optional environment/texture owners at least 256 MiB plus cinematic movies, with protected prerequisites and dependency closure; Full excludes only massive cinematic movie owners; Exhaustive includes all applicable documented mods and one reviewed cutscene variant. The mutually exclusive alternative stays defined and inactive, and verified baseline applicability remains explicit. Hash-bound `install_profile` receipts record the exact selection and exclusions; reduced-profile success cannot establish exhaustive coverage. Selected missing inputs, unexplained omissions or incomplete phases remain fatal.
+
+Normal acquisition is cache-first: verified destination, accelerator and authorized artifact bytes avoid publisher requests; misses use the configured download paths. Explicit refresh attempts upstream first and can fall back to verified cached bytes under the same immutable pins. Release-candidate PRs require exhaustive installation and downloader-attempt evidence. The workflow's release-candidate policy includes PRs targeting main/master, release branch prefixes and release labels. Quick push checks have a two-minute timeout and provide no installation evidence. These workflow and component changes do not establish an exact-head full CI pass.
+
+When refresh is requested, the composed full pipeline attempts it once in its archive producer, then passes the exact verified immutable cache key to cache-first installation consumers. Standalone install operations retain the requested refresh behavior. Archive preparation reads existing generations without a global writer lease; new cache keys are immutable. Cancellation groups separate quick pushes from required installation runs on the same branch, while retaining cancellation of older runs within each scope.
+
+Linux checkpoint CAS capture uses `FICLONE` into a private inode where supported, hashes that clone and verifies object size/hash before immutable publication. Unsupported platforms/filesystems retain bounded copy-and-hash fallback; capture uses no hard links. Exhaustive hosted lanes co-locate game, mod/extraction work and CAS on a disposable Btrfs loop filesystem with zstd compression. Preflight reserves 6 GiB for the host and requires at least 40 GiB for the image. This measured capacity check does not establish a complete installation disk bound; final hosted runtime validation remains pending.
+
+## Archive-bound movie installation
+
+Conversion preserves an explicit Movies destination even when it appears in a
+"Bear in mind" note. A bounded movie binding can generate Extract/Move
+instructions from one or more observed ZIPs containing only disjoint root `.bik`
+files. The reviewed 1920x1080/30fps 7z layout is separately bound to its exact
+archive hash, byte counts and complete inventory: 61 base movies are installed,
+and all 11 optional subtitle/legal overlays are retained in the receipt with an
+explicit no-overlay default. Each archive's SHA-256, size and member inventory is recorded;
+independent replay must reproduce every input and instruction before review is
+cleared. Authored instructions, choices and reviewed provenance are preserved.
+Generic archive inference cannot silently route movie payloads to Override.
+
+The reviewed download-choice and optional post-install video troubleshooting
+statements are matched in full; changed or additional installation language
+stays unresolved. Original directions remain visible, and no batch patcher or
+video encoder is inferred or executed. Overlapping movies, scripts, extra files,
+unsupported layouts and unknown instructions remain fenced. The observed K2
+pair has 5 and 67 disjoint root movie members; runtime installation acceptance
+still requires the real CI lanes. Other archive layouts or download choices
+require a separate proof. The 7z replay uses a bounded 20 GiB input snapshot and
+expanded-byte limit; archive inference does not spool extracted movie payloads.
+
+The full-run archive/install/seed runtime includes distribution `unrar` for RAR integrity validation. The exact retained Extended Enclave and Quarterstaff RARs pass its CRC checks; Ubuntu 24.04 7-Zip crashes on them and libarchive lacks the required VM/solid support. This adds a compatible reader to the existing strict validation path; actual installation still requires the real lanes.
+
+Hosted full-run lanes can release their disposable hash-object copies only after successful independent archive restoration, preserving the archives and provenance. Normal artifact member reads use bounded client-local signed-URL leases and 32 MiB reads for large stored members, retaining CRC/hash checks and credential isolation. A real encrypted 256 MiB member and a second member passed verification with one authenticated URL resolution; controlled scope/cleanup checks passed. These resource improvements do not establish full-guide runtime acceptance or a complete disk bound.
+
+Complete-guide CLI/GUI adapters select optimized release binaries with checked arithmetic and debug assertions enabled. Legacy adapter calls retain debug builds. Repeated full archive decoding in validation, simulation and extraction is preserved; this changes compilation, not instruction admission or integrity coverage. Full-guide runtime acceptance still requires the real CI lanes.
+
+The full-run fallback preservation guard accepts the production loader's source-path separator canonicalization for archive-bound movie Extract/Move instructions. Source order, spelling and every other instruction, option, binding and review field remain exact. An actual K1 archive generated its 61-file Movies recipe and independently cleared archive-derived review; its model reload changed only 62 Source separators. This component evidence does not establish full-guide installation.
+
+Complete-guide admission stops before archive simulation when a required component
+already has unresolved or missing instructions; it cannot validate a reduced subset
+and later claim complete installation. Native subprocess logs and converted recipes
+are retained with strict file/total size bounds inside encrypted diagnostics, including
+on failure. Archive, game and build trees remain outside that evidence. The real K2
+CLI and GUI lanes exposed unresolved recipes and a validation timeout; neither lane
+has established complete installation.
+
+Archive-bound single-run patcher inference can recognize one structural wrapper
+directory around its sole installer and tslpatchdata tree. It records the full
+paths and reuses the same exhaustive layout check during independent review.
+Namespaces, extra executables, other payload roots and unknown files remain
+fenced. Exact retained K2 inventories establish four eligible wrapper layouts;
+native generation/replay and real installation acceptance remain pending.
+
+After the validated profile selection, complete runs also refuse policy skips
+that still name an admitted component. A warning label does not prove an Aspyr,
+3C-FD or executable-patch prerequisite. Existing aggregate baseline receipts do
+not establish those states; no additional applicability exclusion is claimed.
+
+
+### Exact TSLRCM vendor binding and separate Windows Execute configuration
+
+Resolved CLI requests may explicitly select `vendorLanguage: "english"` for the original pinned TSLRCM2022 executable only. The complete imported guide component, executable filename/SHA-256/size, language, arguments, expected outputs and draft diagnostics are bound and independently replayed before review clears. Generic executable requests and manual review cannot approve this recipe. The legacy four-field `ResolvedFiles` API remains unchanged; `ResolvedRequest` extends the strict CLI wire format.
+
+Native CLI and desktop invocations accept all-or-none `--execute-request-dir`, `--execute-xvfb`, `--execute-wine`, `--execute-wineserver` and `--execute-wine-prefix`. These configure Execute/Run separately from the Patcher backend and do not grant process trust. Dedicated prefix ownership, checkpoint writer fencing and successful quiescence remain mandatory. Vendor execution requires actual K2 detection and English TLK, an absent setup log, the verified original executable, a fresh successful English setup log and both exact changed output identities after quiescence. Validation runs no external program. This narrowly supported Wine recipe requires absolute POSIX roots.
+
+Production formatting, library/CLI builds and strict Clippy passed with and without desktop features. The original vendor/manual path separately passed hosted execution with its exact log, outputs and complete post-quiescence manifest; this does not establish the new native CLI/GUI execution or full-guide success, which remain pending.
+
+Complete K2 guide admission may use the version-2 recipe only after the current production CLI detects `Kotor2Aspyr` without source/archive inspection and the same unchanged baseline executable matches the authenticated pin. Input, binary, executable and selection-output hashes are retained. A Steam-assets subtree is excluded from this closed rule. Only the guide's exact inapplicable 4GB component is additionally inactive; unknown/Legacy/different executables retain the original recipe and all unresolved required components remain fatal. This is native detector and authenticated-content evidence, not a claim about an exact vendor build, LAA suitability or 3C-FD installation.
+
+
+### Reviewed K2 file-effect recipes and versioned review identities
+
+A compiled, SHA-pinned recipe book contains57 exact K2 component contexts and their unchanged reviewed manual-plan steps, tied to the pinned guide and source-plan hashes. The72 archive pins are associated with the same original component URLs in retained restore evidence. Binding verifies actual archive hashes, sizes and decoded member inventories, then translates only complete supported file operations. It preserves the original raw/canonical component, original draft diagnostics, exact plan, archive observations and inert option context in provenance. Unsupported conditions, executable choices, FOMOD packages, empty directory overlays, changed contexts/bytes and partial recipes remain refused. Initial independent replay must reproduce the entire pending component and diagnostics before review clears; runtime verifies the unchanged receipt and rehashes archive bytes without decoding again.
+
+The string-only Rust extensions `ExtractTo` and `CopyFile` preserve legacy action indices, comma/numeric intake and legacy Extract/Copy behavior. ExtractTo admits one literal source into a fresh component-owned direct child of the mods root, using normal archive safety, cancellation and checkpoint paths. CopyFile writes one literal filename, preserves its source, honors overwrite and refuses directories, self-copy and physical aliases. Neither action performs heuristic source recovery. The null-root basic validator explicitly requires root-aware engine validation for these extensions.
+
+Production fmt, library/binary builds and strict Clippy passed with and without desktop features. Actual public Silent Sion and Citadel backdrop archives passed exact pinned acquisition, native binding, serialization and independent replay. Installation acceptance remains pending; this is not57-component or full-guide execution proof.
+
+New archive-derived approvals carry `Verification.IdentityVersion: 2`. Their normalized component hash sorts object keys recursively while preserving every array, instruction, option and scalar; the typed verification digest binds the version. Unknown versions fail closed. Unversioned receipts retain the original algorithm and public six-field Verification API. Previously broken receipts require fresh independent replay. Explicit JSON editor/authoring inputs use the JSON parser, avoiding YAML autodetection that stringifies nested metadata scalars; other legacy autodetection paths remain unchanged. Actual vendor and file-effect approvals survive fresh JSON, normal JSON export, TOML, TOML-to-JSON and sorted object keys with identical identities. Arguments, instruction list, expected-output array order, destination and version mutation controls re-fence or reject. Hosted CLI/GUI installation remains pending.
+
+
+The same strict reviewed file-effect binder additionally admits66 exact K1 owners with75 pinned ZIP/7z/RAR inputs. It excludes already-supported generic recipes, bare-file copies, patchers and conditional steps. Both compiled books are SHA/count/guide/plan pinned and all123 GUIDs must be unique; runtime and review receipts bind the correct book filename/hash. Actual public Hidden Bek Control Room and Jedi Choice Dialogue archives passed binding, independent replay and six JSON/TOML/key-order approval checks; destination-only mutation re-fences. The K2 bound and cleared models remain exactly equal to the prior one-book proof, including identities. Production fmt/build/strict Clippy passed in both feature configurations. K1 installation and complete-guide execution remain unproven.
+
+
+### Owned checkpoint bridge and four single-INI translations — 2026-11-14
+
+Supplied installers require a real component checkpoint operation even when the optional history setting is disabled. The engine enables retained history before root locking, passes the held lock and exact Materializing operation into runner admission, and refuses explicit `--no-checkpoint` conflicts. A checkpointed GUI phase retains that mode in its verified continuation even when the remaining suffix has no external program. Ownership fences, complete captured roots, failure recovery and process quiescence remain required. This repairs the observed native CLI admission failure; hosted execution of the repair remains pending.
+
+A third compiled recipe book admits four exact K2 single-INI packages through built-in OdyPatcher. Actual installer and sole INI bytes are verified before staging normalization; the original GUI protocol remains provenance only. Dedicated replay approval and exact two-instruction shape are mandatory. These recipes additionally require fresh native success logs, zero reported warnings/errors and a changed complete game manifest before completion. Actual binding/replay and sixteen JSON/TOML approval checks pass for all four archives; argument and destination mutation controls re-fence. Their installation remains unproven until production CLI/GUI receipts are available. All123 prior pending models are identical, as are the four old bound/cleared models with locally available archives. The remaining119 archive-dependent regressions are not claimed. Production formatting, lib/bin builds and strict Clippy pass with and without default features. Existing123 file-effect recipes retain their original books and authority.
+
+The GUI driver inspects draft receipts only on real component/option owners and asks the production application to verify their saved approvals before launch. Preserved unresolved input snapshots inside provenance do not become applying instructions or authorize review. Real unresolved or altered owners remain refused.
+
+
+### Literal reviewed archive basenames and durable strict outcomes
+
+The actual full K2 binding command aborted on a square-bracket filename after the compiled component/filename exception had already admitted it. The subsequent basename check now uses literal path semantics. Unknown owner/name pairs, wildcard characters, separators, device names and unsafe paths remain refused. Both exact public bracket-named archives now bind/replay and retain approval after TOML reload; using a wrong owner is rejected. No installation claim follows from conversion.
+
+Strict native Patcher outcomes now include the compiled owner GUID and are recorded through the persistent application logger as well as engine progress, so desktop and CLI can retain the same bounded encrypted diagnostic evidence. The focused seven-owner hosted workflow requires all four clean native outcomes in actual guide order plus complete component/game-manifest receipts. Hosted outcome proof remains pending.
+
+
+### Explicit source order and desktop process trust
+
+The real three-owner native CLI installation completed and its full game manifest verified, but the workflow rejected the default dependency sort's different order. Full-guide projections and focused proofs now declare an exhaustive `ModSyncSourceOrder` at guide scope. Native loading respects that explicit order only after canonical GUID inventory, dependency/restriction/order-edge and cycle checks. Incompatible Base/Remaining order fails before writes. TOML and opt-in JSON object export preserve the policy; other exports refuse to drop it. Ordinary guides retain their previous ordering and JSON array output. Actual approved models retain all three component identities; missing, duplicate, unknown, reversed-dependency and unsupported-export controls reject. This remains a bounded model proof, not a green hosted workflow.
+
+The GUI process-trust checkbox is shared by the regular and wide validation surfaces and still clears prior validation when changed. Hosted evidence had reached the real GUI but could not find that control; the wide surface previously omitted it. The focused rerun retains bounded encrypted screenshots so any remaining layout/OCR failure can be diagnosed without inferring trust from configuration.
+
+The complete-guide CI adapter requests `convert --compact-instruction-defaults`
+for TOML binding, local generation and independent review. This opt-in writer
+omits only empty `Arguments`, `Dependencies` and `Restrictions` from actual
+instruction records, including real option instructions. It restores each
+complete `Instruction` and requires exact equality before writing; provenance
+snapshots are untouched. Existing logical byte, node and depth limits remain
+in force, and ordinary exports retain their previous representation. Actual
+151-component conversion, compact/reload equality, four native-patcher model
+and approval checks, and adapter preservation checks pass. The real full-guide
+capacity result still requires the hosted run; this is no installation claim.
+
+One unusual documentation member is admitted only for the original Mandalorian
+Worn-Out Armour Reskin owner, exact archive SHA256 and complete member path.
+The original plan copies its three TGA files and the inspected readme directs
+extraction to Override. Actual normal acquisition, binding and independent
+approval pass; an unchanged different guide owner cannot reuse the exception.
+There is no general allowance for arbitrary `Readme First.txt` files.
+
+Complete-guide conversion binds reviewed recipes to the original guide draft
+before local archive inference. This avoids treating inferred archive folders
+(such as `__MACOSX`) as authored options that a reviewed recipe must preserve.
+The preservation guard remains strict. Exhaustive source order is declared
+before binding and retained through every conversion. The documented inactive
+partition may replace that policy only after checking the original inventory,
+retained relative order and complete unchanged component definitions. Its input
+and output policies are recorded in the authenticated projection receipt.
+Actual original-source conversion matches all 127 compiled component contexts;
+the K1 partition reloads with identical retained models and four invalid-policy
+controls reject. Hosted complete-guide installation remains unproven.
+
+
+Bao-Dur Can Wear Heavy Armor has a separate one-recipe compiled native book,
+leaving the original four native recipes and all123 file-effect pins unchanged.
+Its exact archive contains one installer inside a wrapper directory and one
+canonical adjacent INI. Binding checks the original installer cwd; staging
+strips only that validated installer parent from both pinned member paths.
+Sole-INI, absent-namespace, raw byte pins and strict native outcomes remain
+mandatory. Real archive binding and dedicated replay clear the draft without
+changing the151-component source order; destination and archive-byte mutation
+controls retain the review requirement. Formatting, lib/bin builds and strict
+Clippy pass with and without default features. Actual CLI/GUI installation
+remains pending the eight-owner hosted proof and full-guide coverage.
+
+
+Reviewed manual recipes now reconstruct their complete model from the compiled
+recipe and freshly authenticated archives at runtime, including report dry-run
+validation. Public review identity and replay hashes remain identity checks;
+they cannot authorize submitted instructions. Actual production validation
+previously accepted an altered native recipe after both hashes were recomputed;
+it now rejects that model against independent replay. An unchanged approved
+Mandalorian file-effect recipe still validates. Both observations preserve the
+public source archives and owned validation roots; they are not install proof.
+All production formatting/build/strict Clippy checks pass with and without
+desktop features. Archive decoding uses bounded private scratch and runs no
+external programs or game/mod writes during validation.
+
+
+The exact original Companion Starting Armors installer now has a passing hosted
+reference witness (run43699420485): its own success log passes, Wine is quiescent,
+and both DescIdentified(lang-1) assignments preserve the complete localized
+fields. Only the original compiled owner and raw EXE/INI pins select a native
+compatibility adapter. It verifies the original seven-GFF/19-operation shape
+and both original deferred values, then represents the two existing fields as
+empty localized deltas. Their operations remain counted; StrRef/substrings and
+all other modifiers remain intact, and genuinely missing fields still fail.
+Staged raw bytes are checked before normalization in real and exact-prediction
+paths. Source archives/INIs and the OdyPatcher dependency pin are unchanged.
+Native CLI/GUI success after this adapter still requires the hosted proof.
+
+Bao-Dur independently completed all8 configured operations in both actual
+CLI and GUI lanes of run43697716927, with zero warnings/errors/failures and
+full-manifest evidence of6 added/2 changed files. That reduced eight-owner
+workflow still failed later at Companion; it is not a whole-guide success or
+a claim of cross-lane byte equality.
+
+
+The original pinned K1 guide now has a closed native 1920x1080 profile for its
+HR Menus, whole Galaxy Map Vanilla component, and final 4GB owner. Six public
+publisher inputs are discovered without provider credentials and verified
+against compiled archive/member byte pins. Auxiliary cache objects remain
+separate from the retained archive index. The original protected executable is
+replaced only from the verified editable distribution; its complete UniWS,
+HR Menus and original 4GB output hashes were independently observed, including
+the 4GB checksum write. The original INI must be physically absent before the
+91-byte CRLF configuration may be transactionally created.
+
+Bindings preserve all original owner metadata and complete source order.
+A closed schedule defers the whole Galaxy component until after widescreen
+owners and runs 4GB last; original WidescreenOnly flags remain provenance.
+Only the full197-definition guide or its established196-definition partition
+without Remastered Cutscenes is admitted. CLI phase preparation, desktop
+selection/counts and the read-only phase-plan command share that schedule.
+Each component is reconstructed from freshly authenticated input archives at
+review and runtime. Public receipt hashes cannot authorize modified actions.
+Individual-action execution cannot bypass the whole-guide schedule.
+
+Native K1 publication requires the root lock and owned component checkpoint.
+Galaxy performs its complete native Vanilla installation in a private game
+projection, requires a fresh zero-warning/error/failure result and changed
+whole-game manifest, then publishes that result and the exact widescreen
+overlay through the engine VFS transaction. Validation runs no external program
+and leaves game/mod inputs unchanged. Production formatting, lib/bin builds and
+strict Clippy pass with and without desktop features. Authoring and phase
+planning receipts are separate from the pending actual CLI/GUI installation,
+checkpoint recovery and whole-guide proof; no gameplay claim is made.
+
+The Companion shape gate distinguishes the parser's23 flattened field operations
+from the installer's19 file operations, and requires both counts plus the exact
+12-copy/7-GFF inventory and defaults before and after adaptation. K1 nested
+option trees cannot carry native bindings, generator or action markers; this
+prevents both ordinary Choose execution and recorded actions from bypassing
+the closed whole-guide schedule.
+
+HQ Blasters and Rescaled Trandoshans retain their exact three-operation source
+plans: extract the complete original archive, strictly delete its packaged old
+installlog.rtf in the owned slot, then run the single built-in native Patcher.
+Only these two compiled GUIDs/steps admit that form; both file-operation models
+and missing-file semantics are checked in full at replay and runtime. Exact
+original EXE/INI and every member inventory were independently authenticated
+in hosted metadata run43704056024, without exporting payloads. The original
+123 file-effect and five native book pins remain unchanged. Actual complete151
+K2 source binding/replay for Trandoshans passes, and changed deletion targets or
+semantics retain the review requirement. All five production checks pass;
+actual seven-native/ten-owner CLI and GUI installation is still pending.
+
+K1 public input discovery now starts from each publisher's actual landing page
+and follows its verified session-bound download button, rather than guessing
+a download endpoint. Only empty transient landing responses are retried within
+the existing deadline; challenge responses and every byte/name/path mismatch
+still reject. All six exact public inputs verify locally through that path;
+hosted acquisition and actual installation remain separate required proofs.
+
+The focused K1 producer and ordinary archive producer share an exact-profile
+accelerator for the six verified public input objects. Its dedicated path and
+key are identical across both workflows; all objects are rehashed by the
+production acquisition helper before use. Successful acquisition saves this
+small public-mod cache before application compilation, so later jobs can avoid
+intermittent empty publisher pages. Ordinary producer saves remain conditional
+on cache-writer mode and the original pinned K1 source. Hosted cache reuse is
+pending verification; game backups and diagnostic artifacts retain encryption.
+
+The closed source-plan factory reconstructs the exact original guides and
+plans from compiled byte pins. Its mapping reserves46 owners:40 have reviewed
+choice-free source semantics, while six retain explicit held dispositions.
+Each binding still requires fresh original archive authentication, the exact
+standard installer, a sole canonical INI, complete bounded inventory and
+classified consumed payload. Namespace choices, alternate installers, stale
+logs and compilation remain unsupported by this initial factory. Held or
+archive-ineligible owners remain fatal drafts and never use generic inference.
+
+The factory derives member pins from the original archive rather than accepting
+expected values from authored JSON. Independent review and runtime repeat
+that derivation and compare the complete owner model. Its private admission
+witness also authenticates the entire actual staged package before normalization.
+INI reference graphs reject dynamic targets, cycles and bounded-expansion
+overflows before typed parsing. Native prediction and installation both require
+fresh strict zero-warning/error/failure results and a changed whole-game
+manifest. Installation forces owned component checkpoints in CLI and GUI;
+recorded single actions and nested options cannot bypass this contract.
+
+All five production checks pass for the checkpoint-enforced factory. Actual
+Droid Claw Fix and Droid Special Weapons binding/replay preserve the other196
+and150 complete original guide models. Instruction/inventory mutations, orphan
+claims and nested ownership remain fenced. Runtime rejects an altered operation
+even after both public review hashes are recomputed and inspection reports it
+reviewed. All six held owners remain unresolved after real binding/replay
+attempts. These are admission/control observations; four hosted focused
+installation lanes and complete full-guide coverage remain pending.
+
+Hosted K1 CLI run43705692752 passed the real four-owner Base/Remaining proof,
+including all81 GUI assets, whole Galaxy installation, final executable/INI
+pins and checkpoints. In failed K2 ten-owner run43704928850, six native owners
+completed in both actual CLI and GUI with zero warnings/errors/failures,
+including Companion19operations,
+HQ Blasters263 and Trandoshans3. The later TOMB owner remains fatal because an
+Override script shadows its module resource; that warning has not been waived.
+These reduced proofs do not establish whole-guide success or gameplay parity.
+
+The Remaining-phase desktop driver now opens the existing validation utility
+view when the phase controls fall below the viewport. It requires a fresh
+validation-start marker after the click and returns to the wizard before
+confirmation. Existing phase, review, selection, snapshot and cumulative
+completion gates remain required; real desktop replay is pending.
+
+For the exact TOMB installer/INI contract, a read-only observer records the
+original pinned staged script and actual Override/module resource identities
+before the strict outcome check. It bounds and authenticates reads, emits
+metadata only and preserves warning/error failure. Source inspection shows
+two intentional copies of the same script, but actual final byte equality
+must be observed in CI before any compatibility correction is justified.
+
+The source-plan ownership fence also runs before generic local inference and
+movie binding, including later conversion commands. Actual local-inference
+attempts on a mapped original, a held claim and a movie-shaped orphan preserve
+their fatal drafts and emit no instructions. This prevents a failed dedicated
+binding from being replaced by a more permissive generator.
+
+
+Two exact K2 installer-method owners now have a separately compiled native
+book: Prologue Item Recovery and Harbinger Arrival Performance Enhancement.
+Their original Directions and two ExtractTo/Patcher operations remain intact;
+manual-install siblings are not copied. Original public archive/member pins,
+sole adjacent INIs, empty CompileLists and complete inventory certificates
+were verified. Actual production binding and independent replay pass for both;
+installation remains pending the expanded twelve-owner CLI/GUI proof. The
+source-plan factory still refuses these held rows: only their exact GUIDs and
+new compiled book identity may overlap that reservation. Existing books and
+the forty-owner factory admission identity remain unchanged.
+
+NPC Clothing M has a separately compiled resolution of the exact source
+literal "K1 Community Patch" to the prior KOTOR Community Patch GUID. The
+original unresolved literal and complete source definitions remain in its
+provenance; fresh archive replay reconstructs the entire effective owner.
+Binding and independent replay pass with the exact original public archive;
+deselected/changed/reordered prerequisites and extra unresolved masters reject.
+Execution requires an owned component checkpoint and a successfully committed
+Community Patch predecessor. Legacy-only inherited completion cannot satisfy
+this new guard; verified checkpoint resume is required for such a suffix.
+The Community Patch itself remains pending its own native admission, and this
+alias does not imply either mod has been installed. Other unresolved masters
+remain fatal. Generic inference and single-action authoring cannot replace or
+slice a resolved-master recipe.
+
+The first source-plan factory owner, K1 Droid Claw Fix, completed actual CLI
+and GUI installation in run43708600330: one configured/completed native file
+operation, zero skipped/failed/warnings/errors, fresh native logs and owned
+checkpoints. Strict private prediction also passed. This reduced proof does
+not establish all forty mapped owners or full-guide installation. The paired
+K2 source-plan proof stopped at a workflow prerequisite-index assertion;
+TSLRCM is original index1, and the next workflow revision corrects that assertion.
+
+
+Actual TOMB observation in both CLI and GUI lanes of run43708639350 proved
+its staged source, Override copy and unique Modules/711kor.mod NCS resource
+all equal the pinned original40,430-byte script. Both lanes still failed the
+original strict warning gate. The original pinned INI has no OverrideType
+directive; linked OdyPatcher defaults that diagnostic differently from the
+original installer. An exact GUID/EXE/INI compatibility adapter now restores
+the original implicit policy only for that duplicate module copy. It checks
+all24copy/2table/10GFF/1TLK descriptors and preserves37 operations/both writes.
+A mandatory typed verifier requires37completed/zero skipped, failed, warnings
+or errors and freshly reads all three bounded byte identities. Any mismatch
+fails before reviewed success. Exact prediction uses the same adapter and
+postcondition before VFS promotion; actual publication requires owned component
+checkpoints. Raw INI and payloads remain unchanged, and strict log/manifest
+checks are unchanged. All five production checks pass; post-adapter actual
+paired installation remains pending.
+
+The K1 Remaining GUI now reaches actual installation. Its prior driver then
+misclassified a bare quoted original "Error: " regex label in successful
+Galaxy provenance metadata. The driver masks only such empty quoted labels
+followed by a JSON delimiter. Inline actual-metadata/real-error controls pass;
+quoted error messages with details, unquoted errors and all other readiness,
+receipt and full-manifest gates remain effective. Hosted GUI replay is pending.
+
+The progress pane now summarizes verified K1 candidate publication and successful
+whole Galaxy outcomes. Persistent logs and copied/saved reports retain the full
+original structured receipts. Other messages, failed outcomes and malformed
+records remain visible unchanged. This avoids OCR interpreting zero-valued JSON
+error counters as an installation error; hosted GUI confirmation remains pending.
+The same display-only summary applies to a parsed strict native Patcher receipt
+only when every configured patch completed and all skip/failure/warning/error
+counters are zero. Failed, partial or malformed records remain fully visible;
+saved and copied raw logs retain the complete original receipt.
+
+Two additional K1 file-effect recipes cover the original standalone CineMalak
+TGA and Bendak dialogue download. Their original guide contexts, single-copy
+plan operations, filenames and whole-file SHA-256 values are compiled authority.
+They use an explicit bounded loose-input inventory instead of attempting archive
+decoding. Filename transport admits these exact pinned pairs only; arbitrary
+loose files still receive no reviewed authority. Fresh independent review and
+runtime replay remain required. Complete-guide installation is not established
+by this source admission.
+
+The production dependency snapshots in vendor/odypatcher and vendor/bionsscomp
+preserve upstream pins, reviewed source inventories and license notices. Their
+optional strict NSS API accepts an explicit immutable source/header namespace,
+bounded compiler work and shared cancellation, with retained diagnostics. The
+API alone does not admit nonempty CompileList recipes. The original pinned-plan
+compiler now issues private contracts for authenticated selected configurations,
+explicit source/include closures and known correct-game headers. Prediction and
+publication share that contract and compare exact output identities. The parser
+uses precedence climbing to avoid unnecessary recursion without raising its
+256-frame limit. Actual compiler CLI checks cover all seven original Bastila
+scripts with representative numeric memory values; those checks do not establish
+genuine-game values or original-compiler equivalence.
+
+The two original duplicate-cleanup owners have a separate compiled source
+translation. Archive-aware conversion reconstructs their unchanged original guide
+contexts and emits one pending native operation; dedicated source replay must
+approve the complete model. The operation removes only TPC resources with a TGA
+or DDS alternative of the same case-insensitive stem in the same directory,
+including Override descendants. Two TPC spellings alone cannot trigger deletion.
+The original guide authorizes deletion; pinned source scripts establish recursive
+same-directory matching. Actual execution requires an owned running component
+checkpoint for recovery. Source scripts are retained as provenance and never
+executed. Changes to instructions, original context or approval records fail
+runtime replay. A controlled production CLI installation removed exactly the two
+intended TPC files; no-checkpoint and forged-model attempts refused, and checkpoint
+restore recovered both roots with matching bytes and modes. This is controlled
+state evidence, not genuine-game or full hosted coverage.
+
+The remaining original native plans use an ordered typed program compiler rather
+than per-owner member inventories. Complete pinned original archives are freshly
+hashed and bounded inventories are derived from immutable snapshots. Native runs
+retain their original operation ordinals and explicit namespace selections; no
+packaged installer is executed by this capability. Unknown active behavior still
+refuses admission. Supplemental choices retain separately compiled source evidence.
+Their HRMenus, Cloaked Robes, TSLRCM and PartySwap prerequisites require fresh source
+authentication; publication additionally requires owned completed checkpoints.
+Extended Enclave requires the original complete K2 guide inventory and rejects
+installed M4 DRO modules. Prediction records applicability and never proves an
+external vendor installation. Combined production and full hosted validation of
+these newly integrated paths remain pending.
+
+The original Swoop installer resolves a duplicate GFF-list key to its first value
+on both visits. Its exact source INI receives a narrowly pinned private translation
+that preserves those seven GFF operations. Source admission, prediction and real
+installation use the same translation. Original archive and INI identities remain
+provenance; the effective INI digest is recorded separately. Unreachable sections
+are classified only for exact source/configuration identities with complete active
+and inactive section coverage; arbitrary parser warnings remain failures.
+
+
+### Isolated peer-seeding CI proof
+
+The P2P workflow now invokes production ModSync on two emulated Linux devices with separate filesystem, PID and network namespaces. It requires a byte-identical transfer from device 1 to device 2 with matching sender upload accounting, wrong-hash rejection on a fresh receiver after network transfer, and reverse seeding of the downloaded archive after removing the original from both device views. The controller provisions isolation and verifies bytes; ModSync performs torrent authoring, seeding and downloading. The legacy `seed` operation remains a separately labelled staged archive-store import. Hosted execution of this revised proof remains pending publication; local runtime results are recorded outside the repository.
+
+### Patcher execution and comparison evidence
+
+The full installation matrix selects OdyPatcher, HoloPatcher and each mod's original packaged executable through both ModSync CLI and GUI. External backends authenticate the original source program and complete package, replay its ordered source deletions, retain original INI identities and executable bytes, and retain the actual launch, process outcome, fresh installation log and output identities. Provenance records both the original archive inventory and the submitted package. The exact HQ Blasters guide deletes a source resource before a raw INI still requests it. All three backends interpret that authored omission using the same byte-pinned removal of only that closed patch entry and section; original archive and INI bytes remain unchanged in source storage, and requests record raw and effective identities. No general error suppression is allowed. Backend and invocation identities bind component checkpoints, completion receipts and continuation. Validation remains read-only. The packaged UI controller waits up to 90 seconds for its owned cold Wine prefix to create the exact root drive mapping; malformed or redirected mappings remain failures.
+
+CI prints the actual ModSync commands and follows their stdout and stderr while they run. The desktop's `--stream-output` option includes complete installation events. Unix external process execution forwards child output to stderr while preserving structured CLI stdout. Public output is credential-redacted and prefixed against workflow-command injection. Complete raw logs are retained in encrypted diagnostics, with explicit resource limits reported as failures. Fresh patcher logs are also emitted when a process fails. Retained patcher output directories that may contain game files receive an additional envelope using the existing game-cache key before entering diagnostics.
+
+The comparison exporter verifies committed production Store boundaries and records every game file's hash, size and permissions after each component and at completion. Six successful installations produce fifteen pairwise comparisons per game. The result reports all differences and whether the trees agree. Missing lanes, failed execution and invalid evidence fail the comparison gate. Same-run encrypted manifests use the existing game-cache key for comparison access, while complete diagnostics and private differences use the independent diagnostics recipient. Hosted six-way installation and comparison verification remains pending.
+
+Checkpoint ancestry validation streams full documents into a compact authenticated index. Selected documents are freshly checked against their complete digest, session identity and unchanged HEAD. Per-document bounds and all ancestry, definition-prefix, backend, finalization and lineage checks remain enforced. The aggregate validation budget supports full-guide histories above the former 256 MiB ceiling. The production `checkpoint export-history` command authenticates all finalized lineage boundaries and verifies each distinct content object once, then publishes a bounded file-backed index after checking unchanged session and HEAD identities. Comparison export uses this command instead of launching repeated whole-inventory verification. Actual full-guide coverage remains subject to the hosted installation gate.
 ### OdyPatcher source boundary and explicit executable selection
 
-OdyPatcher remains a Git dependency on `kolto-labs/OdyPatcher`, pinned in
-`Cargo.toml` and `Cargo.lock` to `9b9ee8d1d25e2e97c87df4521a13965ced1e0b3f`.
-ModSync owns the shared engine adapter, payload preparation and validation
+OdyPatcher is maintained in `kolto-labs/OdyPatcher` at revision
+`9b9ee8d1d25e2e97c87df4521a13965ced1e0b3f`. The build links the reviewed
+production snapshot of that revision in `vendor/odypatcher`, whose source hashes
+are recorded in its `PROVENANCE.json`. ModSync owns the shared engine adapter, payload preparation and validation
 projection. The patcher implementation is maintained in OdyPatcher's repository
 and linked into the self-contained executable.
 

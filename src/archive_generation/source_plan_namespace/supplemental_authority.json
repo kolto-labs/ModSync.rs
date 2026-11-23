@@ -1,0 +1,2303 @@
+{
+  "schema": 1,
+  "policy": "closed-supplemental-source-choices-v2",
+  "source_guide_sha256": {
+    "k1": "44067788c6cb7a83b38d468817f273ce5cc901cd5e000c0f9ff65f8af15fc6ed",
+    "k2": "f442bdf574031623ed577609730d887069b9bc8e38e8e2f38ecc43a7e7487d5f"
+  },
+  "source_kind": "authored-supplemental",
+  "original_manual_plan_steps": false,
+  "rows": [
+    {
+      "game": "k1",
+      "index": 188,
+      "guid": "0e6154b2-8591-879d-b410-62baa95cd654",
+      "name": "HD UI Menu Pack",
+      "source_kind": "authored-supplemental",
+      "profile": "fixed-1920x1080-v1",
+      "raw_component": {
+        "Guid": "0e6154b2-8591-879d-b410-62baa95cd654",
+        "Name": "HD UI Menu Pack",
+        "Author": "ndix UR",
+        "Description": "While the previous mod allows the in-game menus to display at higher resolutions, it doesn't include the rebuilt icons and UI elements that would make those menus appear functional and sharp at higher resolution. This mod is designed to visually improve all the various menu UI elements so they're clear at the higher resolutions. For all intents, it's a mandatory patch of the above mod.",
+        "Directions": "",
+        "Tier": "1 - Essential",
+        "Category": [
+          "Patch"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/1226-hd-ui-menu-pack/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "0e6154b2-8591-879d-b410-62baa95cd654",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "Loose-File Mod",
+            "MethodTruncated": false,
+            "Kind": "LooseFile",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "InstallationMethod": "Loose-File Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[HD UI Menu Pack](https://deadlystream.com/files/file/1226-hd-ui-menu-pack/)",
+        "WidescreenOnly": true
+      },
+      "canonical_component": {
+        "Guid": "0e6154b2-8591-879d-b410-62baa95cd654",
+        "Name": "HD UI Menu Pack",
+        "Author": "ndix UR",
+        "Description": "While the previous mod allows the in-game menus to display at higher resolutions, it doesn't include the rebuilt icons and UI elements that would make those menus appear functional and sharp at higher resolution. This mod is designed to visually improve all the various menu UI elements so they're clear at the higher resolutions. For all intents, it's a mandatory patch of the above mod.",
+        "Directions": "",
+        "Tier": "1 - Essential",
+        "Category": [
+          "Patch"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/1226-hd-ui-menu-pack/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "0e6154b2-8591-879d-b410-62baa95cd654",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "Loose-File Mod",
+            "MethodTruncated": false,
+            "Kind": "LooseFile",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "InstallationMethod": "Loose-File Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[HD UI Menu Pack](https://deadlystream.com/files/file/1226-hd-ui-menu-pack/)",
+        "WidescreenOnly": true
+      },
+      "inputs": [
+        {
+          "filename": "hd_ui_menupack_PV.7z",
+          "sha256": "43db5264508eb519e1226b931111ca3a6ac0da5ece79694f6c895743cb50bd58",
+          "source_url": "https://deadlystream.com/files/file/1226-hd-ui-menu-pack/",
+          "source_id": "a5f58e20044c99bbb969460dfcdb7a4aea4739196a7047b37a5a949ebdc84a82",
+          "publisher_filename": "hd_ui_menupack_PV.7z",
+          "active": true,
+          "exact_bytes_observed": true
+        }
+      ],
+      "copies": [
+        {
+          "input": 0,
+          "member": "hd_ui_menupack_PV/Override",
+          "destination": "override",
+          "skip_existing": false
+        }
+      ],
+      "prerequisites": [
+        {
+          "kind": "k1_high_resolution_menus",
+          "owner_guid": "6c3c7165-297e-80eb-b9f8-d47506dab2d5",
+          "profile_id": "k1-1920x1080-1024-interface-letterbox-off-movies-on-v1"
+        }
+      ],
+      "choice_evidence": "Pure Vanilla Edition Override TPC payload; README requires High Resolution Menus.",
+      "gap": null
+    },
+    {
+      "game": "k1",
+      "index": 189,
+      "guid": "10380438-2753-8ebc-8694-70236e6b20c3",
+      "name": "Workbench Upgrade Screen Camera Tweak",
+      "source_kind": "authored-supplemental",
+      "profile": "fixed-1920x1080-v1",
+      "raw_component": {
+        "Guid": "10380438-2753-8ebc-8694-70236e6b20c3",
+        "Name": "Workbench Upgrade Screen Camera Tweak",
+        "Author": "Darth Parametric",
+        "Description": "A camera tweak for running the game at higher resolutions intended to allow you to examine weapon models with a little bit more detail in the Workbench upgrade screen.",
+        "Directions": "",
+        "Tier": "4 - Optional",
+        "Category": [
+          "Graphics Improvement"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/1742-workbench-upgrade-screen-camera-tweak-for-k1/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "10380438-2753-8ebc-8694-70236e6b20c3",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "Loose-File Mod",
+            "MethodTruncated": false,
+            "Kind": "LooseFile",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "Heading": "Workbench Camera Tweak",
+        "InstallationMethod": "Loose-File Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[Workbench Upgrade Screen Camera Tweak](https://deadlystream.com/files/file/1742-workbench-upgrade-screen-camera-tweak-for-k1/)",
+        "WidescreenOnly": true
+      },
+      "canonical_component": {
+        "Guid": "10380438-2753-8ebc-8694-70236e6b20c3",
+        "Name": "Workbench Upgrade Screen Camera Tweak",
+        "Author": "Darth Parametric",
+        "Description": "A camera tweak for running the game at higher resolutions intended to allow you to examine weapon models with a little bit more detail in the Workbench upgrade screen.",
+        "Directions": "",
+        "Tier": "4 - Optional",
+        "Category": [
+          "Graphics Improvement"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/1742-workbench-upgrade-screen-camera-tweak-for-k1/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "10380438-2753-8ebc-8694-70236e6b20c3",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "Loose-File Mod",
+            "MethodTruncated": false,
+            "Kind": "LooseFile",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "Heading": "Workbench Camera Tweak",
+        "InstallationMethod": "Loose-File Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[Workbench Upgrade Screen Camera Tweak](https://deadlystream.com/files/file/1742-workbench-upgrade-screen-camera-tweak-for-k1/)",
+        "WidescreenOnly": true
+      },
+      "inputs": [
+        {
+          "filename": "[K1]_Workbench_Upgrade_Screen_Camera_Tweak.7z",
+          "sha256": "44e976012aa49a79471cb0cf105b67ef284dd3a73e58860ad304e391c2b03f73",
+          "source_url": "https://deadlystream.com/files/file/1742-workbench-upgrade-screen-camera-tweak-for-k1/",
+          "source_id": "2295429a8fa87a6b38037fa224b9669d2c109d488caf01a77dd661f1580a8a8f",
+          "publisher_filename": "[K1]_Workbench_Upgrade_Screen_Camera_Tweak.7z",
+          "active": true,
+          "exact_bytes_observed": true
+        }
+      ],
+      "copies": [
+        {
+          "input": 0,
+          "member": "[K1]_Workbench_Upgrade_Screen_Camera_Tweak/FOR OVERRIDE",
+          "destination": "override",
+          "skip_existing": false
+        }
+      ],
+      "prerequisites": [],
+      "choice_evidence": "Only FOR OVERRIDE contains two camera model files.",
+      "gap": null
+    },
+    {
+      "game": "k1",
+      "index": 190,
+      "guid": "6ff2988d-370a-8079-9162-093df5c6d60b",
+      "name": "Pretty Good! Icons",
+      "source_kind": "authored-supplemental",
+      "profile": "fixed-1920x1080-v1",
+      "raw_component": {
+        "Guid": "6ff2988d-370a-8079-9162-093df5c6d60b",
+        "Name": "Pretty Good! Icons",
+        "Author": "ajdrenter",
+        "Description": "A comprehensive upscale of all the various icons in the game. Very well-done and essential for visual clarity while using HR Menus.",
+        "Directions": "I recommend using the .tpc file option. For **THIS MOD ONLY**, do not overwrite when prompted!",
+        "Tier": "2 - Recommended",
+        "Category": [
+          "Graphics Improvement"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/1815-pretty-good-icons-for-kotor/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "6ff2988d-370a-8079-9162-093df5c6d60b",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "Loose-File Mod",
+            "MethodTruncated": false,
+            "Kind": "LooseFile",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "InstallationMethod": "Loose-File Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[Pretty Good! Icons](https://deadlystream.com/files/file/1815-pretty-good-icons-for-kotor/)",
+        "WidescreenOnly": true
+      },
+      "canonical_component": {
+        "Guid": "6ff2988d-370a-8079-9162-093df5c6d60b",
+        "Name": "Pretty Good! Icons",
+        "Author": "ajdrenter",
+        "Description": "A comprehensive upscale of all the various icons in the game. Very well-done and essential for visual clarity while using HR Menus.",
+        "Directions": "I recommend using the .tpc file option. For **THIS MOD ONLY**, do not overwrite when prompted!",
+        "Tier": "2 - Recommended",
+        "Category": [
+          "Graphics Improvement"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/1815-pretty-good-icons-for-kotor/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "6ff2988d-370a-8079-9162-093df5c6d60b",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "Loose-File Mod",
+            "MethodTruncated": false,
+            "Kind": "LooseFile",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "InstallationMethod": "Loose-File Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[Pretty Good! Icons](https://deadlystream.com/files/file/1815-pretty-good-icons-for-kotor/)",
+        "WidescreenOnly": true
+      },
+      "inputs": [
+        {
+          "filename": "Pretty Good_ Icons for KotOR 1.0.7z",
+          "sha256": "0ff81525850ea5d25a947b46b718ebd61d1d236088a2c12d1f28d0ec2d5cdccb",
+          "source_url": "https://deadlystream.com/files/file/1815-pretty-good-icons-for-kotor/",
+          "source_id": "e52ea33e6fa82a157c4ea19b361b1c8a2735518308a836246188b940ceb33032",
+          "publisher_filename": "Pretty Good! Icons for KotOR 1.0.7z",
+          "active": true,
+          "exact_bytes_observed": true
+        }
+      ],
+      "copies": [
+        {
+          "input": 0,
+          "member": "tpc",
+          "destination": "override",
+          "skip_existing": true
+        }
+      ],
+      "prerequisites": [
+        {
+          "kind": "k1_high_resolution_menus",
+          "owner_guid": "6c3c7165-297e-80eb-b9f8-d47506dab2d5",
+          "profile_id": "k1-1920x1080-1024-interface-letterbox-off-movies-on-v1"
+        }
+      ],
+      "choice_evidence": "Original guide explicitly chooses TPC and no overwrite, taking precedence over README TGA preference.",
+      "gap": null
+    },
+    {
+      "game": "k1",
+      "index": 191,
+      "guid": "461350dd-6027-8124-a17e-ae6fd5536f37",
+      "name": "HD Robe Icons for JC's Cloaked Jedi Robes",
+      "source_kind": "authored-supplemental",
+      "profile": "fixed-1920x1080-v1",
+      "raw_component": {
+        "Guid": "461350dd-6027-8124-a17e-ae6fd5536f37",
+        "Name": "HD Robe Icons for JC's Cloaked Jedi Robes",
+        "Author": "Nehua",
+        "Description": "Rather than using icons matching the vanilla robe appearances even when using JC's cloaked Jedi robes, this mod adds icons specifically matching the cloaked robes.",
+        "Directions": "In the \"JC's Cloaked Jedis\" folder, select the files from the version of JC's Cloaked Jedi Robes you utilized. Ignore the Effix folder unless playing with that specific mod.",
+        "Tier": "3 - Suggested",
+        "Category": [
+          "Appearance Change",
+          "Graphics Improvement"
+        ],
+        "IsSelected": true,
+        "Dependencies": [
+          "02034096-4a59-8fbc-b2a0-beb89cbf2067"
+        ],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/2303-hd-robe-icons-for-jcs-cloaked-jedis-and-effixs-extra-robes/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DependencyNames": [
+          "JC's Cloaked Jedi Robes"
+        ],
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "461350dd-6027-8124-a17e-ae6fd5536f37",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 1
+          },
+          "MethodContext": {
+            "Method": "Loose-File Mod",
+            "MethodTruncated": false,
+            "Kind": "LooseFile",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "Heading": "Robe Icons for JC's Cloaked Robes",
+        "InstallationMethod": "Loose-File Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[HD Robe Icons for JC's Cloaked Jedi Robes](https://deadlystream.com/files/file/2303-hd-robe-icons-for-jcs-cloaked-jedis-and-effixs-extra-robes/)",
+        "WidescreenOnly": true
+      },
+      "canonical_component": {
+        "Guid": "461350dd-6027-8124-a17e-ae6fd5536f37",
+        "Name": "HD Robe Icons for JC's Cloaked Jedi Robes",
+        "Author": "Nehua",
+        "Description": "Rather than using icons matching the vanilla robe appearances even when using JC's cloaked Jedi robes, this mod adds icons specifically matching the cloaked robes.",
+        "Directions": "In the \"JC's Cloaked Jedis\" folder, select the files from the version of JC's Cloaked Jedi Robes you utilized. Ignore the Effix folder unless playing with that specific mod.",
+        "Tier": "3 - Suggested",
+        "Category": [
+          "Appearance Change",
+          "Graphics Improvement"
+        ],
+        "IsSelected": true,
+        "Dependencies": [
+          "02034096-4a59-8fbc-b2a0-beb89cbf2067"
+        ],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/2303-hd-robe-icons-for-jcs-cloaked-jedis-and-effixs-extra-robes/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DependencyNames": [
+          "JC's Cloaked Jedi Robes"
+        ],
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "461350dd-6027-8124-a17e-ae6fd5536f37",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 1
+          },
+          "MethodContext": {
+            "Method": "Loose-File Mod",
+            "MethodTruncated": false,
+            "Kind": "LooseFile",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "Heading": "Robe Icons for JC's Cloaked Robes",
+        "InstallationMethod": "Loose-File Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[HD Robe Icons for JC's Cloaked Jedi Robes](https://deadlystream.com/files/file/2303-hd-robe-icons-for-jcs-cloaked-jedis-and-effixs-extra-robes/)",
+        "WidescreenOnly": true
+      },
+      "inputs": [
+        {
+          "filename": "HD Robe Icons for JC_s Cloaked Jedis and Effix_s Extra Robes.zip",
+          "sha256": "f62c0178d21425573e826a6e05f11b0ebfff411de5857ebdf6e18155123614ac",
+          "source_url": "https://deadlystream.com/files/file/2303-hd-robe-icons-for-jcs-cloaked-jedis-and-effixs-extra-robes/",
+          "source_id": "ff9a8eb19cb058aeb6b0e85dc1d3fd258f5d0a7d3d561e9880271b3080ab49e4",
+          "publisher_filename": "HD Robe Icons for JC's Cloaked Jedis and Effix's Extra Robes.zip",
+          "active": true,
+          "exact_bytes_observed": true
+        }
+      ],
+      "copies": [
+        {
+          "input": 0,
+          "member": "HD Robe Icons for JC's Cloaked Jedis and Effix's Extra Robes/JC's Cloaked Jedis/Brown-Red-Blue Alternative",
+          "destination": "override",
+          "skip_existing": false
+        }
+      ],
+      "prerequisites": [
+        {
+          "kind": "cloaked_jedi_robes",
+          "owner_guid": "02034096-4a59-8fbc-b2a0-beb89cbf2067",
+          "archive_sha256": "e1ff8d6398cc1cc8de4789ddcdba711ceb5c98358ceef9623504d1c5bc4491e4",
+          "namespace_index": 4,
+          "namespace_id": "k_brb-a",
+          "data_path": "k_brb-a",
+          "ini_path": "tslpatchdata/k_brb-a/k_brb-a.ini",
+          "ini_sha256": "fa0dd504265581920b6ffc58c91ec736fece3f729e616a5fa28f429ffa7c4f4e",
+          "namespaces_sha256": "4cb41d172d1184fe1ef602aeea6ae47418a4ce1c14d2da35e10189225b0966b3"
+        }
+      ],
+      "choice_evidence": "Guide recommends and original predecessor selects Brown-Red-Blue Alternative, namespace4; Effix and other robe variants remain inert.",
+      "gap": null
+    },
+    {
+      "game": "k1",
+      "index": 193,
+      "guid": "94eca3b4-0f21-84e1-ad12-9bd08c7e9d72",
+      "name": "Widescreen Fade Fix",
+      "source_kind": "authored-supplemental",
+      "profile": "fixed-1920x1080-v1",
+      "raw_component": {
+        "Guid": "94eca3b4-0f21-84e1-ad12-9bd08c7e9d72",
+        "Name": "Widescreen Fade Fix",
+        "Author": "Doiinko",
+        "Description": "At modded resolutions, part of the screen fades in at a different speed than the rest of the screen. This simple mod fixes the fade so it's uniform.",
+        "Directions": "",
+        "Tier": "3 - Suggested",
+        "Category": [
+          "Bugfix"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/1792-kotor-widescreen-fade-fix/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "94eca3b4-0f21-84e1-ad12-9bd08c7e9d72",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "Loose-File Mod",
+            "MethodTruncated": false,
+            "Kind": "LooseFile",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "InstallationMethod": "Loose-File Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[Widescreen Fade Fix](https://deadlystream.com/files/file/1792-kotor-widescreen-fade-fix/)",
+        "WidescreenOnly": true
+      },
+      "canonical_component": {
+        "Guid": "94eca3b4-0f21-84e1-ad12-9bd08c7e9d72",
+        "Name": "Widescreen Fade Fix",
+        "Author": "Doiinko",
+        "Description": "At modded resolutions, part of the screen fades in at a different speed than the rest of the screen. This simple mod fixes the fade so it's uniform.",
+        "Directions": "",
+        "Tier": "3 - Suggested",
+        "Category": [
+          "Bugfix"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/1792-kotor-widescreen-fade-fix/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "94eca3b4-0f21-84e1-ad12-9bd08c7e9d72",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "Loose-File Mod",
+            "MethodTruncated": false,
+            "Kind": "LooseFile",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "InstallationMethod": "Loose-File Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[Widescreen Fade Fix](https://deadlystream.com/files/file/1792-kotor-widescreen-fade-fix/)",
+        "WidescreenOnly": true
+      },
+      "inputs": [
+        {
+          "filename": "KOTOR 1 Fade widescreen fix.zip",
+          "sha256": "a17cbb4f169977c85639e5bad90770824283f0f24a5d899dd827e6628f96c048",
+          "source_url": "https://deadlystream.com/files/file/1792-kotor-widescreen-fade-fix/",
+          "source_id": "ee4a4f8987b7683b02b298cd004e8da56d190ce98f2a971ae41e5a623ab43092",
+          "publisher_filename": "KOTOR 1 Fade widescreen fix.zip",
+          "active": true,
+          "exact_bytes_observed": true
+        }
+      ],
+      "copies": [
+        {
+          "input": 0,
+          "member": "KOTOR 1 Fade widescreen fix/1920x1080/fade.gui",
+          "destination": "override/fade.gui",
+          "skip_existing": false
+        }
+      ],
+      "prerequisites": [],
+      "choice_evidence": "Package instructions choose matching resolution; fixed profile selects only 1920x1080/fade.gui.",
+      "gap": null
+    },
+    {
+      "game": "k1",
+      "index": 194,
+      "guid": "da831add-0d34-8105-9657-a46418b358e5",
+      "name": "Main Menu Widescreen Fix",
+      "source_kind": "authored-supplemental",
+      "profile": "fixed-1920x1080-v1",
+      "raw_component": {
+        "Guid": "da831add-0d34-8105-9657-a46418b358e5",
+        "Name": "Main Menu Widescreen Fix",
+        "Author": "DarthParametric",
+        "Description": "Like the turret cockpit, by default the game's main menu isn't intended to be viewed in widescreen. This fix widens the viewing angle of the main menu and moves the smoke effects to the edge of the screen, so the menu appears as it should even in higher resolutions.",
+        "Directions": "",
+        "Tier": "2 - Recommended",
+        "Category": [
+          "Bugfix"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/1173-k1-main-menu-widescreen-fix/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "da831add-0d34-8105-9657-a46418b358e5",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "Loose-File Mod",
+            "MethodTruncated": false,
+            "Kind": "LooseFile",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "InstallationMethod": "Loose-File Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[Main Menu Widescreen Fix](https://deadlystream.com/files/file/1173-k1-main-menu-widescreen-fix/)",
+        "WidescreenOnly": true
+      },
+      "canonical_component": {
+        "Guid": "da831add-0d34-8105-9657-a46418b358e5",
+        "Name": "Main Menu Widescreen Fix",
+        "Author": "DarthParametric",
+        "Description": "Like the turret cockpit, by default the game's main menu isn't intended to be viewed in widescreen. This fix widens the viewing angle of the main menu and moves the smoke effects to the edge of the screen, so the menu appears as it should even in higher resolutions.",
+        "Directions": "",
+        "Tier": "2 - Recommended",
+        "Category": [
+          "Bugfix"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/1173-k1-main-menu-widescreen-fix/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "da831add-0d34-8105-9657-a46418b358e5",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "Loose-File Mod",
+            "MethodTruncated": false,
+            "Kind": "LooseFile",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "InstallationMethod": "Loose-File Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[Main Menu Widescreen Fix](https://deadlystream.com/files/file/1173-k1-main-menu-widescreen-fix/)",
+        "WidescreenOnly": true
+      },
+      "inputs": [
+        {
+          "filename": "[K1]_Main_Menu_Widescreen_Fix_v1.2.7z",
+          "sha256": "8d0e9bcdc45ba2ab8e80aea8cd447a965a825e60947d8592e13070ddfd32a833",
+          "source_url": "https://deadlystream.com/files/file/1173-k1-main-menu-widescreen-fix/",
+          "source_id": "04fefeb9cea9634a4d14d3011d86fee31342dfaa7ec3cf1a86ed6dcfcafca6d6",
+          "publisher_filename": "[K1]_Main_Menu_Widescreen_Fix_v1.2.7z",
+          "active": true,
+          "exact_bytes_observed": true
+        }
+      ],
+      "copies": [
+        {
+          "input": 0,
+          "member": "[K1]_Main_Menu_Widescreen_Fix_v1.2/For Override",
+          "destination": "override",
+          "skip_existing": false
+        }
+      ],
+      "prerequisites": [],
+      "choice_evidence": "Only base For Override payload; optional TOR and upscaled-logo branches remain inert.",
+      "gap": null
+    },
+    {
+      "game": "k2",
+      "index": 145,
+      "guid": "14d721c3-67f9-885b-9736-04282d41bed0",
+      "name": "Main Menu Fix for Widescreen",
+      "source_kind": "authored-supplemental",
+      "profile": "fixed-1920x1080-v1",
+      "raw_component": {
+        "Guid": "14d721c3-67f9-885b-9736-04282d41bed0",
+        "Name": "Main Menu Fix for Widescreen",
+        "Author": "DarthParametric",
+        "Description": "A fix for TSL's stretched menu when playing the game widescreen.",
+        "Directions": "Apply the contents of the \"for override folder\". If you would like to have the TSLRCM version of the KOTOR 2 logo on your main menu, you will need to BOTH move the contents of the \"FOR TSLRCM\" folder to your override, as well as the contents of the separate download \"Updated_TSLRCM_Logo_v1.8.6\".",
+        "Tier": "3 - Suggested",
+        "Category": [
+          "Graphics Improvement",
+          "Bugfix"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [
+          {
+            "Action": "Move",
+            "Source": [
+              "<<modDirectory>>\\c\\*"
+            ],
+            "Destination": "<<kotorDirectory>>\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/1138-tsl-main-menu-model-fix-for-widescreen/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "14d721c3-67f9-885b-9736-04282d41bed0",
+            "DraftInstructionCount": 1,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 1
+          },
+          "MethodContext": {
+            "Method": "Loose-File Mod",
+            "MethodTruncated": false,
+            "Kind": "LooseFile",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "Heading": "Main Menu Fix",
+        "InstallationMethod": "Loose-File Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[Main Menu Fix for Widescreen](https://deadlystream.com/files/file/1138-tsl-main-menu-model-fix-for-widescreen/)",
+        "WidescreenOnly": true
+      },
+      "canonical_component": {
+        "Guid": "14d721c3-67f9-885b-9736-04282d41bed0",
+        "Name": "Main Menu Fix for Widescreen",
+        "Author": "DarthParametric",
+        "Description": "A fix for TSL's stretched menu when playing the game widescreen.",
+        "Directions": "Apply the contents of the \"for override folder\". If you would like to have the TSLRCM version of the KOTOR 2 logo on your main menu, you will need to BOTH move the contents of the \"FOR TSLRCM\" folder to your override, as well as the contents of the separate download \"Updated_TSLRCM_Logo_v1.8.6\".",
+        "Tier": "3 - Suggested",
+        "Category": [
+          "Graphics Improvement",
+          "Bugfix"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [
+          {
+            "Action": "Move",
+            "Source": [
+              "<<modDirectory>>/c/*"
+            ],
+            "Destination": "<<kotorDirectory>>\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/1138-tsl-main-menu-model-fix-for-widescreen/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "14d721c3-67f9-885b-9736-04282d41bed0",
+            "DraftInstructionCount": 1,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 1
+          },
+          "MethodContext": {
+            "Method": "Loose-File Mod",
+            "MethodTruncated": false,
+            "Kind": "LooseFile",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "Heading": "Main Menu Fix",
+        "InstallationMethod": "Loose-File Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[Main Menu Fix for Widescreen](https://deadlystream.com/files/file/1138-tsl-main-menu-model-fix-for-widescreen/)",
+        "WidescreenOnly": true
+      },
+      "inputs": [
+        {
+          "filename": "[TSL]_Main_Menu_Widescreen_Fix_v1.2.7z",
+          "sha256": "ebd3ca1549cf82b961b535ae2180ff78160ceac46cf8d417b42b1143c94c63b5",
+          "source_url": "https://deadlystream.com/files/file/1138-tsl-main-menu-model-fix-for-widescreen/",
+          "source_id": "e65b3e0b9fc29a47556948301b140691814956b4633722eb1d18d5fa95621ef0",
+          "publisher_filename": "[TSL]_Main_Menu_Widescreen_Fix_v1.2.7z",
+          "active": true,
+          "exact_bytes_observed": true
+        },
+        {
+          "filename": "Updated_TSLRCM_Logo_v1.8.6.7z",
+          "sha256": "7274ad04de521caf4e8819e431a90612325308336136db54f72ed70af93dd272",
+          "source_url": "https://deadlystream.com/files/file/1138-tsl-main-menu-model-fix-for-widescreen/",
+          "source_id": "e65b3e0b9fc29a47556948301b140691814956b4633722eb1d18d5fa95621ef0",
+          "publisher_filename": "Updated_TSLRCM_Logo_v1.8.6.7z",
+          "active": false,
+          "exact_bytes_observed": true
+        }
+      ],
+      "copies": [
+        {
+          "input": 0,
+          "member": "[TSL]_Main_Menu_Widescreen_Fix_v1.2/FOR OVERRIDE FOLDER",
+          "destination": "override",
+          "skip_existing": false
+        }
+      ],
+      "prerequisites": [],
+      "choice_evidence": "Base-only branch: FOR OVERRIDE FOLDER complete; FOR TSLRCM and updated logo inactive together, no half branch.",
+      "gap": null
+    },
+    {
+      "game": "k2",
+      "index": 148,
+      "guid": "863b2f97-c8e8-8715-a1e0-2515fa70c71e",
+      "name": "K2 Loading Screen Rescaled",
+      "source_kind": "authored-supplemental",
+      "profile": "fixed-1920x1080-v1",
+      "raw_component": {
+        "Guid": "863b2f97-c8e8-8715-a1e0-2515fa70c71e",
+        "Name": "K2 Loading Screen Rescaled",
+        "Author": "Pops Maellard",
+        "Description": "If you decide not to use Pops Mallard's cutscene mod above, this mod is a standalone version of their enhanced legal screen (which I personally enjoy) that you can download.",
+        "Directions": "",
+        "Tier": "4 - Optional",
+        "Category": [
+          "Graphics Improvement"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/2622-k2-loading-screen-rescaled/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "863b2f97-c8e8-8715-a1e0-2515fa70c71e",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "Loose-File Mod",
+            "MethodTruncated": false,
+            "Kind": "LooseFile",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "Heading": "Loading Screen Rescaled",
+        "InstallationMethod": "Loose-File Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[K2 Loading Screen Rescaled](https://deadlystream.com/files/file/2622-k2-loading-screen-rescaled/)",
+        "WidescreenOnly": true
+      },
+      "canonical_component": {
+        "Guid": "863b2f97-c8e8-8715-a1e0-2515fa70c71e",
+        "Name": "K2 Loading Screen Rescaled",
+        "Author": "Pops Maellard",
+        "Description": "If you decide not to use Pops Mallard's cutscene mod above, this mod is a standalone version of their enhanced legal screen (which I personally enjoy) that you can download.",
+        "Directions": "",
+        "Tier": "4 - Optional",
+        "Category": [
+          "Graphics Improvement"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/2622-k2-loading-screen-rescaled/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "863b2f97-c8e8-8715-a1e0-2515fa70c71e",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "Loose-File Mod",
+            "MethodTruncated": false,
+            "Kind": "LooseFile",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "Heading": "Loading Screen Rescaled",
+        "InstallationMethod": "Loose-File Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[K2 Loading Screen Rescaled](https://deadlystream.com/files/file/2622-k2-loading-screen-rescaled/)",
+        "WidescreenOnly": true
+      },
+      "inputs": [
+        {
+          "filename": "load_1920x1080.7z",
+          "sha256": "f99baa1e8bc70d80106abb888d2818a4e497231c9a89cf071a3736cb1679ab36",
+          "source_url": "https://deadlystream.com/files/file/2622-k2-loading-screen-rescaled/",
+          "source_id": "98ef0729f90df81a91a47338ca5fcfafd0add41ec2dad2f10979031df10de159",
+          "publisher_filename": "load_1920x1080.7z",
+          "active": true,
+          "exact_bytes_observed": true
+        }
+      ],
+      "copies": [
+        {
+          "input": 0,
+          "member": "load_1920x1080/legal/legal.tga",
+          "destination": "override/legal.tga",
+          "skip_existing": false
+        }
+      ],
+      "prerequisites": [],
+      "choice_evidence": "One legal screen: legal/legal.tga. legal-alt-01 remains inert.",
+      "gap": null
+    },
+    {
+      "game": "k2",
+      "index": 149,
+      "guid": "3fa40bfc-198a-80ff-9547-db7e504a1017",
+      "name": "Workbench Upgrade Screen Camera Tweak",
+      "source_kind": "authored-supplemental",
+      "profile": "fixed-1920x1080-v1",
+      "raw_component": {
+        "Guid": "3fa40bfc-198a-80ff-9547-db7e504a1017",
+        "Name": "Workbench Upgrade Screen Camera Tweak",
+        "Author": "DarthParametric",
+        "Description": "This mod pulls the camera on the Workbench in closer to show off the textures of what you're editing better. Works best at high resolution and with texture mods, which is why it's listed here in widescreen improvements.",
+        "Directions": "",
+        "Tier": "3 - Suggested",
+        "Category": [
+          "Appearance Change"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/1743-workbench-upgrade-screen-camera-tweak-for-tsl/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "3fa40bfc-198a-80ff-9547-db7e504a1017",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "Loose-File Mod",
+            "MethodTruncated": false,
+            "Kind": "LooseFile",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "Heading": "Workbench Camera Tweak",
+        "InstallationMethod": "Loose-File Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[Workbench Upgrade Screen Camera Tweak](https://deadlystream.com/files/file/1743-workbench-upgrade-screen-camera-tweak-for-tsl/)",
+        "WidescreenOnly": true
+      },
+      "canonical_component": {
+        "Guid": "3fa40bfc-198a-80ff-9547-db7e504a1017",
+        "Name": "Workbench Upgrade Screen Camera Tweak",
+        "Author": "DarthParametric",
+        "Description": "This mod pulls the camera on the Workbench in closer to show off the textures of what you're editing better. Works best at high resolution and with texture mods, which is why it's listed here in widescreen improvements.",
+        "Directions": "",
+        "Tier": "3 - Suggested",
+        "Category": [
+          "Appearance Change"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/1743-workbench-upgrade-screen-camera-tweak-for-tsl/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "3fa40bfc-198a-80ff-9547-db7e504a1017",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "Loose-File Mod",
+            "MethodTruncated": false,
+            "Kind": "LooseFile",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "Heading": "Workbench Camera Tweak",
+        "InstallationMethod": "Loose-File Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[Workbench Upgrade Screen Camera Tweak](https://deadlystream.com/files/file/1743-workbench-upgrade-screen-camera-tweak-for-tsl/)",
+        "WidescreenOnly": true
+      },
+      "inputs": [
+        {
+          "filename": "[TSL]_Workbench_Upgrade_Screen_Camera_Tweak.7z",
+          "sha256": "d715042ab54091df6d9dfdf42c04d7d32e5233e4c94f82f30f3a6c41c71149be",
+          "source_url": "https://deadlystream.com/files/file/1743-workbench-upgrade-screen-camera-tweak-for-tsl/",
+          "source_id": "cf213453e58f3940e81da548c427ede5caef3460dd6e1dbd48fc331d34611a17",
+          "publisher_filename": "[TSL]_Workbench_Upgrade_Screen_Camera_Tweak.7z",
+          "active": true,
+          "exact_bytes_observed": true
+        }
+      ],
+      "copies": [
+        {
+          "input": 0,
+          "member": "[TSL]_Workbench_Upgrade_Screen_Camera_Tweak/FOR OVERRIDE",
+          "destination": "override",
+          "skip_existing": false
+        }
+      ],
+      "prerequisites": [],
+      "choice_evidence": "Only FOR OVERRIDE contains two camera model files.",
+      "gap": null
+    },
+    {
+      "game": "k2",
+      "index": 150,
+      "guid": "600d2fa2-c148-846f-bf3b-a44f10daf103",
+      "name": "Upscaled Maps",
+      "source_kind": "authored-supplemental",
+      "profile": "fixed-1920x1080-v1",
+      "raw_component": {
+        "Guid": "600d2fa2-c148-846f-bf3b-a44f10daf103",
+        "Name": "Upscaled Maps",
+        "Author": "Tunalex",
+        "Description": "This mod upscales every map, including the minimap, to be much more visually clear. Much prettier and also less blurry!",
+        "Directions": "",
+        "Tier": "2 - Recommended",
+        "Category": [
+          "Graphics Improvement"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://www.nexusmods.com/kotor2/mods/1086": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "600d2fa2-c148-846f-bf3b-a44f10daf103",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "Loose-File Mod",
+            "MethodTruncated": false,
+            "Kind": "LooseFile",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "InstallationMethod": "Loose-File Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[Upscaled Maps](https://www.nexusmods.com/kotor2/mods/1086)",
+        "WidescreenOnly": true
+      },
+      "canonical_component": {
+        "Guid": "600d2fa2-c148-846f-bf3b-a44f10daf103",
+        "Name": "Upscaled Maps",
+        "Author": "Tunalex",
+        "Description": "This mod upscales every map, including the minimap, to be much more visually clear. Much prettier and also less blurry!",
+        "Directions": "",
+        "Tier": "2 - Recommended",
+        "Category": [
+          "Graphics Improvement"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://www.nexusmods.com/kotor2/mods/1086": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "600d2fa2-c148-846f-bf3b-a44f10daf103",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "Loose-File Mod",
+            "MethodTruncated": false,
+            "Kind": "LooseFile",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "InstallationMethod": "Loose-File Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES"
+        ],
+        "NameFieldContent": "[Upscaled Maps](https://www.nexusmods.com/kotor2/mods/1086)",
+        "WidescreenOnly": true
+      },
+      "inputs": [
+        {
+          "filename": "Mod files-1086-1-0-1590189064.7z",
+          "sha256": "e3c49ad8480d30bd9f936ded4f9c26cbfd5de076ba4d2ec58e72b07799ab5e5a",
+          "source_url": "https://www.nexusmods.com/kotor2/mods/1086",
+          "source_id": "5d13bd9dfa4b95bb25a2b3b2e96424791cff4efbbed5a24ab70a0dc36cd9826f",
+          "publisher_filename": "Mod files-1086-1-0-1590189064.7z",
+          "active": true,
+          "exact_bytes_observed": false,
+          "layout_evidence": {
+            "archive_sha256": "e3c49ad8480d30bd9f936ded4f9c26cbfd5de076ba4d2ec58e72b07799ab5e5a",
+            "receipt_sha256": "10751b2b201db53010d935f3d5677efd1db640f313110f48fe4bcd842d554e70",
+            "listing_sha256": "6acbed884238cc7e0eee4a772fad54650cd31e6b08d9014dd26c74fe0ce1f561",
+            "inventory_sha256": "4ef82cb534acc76fa499eb4c580df294e3e994912970e12732acb4551f161377",
+            "artifact_id": 14137273816,
+            "run_id": "43654798480",
+            "head": "e48ea51738ab223814a8128b8026e2354cbe14b0",
+            "selected_prefix": "Galloways Maps Upscale/override",
+            "selected_extension": "tga",
+            "selected_regular_files": 75,
+            "inert_regular_files": [
+              "Galloways Maps Upscale/title.jpg",
+              "Galloways Maps Upscale/readme.txt"
+            ]
+          }
+        }
+      ],
+      "copies": [
+        {
+          "input": 0,
+          "member": "Galloways Maps Upscale/override",
+          "destination": "override",
+          "skip_existing": false
+        }
+      ],
+      "prerequisites": [],
+      "choice_evidence": "Authenticated CI inventory/README pins 75 TGA map payloads under Galloways Maps Upscale/override; title.jpg and readme.txt stay inert. Local body proof gap only; every runtime admission must freshly hash full exact archive and inventory before this prefix/TGA policy.",
+      "gap": null
+    },
+    {
+      "game": "k2",
+      "index": 94,
+      "guid": "403daebc-dd7f-892c-ac37-823cf1ae6600",
+      "name": "Extended Enclave",
+      "source_kind": "authored-supplemental",
+      "profile": "english-tslrcm-standalone-no-m4-78-v1",
+      "raw_component": {
+        "Guid": "403daebc-dd7f-892c-ac37-823cf1ae6600",
+        "Name": "Extended Enclave",
+        "Author": "danil-ch & Darth Hayze",
+        "Description": "Restores some additional content to the Dantooine Enclave, including more variance depending upon your influence with Kreia.",
+        "Directions": "",
+        "Tier": "1 - Essential",
+        "Category": [
+          "Restored Content"
+        ],
+        "IsSelected": true,
+        "Dependencies": [
+          "bee5a72b-d748-8f83-8261-81758a9bfc56"
+        ],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "http://deadlystream.com/files/file/428-extended-enclave-tslrcm-add-on/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DependencyNames": [
+          "TSLRCM"
+        ],
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "403daebc-dd7f-892c-ac37-823cf1ae6600",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "TSLPatcher Mod",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "InstallationMethod": "TSLPatcher Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "English and Russian ONLY"
+        ],
+        "NameFieldContent": "[Extended Enclave](http://deadlystream.com/files/file/428-extended-enclave-tslrcm-add-on/)",
+        "SteamNotes": "This mod disables the ability to unlock certain achievements! Other mods might do the same, but this one has been confirmed incompatible with at least one achievement. I recommend it regardless, but if you care about achievements over story this mod won't be for you.",
+        "WidescreenOnly": false
+      },
+      "canonical_component": {
+        "Guid": "403daebc-dd7f-892c-ac37-823cf1ae6600",
+        "Name": "Extended Enclave",
+        "Author": "danil-ch & Darth Hayze",
+        "Description": "Restores some additional content to the Dantooine Enclave, including more variance depending upon your influence with Kreia.",
+        "Directions": "",
+        "Tier": "1 - Essential",
+        "Category": [
+          "Restored Content"
+        ],
+        "IsSelected": true,
+        "Dependencies": [
+          "bee5a72b-d748-8f83-8261-81758a9bfc56"
+        ],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "http://deadlystream.com/files/file/428-extended-enclave-tslrcm-add-on/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DependencyNames": [
+          "TSLRCM"
+        ],
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "403daebc-dd7f-892c-ac37-823cf1ae6600",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "TSLPatcher Mod",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "InstallationMethod": "TSLPatcher Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "English and Russian ONLY"
+        ],
+        "NameFieldContent": "[Extended Enclave](http://deadlystream.com/files/file/428-extended-enclave-tslrcm-add-on/)",
+        "SteamNotes": "This mod disables the ability to unlock certain achievements! Other mods might do the same, but this one has been confirmed incompatible with at least one achievement. I recommend it regardless, but if you care about achievements over story this mod won't be for you.",
+        "WidescreenOnly": false
+      },
+      "inputs": [
+        {
+          "filename": "Extended Enclave.2.5.2.rar",
+          "sha256": "ee329c08a30fd9b0e66766e51d841127f477bc8d9acfdc5be94e10fa4933db70",
+          "source_url": "http://deadlystream.com/files/file/428-extended-enclave-tslrcm-add-on/",
+          "source_id": "6950e79e461037255afadd155f30d93dc1514a4374780e9b7a21e08ef4d86397",
+          "publisher_filename": "Extended Enclave.2.5.2.rar",
+          "active": true,
+          "exact_bytes_observed": true
+        }
+      ],
+      "copies": [],
+      "prerequisites": [
+        {
+          "kind": "tslrcm_standalone",
+          "owner_guid": "bee5a72b-d748-8f83-8261-81758a9bfc56",
+          "version": "1.8.6"
+        },
+        {
+          "kind": "completed_original_program",
+          "owner_guid": "0d645887-5b3a-82a1-925e-cdd7c68bf923"
+        }
+      ],
+      "choice_evidence": "Honest completion of historical extraction-only step095. Exact package English README requires TSLRCM1.8.6 and says use Standalone without M4-78. Namespace0 TSLRCM selects rcmchanges.ini with empty DataPath; mobile namespace1, M4-78 namespace2, Russian package and Source are unselected/inert. Original full guide selects TSLRCM; PartySwap originalstep094 runs namespaces0+2 and its Kreia compatibility patch before this owner; originalstep096 selects no-M4 compatibility patch afterwards. Preserve original component dependencies and INI Required c_mirachoke.ncs/current resources.",
+      "gap": null,
+      "historical_original_step": {
+        "id": "step-095",
+        "source_heading": "### Extended Enclave",
+        "operations": [
+          {
+            "type": "extract",
+            "source": "{archives}/Extended Enclave.2.5.2.rar",
+            "destination": "{extract}/step-095/1"
+          }
+        ]
+      },
+      "original_source_plan_sha256": "0add8c1aeb7cdfad3df4b21761e135c150aa7832cf3fc0edabe01a91245a9258",
+      "native_runs": [
+        {
+          "input": 0,
+          "patcher": "ExtendedEnclave_English/Ext Enclave install.exe",
+          "installer_sha256": "013655cd871a71e0f5b50f80ed0d32308912916ba7e12e2a366f42d992a71b16",
+          "cwd": "ExtendedEnclave_English",
+          "namespace": 0,
+          "ini_path": "ExtendedEnclave_English/tslpatchdata/rcmchanges.ini",
+          "ini_sha256": "36766175e0c5cb99c8f9f5846a0eb4ebe6b7c76f9fd05fad8e2dcea672d786ee",
+          "namespaces_path": "ExtendedEnclave_English/tslpatchdata/namespaces.ini",
+          "namespaces_sha256": "fc395dcc452d3c8a724ab48366955c1d01b89550ac9933cbff34a7f0ec32357a",
+          "readme_path": "ExtendedEnclave_English/Readme.txt",
+          "readme_sha256": "7da8751c7e2410a554757a878c70d9bb6840f188c9a645484bfc5a96882e1f68"
+        }
+      ],
+      "related_sources": [
+        {
+          "index": 1,
+          "guid": "bee5a72b-d748-8f83-8261-81758a9bfc56",
+          "relation": "predecessor",
+          "raw_component": {
+            "Guid": "bee5a72b-d748-8f83-8261-81758a9bfc56",
+            "Name": "The Sith Lords Restored Content Mod",
+            "Author": "zbyl2, DarthStoney, Hassat Hunter & VarsityPuppet",
+            "Description": "The whole reason why you would mod KOTOR 2, the legendary mod that includes bugfixes, restored content, and altered scenes to return the game to what it was meant to be. This mod isn't just essential—it's mandatory.",
+            "Directions": "",
+            "Tier": "1 - Essential",
+            "Category": [
+              "Bugfix",
+              "Immersion",
+              "Mechanics Change",
+              "Restored Content"
+            ],
+            "IsSelected": true,
+            "Dependencies": [],
+            "Restrictions": [],
+            "InstallBefore": [],
+            "InstallAfter": [],
+            "Instructions": [],
+            "Options": [],
+            "ResourceRegistry": {
+              "https://deadlystream.com/files/file/578-tsl-restored-content-mod/": {
+                "Files": {},
+                "HandlerMetadata": {}
+              }
+            },
+            "CompatibilityWarning": "Recall that no version of M4-78 is compatible with this build; do not use it alongside TSLRCM! Remember also that the Workshop version of this or any other mod is NOT to be used!",
+            "DraftReview": {
+              "RequiresReview": true,
+              "Result": {
+                "ComponentGuid": "bee5a72b-d748-8f83-8261-81758a9bfc56",
+                "DraftInstructionCount": 0,
+                "UnparsedGaps": [
+                  "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults.",
+                  "Installation method is unsupported, mixed, or exceeds 256 characters; explicit archive-aware interpretation is required."
+                ],
+                "ConditionalDrafts": [],
+                "RejectedDrafts": 0
+              },
+              "MethodContext": {
+                "Method": "Executable",
+                "MethodTruncated": false,
+                "Kind": "Unsupported",
+                "GuideDefaults": {
+                  "PreambleStatus": "Inspected",
+                  "PatcherDestination": "<<kotorDirectory>>",
+                  "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+                  "NoOverrideOrModulesSubfolders": true
+                },
+                "ExplicitDirectionsTakePrecedence": true,
+                "ArchiveBinding": "Unresolved"
+              }
+            },
+            "Heading": "TSLRCM",
+            "InstallationMethod": "Executable",
+            "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+            "Language": [
+              "YES, *but* you must install the version of TSLRCM which corresponds to your language of choice."
+            ],
+            "NameFieldContent": "[The Sith Lords Restored Content Mod](https://deadlystream.com/files/file/578-tsl-restored-content-mod/)",
+            "WidescreenOnly": false
+          },
+          "canonical_component": {
+            "Guid": "bee5a72b-d748-8f83-8261-81758a9bfc56",
+            "Name": "The Sith Lords Restored Content Mod",
+            "Author": "zbyl2, DarthStoney, Hassat Hunter & VarsityPuppet",
+            "Description": "The whole reason why you would mod KOTOR 2, the legendary mod that includes bugfixes, restored content, and altered scenes to return the game to what it was meant to be. This mod isn't just essential—it's mandatory.",
+            "Directions": "",
+            "Tier": "1 - Essential",
+            "Category": [
+              "Bugfix",
+              "Immersion",
+              "Mechanics Change",
+              "Restored Content"
+            ],
+            "IsSelected": true,
+            "Dependencies": [],
+            "Restrictions": [],
+            "InstallBefore": [],
+            "InstallAfter": [],
+            "Instructions": [],
+            "Options": [],
+            "ResourceRegistry": {
+              "https://deadlystream.com/files/file/578-tsl-restored-content-mod/": {
+                "Files": {},
+                "HandlerMetadata": {}
+              }
+            },
+            "CompatibilityWarning": "Recall that no version of M4-78 is compatible with this build; do not use it alongside TSLRCM! Remember also that the Workshop version of this or any other mod is NOT to be used!",
+            "DraftReview": {
+              "RequiresReview": true,
+              "Result": {
+                "ComponentGuid": "bee5a72b-d748-8f83-8261-81758a9bfc56",
+                "DraftInstructionCount": 0,
+                "UnparsedGaps": [
+                  "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults.",
+                  "Installation method is unsupported, mixed, or exceeds 256 characters; explicit archive-aware interpretation is required."
+                ],
+                "ConditionalDrafts": [],
+                "RejectedDrafts": 0
+              },
+              "MethodContext": {
+                "Method": "Executable",
+                "MethodTruncated": false,
+                "Kind": "Unsupported",
+                "GuideDefaults": {
+                  "PreambleStatus": "Inspected",
+                  "PatcherDestination": "<<kotorDirectory>>",
+                  "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+                  "NoOverrideOrModulesSubfolders": true
+                },
+                "ExplicitDirectionsTakePrecedence": true,
+                "ArchiveBinding": "Unresolved"
+              }
+            },
+            "Heading": "TSLRCM",
+            "InstallationMethod": "Executable",
+            "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+            "Language": [
+              "YES",
+              "*but* you must install the version of TSLRCM which corresponds to your language of choice."
+            ],
+            "NameFieldContent": "[The Sith Lords Restored Content Mod](https://deadlystream.com/files/file/578-tsl-restored-content-mod/)",
+            "WidescreenOnly": false
+          },
+          "original_step": {
+            "id": "step-002",
+            "source_heading": "### TSLRCM",
+            "operations": [
+              {
+                "type": "patcher",
+                "patcher": "{archives}/tslrcm2022.exe",
+                "sha256": "94c99c4807da4b304de6e0efed1be55e0f43d13cc5a274582ed3323ac0e2f1a6",
+                "argv": [
+                  "/usr/bin/wine",
+                  "{archives}/tslrcm2022.exe",
+                  "/SP-",
+                  "/VERYSILENT",
+                  "/SUPPRESSMSGBOXES",
+                  "/NORESTART",
+                  "/NOCANCEL",
+                  "/LANG=english",
+                  "/TYPE=english",
+                  "/DIR=Z:{game}",
+                  "/LOG=Z:{extract}/step-002-tslrcm-setup.log"
+                ],
+                "cwd": "{archives}/",
+                "success_log": "{extract}/step-002-tslrcm-setup.log",
+                "success_markers": [
+                  "Installation process succeeded.",
+                  "Need to restart Windows? No"
+                ],
+                "failure_regex": [
+                  "Rolling back changes\\.",
+                  "Got EAbort exception\\.",
+                  "Exception message:",
+                  "Defaulting to \\w+ for suppressed message box"
+                ],
+                "expected_files": {
+                  "{game}/dialog.tlk": "e501c665f7763bf9c63ac44e3a034a6969abbc6f0023096d8e137a400aa23e25",
+                  "{game}/modules/003ebo.mod": "575d7a5cb502d3e5e1ed07803e47968f66f91ddb83094f887c7597d74edd0013"
+                },
+                "expected_changes": "changed_manifest"
+              }
+            ]
+          }
+        },
+        {
+          "index": 93,
+          "guid": "0d645887-5b3a-82a1-925e-cdd7c68bf923",
+          "relation": "predecessor",
+          "raw_component": {
+            "Guid": "0d645887-5b3a-82a1-925e-cdd7c68bf923",
+            "Name": "PartySwap",
+            "Author": "DarthTyren & Leilukin",
+            "Description": "PartySwap is a legendary mod, and one of the best ever made for KOTOR 2. Through some unobtrusive scripting magic, it allows you to bring both the Disciple and Handmaiden with you as companions simultaneously, without removing another companion from the party wheel. You can experience all their content and use them both throughout the entire campaign, as was originally intended by Obsidian.\n\nThe mod gives you a communicator which you use to contact the *Ebon Hawk* to manage the Handmaiden and Disciple, which you can use while in the overworld. This can be used to switch which of the two companions is currently in the party, or even have both Disciple and the Handmaiden at once if you so choose. This communicator appears in the *shields* quickbar at the bottom-left of the screen as soon as the player has both the Handmaiden and Disciple as companions.",
+            "Directions": "Run the HoloPatcher executable. Select the default install, not M4-78, then re-run the installer, select the \"ADD-ON: PartySwap Item\" install option from the drop-down, and install that as well (without it, you won't be able to actually switch between the companions). When the install is completed, go into the \"Compatibility Patches\" folder, enter the one for Kreia's Fall Ingame Cutscene, and install that patch as well if you've chosen to use the above mod.",
+            "Tier": "1 - Essential",
+            "Category": [
+              "Immersion",
+              "Mechanics Change"
+            ],
+            "IsSelected": true,
+            "Dependencies": [
+              "bee5a72b-d748-8f83-8261-81758a9bfc56"
+            ],
+            "Restrictions": [],
+            "InstallBefore": [],
+            "InstallAfter": [],
+            "Instructions": [
+              {
+                "Action": "Patcher",
+                "Source": [
+                  "<<modDirectory>>\\installer"
+                ],
+                "Destination": "<<kotorDirectory>>",
+                "Arguments": "",
+                "Overwrite": true,
+                "Dependencies": [],
+                "Restrictions": []
+              }
+            ],
+            "Options": [],
+            "ResourceRegistry": {
+              "https://deadlystream.com/files/file/544-partyswap/": {
+                "Files": {},
+                "HandlerMetadata": {}
+              }
+            },
+            "DependencyNames": [
+              "TSLRCM"
+            ],
+            "DraftReview": {
+              "RequiresReview": true,
+              "Result": {
+                "ComponentGuid": "0d645887-5b3a-82a1-925e-cdd7c68bf923",
+                "DraftInstructionCount": 1,
+                "UnparsedGaps": [
+                  "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+                ],
+                "ConditionalDrafts": [],
+                "RejectedDrafts": 3
+              },
+              "MethodContext": {
+                "Method": "HoloPatcher Mod",
+                "MethodTruncated": false,
+                "Kind": "Patcher",
+                "GuideDefaults": {
+                  "PreambleStatus": "Inspected",
+                  "PatcherDestination": "<<kotorDirectory>>",
+                  "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+                  "NoOverrideOrModulesSubfolders": true
+                },
+                "ExplicitDirectionsTakePrecedence": true,
+                "ArchiveBinding": "Unresolved"
+              }
+            },
+            "InstallationMethod": "HoloPatcher Mod",
+            "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+            "Language": [
+              "NO"
+            ],
+            "NameFieldContent": "[PartySwap](https://deadlystream.com/files/file/544-partyswap/)",
+            "WidescreenOnly": false
+          },
+          "canonical_component": {
+            "Guid": "0d645887-5b3a-82a1-925e-cdd7c68bf923",
+            "Name": "PartySwap",
+            "Author": "DarthTyren & Leilukin",
+            "Description": "PartySwap is a legendary mod, and one of the best ever made for KOTOR 2. Through some unobtrusive scripting magic, it allows you to bring both the Disciple and Handmaiden with you as companions simultaneously, without removing another companion from the party wheel. You can experience all their content and use them both throughout the entire campaign, as was originally intended by Obsidian.\n\nThe mod gives you a communicator which you use to contact the *Ebon Hawk* to manage the Handmaiden and Disciple, which you can use while in the overworld. This can be used to switch which of the two companions is currently in the party, or even have both Disciple and the Handmaiden at once if you so choose. This communicator appears in the *shields* quickbar at the bottom-left of the screen as soon as the player has both the Handmaiden and Disciple as companions.",
+            "Directions": "Run the HoloPatcher executable. Select the default install, not M4-78, then re-run the installer, select the \"ADD-ON: PartySwap Item\" install option from the drop-down, and install that as well (without it, you won't be able to actually switch between the companions). When the install is completed, go into the \"Compatibility Patches\" folder, enter the one for Kreia's Fall Ingame Cutscene, and install that patch as well if you've chosen to use the above mod.",
+            "Tier": "1 - Essential",
+            "Category": [
+              "Immersion",
+              "Mechanics Change"
+            ],
+            "IsSelected": true,
+            "Dependencies": [
+              "bee5a72b-d748-8f83-8261-81758a9bfc56"
+            ],
+            "Restrictions": [],
+            "InstallBefore": [],
+            "InstallAfter": [],
+            "Instructions": [
+              {
+                "Action": "Patcher",
+                "Source": [
+                  "<<modDirectory>>/installer"
+                ],
+                "Destination": "<<kotorDirectory>>",
+                "Arguments": "",
+                "Overwrite": true,
+                "Dependencies": [],
+                "Restrictions": []
+              }
+            ],
+            "Options": [],
+            "ResourceRegistry": {
+              "https://deadlystream.com/files/file/544-partyswap/": {
+                "Files": {},
+                "HandlerMetadata": {}
+              }
+            },
+            "DependencyNames": [
+              "TSLRCM"
+            ],
+            "DraftReview": {
+              "RequiresReview": true,
+              "Result": {
+                "ComponentGuid": "0d645887-5b3a-82a1-925e-cdd7c68bf923",
+                "DraftInstructionCount": 1,
+                "UnparsedGaps": [
+                  "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+                ],
+                "ConditionalDrafts": [],
+                "RejectedDrafts": 3
+              },
+              "MethodContext": {
+                "Method": "HoloPatcher Mod",
+                "MethodTruncated": false,
+                "Kind": "Patcher",
+                "GuideDefaults": {
+                  "PreambleStatus": "Inspected",
+                  "PatcherDestination": "<<kotorDirectory>>",
+                  "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+                  "NoOverrideOrModulesSubfolders": true
+                },
+                "ExplicitDirectionsTakePrecedence": true,
+                "ArchiveBinding": "Unresolved"
+              }
+            },
+            "InstallationMethod": "HoloPatcher Mod",
+            "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+            "Language": [
+              "NO"
+            ],
+            "NameFieldContent": "[PartySwap](https://deadlystream.com/files/file/544-partyswap/)",
+            "WidescreenOnly": false
+          },
+          "original_step": {
+            "id": "step-094",
+            "source_heading": "### PartySwap",
+            "operations": [
+              {
+                "type": "extract",
+                "source": "{archives}/PartySwap 1.5.7z",
+                "destination": "{extract}/step-094/1"
+              },
+              {
+                "type": "patcher",
+                "patcher": "{extract}/step-094/1/PartySwap 1.5/PartySwap Installer.exe",
+                "sha256": "7a1cc0fb30c5f3653fac36b9d8283d04c5a3db308e55c247cc1593c6ef45690f",
+                "argv": [
+                  "/usr/bin/wine",
+                  "{extract}/step-094/1/PartySwap 1.5/PartySwap Installer.exe",
+                  "--game-dir",
+                  "{game}",
+                  "--tslpatchdata",
+                  "{extract}/step-094/1/PartySwap 1.5",
+                  "--namespace-option-index",
+                  "0",
+                  "--install"
+                ],
+                "cwd": "{extract}/step-094/1/PartySwap 1.5",
+                "success_log": "{extract}/step-094/1/PartySwap 1.5/installlog.txt",
+                "success_markers": [
+                  "The installation is complete with 0 errors and 0 warnings."
+                ],
+                "failure_regex": [
+                  "^\\[Error\\]",
+                  "^\\[Warning\\]"
+                ],
+                "expected_changes": "changed_manifest"
+              },
+              {
+                "type": "delete",
+                "path": "{extract}/step-094/1/PartySwap 1.5/installlog.txt"
+              },
+              {
+                "type": "patcher",
+                "patcher": "{extract}/step-094/1/PartySwap 1.5/PartySwap Installer.exe",
+                "sha256": "7a1cc0fb30c5f3653fac36b9d8283d04c5a3db308e55c247cc1593c6ef45690f",
+                "argv": [
+                  "/usr/bin/wine",
+                  "{extract}/step-094/1/PartySwap 1.5/PartySwap Installer.exe",
+                  "--game-dir",
+                  "{game}",
+                  "--tslpatchdata",
+                  "{extract}/step-094/1/PartySwap 1.5",
+                  "--namespace-option-index",
+                  "2",
+                  "--install"
+                ],
+                "cwd": "{extract}/step-094/1/PartySwap 1.5",
+                "success_log": "{extract}/step-094/1/PartySwap 1.5/installlog.txt",
+                "success_markers": [
+                  "The installation is complete with 0 errors and 0 warnings."
+                ],
+                "failure_regex": [
+                  "^\\[Error\\]",
+                  "^\\[Warning\\]"
+                ],
+                "expected_changes": "changed_manifest"
+              },
+              {
+                "type": "patcher",
+                "patcher": "{extract}/step-094/1/PartySwap 1.5/Compatibility Patches/Kreia's Fall Cutscene (In-Game)/Install.exe",
+                "sha256": "7a1cc0fb30c5f3653fac36b9d8283d04c5a3db308e55c247cc1593c6ef45690f",
+                "argv": [
+                  "/usr/bin/wine",
+                  "{extract}/step-094/1/PartySwap 1.5/Compatibility Patches/Kreia's Fall Cutscene (In-Game)/Install.exe",
+                  "--game-dir",
+                  "{game}",
+                  "--tslpatchdata",
+                  "{extract}/step-094/1/PartySwap 1.5/Compatibility Patches/Kreia's Fall Cutscene (In-Game)",
+                  "--install"
+                ],
+                "cwd": "{extract}/step-094/1/PartySwap 1.5/Compatibility Patches/Kreia's Fall Cutscene (In-Game)",
+                "success_log": "{extract}/step-094/1/PartySwap 1.5/Compatibility Patches/Kreia's Fall Cutscene (In-Game)/installlog.txt",
+                "success_markers": [
+                  "The installation is complete with 0 errors and 0 warnings."
+                ],
+                "failure_regex": [
+                  "^\\[Error\\]",
+                  "^\\[Warning\\]"
+                ],
+                "expected_changes": "changed_manifest"
+              }
+            ],
+            "timeout_seconds": 2700
+          }
+        },
+        {
+          "index": 95,
+          "guid": "8fab0c36-d633-8fa1-b7db-a3a61ff83e78",
+          "relation": "successor",
+          "raw_component": {
+            "Guid": "8fab0c36-d633-8fa1-b7db-a3a61ff83e78",
+            "Name": "PartySwap/Extended Enclave Compatch",
+            "Author": "Leilukin",
+            "Description": "PartySwap and Extended Enclave are both large mods that modify many of the same files, so they don't play well together natively. Thankfully, this compatch fixes all those issues and makes them completely compatible.",
+            "Directions": "Use the 'No M4-78EP Installed' option. The 'Extended Enclave Tweaks' is a separate mod we don't use in this build.",
+            "Tier": "1 - Essential",
+            "Category": [
+              "Patch"
+            ],
+            "IsSelected": true,
+            "Dependencies": [
+              "0d645887-5b3a-82a1-925e-cdd7c68bf923",
+              "403daebc-dd7f-892c-ac37-823cf1ae6600"
+            ],
+            "Restrictions": [],
+            "InstallBefore": [],
+            "InstallAfter": [],
+            "Instructions": [],
+            "Options": [],
+            "ResourceRegistry": {
+              "https://deadlystream.com/files/file/1304-partyswap-and-extended-enclave-compatibility-patch/": {
+                "Files": {},
+                "HandlerMetadata": {}
+              }
+            },
+            "DependencyNames": [
+              "PartySwap",
+              "Extended Enclave"
+            ],
+            "DraftReview": {
+              "RequiresReview": true,
+              "Result": {
+                "ComponentGuid": "8fab0c36-d633-8fa1-b7db-a3a61ff83e78",
+                "DraftInstructionCount": 0,
+                "UnparsedGaps": [
+                  "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults.",
+                  "The 'Extended Enclave Tweaks' is a separate mod we don't use in this build"
+                ],
+                "ConditionalDrafts": [],
+                "RejectedDrafts": 1
+              },
+              "MethodContext": {
+                "Method": "TSLPatcher Mod",
+                "MethodTruncated": false,
+                "Kind": "Patcher",
+                "GuideDefaults": {
+                  "PreambleStatus": "Inspected",
+                  "PatcherDestination": "<<kotorDirectory>>",
+                  "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+                  "NoOverrideOrModulesSubfolders": true
+                },
+                "ExplicitDirectionsTakePrecedence": true,
+                "ArchiveBinding": "Unresolved"
+              }
+            },
+            "Heading": "PartySwap-EE Compatch",
+            "InstallationMethod": "TSLPatcher Mod",
+            "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+            "Language": [
+              "NO"
+            ],
+            "NameFieldContent": "[PartySwap/Extended Enclave Compatch](https://deadlystream.com/files/file/1304-partyswap-and-extended-enclave-compatibility-patch/)",
+            "WidescreenOnly": false
+          },
+          "canonical_component": {
+            "Guid": "8fab0c36-d633-8fa1-b7db-a3a61ff83e78",
+            "Name": "PartySwap/Extended Enclave Compatch",
+            "Author": "Leilukin",
+            "Description": "PartySwap and Extended Enclave are both large mods that modify many of the same files, so they don't play well together natively. Thankfully, this compatch fixes all those issues and makes them completely compatible.",
+            "Directions": "Use the 'No M4-78EP Installed' option. The 'Extended Enclave Tweaks' is a separate mod we don't use in this build.",
+            "Tier": "1 - Essential",
+            "Category": [
+              "Patch"
+            ],
+            "IsSelected": true,
+            "Dependencies": [
+              "0d645887-5b3a-82a1-925e-cdd7c68bf923",
+              "403daebc-dd7f-892c-ac37-823cf1ae6600"
+            ],
+            "Restrictions": [],
+            "InstallBefore": [],
+            "InstallAfter": [],
+            "Instructions": [],
+            "Options": [],
+            "ResourceRegistry": {
+              "https://deadlystream.com/files/file/1304-partyswap-and-extended-enclave-compatibility-patch/": {
+                "Files": {},
+                "HandlerMetadata": {}
+              }
+            },
+            "DependencyNames": [
+              "PartySwap",
+              "Extended Enclave"
+            ],
+            "DraftReview": {
+              "RequiresReview": true,
+              "Result": {
+                "ComponentGuid": "8fab0c36-d633-8fa1-b7db-a3a61ff83e78",
+                "DraftInstructionCount": 0,
+                "UnparsedGaps": [
+                  "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults.",
+                  "The 'Extended Enclave Tweaks' is a separate mod we don't use in this build"
+                ],
+                "ConditionalDrafts": [],
+                "RejectedDrafts": 1
+              },
+              "MethodContext": {
+                "Method": "TSLPatcher Mod",
+                "MethodTruncated": false,
+                "Kind": "Patcher",
+                "GuideDefaults": {
+                  "PreambleStatus": "Inspected",
+                  "PatcherDestination": "<<kotorDirectory>>",
+                  "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+                  "NoOverrideOrModulesSubfolders": true
+                },
+                "ExplicitDirectionsTakePrecedence": true,
+                "ArchiveBinding": "Unresolved"
+              }
+            },
+            "Heading": "PartySwap-EE Compatch",
+            "InstallationMethod": "TSLPatcher Mod",
+            "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+            "Language": [
+              "NO"
+            ],
+            "NameFieldContent": "[PartySwap/Extended Enclave Compatch](https://deadlystream.com/files/file/1304-partyswap-and-extended-enclave-compatibility-patch/)",
+            "WidescreenOnly": false
+          },
+          "original_step": {
+            "id": "step-096",
+            "source_heading": "### PartySwap-EE Compatch",
+            "operations": [
+              {
+                "type": "extract",
+                "source": "{archives}/PartySwap_EEnclave_ComPatch.7z",
+                "destination": "{extract}/step-096/1"
+              },
+              {
+                "type": "patcher",
+                "patcher": "{extract}/step-096/1/PartySwap_EEnclave_ComPatch/PS EE Comp Patch Installer.exe",
+                "sha256": "7a1cc0fb30c5f3653fac36b9d8283d04c5a3db308e55c247cc1593c6ef45690f",
+                "argv": [
+                  "/usr/bin/wine",
+                  "{extract}/step-096/1/PartySwap_EEnclave_ComPatch/PS EE Comp Patch Installer.exe",
+                  "--game-dir",
+                  "{game}",
+                  "--tslpatchdata",
+                  "{extract}/step-096/1/PartySwap_EEnclave_ComPatch",
+                  "--namespace-option-index",
+                  "0",
+                  "--install"
+                ],
+                "cwd": "{extract}/step-096/1/PartySwap_EEnclave_ComPatch",
+                "success_log": "{extract}/step-096/1/PartySwap_EEnclave_ComPatch/installlog.txt",
+                "success_markers": [
+                  "The installation is complete with 0 errors and 0 warnings."
+                ],
+                "failure_regex": [
+                  "^\\[Error\\]",
+                  "^\\[Warning\\]"
+                ],
+                "expected_changes": "changed_manifest"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

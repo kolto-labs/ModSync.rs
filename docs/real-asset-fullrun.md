@@ -30,7 +30,7 @@ To dispatch **Full real-asset filesystem parity** from Actions, use the default
 branch and configure the `modsync-real-assets` GitHub environment with a
 default-branch restriction and required approval. Restrict the
 `modsync-real-assets` runner group to this workflow file on that branch
-(`.github/workflows/fullrun.yml`); labels alone do not isolate a runner. Use an
+(`.github/workflows/fullrun-parity.yml`); labels alone do not isolate a runner. Use an
 isolated runner with the `modsync-fullrun` label and no access by PR or other
 jobs. If workflow-level runner group isolation is unavailable, run the script
 directly instead; do not register the asset machine as a general-purpose

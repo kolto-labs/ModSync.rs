@@ -96,9 +96,15 @@ impl Store {
         flag: &AtomicBool,
     ) -> Result<(Session, Checkpoint)> {
         cancelled(flag)?;
+        ensure!(
+            context.backend_binding == source.backend_binding
+                && target.backend_binding == source.backend_binding,
+            "Branch backend authority differs from its source checkpoint"
+        );
         let session_id = uuid::Uuid::new_v4().to_string();
         let checkpoint_id = uuid::Uuid::new_v4().to_string();
         let session = Session {
+            backend_binding: context.backend_binding.clone(),
             schema_version: SCHEMA_VERSION,
             session_id: session_id.clone(),
             created_utc: chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Millis, true),
@@ -217,10 +223,7 @@ impl Store {
                 || (head.status == "Detached" && head.operation_id == operation.operation_id),
             "Transition source HEAD identity differs"
         );
-        let target = history
-            .iter()
-            .find(|checkpoint| checkpoint.checkpoint_id == binding.target_checkpoint_id)
-            .context("Transition target is not committed ancestry")?;
+        let target = &history.get(self, &binding.target_checkpoint_id)?;
         let branch = self.read_session(&binding.branch_session_id)?;
         let baseline =
             self.read_checkpoint(&binding.branch_session_id, &binding.branch_checkpoint_id)?;
@@ -231,6 +234,7 @@ impl Store {
                     == Some(binding.target_checkpoint_id.as_str())
                 && branch.branch_kind.as_deref() == Some(binding.branch_kind.as_str())
                 && branch.initial_completed_components == target.completed_components
+                && branch.backend_binding == source.backend_binding
                 && branch.participants == source.participants
                 && branch.ancestor_shells == source.ancestor_shells
                 && baseline.kind == "Baseline"
@@ -360,7 +364,7 @@ impl Store {
         cancelled(flag)?;
         // The same fixed target is now verified. Receipt and legacy compatibility
         // snapshot reconciliation are idempotent under the surviving intent.
-        self.reconcile_prefix(&baseline)?;
+        self.reconcile_prefix(&branch, &baseline)?;
         recovery::rebase_checkpoint_snapshot(&self.roots, lock, flag)?;
         recovery::verify_checkpoint_legacy_snapshot(
             &self.roots,
@@ -455,7 +459,7 @@ impl Store {
         })
     }
 
-    fn reconcile_prefix(&self, checkpoint: &Checkpoint) -> Result<()> {
+    fn reconcile_prefix(&self, session: &Session, checkpoint: &Checkpoint) -> Result<()> {
         let path = recovery::state_dir(&self.roots).join("completion.json");
         if checkpoint.completed_components.is_empty() {
             if let Some(metadata) = safe_path(&path)? {
@@ -464,11 +468,18 @@ impl Store {
                 namespace_boundary(path.parent().context("Receipt has no parent")?)?;
             }
         } else {
-            let bytes = canonical_bytes(&recovery::completion_value_from_manifest(
+            let mut value = recovery::completion_value_from_manifest(
                 &self.roots,
                 &checkpoint.completed_components,
                 &super::finalize::game_files(&checkpoint.game),
-            )?)?;
+            )?;
+            if let Some(binding) = &session.backend_binding {
+                value
+                    .as_object_mut()
+                    .context("Completion receipt is not an object")?
+                    .insert("backendBinding".into(), serde_json::to_value(binding)?);
+            }
+            let bytes = canonical_bytes(&value)?;
             replace_bytes(&path, &bytes)?;
             recovery::verify_completion_manifest(
                 &self.roots,
@@ -520,16 +531,14 @@ impl Store {
             "Restore source HEAD is stale or detached"
         );
         self.ensure_other_sessions_settled(&source.session_id)?;
-        let target = history
-            .iter()
-            .find(|checkpoint| checkpoint.checkpoint_id == target_checkpoint)
-            .context("Restore target is not in committed ancestry")?;
+        let target = &history.get(self, target_checkpoint)?;
         self.verify_target(&source, target, flag)?;
         self.preflight_materialization(&source, target, flag)?;
         let safety = if replaces.is_none() {
             let report = self.capture_locked(
                 lock,
                 &InstallContext {
+                    backend_binding: source.backend_binding.clone(),
                     participants: source.participants.clone(),
                     ..InstallContext::default()
                 },
@@ -543,6 +552,7 @@ impl Store {
             None
         };
         let context = InstallContext {
+            backend_binding: source.backend_binding.clone(),
             ordered_components: source.ordered_components.clone(),
             initial_completed_components: target.completed_components.clone(),
             participants: source.participants.clone(),
@@ -669,7 +679,7 @@ impl Store {
             }
             let (source, head, history) = self.checked_history(&operation.session_id)?;
             self.ensure_other_sessions_settled(&source.session_id)?;
-            let current = history.last().context("Recovery HEAD missing")?;
+            let current = &history.current(self)?;
             let verified = self
                 .verify_target(&source, current, flag)
                 .and_then(|_| self.live_matches(&source, current, flag));
@@ -687,8 +697,10 @@ impl Store {
                     checkpoint_id: Some(head.checkpoint_id),
                 });
             }
-            if operation.kind == "InstallComponent"
-                && head.checkpoint_id != operation.from_checkpoint_id
+            if matches!(
+                operation.kind.as_str(),
+                "InstallComponent" | "InstallPreparation"
+            ) && head.checkpoint_id != operation.from_checkpoint_id
                 && matches!(verified, Ok(true))
             {
                 self.recover_component_cleanup(operation, &head)?;

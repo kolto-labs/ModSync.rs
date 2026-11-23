@@ -1,0 +1,350 @@
+{
+  "repository": "https://github.com/kolto-labs/OdyPatcher",
+  "upstream_commit": "9b9ee8d1d25e2e97c87df4521a13965ced1e0b3f",
+  "crate": "odypatcher",
+  "policy_version": 1,
+  "reviewed_manifest_sha256": "53198e17543a8cabcd3ddec51ed645aa8e74c927e1873d46c5526cbadf625771",
+  "vendored_manifest_sha256": "b4864e782f7f6e8d5907009f81f6434c9c456fa3a59dd4b330c13a0d5731d112",
+  "source_files": [
+    {
+      "path": "src/cli/direct.rs",
+      "upstream_sha256": "48c4a1d75cbb98e72414270f39d66f3ed533f2933f22d8a2bfde41c1c2d24ba6",
+      "reviewed_sha256": "48c4a1d75cbb98e72414270f39d66f3ed533f2933f22d8a2bfde41c1c2d24ba6",
+      "vendored_sha256": "387179fdb78eddb9de6555f49ab9e455f4522c8ea766e40198345b1b662eea62",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/cli/mod.rs",
+      "upstream_sha256": "4e4c4f10811f0cf2b8b5f2c13c1459a7493e237ba1b670feaf36bc3944534bee",
+      "reviewed_sha256": "4e4c4f10811f0cf2b8b5f2c13c1459a7493e237ba1b670feaf36bc3944534bee",
+      "vendored_sha256": "5e0a42edcf0916945669752f0bc723fefa5787e7722f03095a1f9159b788c678",
+      "omitted_trailing_test_modules": 2,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/gamepaths.rs",
+      "upstream_sha256": "8da1bbc7c30baae9f66b09657ec232375fa2834312fbdb064283090d9aa2eaa1",
+      "reviewed_sha256": "8da1bbc7c30baae9f66b09657ec232375fa2834312fbdb064283090d9aa2eaa1",
+      "vendored_sha256": "f5e49dde0d14b897617e2a75d0a07a2de7a7c19b8ebf9eff709aa0dcf5daa157",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/ini.rs",
+      "upstream_sha256": "5a4f0544d722c648872ecb7877165c82561e0ec1d30879f7425323702977734b",
+      "reviewed_sha256": "5a4f0544d722c648872ecb7877165c82561e0ec1d30879f7425323702977734b",
+      "vendored_sha256": "5a4f0544d722c648872ecb7877165c82561e0ec1d30879f7425323702977734b",
+      "omitted_trailing_test_modules": 0
+    },
+    {
+      "path": "src/lib.rs",
+      "upstream_sha256": "8c2f50ad9b77032c45e2ced0ea116aa217440d8827382017e93951f10b6e2d34",
+      "reviewed_sha256": "8c2f50ad9b77032c45e2ced0ea116aa217440d8827382017e93951f10b6e2d34",
+      "vendored_sha256": "8c2f50ad9b77032c45e2ced0ea116aa217440d8827382017e93951f10b6e2d34",
+      "omitted_trailing_test_modules": 0
+    },
+    {
+      "path": "src/main.rs",
+      "upstream_sha256": "0d863e3feabb356194519bf39772c7b14f64e92ba8920c6d2b2ed521d519bfb9",
+      "reviewed_sha256": "0d863e3feabb356194519bf39772c7b14f64e92ba8920c6d2b2ed521d519bfb9",
+      "vendored_sha256": "0d863e3feabb356194519bf39772c7b14f64e92ba8920c6d2b2ed521d519bfb9",
+      "omitted_trailing_test_modules": 0
+    },
+    {
+      "path": "src/patcher/capsule.rs",
+      "upstream_sha256": "c3d7dfb3021dbd79806bc40302706a1509d13043b9092c9bcbebf6c7bb9459b1",
+      "reviewed_sha256": "c3d7dfb3021dbd79806bc40302706a1509d13043b9092c9bcbebf6c7bb9459b1",
+      "vendored_sha256": "c51138929368cf3c199583e39ece258a347a9779e3e679ae690277fd886c8b65",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/patcher/casepath.rs",
+      "upstream_sha256": "a46bb36c3af6e8b53e35234e80a796b98dd48ade4ffa26c8f56806ea6dd204af",
+      "reviewed_sha256": "a46bb36c3af6e8b53e35234e80a796b98dd48ade4ffa26c8f56806ea6dd204af",
+      "vendored_sha256": "ee52a5074ef8c6dc01acb83d6a278ad6f7851a4d8b971bcd23ec1ef085acc725",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/patcher/config.rs",
+      "upstream_sha256": "8e49ab25a96773dd19f16b9dacecf40018f69dc9fd26ff7f338ace73eef46a32",
+      "reviewed_sha256": "8e49ab25a96773dd19f16b9dacecf40018f69dc9fd26ff7f338ace73eef46a32",
+      "vendored_sha256": "8e49ab25a96773dd19f16b9dacecf40018f69dc9fd26ff7f338ace73eef46a32",
+      "omitted_trailing_test_modules": 0
+    },
+    {
+      "path": "src/patcher/encoding.rs",
+      "upstream_sha256": "d379e24c0975739e4f41312bf267907f32cc889988e5e1ecca4d5b7436f3fcca",
+      "reviewed_sha256": "d379e24c0975739e4f41312bf267907f32cc889988e5e1ecca4d5b7436f3fcca",
+      "vendored_sha256": "c065697596cdee25f30a20a7e386454dbfe75ca6e8c8d00fadbf2feb9e43dedd",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/patcher/error.rs",
+      "upstream_sha256": "7a28b06240ba167726a330520e885c7a8eca05fad894c3e4ab440b67a4a7c1c0",
+      "reviewed_sha256": "7a28b06240ba167726a330520e885c7a8eca05fad894c3e4ab440b67a4a7c1c0",
+      "vendored_sha256": "407948a93b484ea9b4074876a0b824ed50062d14fb2cc1259ca0d04e3da402b4",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/patcher/ini.rs",
+      "upstream_sha256": "3ba198a809bde1b8db1ed20bc2801d768198589a9912d43694fd43a61b39312e",
+      "reviewed_sha256": "3ba198a809bde1b8db1ed20bc2801d768198589a9912d43694fd43a61b39312e",
+      "vendored_sha256": "b5b15c771038c67535dc84693d745226c6756c3c236c4623770e601ec3e9e2d2",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/patcher/installation.rs",
+      "upstream_sha256": "7e1a1495963ad14279c6b1c643ff13efb89e66c20fd0fffd5b9fae862511254b",
+      "reviewed_sha256": "7e1a1495963ad14279c6b1c643ff13efb89e66c20fd0fffd5b9fae862511254b",
+      "vendored_sha256": "20a7988e36a2afbfb2779e4f00370774e1c61b758e3c2be89503cbef915fba86",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/patcher/installer.rs",
+      "upstream_sha256": "c57a63e4e64483cbb944d1e58c6fd4dd5b91cf01b79265b298d0a21940ed53fb",
+      "reviewed_sha256": "ccbe0561a58590bcc83f3cdd498813ca163a69c448d04d0deb46ce1ced63d7ff",
+      "vendored_sha256": "adc8ea9f100cb03cfbce96a9b3cc4417bb210eafe169fee4ee7fefed725bb094",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/patcher/logger.rs",
+      "upstream_sha256": "07409d31ae2221b4ba7f9f8b7f267372057cb39c9b074a689be305021d258054",
+      "reviewed_sha256": "07409d31ae2221b4ba7f9f8b7f267372057cb39c9b074a689be305021d258054",
+      "vendored_sha256": "ce0013a6609c3f4c7bc50173e3aa43ed43ea86b74a41b83259d62fa8e68bf509",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/patcher/memory.rs",
+      "upstream_sha256": "726c83f934db36dc135fcc7ab9992ecda0e10b062f17a47f18d53f48c11ce6e3",
+      "reviewed_sha256": "726c83f934db36dc135fcc7ab9992ecda0e10b062f17a47f18d53f48c11ce6e3",
+      "vendored_sha256": "0bc8b56cd58dcdda0e17df06a5c9bd1224d4d186795691ce3e70b4160a7d26ba",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/patcher/mod.rs",
+      "upstream_sha256": "781ed8b9269bf49392e5418e9259bbfc8efe26c859e098c505e22d9bf7a4886f",
+      "reviewed_sha256": "781ed8b9269bf49392e5418e9259bbfc8efe26c859e098c505e22d9bf7a4886f",
+      "vendored_sha256": "781ed8b9269bf49392e5418e9259bbfc8efe26c859e098c505e22d9bf7a4886f",
+      "omitted_trailing_test_modules": 0
+    },
+    {
+      "path": "src/patcher/mods/gff.rs",
+      "upstream_sha256": "355f6582dead6ad0adcbe5703b123b5c00b6b1c217c586d121265b4793db1f38",
+      "reviewed_sha256": "355f6582dead6ad0adcbe5703b123b5c00b6b1c217c586d121265b4793db1f38",
+      "vendored_sha256": "3fdacd50bceb0911b45da0b8a2478d4ccc9be74340cbc56eb78c7a1a8098ebaf",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/patcher/mods/install.rs",
+      "upstream_sha256": "5047381e99a0a650ff145c2070eecaa94161f73541f8661c30ad3c8f554d1f4a",
+      "reviewed_sha256": "5047381e99a0a650ff145c2070eecaa94161f73541f8661c30ad3c8f554d1f4a",
+      "vendored_sha256": "b608d23df3c2452cf71bc1f35b8cc654771b1f15d71a3720d10be3fb3e603d48",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/patcher/mods/mod.rs",
+      "upstream_sha256": "bacd3ad6097a6c87665cc73b1ff7aa51c1f7b22e9a28e33ec75dba02dca0dab5",
+      "reviewed_sha256": "bacd3ad6097a6c87665cc73b1ff7aa51c1f7b22e9a28e33ec75dba02dca0dab5",
+      "vendored_sha256": "bacd3ad6097a6c87665cc73b1ff7aa51c1f7b22e9a28e33ec75dba02dca0dab5",
+      "omitted_trailing_test_modules": 0
+    },
+    {
+      "path": "src/patcher/mods/ncs.rs",
+      "upstream_sha256": "43124161286e9665b5d06901f21546eb8ce499e5d64dda0220b631b423279744",
+      "reviewed_sha256": "43124161286e9665b5d06901f21546eb8ce499e5d64dda0220b631b423279744",
+      "vendored_sha256": "8291a2315518e7a5ebeddd2de17a2699203686d05be11d5e138a7e19a98f05d7",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/patcher/mods/nss/strict.rs",
+      "upstream_sha256": null,
+      "reviewed_sha256": "f976ccb7e42f8f90d9f237dfc989c4c55c712af7631fef6530e93bdcfcbe8c6d",
+      "vendored_sha256": "f976ccb7e42f8f90d9f237dfc989c4c55c712af7631fef6530e93bdcfcbe8c6d",
+      "omitted_trailing_test_modules": 0
+    },
+    {
+      "path": "src/patcher/mods/nss.rs",
+      "upstream_sha256": "e78f47494d7118900aceea1bafc4357804128d5c0114c32578d74b29243a52a2",
+      "reviewed_sha256": "098bb2f03a3114e6a42c8efdf8c9202c6f6216a1ab47af49756d76eb68399e9f",
+      "vendored_sha256": "4b63d714d62af770a4585074663ec6522e74e72ebfc472f087a4c2bc973cac9c",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/patcher/mods/ssf.rs",
+      "upstream_sha256": "ed99d22f2ba792f6237f59fc0dbb2d1158a59f72a435bd816f8612853be862d8",
+      "reviewed_sha256": "ed99d22f2ba792f6237f59fc0dbb2d1158a59f72a435bd816f8612853be862d8",
+      "vendored_sha256": "552508cc86631be722062a1c4e3cfdd106c955c3d03639902a3700c7dd0bb544",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/patcher/mods/template.rs",
+      "upstream_sha256": "901ce55127cf6a0c2917d44a51abe2a5d5d497ea3124107d0ace93ad2ed17b8f",
+      "reviewed_sha256": "901ce55127cf6a0c2917d44a51abe2a5d5d497ea3124107d0ace93ad2ed17b8f",
+      "vendored_sha256": "fd49562263b52e3db0999f06cdd18610115695beeca4a088302593624af3ac6e",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/patcher/mods/tlk.rs",
+      "upstream_sha256": "e47e14daee86ea92a3a851e0e47262b0c66828d3b74c8ae9f443b50bd331593f",
+      "reviewed_sha256": "e47e14daee86ea92a3a851e0e47262b0c66828d3b74c8ae9f443b50bd331593f",
+      "vendored_sha256": "d771986a87e5c94bb0f66b09d9d8c49c5f3ed087d12ba7019b2ec34beff2bad5",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/patcher/mods/twoda.rs",
+      "upstream_sha256": "4bb0782bef990287c4182a0bc458f54242cf73619001ea6408f9b8dfa4bc3caf",
+      "reviewed_sha256": "4bb0782bef990287c4182a0bc458f54242cf73619001ea6408f9b8dfa4bc3caf",
+      "vendored_sha256": "120b7a23cc53865024c411fec0679e2ab259e294439f122fffc6c3636e6c7c4b",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/patcher/namespaces.rs",
+      "upstream_sha256": "d025003af877849df66d07ed5577e00fc10a6006822deb3260c48201dce2bba2",
+      "reviewed_sha256": "d025003af877849df66d07ed5577e00fc10a6006822deb3260c48201dce2bba2",
+      "vendored_sha256": "6b710318ada8c9d2a18125d46aa080bc0f37226ece7c9e5b8c23757b4f3c979e",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/patcher/reader/gff.rs",
+      "upstream_sha256": "88117412cc56b435ca3a3f61db9c4c5d0e46df562f5f930081eab9cbcfa94572",
+      "reviewed_sha256": "88117412cc56b435ca3a3f61db9c4c5d0e46df562f5f930081eab9cbcfa94572",
+      "vendored_sha256": "1e53cb25736db0f7921e4898a59dbcf5cd4f161eadda727fbf3b9837212a98f1",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/patcher/reader/mod.rs",
+      "upstream_sha256": "b926c93a9fef9c7ca222e708378db1c2e173ec7816439192ba4c58485094bc6b",
+      "reviewed_sha256": "b926c93a9fef9c7ca222e708378db1c2e173ec7816439192ba4c58485094bc6b",
+      "vendored_sha256": "8d4ecf774bccc75dee7136cf3804ec3e376c4c83a1b2b8ce06f1e3d0bd6477c2",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/patcher/reader/scripts.rs",
+      "upstream_sha256": "868d75b1da32d6ef77f5b6c7c3cd41b6a6cbe603ebb92bd01b502f49edd4e86b",
+      "reviewed_sha256": "868d75b1da32d6ef77f5b6c7c3cd41b6a6cbe603ebb92bd01b502f49edd4e86b",
+      "vendored_sha256": "a726f32e26e791dee70a48df3b20aebae7c1854427733dd7ccbf195618546037",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/patcher/reader/ssf.rs",
+      "upstream_sha256": "95e93a3329a7914527f9f19a6246aa599b7fa4ea03d590803ef47f21006da88d",
+      "reviewed_sha256": "95e93a3329a7914527f9f19a6246aa599b7fa4ea03d590803ef47f21006da88d",
+      "vendored_sha256": "dcd6d596438e9c68a58d8e3a5559f918560c44561ab4ef325248339eccdaa43b",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/patcher/reader/tlk.rs",
+      "upstream_sha256": "0cd7dabe3f6b4953ba391a6b2eda6e9812ad8a4bedb96985823637badd5b7039",
+      "reviewed_sha256": "0cd7dabe3f6b4953ba391a6b2eda6e9812ad8a4bedb96985823637badd5b7039",
+      "vendored_sha256": "8015735d8a8405d46ce18bb6ecf6e14a38ecf508d525c52b996627495706b7e8",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/patcher/reader/twoda.rs",
+      "upstream_sha256": "fc17e297e4be1b6e81dbd9a9143bd905d44943e4352b9ba837b2fa625bac00c1",
+      "reviewed_sha256": "fc17e297e4be1b6e81dbd9a9143bd905d44943e4352b9ba837b2fa625bac00c1",
+      "vendored_sha256": "d79c864c8b8ebbceb60b849867b48d11a452e00bb723128e7033aad1d22d3943",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/patcher/timeutil.rs",
+      "upstream_sha256": "8a65b0592494f3cdbda96f8f58a61b2df9a8811c61b1ba3588e9279123debbc8",
+      "reviewed_sha256": "8a65b0592494f3cdbda96f8f58a61b2df9a8811c61b1ba3588e9279123debbc8",
+      "vendored_sha256": "6c3670df2d20e8236b8b80af3f55fd7ff942bd7bd85af3dc7bd7c685f273ebe0",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/patcher/uninstall.rs",
+      "upstream_sha256": "33d8ea618a317b8f8ac8263cc06f2d8e8827277848cf75dce46dab028ac277e4",
+      "reviewed_sha256": "33d8ea618a317b8f8ac8263cc06f2d8e8827277848cf75dce46dab028ac277e4",
+      "vendored_sha256": "cd315925f760f4786cbec3ad1702848cade386a82ac5e159018f578a74834fbc",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/rtf.rs",
+      "upstream_sha256": "4931de3ae71bcb904b7a7d75c27eebe03dbd290785cd20031c93090e05f7e939",
+      "reviewed_sha256": "4931de3ae71bcb904b7a7d75c27eebe03dbd290785cd20031c93090e05f7e939",
+      "vendored_sha256": "d33a41febabea6182714f7eac08d5785c9e8e2b1478f127631d7643f4771b3e9",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/session.rs",
+      "upstream_sha256": "4dd21ee227fae98d5c48160864d2afa9f99cb09450c0386cab7e618685457b3a",
+      "reviewed_sha256": "4dd21ee227fae98d5c48160864d2afa9f99cb09450c0386cab7e618685457b3a",
+      "vendored_sha256": "f715277c06030a9d6f19fad0cc86a9e08272df8e2031dfb3bc420ab339316f5b",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/summary.rs",
+      "upstream_sha256": "0dd42eaae443890b38d87cbc8d0fca1f646fdcbd03df2d89d8f5b4c13f5b4da6",
+      "reviewed_sha256": "0dd42eaae443890b38d87cbc8d0fca1f646fdcbd03df2d89d8f5b4c13f5b4da6",
+      "vendored_sha256": "57dc1d5537668a07e16110097143e2b343ebca06cc2baafccefe3c0ca47a4e93",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/tools.rs",
+      "upstream_sha256": "57f798c1a2c8c85cc58dded947d56ef6e37f71a22946ff2373ce81ac25a58d7b",
+      "reviewed_sha256": "57f798c1a2c8c85cc58dded947d56ef6e37f71a22946ff2373ce81ac25a58d7b",
+      "vendored_sha256": "1e2289c9f698ed7ed5bd629f826da13a772b704cda12fda90ce1a12c53191f5c",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/ui/browse.rs",
+      "upstream_sha256": "2e196afb3f4727acde2f9be2be0859f38e519195d1335b989edfcf3342de5676",
+      "reviewed_sha256": "2e196afb3f4727acde2f9be2be0859f38e519195d1335b989edfcf3342de5676",
+      "vendored_sha256": "c7ecd90becb2a6557eefe388b851083b9591c151e0c283bab7af93fb1145d273",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/ui/classic.rs",
+      "upstream_sha256": "9b7faeb50ae33f79bb62833228983cffd547d720a5cb5b53540a59271506dac7",
+      "reviewed_sha256": "9b7faeb50ae33f79bb62833228983cffd547d720a5cb5b53540a59271506dac7",
+      "vendored_sha256": "9b7faeb50ae33f79bb62833228983cffd547d720a5cb5b53540a59271506dac7",
+      "omitted_trailing_test_modules": 0
+    },
+    {
+      "path": "src/ui/mod.rs",
+      "upstream_sha256": "8ff234395ecfa6dfea21381f300558dc874eb2639e64563eba4d26dbea972262",
+      "reviewed_sha256": "8ff234395ecfa6dfea21381f300558dc874eb2639e64563eba4d26dbea972262",
+      "vendored_sha256": "35467388fe8e574a1abb389b9dfbcfa60ed70b150e9b7e75bbb07800537b5090",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    }
+  ],
+  "license_files": {
+    "LICENSE": "8486a10c4393cee1c25392769ddd3b2d6c242d6ec7928e1414efff7dfb2f07ef"
+  },
+  "production_formatting": "Rustfmt edition 2021 after trailing cfg(test) module omission; formatting changes from the stripped production prefix are trailing EOF whitespace only."
+}

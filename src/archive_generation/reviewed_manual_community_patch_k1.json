@@ -1,0 +1,270 @@
+{
+  "schema": 1,
+  "source_guide_sha256": "44067788c6cb7a83b38d468817f273ce5cc901cd5e000c0f9ff65f8af15fc6ed",
+  "source_plan_sha256": "1b402ba085625c4863795069eaacaef0f53e8ea7179e56a5bd150d88eb9c0a74",
+  "recipes": [
+    {
+      "component_guid": "6fb1971d-5775-85e5-9e77-ecc68a896e84",
+      "source_heading": "### KOTOR Community Patch",
+      "source_component_index": 5,
+      "plan_step_index": 5,
+      "raw_input_component": {
+        "Guid": "6fb1971d-5775-85e5-9e77-ecc68a896e84",
+        "Name": "KOTOR Community Patch",
+        "Author": "Various Authors; Darth Parametric, JCarter426 & A Future Pilot Collate",
+        "Description": "An ambitious compilation intending to be a comprehensive bugfix mod for the original game, the KOTOR Community Patch combines hundreds of various fixes and improvements from over a dozen other mods, as well as fixes put together by AFP, DP and JC on their own. With bugfixes as important to KOTOR as TSLRCM's are to KOTOR 2, I can't recommend its use highly enough.",
+        "Directions": "Be aware that this mod is installed via the HoloPatcher, a new install method. For your purposes as the enduser, it functions almost identically to the TSLPatcher. Run the installer, then move the files from the patch to your override.",
+        "Tier": "1 - Essential",
+        "Category": [
+          "Bugfix",
+          "Graphics Improvement",
+          "Immersion"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [
+          {
+            "Action": "Patcher",
+            "Source": [
+              "<<modDirectory>>\\installer"
+            ],
+            "Destination": "<<kotorDirectory>>",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          },
+          {
+            "Action": "Move",
+            "Source": [
+              "<<modDirectory>>\\f\\*"
+            ],
+            "Destination": "<<kotorDirectory>>\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/1258-kotor-1-community-patch/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          },
+          "https://mega.nz/file/gQZR1TZY#U7XN5teK9wjXC5Hnj7MFlmHYb8UFyaV5R17ksIuj7Jc": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "6fb1971d-5775-85e5-9e77-ecc68a896e84",
+            "DraftInstructionCount": 2,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults.",
+              "Installation method is unsupported, mixed, or exceeds 256 characters; explicit archive-aware interpretation is required."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "HoloPatcher Mod, Loose-File Patch",
+            "MethodTruncated": false,
+            "Kind": "Unsupported",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "InstallationMethod": "HoloPatcher Mod, Loose-File Patch",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES for Russian and French only, follow the instructions on the mod page to use"
+        ],
+        "NameFieldContent": "[KOTOR Community Patch](https://deadlystream.com/files/file/1258-kotor-1-community-patch/) and [**Patch**](https://mega.nz/file/gQZR1TZY#U7XN5teK9wjXC5Hnj7MFlmHYb8UFyaV5R17ksIuj7Jc)",
+        "WidescreenOnly": false
+      },
+      "canonical_input_component": {
+        "Guid": "6fb1971d-5775-85e5-9e77-ecc68a896e84",
+        "Name": "KOTOR Community Patch",
+        "Author": "Various Authors; Darth Parametric, JCarter426 & A Future Pilot Collate",
+        "Description": "An ambitious compilation intending to be a comprehensive bugfix mod for the original game, the KOTOR Community Patch combines hundreds of various fixes and improvements from over a dozen other mods, as well as fixes put together by AFP, DP and JC on their own. With bugfixes as important to KOTOR as TSLRCM's are to KOTOR 2, I can't recommend its use highly enough.",
+        "Directions": "Be aware that this mod is installed via the HoloPatcher, a new install method. For your purposes as the enduser, it functions almost identically to the TSLPatcher. Run the installer, then move the files from the patch to your override.",
+        "Tier": "1 - Essential",
+        "Category": [
+          "Bugfix",
+          "Graphics Improvement",
+          "Immersion"
+        ],
+        "IsSelected": true,
+        "Dependencies": [],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [
+          {
+            "Action": "Patcher",
+            "Source": [
+              "<<modDirectory>>/installer"
+            ],
+            "Destination": "<<kotorDirectory>>",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          },
+          {
+            "Action": "Move",
+            "Source": [
+              "<<modDirectory>>/f/*"
+            ],
+            "Destination": "<<kotorDirectory>>\\Override",
+            "Arguments": "",
+            "Overwrite": true,
+            "Dependencies": [],
+            "Restrictions": []
+          }
+        ],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/1258-kotor-1-community-patch/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          },
+          "https://mega.nz/file/gQZR1TZY#U7XN5teK9wjXC5Hnj7MFlmHYb8UFyaV5R17ksIuj7Jc": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "6fb1971d-5775-85e5-9e77-ecc68a896e84",
+            "DraftInstructionCount": 2,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults.",
+              "Installation method is unsupported, mixed, or exceeds 256 characters; explicit archive-aware interpretation is required."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "HoloPatcher Mod, Loose-File Patch",
+            "MethodTruncated": false,
+            "Kind": "Unsupported",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "InstallationMethod": "HoloPatcher Mod, Loose-File Patch",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "YES for Russian and French only",
+          "follow the instructions on the mod page to use"
+        ],
+        "NameFieldContent": "[KOTOR Community Patch](https://deadlystream.com/files/file/1258-kotor-1-community-patch/) and [**Patch**](https://mega.nz/file/gQZR1TZY#U7XN5teK9wjXC5Hnj7MFlmHYb8UFyaV5R17ksIuj7Jc)",
+        "WidescreenOnly": false
+      },
+      "canonicalization": {
+        "method": "production-guide-loader",
+        "raw_component_sha256": "9bcfbe76557ad7795ff4198c38f6b0a9a5a6ad6290668f49aa4e1adc4d837568",
+        "canonical_component_sha256": "db2b414a2ed0f39792ac84bc3251e61c476dee8516a8c09a3247c80d69eac10d",
+        "cli_binary_sha256": "d35ca23b653b4d74ed61f574855a7d54a492c34336716e547700281b633b7d7a",
+        "raw_export_sha256": "6dff78d3e3babebed63a165f224a9a3cc8aa6af6bf878f406d3ced3bb2dd6743",
+        "canonical_export_sha256": "8c0cd0e8dd462b97664b0440ebbf6f7574cf8fdf9e2d1453b75fd6670d02d170",
+        "source_separator_changes": 2,
+        "root_trailing_separator_changes": 0
+      },
+      "plan_step": {
+        "id": "step-006",
+        "source_heading": "### KOTOR Community Patch",
+        "operations": [
+          {
+            "type": "extract",
+            "source": "{archives}/K1_Community_Patch_v1.10.0.zip",
+            "destination": "{extract}/step-006/1"
+          },
+          {
+            "type": "extract",
+            "source": "{archives}/K1CP Patch.rar",
+            "destination": "{extract}/step-006/2"
+          },
+          {
+            "type": "patcher",
+            "patcher": "{extract}/step-006/1/INSTALL.exe",
+            "sha256": "5cc9fc7aeafefb8b18cd584de0ad530f5c7a057e4b0a1308ed7bc6a9e4bc3fbe",
+            "argv": [
+              "/usr/bin/wine",
+              "{extract}/step-006/1/INSTALL.exe",
+              "--game-dir",
+              "{game}",
+              "--tslpatchdata",
+              "{extract}/step-006/1",
+              "--install"
+            ],
+            "cwd": "{extract}/step-006/1",
+            "success_log": "{extract}/step-006/1/installlog.txt",
+            "success_markers": [
+              "The installation is complete with 0 errors and 0 warnings."
+            ],
+            "failure_regex": [
+              "^\\[Error\\]",
+              "^\\[Warning\\]"
+            ],
+            "expected_changes": "changed_manifest"
+          },
+          {
+            "type": "copy",
+            "source": "{extract}/step-006/2/K1CP Patch",
+            "destination": "{game}/override"
+          }
+        ]
+      },
+      "archives": [
+        {
+          "filename": "K1_Community_Patch_v1.10.0.zip",
+          "sha256": "cdee80d28f9f87ffaa0b39fdfb46a2a3139858d87b3695d5161c96c02df14068"
+        },
+        {
+          "filename": "K1CP Patch.rar",
+          "sha256": "8564c745f3cd545cc356fc9932b5ede331adbd0b7bdd365da3bcd6f4b613665c"
+        }
+      ],
+      "native_patcher": {
+        "operation_index": 2,
+        "extract_operation_index": 0,
+        "installer": {
+          "path": "INSTALL.exe",
+          "bytes": 7653859,
+          "sha256": "5cc9fc7aeafefb8b18cd584de0ad530f5c7a057e4b0a1308ed7bc6a9e4bc3fbe"
+        },
+        "changes_ini": {
+          "path": "tslpatchdata/changes.ini",
+          "bytes": 677726,
+          "sha256": "5ca192565cd425db03667364ab871273bacbd32da6a5760bd220729662bf3202"
+        },
+        "inventory_sha256": "8f6775ddc17e2f0bcc3d16acc3792f20ab65edd5df2cd197d804c80119b8d99d",
+        "certificate_sha256": "35ac7f53f59613dccfa58c00fb42177ba068368c508fe538d3268696ef59b8ce",
+        "arguments": "changes.ini",
+        "destination": "<<kotorDirectory>>",
+        "success_contract": "native-zero-warnings-changed-game-v1"
+      }
+    }
+  ]
+}

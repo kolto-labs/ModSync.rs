@@ -199,12 +199,19 @@ impl PatcherPreferences {
             "holopatcher" => PatcherEngine::HoloPatcher,
             "kpatcher" => PatcherEngine::KPatcher,
             "odypatcher" => PatcherEngine::OdyPatcher,
+            "modpackaged" => PatcherEngine::ModPackaged,
             other => anyhow::bail!("Unsupported patcherEngine: {other}"),
         };
         let key = match engine {
             PatcherEngine::KPatcher => "kpatcherExecutablePath",
             PatcherEngine::OdyPatcher => "odyPatcherExecutablePath",
             PatcherEngine::HoloPatcher => "holopatcherExecutablePath",
+            PatcherEngine::ModPackaged => {
+                return Ok(PatcherPreferences {
+                    engine,
+                    executable: None,
+                });
+            }
         };
         Ok(PatcherPreferences {
             engine,
@@ -598,6 +605,13 @@ impl Store {
             PatcherEngine::HoloPatcher => ("Holopatcher", "holopatcherExecutablePath"),
             PatcherEngine::KPatcher => ("KPatcher", "kpatcherExecutablePath"),
             PatcherEngine::OdyPatcher => ("OdyPatcher", "odyPatcherExecutablePath"),
+            PatcherEngine::ModPackaged => {
+                ensure!(
+                    executable.trim().is_empty(),
+                    "Mod-packaged backend has no global executable"
+                );
+                ("ModPackaged", "modPackagedExecutablePath")
+            }
         };
         settings.as_object_mut().unwrap().retain(|name, _| {
             !name.eq_ignore_ascii_case("patcherEngine") && !name.eq_ignore_ascii_case(key)

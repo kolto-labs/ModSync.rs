@@ -79,6 +79,7 @@ impl Invocation {
                 command
                     .env_remove("PYTHONPATH")
                     .env_remove("PYTHONHOME")
+                    .env("HOLOPATCHER_PYKOTOR_ROOT", module_roots[1].join("../../.."))
                     .env("PYTHON_KEYRING_BACKEND", "keyring.backends.null.Keyring");
                 Ok(command)
             }
@@ -95,6 +96,10 @@ entrypoint = sys.argv[1]
 roots = sys.argv[2:5]
 args = sys.argv[5:]
 sys.path[:0] = roots
+from pathlib import Path
+if (Path(roots[0]) / 'holopatcher' / 'bootstrap.py').is_file():
+    from holopatcher.bootstrap import bootstrap_backend
+    bootstrap_backend()
 for required in ('loggerplus', 'ply', 'pykotor', 'utility'):
     try:
         importlib.import_module(required)
@@ -107,6 +112,13 @@ runpy.run_path(entrypoint, run_name='__main__')
 /// Compatibility native-only resolver. Call resolve_invocation when preparing
 /// an execution, since a Python argv prefix cannot be represented by one path.
 pub fn resolve(engine: PatcherEngine, configured: Option<&Path>) -> Result<Option<PathBuf>> {
+    if engine == PatcherEngine::ModPackaged {
+        ensure!(
+            configured.is_none(),
+            "Mod-packaged backend has no global executable"
+        );
+        return Ok(None);
+    }
     let base = application_base();
     if configured.is_none()
         && let Some(base) = &base
@@ -126,8 +138,20 @@ pub fn resolve_invocation(
     engine: PatcherEngine,
     configured: Option<&Path>,
 ) -> Result<Option<Invocation>> {
+    if engine == PatcherEngine::ModPackaged {
+        ensure!(
+            configured.is_none(),
+            "Mod-packaged backend has no global executable"
+        );
+        return Ok(None);
+    }
     let base = application_base();
     let path = env::var_os("PATH");
+    if engine == PatcherEngine::HoloPatcher
+        && let Some(resources) = configured.filter(|path| path.is_dir())
+    {
+        return python_fallback(resources, path.as_deref());
+    }
     if configured.is_none()
         && let Some(base) = &base
         && let Some(result) = package::resolve(base, engine)?
@@ -202,6 +226,7 @@ fn resolve_in(
         return Ok(Some(path));
     }
     let (names, use_path): (&[&str], bool) = match engine {
+        PatcherEngine::ModPackaged => return Ok(None),
         PatcherEngine::KPatcher => (
             &["KPatcher", "KPatcher.exe", "kpatcher", "kpatcher.exe"],
             true,
@@ -280,7 +305,7 @@ fn python_fallback(resources: &Path, path: Option<&OsStr>) -> Result<Option<Invo
     ];
     for (root, package) in roots.iter().zip(["holopatcher", "pykotor", "utility"]) {
         ensure!(
-            root.join(package).join("__init__.py").is_file(),
+            root.join(package).is_dir(),
             "Incomplete bundled HoloPatcher Python resources: missing {}",
             root.join(package).join("__init__.py").display()
         );

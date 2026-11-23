@@ -1,0 +1,31 @@
+name: Full real-asset filesystem parity
+
+# The runner group must be dedicated to this workflow on the default branch.
+# Do not grant general repository or pull-request jobs access to its runner.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: modsync-fullrun
+  cancel-in-progress: false
+
+jobs:
+  parity:
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    environment: modsync-real-assets
+    runs-on:
+      group: modsync-real-assets
+      labels: [self-hosted, Linux, modsync-fullrun]
+    timeout-minutes: 360
+    env:
+      RUSTUP_TOOLCHAIN: 1.95.0
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Predict, install and compare on one runner
+        shell: bash
+        run: bash tools/run_fullrun.sh

@@ -7,6 +7,69 @@ use std::{
 };
 
 const LIMIT: usize = 8 * 1024 * 1024;
+
+/// Reproduce the pinned legacy installer's duplicate-key traversal in an
+/// already authenticated private staging copy, before ordinary log preparation.
+pub(super) fn prepare_native_ini(
+    contract: Option<&crate::archive_generation::reviewed_manual::NativePatcherContract>,
+    package: &Path,
+    ini: &Path,
+    cancelled: &AtomicBool,
+) -> Result<Option<serde_json::Value>> {
+    use sha2::{Digest, Sha256};
+    let Some(contract) = contract.filter(|contract| {
+        matches!(
+            contract.component_guid(),
+            "581433cd-4c71-848a-92f3-03064c7eae94" | "97c5f09c-0521-82df-beec-0896382e83f9"
+        )
+    }) else {
+        return Ok(None);
+    };
+    ensure!(
+        contract.original_program_run().is_some()
+            && contract.expected_game() == Some(odypatcher::Game::K1),
+        "Legacy duplicate-key preparation requires its private original-program contract"
+    );
+    let original = read(ini, cancelled)?;
+    if contract.component_guid() == "97c5f09c-0521-82df-beec-0896382e83f9" {
+        let raw = decode(&original)?;
+        let (effective, receipt) = contract
+            .native_ini_translation(package, &raw, cancelled)?
+            .context("HQ original source interpretation is unavailable")?;
+        ensure!(read(ini, cancelled)? == original, "HQ private INI changed");
+        crate::recovery::atomic_copy(ini, std::io::Cursor::new(effective.as_bytes()), cancelled)?;
+        ensure!(
+            read(ini, cancelled)? == effective.as_bytes(),
+            "HQ private INI publication differs"
+        );
+        return Ok(Some(receipt));
+    }
+    let text = std::str::from_utf8(&original).context("Legacy Swoop INI is not UTF-8")?;
+    let effective = crate::archive_generation::source_plan_namespace::effective_ini_text(
+        contract.component_guid(),
+        text,
+    )?
+    .context("Legacy Swoop translation absent")?;
+    let effective_sha = format!("{:x}", Sha256::digest(effective.as_bytes()));
+    ensure!(
+        effective_sha == "9cdd73beb2ec1f8a87e22543180809712353ca9fc16cff1742b23cf7c79e5ecb",
+        "Legacy Swoop translated INI identity differs"
+    );
+    ensure!(
+        read(ini, cancelled)? == original,
+        "Legacy Swoop private INI changed"
+    );
+    crate::recovery::atomic_copy(ini, std::io::Cursor::new(effective.as_bytes()), cancelled)?;
+    ensure!(
+        read(ini, cancelled)? == effective.as_bytes(),
+        "Legacy Swoop preparation publication differs"
+    );
+    Ok(Some(
+        serde_json::json!({"Policy":"exact-swoop-legacy-first-value-twice-v1",
+        "OriginalIniSha256":format!("{:x}", Sha256::digest(&original)),
+        "EffectiveIniSha256":effective_sha,"GffOperations":7}),
+    ))
+}
 fn check(cancelled: &AtomicBool) -> Result<()> {
     ensure!(
         !cancelled.load(Ordering::Acquire),
@@ -68,11 +131,8 @@ pub(super) fn decode(bytes: &[u8]) -> Result<String> {
             .collect();
         return String::from_utf16(&units).context("Patcher INI contains invalid UTF-16");
     }
-    Ok(
-        std::str::from_utf8(bytes.strip_prefix(&[0xef, 0xbb, 0xbf]).unwrap_or(bytes))
-            .context("Patcher INI needs UTF-8 or BOM-marked Unicode text")?
-            .to_owned(),
-    )
+    crate::archive_generation::source_plan_namespace::decode_ini_bytes(bytes)
+        .context("Patcher INI needs supported source-pinned or BOM-marked Unicode text")
 }
 
 fn ordinary(path: &Path) -> Result<std::fs::Metadata> {
@@ -157,6 +217,22 @@ pub(super) fn stage(
 }
 
 pub(super) fn normalize(root: &Path, cancelled: &AtomicBool) -> Result<usize> {
+    normalize_scope(root, None, cancelled)
+}
+
+// The caller verifies the original selected configuration and full staged inventory first.
+pub(super) fn normalize_selected(
+    root: &Path,
+    selected: &Path,
+    cancelled: &AtomicBool,
+) -> Result<usize> {
+    ensure!(
+        selected.starts_with(root) && selected != root,
+        "Selected preparation path escapes package"
+    );
+    normalize_scope(root, Some(selected), cancelled)
+}
+fn normalize_scope(root: &Path, selected: Option<&Path>, cancelled: &AtomicBool) -> Result<usize> {
     let metadata = ordinary(root)?;
     ensure!(
         metadata.is_dir() && !metadata.file_type().is_symlink(),
@@ -204,6 +280,9 @@ pub(super) fn normalize(root: &Path, cancelled: &AtomicBool) -> Result<usize> {
                 .extension()
                 .is_some_and(|ext| ext.eq_ignore_ascii_case("ini"))
         {
+            continue;
+        }
+        if selected.is_some_and(|path| path != entry.path()) {
             continue;
         }
         seen += 1;
@@ -259,5 +338,61 @@ pub(super) fn disable_external_compilers(installer: &mut odypatcher::ModInstalle
     {
         script.nwnnsscomp_path = None;
     }
+    Ok(())
+}
+
+/// These closed source recipes cover the original English installer branch.
+/// Inspect the actual game header in both private prediction and real execution.
+pub(super) fn verify_required_game_language(
+    contract: Option<&crate::archive_generation::reviewed_manual::NativePatcherContract>,
+    game: &Path,
+    cancelled: &AtomicBool,
+) -> Result<()> {
+    if !contract.is_some_and(|contract| contract.requires_english_game()) {
+        return Ok(());
+    }
+    check(cancelled)?;
+    let root = std::fs::symlink_metadata(game)?;
+    ensure!(
+        root.is_dir() && !root.file_type().is_symlink(),
+        "Community Patch game root must be a real directory"
+    );
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::MetadataExt;
+        ensure!(
+            root.file_attributes() & 0x400 == 0,
+            "Community Patch game root cannot be a reparse point"
+        );
+    }
+    let mut found = None;
+    for (index, entry) in std::fs::read_dir(game)?.enumerate() {
+        check(cancelled)?;
+        ensure!(
+            index < 100_000,
+            "Community Patch game root exceeds its entry bound"
+        );
+        let entry = entry?;
+        if entry
+            .file_name()
+            .to_str()
+            .is_some_and(|name| name.eq_ignore_ascii_case("dialog.tlk"))
+        {
+            ensure!(
+                found.is_none(),
+                "Ambiguous Community Patch game language file"
+            );
+            found = Some(entry.path());
+        }
+    }
+    let path = found.context("Community Patch requires the actual game dialog.tlk")?;
+    let mut file = crate::paths::open_regular_read(&path)?;
+    let mut header = [0u8; 12];
+    file.read_exact(&mut header)?;
+    check(cancelled)?;
+    ensure!(
+        &header[..8] == b"TLK V3.0" && u32::from_le_bytes(header[8..].try_into()?) == 0,
+        "Closed native Community Patch recipes currently require an English dialog.tlk"
+    );
     Ok(())
 }
