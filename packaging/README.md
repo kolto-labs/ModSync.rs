@@ -26,7 +26,7 @@ For MSVC use `--kind msvc --compiler <rc.exe>`. The output is a COFF resource ob
 
 Vehicles are a versioned Linux tar.gz, a Windows ZIP with both executable roles, and a ZIP containing ModSync.app. Manifest records include source commit, Cargo.lock SHA256, file hashes/sizes/modes, patcher capability, and explicit unsigned/unnotarized pre-release status. The manifest excludes itself to avoid recursive hashes; the outer artifact receipt records its digest and the archive digest. Archive entry ordering, modes, timestamps, owner metadata and gzip header timestamp are fixed from source commit time. Reproducibility still depends on identical binary/icon inputs and compression implementation.
 
-Outputs use no-clobber publication. A manual artifact-only workflow is included; no publication action is included. The native matrix retains Linux x86_64/aarch64, Windows x86/i686, x86_64 and aarch64, and macOS x86_64/aarch64. Older Windows reference lanes remain explicit unresolved exceptions.
+Outputs use no-clobber publication. The manual workflow (`package-manual.yml`) builds every target, unpacks each package on its native runner and starts the packaged `modsync --version`, then keeps the results as workflow artifacts. It does not publish; `release.yml` calls it and publishes a GitHub release (and optionally Nexus Mods) from its packages. The native matrix retains Linux x86_64/aarch64, Windows x86/i686, x86_64 and aarch64, and macOS x86_64/aarch64. Older Windows reference lanes remain explicit unresolved exceptions.
 
 ## Patcher authority
 
