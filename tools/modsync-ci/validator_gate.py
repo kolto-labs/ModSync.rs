@@ -70,11 +70,22 @@ def run_case(binary, case, fixtures=FIXTURES):
         work = Path(temp)
         game, mods, guide = prepare(work, fixtures / case["guide"], fixtures)
         before = snapshot(work)
-        process = subprocess.run(
-            [str(binary), "validate", "--input", str(guide), "--game-dir", str(game),
-             "--source-dir", str(mods), "--non-interactive"],
-            stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=TIMEOUT, check=False)
+        try:
+            process = subprocess.run(
+                [str(binary), "validate", "--input", str(guide), "--game-dir", str(game),
+                 "--source-dir", str(mods), "--non-interactive"],
+                stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=TIMEOUT, check=False)
+        except subprocess.TimeoutExpired:
+            failure = f"validator did not finish within {TIMEOUT}s"
+        except OSError as error:
+            failure = f"validator could not start ({type(error).__name__})"
+        else:
+            failure = None
         after = snapshot(work)
+    if failure:
+        # A hung or unstartable validator is a failed case, never a crashed gate.
+        return {"case": case["name"], "accept": case["accept"], "exit": None,
+                "ok": False, "problems": [failure]}, ""
     output = process.stdout + process.stderr
     problems = []
     if before != after:
@@ -102,7 +113,12 @@ def main(argv=None):
     if not args.binary.is_file():
         print(json.dumps({"event": "validator_gate_failed", "reason": "binary not found"}), file=sys.stderr)
         return 2
-    cases = load_cases(args.cases)
+    try:
+        cases = load_cases(args.cases)
+    except (OSError, ValueError) as error:
+        print(json.dumps({"event": "validator_gate_failed", "reason": f"unusable cases file: {error}"}),
+              file=sys.stderr)
+        return 2
     failed = 0
     for case in cases:
         result, output = run_case(args.binary.resolve(), case, args.cases.parent)
