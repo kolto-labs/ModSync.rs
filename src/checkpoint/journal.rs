@@ -47,7 +47,12 @@ impl Store {
                     && operation.operation_id == operation_id
                     && matches!(
                         operation.kind.as_str(),
-                        "InstallComponent" | "Finalize" | "Restore" | "Resume" | "SourceRebase"
+                        "InstallComponent"
+                            | "InstallPreparation"
+                            | "Finalize"
+                            | "Restore"
+                            | "Resume"
+                            | "SourceRebase"
                     )
                     && operation.roots == self.binding
                     && matches!(
@@ -82,10 +87,7 @@ impl Store {
                 session.install_scope == "install",
                 "Operation is not bound to an install session"
             );
-            let parent = history
-                .iter()
-                .find(|checkpoint| checkpoint.checkpoint_id == operation.from_checkpoint_id)
-                .context("Operation parent is not committed ancestry")?;
+            let parent = &history.get(self, &operation.from_checkpoint_id)?;
             ensure!(
                 operation.expected_generation
                     == parent
@@ -105,13 +107,21 @@ impl Store {
                             ))?,
                     "Component intent receipt or definition differs"
                 );
-                ensure!(
-                    session
-                        .ordered_components
-                        .get(parent.completed_components.len())
-                        == Some(&operation.component_definition),
-                    "Operation is not the next immutable component"
-                );
+                if operation.kind == "InstallPreparation" {
+                    crate::k2_preparation::validate_receipt(&operation.component_definition)?;
+                    ensure!(
+                        parent.preparation.is_none() && parent.completed_components.is_empty(),
+                        "Preparation is not before the first component"
+                    );
+                } else {
+                    ensure!(
+                        session
+                            .ordered_components
+                            .get(parent.completed_components.len())
+                            == Some(&operation.component_definition),
+                        "Operation is not the next immutable component"
+                    );
+                }
                 let uncommitted = head.generation == operation.expected_generation
                     && head.checkpoint_id == operation.from_checkpoint_id;
                 let published = operation.phase == "Materializing"
@@ -121,7 +131,7 @@ impl Store {
                             .checked_add(1)
                             .context("Operation generation overflow")?
                     && head.operation_id == operation.operation_id
-                    && history.last().is_some_and(|checkpoint| {
+                    && history.entries.last().is_some_and(|checkpoint| {
                         checkpoint.parent_id.as_deref()
                             == Some(operation.from_checkpoint_id.as_str())
                     });
@@ -216,7 +226,7 @@ impl Store {
             }
             let (session, checked_head, history) = self.checked_history(&session_id)?;
             ensure!(head == checked_head, "Cleanup HEAD changed while reading");
-            let checkpoint = history.last().context("Missing cleanup checkpoint")?;
+            let checkpoint = &history.current(self)?;
             let operation = if head.status == "FinalizeCleanupRequired" {
                 super::finalize::finalize_intent(
                     &session,
@@ -226,15 +236,27 @@ impl Store {
                         .context("Missing finalization receipt")?,
                 )?
             } else {
-                let definition = checkpoint
-                    .completed_components
-                    .last()
-                    .context("Cleanup checkpoint has no completed component")?
-                    .clone();
+                let definition = if checkpoint.kind == "Preparation" {
+                    checkpoint
+                        .preparation
+                        .clone()
+                        .context("Preparation cleanup receipt absent")?
+                } else {
+                    checkpoint
+                        .completed_components
+                        .last()
+                        .context("Cleanup checkpoint has no completed component")?
+                        .clone()
+                };
                 OperationIntent {
                     schema_version: SCHEMA_VERSION,
                     operation_id: head.operation_id.clone(),
-                    kind: "InstallComponent".into(),
+                    kind: if checkpoint.kind == "Preparation" {
+                        "InstallPreparation"
+                    } else {
+                        "InstallComponent"
+                    }
+                    .into(),
                     session_id: session_id.clone(),
                     expected_generation: head
                         .generation
@@ -289,6 +311,25 @@ impl Store {
         expected: &ExpectedHead,
         flag: &AtomicBool,
     ) -> Result<OperationIntent> {
+        self.begin_install_operation(lock, expected, flag, None)
+    }
+    pub(crate) fn begin_preparation(
+        &self,
+        lock: &recovery::Lock,
+        expected: &ExpectedHead,
+        flag: &AtomicBool,
+        receipt: &serde_json::Value,
+    ) -> Result<OperationIntent> {
+        crate::k2_preparation::validate_receipt(receipt)?;
+        self.begin_install_operation(lock, expected, flag, Some(receipt))
+    }
+    fn begin_install_operation(
+        &self,
+        lock: &recovery::Lock,
+        expected: &ExpectedHead,
+        flag: &AtomicBool,
+        preparation: Option<&serde_json::Value>,
+    ) -> Result<OperationIntent> {
         self.require_lock(lock)?;
         cancelled(flag)?;
         self.ensure_no_pending()?;
@@ -303,12 +344,20 @@ impl Store {
             session.install_scope == "install",
             "Baseline-only sessions cannot record component completion"
         );
-        let parent = history.last().context("Missing current checkpoint")?;
-        let definition = session
-            .ordered_components
-            .get(parent.completed_components.len())
-            .context("Session has no remaining component")?
-            .clone();
+        let parent = &history.current(self)?;
+        let definition = if let Some(receipt) = preparation {
+            ensure!(
+                parent.preparation.is_none() && parent.completed_components.is_empty(),
+                "Preparation requires an untouched component prefix"
+            );
+            receipt.clone()
+        } else {
+            session
+                .ordered_components
+                .get(parent.completed_components.len())
+                .context("Session has no remaining component")?
+                .clone()
+        };
         self.verify(&expected.session_id, Some(&expected.checkpoint_id), flag)?;
         ensure!(
             self.scan(&self.roots.mods, flag)? == parent.mods
@@ -328,7 +377,12 @@ impl Store {
         let operation = OperationIntent {
             schema_version: SCHEMA_VERSION,
             operation_id: uuid::Uuid::new_v4().to_string(),
-            kind: "InstallComponent".into(),
+            kind: if preparation.is_some() {
+                "InstallPreparation"
+            } else {
+                "InstallComponent"
+            }
+            .into(),
             session_id: expected.session_id.clone(),
             expected_generation: expected.generation,
             from_checkpoint_id: expected.checkpoint_id.clone(),
@@ -360,7 +414,10 @@ impl Store {
         cancelled(flag)?;
         self.current_operation(operation)?;
         ensure!(
-            operation.kind == "InstallComponent" && operation.phase == "Intent",
+            matches!(
+                operation.kind.as_str(),
+                "InstallComponent" | "InstallPreparation"
+            ) && operation.phase == "Intent",
             "Component operation is already materializing"
         );
         let mut running = operation.clone();
@@ -386,11 +443,14 @@ impl Store {
         cancelled(flag)?;
         self.current_operation(operation)?;
         ensure!(
-            operation.kind == "InstallComponent" && operation.phase == "Materializing",
+            matches!(
+                operation.kind.as_str(),
+                "InstallComponent" | "InstallPreparation"
+            ) && operation.phase == "Materializing",
             "Component mutation phase was not durably entered"
         );
         let (session, old_head, history) = self.checked_history(&operation.session_id)?;
-        let parent = history.last().context("Missing component parent")?;
+        let parent = &history.current(self)?;
         let (mods, game, auxiliary_snapshots, ancestor_shells, file_count, total_bytes) = self
             .capture_all(
                 &session.participants,
@@ -400,9 +460,13 @@ impl Store {
                 &mut observe,
             )?;
         let mut completed = parent.completed_components.clone();
-        completed.push(operation.component_definition.clone());
+        let preparation = operation.kind == "InstallPreparation";
+        if !preparation {
+            completed.push(operation.component_definition.clone());
+        }
         let checkpoint_id = uuid::Uuid::new_v4().to_string();
         let document = Checkpoint {
+            backend_binding: session.backend_binding.clone(),
             schema_version: SCHEMA_VERSION,
             checkpoint_id: checkpoint_id.clone(),
             session_id: operation.session_id.clone(),
@@ -411,9 +475,23 @@ impl Store {
                 .sequence
                 .checked_add(1)
                 .context("Checkpoint sequence overflow")?,
-            kind: "Component".into(),
+            kind: if preparation {
+                "Preparation"
+            } else {
+                "Component"
+            }
+            .into(),
+            preparation: if preparation {
+                Some(operation.component_definition.clone())
+            } else {
+                parent.preparation.clone()
+            },
             completed_sha256: Some(definition_hash(&completed)?),
-            component: Some(component_identity(&operation.component_definition)?),
+            component: if preparation {
+                None
+            } else {
+                Some(component_identity(&operation.component_definition)?)
+            },
             completed_components: completed,
             roots: self.binding.clone(),
             mods,
@@ -501,7 +579,11 @@ impl Store {
         );
         Ok(CommitReport {
             schema_version: SCHEMA_VERSION,
-            operation: "commitComponent",
+            operation: if preparation {
+                "commitPreparation"
+            } else {
+                "commitComponent"
+            },
             session_id: operation.session_id.clone(),
             checkpoint_id,
             parent_checkpoint_id: parent.checkpoint_id.clone(),

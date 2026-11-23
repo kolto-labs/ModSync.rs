@@ -4,7 +4,7 @@ use super::{
     read::*,
     store::{Store, ensure_directory, namespace_boundary, publish_json, replace_json},
 };
-use anyhow::{Context, Result, ensure};
+use anyhow::{Result, ensure};
 use std::{fs, sync::atomic::AtomicBool};
 
 pub(crate) struct AuthoringEntry {
@@ -77,10 +77,7 @@ impl Store {
             );
         }
         let (source, _, ancestry) = self.checked_history(source_id)?;
-        let selected = ancestry
-            .iter()
-            .find(|c| c.checkpoint_id == checkpoint_id)
-            .context("Repair target is not committed source ancestry")?;
+        let selected = &ancestry.get(self, checkpoint_id)?;
         ensure!(
             source.participants.is_empty(),
             "Managed authoring import repair is unsupported"
@@ -350,10 +347,7 @@ impl Store {
             session.participants.is_empty() && session.ordered_components == [definition.clone()],
             "Authoring boundary belongs to a different action or participant scope"
         );
-        let checkpoint = history
-            .iter()
-            .find(|checkpoint| checkpoint.checkpoint_id == checkpoint_id)
-            .context("Authoring boundary is not committed checkpoint ancestry")?;
+        let checkpoint = &history.get(self, checkpoint_id)?;
         self.verify_target(&session, checkpoint, flag)?;
         let mut inventory = Vec::new();
         for (root, tree) in [
@@ -395,6 +389,7 @@ impl Store {
             source.participants.is_empty()
                 && source.ordered_components == [definition.clone()]
                 && history
+                    .entries
                     .first()
                     .is_some_and(|baseline| baseline.checkpoint_id == before.checkpoint_id
                         && before.generation == 1),
@@ -408,9 +403,7 @@ impl Store {
             .or(recovery.session_id.as_deref())
             .unwrap_or(&before.session_id);
         let (session, head, history) = self.checked_history(session_id)?;
-        let current = history
-            .last()
-            .context("Recovered action boundary is missing")?;
+        let current = &history.current(self)?;
         ensure!(
             session.ordered_components == [definition.clone()]
                 && self.live_matches(&session, current, flag)?,
@@ -497,10 +490,7 @@ impl Store {
             source.participants.is_empty(),
             "Authoring snapshots cannot restore managed participants"
         );
-        let selected = history
-            .iter()
-            .find(|checkpoint| checkpoint.checkpoint_id == checkpoint_id)
-            .context("Authoring checkpoint is not committed ancestry")?;
+        let selected = &history.get(self, checkpoint_id)?;
         self.verify_target(&source, selected, flag)?;
         self.preflight_materialization(&source, selected, flag)?;
         let imported_id = uuid::Uuid::new_v4().to_string();

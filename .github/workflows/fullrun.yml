@@ -1,159 +1,292 @@
-name: Full real-asset filesystem parity
-
-# Dispatch only on a trusted, pre-provisioned Linux runner. Baselines are copied
-# separately for every lane. No source game/mod tree is passed to an installer.
-# Run `python3 tools/fullrun.py --help` for the GUI-driver request contract.
-# Keep legal/private game and mod assets on the runner. Uploaded artifacts contain
-# hashes, relative paths, guide identities and installer logs, so select an
-# appropriately private repository and artifact retention period.
+# Event defaults: quick branch pushes, full PRs, exhaustive release candidates.
+# Fork PRs receive credential-free contracts; full coverage never receives fork secrets.
+# Manual dispatch can select individual stages; no foreign workflow calls.
+# Eligible independent jobs continue after failure; result reconciles all required producer/lane states.
+name: Engine full-run CI
 on:
+  push:
+  pull_request:
+    # Draft PRs already receive full coverage; becoming ready must not restart it.
+    types: [opened, synchronize, reopened, labeled, unlabeled]
   workflow_dispatch:
     inputs:
-      runner_labels:
-        description: JSON labels for the provisioned Linux runner with real assets and build dependencies
-        type: string
-        default: '["self-hosted", "Linux", "modsync-fullrun"]'
-        required: true
-      guide:
-        description: Absolute runner path to the reviewed executable guide
-        type: string
-        required: true
-      game_root:
-        description: Absolute runner path to the complete clean game baseline (read-only input)
-        type: string
-        required: true
-      mods_root:
-        description: Absolute runner path to the real mod archive/executable baseline (read-only input)
-        type: string
-        required: true
-      supplied_runner:
-        description: 'JSON supplied GUI driver config, e.g. {"command":["/opt/modsync/driver","--requests","{request_dir}"],"xvfb":"/usr/bin/Xvfb","wine":"/usr/bin/wine","wineserver":"/usr/bin/wineserver"}'
-        type: string
-        required: true
-      holopatcher:
-        description: Optional absolute runner path to a trusted HoloPatcher executable (enables third install lane)
+      operation:
+        description: Full pipeline or independent stage; p2p proves peer seeding, seed imports staged archives
+        type: choice
+        options: [full, check, games, archives, install, seed, retain-inputs, p2p]
+        default: full
+      install_profile:
+        description: Installation coverage; full excludes massive movies, exhaustive includes them
+        type: choice
+        options: [minimal, full, exhaustive]
+        default: minimal
+      download_mode:
+        description: Cache-first, or try every download and fall back to valid cached versions
+        type: choice
+        options: [cache-first, refresh]
+        default: cache-first
+      counterpart_sha:
+        description: Exact mod-builds guide commit; empty uses the reviewed .github/fullrun.json pin
         type: string
         default: ''
-      selection_args:
-        description: JSON array of selection flags/values shared by every lane, e.g. ["--use-file-selection"]
-        type: string
-        default: '["--use-file-selection"]'
-        required: true
-
-permissions:
-  contents: read
-
-concurrency:
-  group: fullrun-${{ github.ref }}
-  cancel-in-progress: false
-
+      game:
+        type: choice
+        description: Requested game coverage
+        options: [both, k1, k2]
+        default: both
+      mode:
+        type: choice
+        description: Requested Rust application route
+        options: [both, cli, gui]
+        default: both
+      write_cache:
+        description: Allow producer cache saves and encrypted game-backup publication
+        type: boolean
+        default: true
+      seed_dry_run:
+        description: Seed operation verifies staged objects without publishing by default
+        type: boolean
+        default: true
+      use_steam_guard_codes:
+        description: Explicitly permit single-use Steam backup codes after saved-login/password attempts
+        type: boolean
+        default: false
+# Optional policy defaults live here; no repository variables are required.
 env:
-  RUSTUP_TOOLCHAIN: 1.95.0
-  FULLRUN_GUIDE: ${{ inputs.guide }}
-  FULLRUN_GAME_ROOT: ${{ inputs.game_root }}
-  FULLRUN_MODS_ROOT: ${{ inputs.mods_root }}
-  FULLRUN_SELECTION_ARGS: ${{ inputs.selection_args }}
-
+  FULLRUN_DEFAULTS: >-
+    {"push":"quick","pull_request":"full","workflow_dispatch":"minimal",
+     "release_candidate":"exhaustive","default_download_mode":"cache-first",
+     "release_download_mode":"refresh","release_target_branches":["main","master"],
+     "release_branch_prefixes":["release/","release-please--"],"release_labels":["release","release-candidate"]}
+permissions: {contents: read, actions: read}
+concurrency:
+  # Quick pushes cannot cancel the same commit's required PR installation.
+  group: fullrun-${{ github.event_name == 'push' && 'quick' || inputs.operation == 'retain-inputs' && 'retention' || 'installation' }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
 jobs:
-  prediction:
-    runs-on: ${{ fromJSON(inputs.runner_labels) }}
-    timeout-minutes: 360
+  plan:
+    name: ${{ github.event_name == 'push' && 'Quick branch checks' || 'Plan requested coverage' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    outputs:
+      owner_repository: ${{ steps.request.outputs.owner_repository }}
+      owner_sha: ${{ steps.request.outputs.owner_sha }}
+      engine_repository: ${{ steps.request.outputs.engine_repository }}
+      engine_sha: ${{ steps.request.outputs.engine_sha }}
+      guide_repository: ${{ steps.request.outputs.guide_repository }}
+      guide_sha: ${{ steps.request.outputs.guide_sha }}
+      operation: ${{ steps.request.outputs.operation }}
+      games: ${{ steps.request.outputs.games }}
+      modes: ${{ steps.request.outputs.modes }}
+      cache_writer: ${{ steps.request.outputs.cache_writer }}
+      plan_id: ${{ steps.request.outputs.plan_id }}
+      install_profile: ${{ steps.request.outputs.install_profile }}
+      download_mode: ${{ steps.request.outputs.download_mode }}
+      release_candidate: ${{ steps.request.outputs.release_candidate }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout owned CI
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
+          repository: ${{ github.repository }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
-      - name: Build production CLI
-        run: cargo build --locked --no-default-features --lib --bin modsync -j2
-      - name: Predict the complete guide before installation lanes
-        shell: bash
+      - name: Freeze repository-specific source and guide identities
+        id: request
+        env:
+          REQUEST_OPERATION: ${{ inputs.operation || '' }}
+          REQUEST_INSTALL_PROFILE: ${{ inputs.install_profile || '' }}
+          REQUEST_DOWNLOAD_MODE: ${{ inputs.download_mode || '' }}
+          REQUEST_COUNTERPART_SHA: ${{ inputs.counterpart_sha }}
+          REQUEST_GAME: ${{ inputs.game || 'both' }}
+          REQUEST_MODE: ${{ inputs.mode || 'both' }}
+          REQUEST_WRITE_CACHE: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository || github.event_name == 'workflow_dispatch' && inputs.write_cache || false }}
+        run: python tools/modsync-ci/fullrun_contract.py plan --output "$RUNNER_TEMP/fullrun-plan.json"
+      - name: Quick syntax and configuration checks
+        if: steps.request.outputs.install_profile == 'quick'
         run: |
-          python3 tools/fullrun.py --lane predict \
-            --binary "$PWD/target/debug/modsync" \
-            --guide "$FULLRUN_GUIDE" --game-root "$FULLRUN_GAME_ROOT" \
-            --mods-root "$FULLRUN_MODS_ROOT" \
-            --selection-args-json "$FULLRUN_SELECTION_ARGS" \
-            --work-dir "$RUNNER_TEMP/modsync-fullrun-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT-predict" \
-            --output "$GITHUB_WORKSPACE/fullrun-evidence/predict"
-      - uses: actions/upload-artifact@v4
-        if: always()
+          python - <<'PYQUICK'
+          import ast,json
+          from pathlib import Path
+          for path in Path('tools/modsync-ci').rglob('*.py'):
+              ast.parse(path.read_bytes(),filename=str(path))
+          for path in (Path('.github/fullrun.json'),Path('tools/modsync-ci/install_profiles.json')):
+              json.loads(path.read_text())
+          PYQUICK
+      - name: Quick workflow validation
+        if: steps.request.outputs.install_profile == 'quick'
+        uses: docker://rhysd/actionlint:1.7.12
+        env: {GOMAXPROCS: '2'}
         with:
-          name: fullrun-predict-${{ github.run_id }}-${{ github.run_attempt }}
-          path: fullrun-evidence/predict
+          args: -color -config-file .github/actionlint.yaml
+      - name: Retain public plan
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: fullrun-plan-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/fullrun-plan.json
+          retention-days: 14
           if-no-files-found: error
-          retention-days: 7
-
+  toolkit:
+    needs: plan
+    if: needs.plan.outputs.install_profile != 'quick'
+    uses: ./.github/workflows/fullrun-toolkit.yml
+    with:
+      quick: ${{ needs.plan.outputs.install_profile == 'quick' }}
+    permissions: {contents: read}
+  production:
+    needs: plan
+    if: ${{ needs.plan.outputs.install_profile != 'quick' && (needs.plan.outputs.operation == 'full' || needs.plan.outputs.operation == 'install') }}
+    uses: ./.github/workflows/production-build.yml
+    with:
+      feature_sha: ${{ needs.plan.outputs.engine_sha }}
+      modes: ${{ needs.plan.outputs.modes }}
+    secrets:
+      CACHE_ENCRYPTION_KEY: ${{ secrets.CACHE_ENCRYPTION_KEY }}
+  games:
+    needs: plan
+    if: ${{ needs.plan.outputs.operation == 'full' || needs.plan.outputs.operation == 'games' }}
+    uses: ./.github/workflows/cache-game.yml
+    with:
+      games: ${{ needs.plan.outputs.games }}
+      cache_writer: ${{ github.event_name == 'workflow_dispatch' && fromJSON(needs.plan.outputs.cache_writer) }}
+      allow_steam: ${{ vars.FULLRUN_ALLOW_STEAM == 'true' }}
+      use_steam_guard_codes: ${{ vars.FULLRUN_ALLOW_STEAM == 'true' && github.event_name == 'workflow_dispatch' && inputs.use_steam_guard_codes || false }}
+      artifact_repository: ${{ vars.FULLRUN_ARTIFACT_REPOSITORY || github.repository }}
+    secrets:
+      ARTSTORE_READ_TOKEN: ${{ vars.FULLRUN_ARTIFACT_REPOSITORY && vars.FULLRUN_ARTIFACT_REPOSITORY != github.repository && secrets.ARTSTORE_READ_TOKEN || '' }}
+      CACHE_ENCRYPTION_KEY: ${{ secrets.CACHE_ENCRYPTION_KEY }}
+      GAME_SEED_URL_K1: ${{ secrets.GAME_SEED_URL_K1 }}
+      GAME_SEED_KEY_K1: ${{ secrets.GAME_SEED_KEY_K1 }}
+      GAME_SEED_SHA256_K1: ${{ secrets.GAME_SEED_SHA256_K1 }}
+      GAME_SEED_URL_K2: ${{ secrets.GAME_SEED_URL_K2 }}
+      GAME_SEED_KEY_K2: ${{ secrets.GAME_SEED_KEY_K2 }}
+      GAME_SEED_SHA256_K2: ${{ secrets.GAME_SEED_SHA256_K2 }}
+      STEAM_USERNAME: ${{ vars.FULLRUN_ALLOW_STEAM == 'true' && secrets.STEAM_USERNAME || '' }}
+      STEAM_PASSWORD: ${{ vars.FULLRUN_ALLOW_STEAM == 'true' && secrets.STEAM_PASSWORD || '' }}
+      STEAM_CONFIG_VDF: ${{ vars.FULLRUN_ALLOW_STEAM == 'true' && secrets.STEAM_CONFIG_VDF || '' }}
+      STEAM_RECOVERY_CODE: ${{ vars.FULLRUN_ALLOW_STEAM == 'true' && github.event_name == 'workflow_dispatch' && inputs.use_steam_guard_codes && secrets.STEAM_RECOVERY_CODE || '' }}
+      STEAM_GUARD_CODES: ${{ vars.FULLRUN_ALLOW_STEAM == 'true' && github.event_name == 'workflow_dispatch' && inputs.use_steam_guard_codes && secrets.STEAM_GUARD_CODES || '' }}
+  archives:
+    needs: plan
+    if: ${{ needs.plan.outputs.operation == 'full' || needs.plan.outputs.operation == 'archives' }}
+    uses: ./.github/workflows/cache-archives.yml
+    with:
+      install_profile: ${{ needs.plan.outputs.install_profile }}
+      download_mode: ${{ needs.plan.outputs.download_mode }}
+      guide_repository: ${{ needs.plan.outputs.guide_repository }}
+      guide_sha: ${{ needs.plan.outputs.guide_sha }}
+      games: ${{ needs.plan.outputs.games }}
+      cache_writer: ${{ fromJSON(needs.plan.outputs.cache_writer) }}
+      artifact_repository: ${{ vars.FULLRUN_ARTIFACT_REPOSITORY || github.repository }}
+    secrets:
+      DIAGNOSTICS_ENCRYPTION_KEY: ${{ !vars.DIAGNOSTICS_ENCRYPTION_RECIPIENT && secrets.DIAGNOSTICS_ENCRYPTION_KEY || '' }}
+      ARTSTORE_READ_TOKEN: ${{ vars.FULLRUN_ARTIFACT_REPOSITORY && vars.FULLRUN_ARTIFACT_REPOSITORY != github.repository && secrets.ARTSTORE_READ_TOKEN || '' }}
+      CACHE_ENCRYPTION_KEY: ${{ secrets.CACHE_ENCRYPTION_KEY }}
+      MOD_CACHE_S3_READ_ACCESS_KEY_ID: ${{ vars.MOD_CACHE_BUCKET && secrets.MOD_CACHE_S3_READ_ACCESS_KEY_ID || '' }}
+      MOD_CACHE_S3_READ_SECRET_ACCESS_KEY: ${{ vars.MOD_CACHE_BUCKET && secrets.MOD_CACHE_S3_READ_SECRET_ACCESS_KEY || '' }}
+      MOD_CACHE_S3_ENDPOINT: ${{ vars.MOD_CACHE_BUCKET && secrets.MOD_CACHE_S3_ENDPOINT || '' }}
   install:
-    # All install lanes require successful prediction and artifact upload.
-    needs: prediction
-    runs-on: ${{ fromJSON(inputs.runner_labels) }}
-    timeout-minutes: 360
+    needs: [plan, production, games, archives]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.production.result == 'success' && (needs.plan.outputs.operation == 'full' || needs.plan.outputs.operation == 'install') }}
     strategy:
       fail-fast: false
       matrix:
-        lane: ${{ fromJSON(inputs.holopatcher != '' && '["supplied", "ody-patcher", "holo-patcher"]' || '["supplied", "ody-patcher"]') }}
-    env:
-      FULLRUN_LANE: ${{ matrix.lane }}
-      FULLRUN_SUPPLIED_RUNNER: ${{ inputs.supplied_runner }}
-      FULLRUN_HOLOPATCHER: ${{ inputs.holopatcher }}
+        game: ${{ fromJSON(needs.plan.outputs.games) }}
+        mode: ${{ fromJSON(needs.plan.outputs.modes) }}
+        patcher_backend: [ody-patcher, holo-patcher, mod-packaged]
+    uses: ./.github/workflows/fullrun-lane.yml
+    with:
+      install_profile: ${{ needs.plan.outputs.install_profile }}
+      # The archive producer exercises refresh once; consumers reuse its verified cache.
+      # Standalone install dispatches still honor the requested downloader mode.
+      download_mode: ${{ needs.plan.outputs.operation == 'full' && 'cache-first' || needs.plan.outputs.download_mode }}
+      engine_repository: ${{ needs.plan.outputs.engine_repository }}
+      engine_sha: ${{ needs.plan.outputs.engine_sha }}
+      guide_repository: ${{ needs.plan.outputs.guide_repository }}
+      guide_sha: ${{ needs.plan.outputs.guide_sha }}
+      game: ${{ matrix.game }}
+      mode: ${{ matrix.mode }}
+      patcher_backend: ${{ matrix.patcher_backend }}
+      plan_id: ${{ needs.plan.outputs.plan_id }}
+      archive_cache_key: ${{ needs.archives.outputs.archive_cache_key }}
+      artifact_repository: ${{ vars.FULLRUN_ARTIFACT_REPOSITORY || github.repository }}
+    secrets:
+      MODSYNC_SOURCE_TOKEN: ${{ secrets.MODSYNC_SOURCE_TOKEN }}
+      ARTSTORE_READ_TOKEN: ${{ vars.FULLRUN_ARTIFACT_REPOSITORY && vars.FULLRUN_ARTIFACT_REPOSITORY != github.repository && secrets.ARTSTORE_READ_TOKEN || '' }}
+      CACHE_ENCRYPTION_KEY: ${{ secrets.CACHE_ENCRYPTION_KEY }}
+      DIAGNOSTICS_ENCRYPTION_KEY: ${{ !vars.DIAGNOSTICS_ENCRYPTION_RECIPIENT && secrets.DIAGNOSTICS_ENCRYPTION_KEY || '' }}
+      MOD_CACHE_S3_READ_ACCESS_KEY_ID: ${{ vars.MOD_CACHE_BUCKET && secrets.MOD_CACHE_S3_READ_ACCESS_KEY_ID || '' }}
+      MOD_CACHE_S3_READ_SECRET_ACCESS_KEY: ${{ vars.MOD_CACHE_BUCKET && secrets.MOD_CACHE_S3_READ_SECRET_ACCESS_KEY || '' }}
+      MOD_CACHE_S3_ENDPOINT: ${{ vars.MOD_CACHE_BUCKET && secrets.MOD_CACHE_S3_ENDPOINT || '' }}
+  comparison:
+    needs: [plan, install]
+    if: ${{ !cancelled() && (needs.plan.outputs.operation == 'full' || needs.plan.outputs.operation == 'install') && contains(fromJSON(needs.plan.outputs.modes || '[]'), 'cli') && contains(fromJSON(needs.plan.outputs.modes || '[]'), 'gui') }}
+    strategy:
+      fail-fast: false
+      matrix:
+        game: ${{ fromJSON(needs.plan.outputs.games) }}
+    uses: ./.github/workflows/fullrun-compare.yml
+    with:
+      game: ${{ matrix.game }}
+    secrets:
+      CACHE_ENCRYPTION_KEY: ${{ secrets.CACHE_ENCRYPTION_KEY }}
+      DIAGNOSTICS_ENCRYPTION_KEY: ${{ !vars.DIAGNOSTICS_ENCRYPTION_RECIPIENT && secrets.DIAGNOSTICS_ENCRYPTION_KEY || '' }}
+  seed:
+    name: Optional archive-store import
+    needs: plan
+    if: ${{ needs.plan.outputs.operation == 'seed' }}
+    uses: ./.github/workflows/cache-seed.yml
+    with:
+      guide_repository: ${{ needs.plan.outputs.guide_repository }}
+      guide_sha: ${{ needs.plan.outputs.guide_sha }}
+      games: ${{ needs.plan.outputs.games }}
+      dry_run: ${{ inputs.seed_dry_run }}
+    secrets:
+      DIAGNOSTICS_ENCRYPTION_KEY: ${{ !vars.DIAGNOSTICS_ENCRYPTION_RECIPIENT && secrets.DIAGNOSTICS_ENCRYPTION_KEY || '' }}
+      SEED_STAGING_RCLONE_CONF_B64: ${{ secrets.SEED_STAGING_RCLONE_CONF_B64 }}
+      MOD_CACHE_S3_ACCESS_KEY_ID: ${{ !inputs.seed_dry_run && secrets.MOD_CACHE_S3_ACCESS_KEY_ID || '' }}
+      MOD_CACHE_S3_SECRET_ACCESS_KEY: ${{ !inputs.seed_dry_run && secrets.MOD_CACHE_S3_SECRET_ACCESS_KEY || '' }}
+      MOD_CACHE_S3_ENDPOINT: ${{ !inputs.seed_dry_run && secrets.MOD_CACHE_S3_ENDPOINT || '' }}
+  retain_inputs:
+    needs: plan
+    if: ${{ github.event_name == 'workflow_dispatch' && needs.plan.outputs.operation == 'retain-inputs' }}
+    uses: ./.github/workflows/retain-k1-public-inputs.yml
+    secrets:
+      CACHE_ENCRYPTION_KEY: ${{ secrets.CACHE_ENCRYPTION_KEY }}
+  p2p:
+    needs: plan
+    if: ${{ needs.plan.outputs.operation == 'full' || needs.plan.outputs.operation == 'p2p' }}
+    uses: ./.github/workflows/fullrun-p2p.yml
+    with:
+      engine_repository: ${{ needs.plan.outputs.engine_repository }}
+      engine_sha: ${{ needs.plan.outputs.engine_sha }}
+    secrets:
+      MODSYNC_SOURCE_TOKEN: ${{ secrets.MODSYNC_SOURCE_TOKEN }}
+  result:
+    name: ${{ github.event_name == 'pull_request' && 'PR installation gate' || github.event_name == 'push' && 'Branch installation result' || 'Manual requested-scope result' }}
+    needs: [plan, toolkit, production, games, archives, install, comparison, seed, retain_inputs, p2p]
+    if: ${{ always() && (needs.plan.result != 'success' || needs.plan.outputs.install_profile != 'quick') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout owned CI
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
+          repository: ${{ github.repository }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
-      - uses: actions/download-artifact@v4
+      - name: Fail on every required missing, incomplete, cancelled or failed result
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+          OPERATION: ${{ needs.plan.outputs.operation || 'check' }}
+          REQUIRE_DOWNLOADER: ${{ needs.plan.outputs.release_candidate || 'false' }}
+          REQUIRE_PRODUCTION: ${{ needs.plan.outputs.operation == 'full' || needs.plan.outputs.operation == 'install' }}
+          REQUIRE_COMPARISON: ${{ (needs.plan.outputs.operation == 'full' || needs.plan.outputs.operation == 'install') && contains(fromJSON(needs.plan.outputs.modes || '[]'), 'cli') && contains(fromJSON(needs.plan.outputs.modes || '[]'), 'gui') }}
+        run: python tools/modsync-ci/fullrun_contract.py aggregate --operation "$OPERATION" --output "$RUNNER_TEMP/fullrun-result.json"
+      - name: Retain public requested-scope verdict
+        if: ${{ success() || failure() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: fullrun-predict-${{ github.run_id }}-${{ github.run_attempt }}
-          path: fullrun-reference/predict
-      - name: Build production CLI
-        run: cargo build --locked --no-default-features --lib --bin modsync -j2
-      - name: Install real assets on a fresh disposable copy
-        shell: bash
-        run: |
-          python3 tools/fullrun.py --lane "$FULLRUN_LANE" \
-            --binary "$PWD/target/debug/modsync" \
-            --guide "$FULLRUN_GUIDE" --game-root "$FULLRUN_GAME_ROOT" \
-            --mods-root "$FULLRUN_MODS_ROOT" \
-            --selection-args-json "$FULLRUN_SELECTION_ARGS" \
-            --supplied-runner-json "$FULLRUN_SUPPLIED_RUNNER" \
-            --holopatcher "$FULLRUN_HOLOPATCHER" \
-            --work-dir "$RUNNER_TEMP/modsync-fullrun-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT-$FULLRUN_LANE" \
-            --output "$GITHUB_WORKSPACE/fullrun-evidence/$FULLRUN_LANE"
-      - name: Compare predicted final bytes with installed final bytes
-        shell: bash
-        run: |
-          python3 tools/compare_filesystem_traces.py --final-only \
-            fullrun-reference/predict/trace "fullrun-evidence/$FULLRUN_LANE/trace"
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: fullrun-${{ matrix.lane }}-${{ github.run_id }}-${{ github.run_attempt }}
-          path: fullrun-evidence/${{ matrix.lane }}
+          name: fullrun-result-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/fullrun-result.json
+          retention-days: 14
           if-no-files-found: error
-          retention-days: 7
-
-  compare:
-    if: always() && needs.prediction.result == 'success'
-    needs: [prediction, install]
-    runs-on: ${{ fromJSON(inputs.runner_labels) }}
-    timeout-minutes: 120
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: actions/download-artifact@v4
-        with:
-          name: fullrun-supplied-${{ github.run_id }}-${{ github.run_attempt }}
-          path: fullrun-reference/supplied
-      - uses: actions/download-artifact@v4
-        with:
-          name: fullrun-ody-patcher-${{ github.run_id }}-${{ github.run_attempt }}
-          path: fullrun-reference/ody-patcher
-      - name: Compare every native step with the real supplied-installer baseline
-        run: python3 tools/compare_filesystem_traces.py fullrun-reference/supplied/trace fullrun-reference/ody-patcher/trace
-      - uses: actions/download-artifact@v4
-        if: always() && inputs.holopatcher != ''
-        with:
-          name: fullrun-holo-patcher-${{ github.run_id }}-${{ github.run_attempt }}
-          path: fullrun-reference/holo-patcher
-      - name: Compare every HoloPatcher step with the real supplied-installer baseline
-        if: always() && inputs.holopatcher != ''
-        run: python3 tools/compare_filesystem_traces.py fullrun-reference/supplied/trace fullrun-reference/holo-patcher/trace

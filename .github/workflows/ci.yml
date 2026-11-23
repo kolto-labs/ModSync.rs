@@ -1,10 +1,10 @@
 name: Production parity gates
-# Every push and PR update runs the required Linux production checks, including
-# Windows cross-compilation. Native Windows/macOS builds remain opt-in.
+# Every PR update runs the required Linux production checks, including Windows
+# cross-compilation. Native Windows/macOS builds remain opt-in.
 on:
+  # Branch pushes get quick checks from fullrun.yml only (enforced by
+  # tools/modsync-ci/test_fullrun_workflows.py); these gates run per pull request.
   pull_request:
-  push:
-    branches: ['**']
   workflow_dispatch:
     inputs:
       native:
@@ -93,8 +93,8 @@ jobs:
 
   # Rust test suite. Off while upstream's parity freeze is in effect (AGENTS.md:
   # tests are not compiled or run until full parity). Set the repository
-  # variable RUN_RUST_TESTS to `true` to turn it on for every commit; no
-  # workflow edit is needed. Until then the job is skipped, not failed.
+  # variable RUN_RUST_TESTS to `true` to turn it on with the pull request gates;
+  # no workflow edit is needed. Until then the job is skipped, not failed.
   tests:
     if: vars.RUN_RUST_TESTS == 'true'
     timeout-minutes: 60

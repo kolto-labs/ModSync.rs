@@ -1,0 +1,370 @@
+{
+  "schema": 1,
+  "component_guid": "7c11497d-de47-8eee-b80a-967b984a2822",
+  "source_guide_revision": "67dc5fd8da6abde324c51d32eee3d04687070dd6",
+  "source_guide_sha256": "44067788c6cb7a83b38d468817f273ce5cc901cd5e000c0f9ff65f8af15fc6ed",
+  "source_plan_sha256": "1b402ba085625c4863795069eaacaef0f53e8ea7179e56a5bd150d88eb9c0a74",
+  "raw_input_component": {
+    "Guid": "7c11497d-de47-8eee-b80a-967b984a2822",
+    "Name": "Galaxy Map Fix Pack",
+    "Author": "Kexikus & Sith Holocron",
+    "Description": "Moves the planets on the K1 Galaxy Map to their canon positions, and animates the screen on the Ebon Hawk",
+    "Directions": "If intending to play [in widescreen](#optional-widescreen-extended-widescreen-support-mods) and with the widescreen menus mod (part of several additional widescreen support mods [here](/modding/mod_builds/k1/widescreen)), install this mod *after* completing the rest of this guide, including widescreen menus installation (this is the only mod you will have to install out of presented order). When coming back to install this mod, if using widescreen you will move the file from the optional download \"HR Menu Patch.zip\" which corresponds to your resolution to your override folder, *after* completing the installation of the base mod. If you are not intending to play in widescreen, install the base mod only at this point.",
+    "Tier": "3 - Suggested",
+    "Category": [
+      "Graphics Improvement",
+      "Immersion"
+    ],
+    "IsSelected": true,
+    "Dependencies": [],
+    "Restrictions": [],
+    "InstallBefore": [],
+    "InstallAfter": [],
+    "Instructions": [],
+    "Options": [],
+    "ResourceRegistry": {
+      "http://deadlystream.com/files/file/1068-k1-galaxy-map-fix-pack/": {
+        "Files": {},
+        "HandlerMetadata": {}
+      }
+    },
+    "DraftReview": {
+      "RequiresReview": true,
+      "Result": {
+        "ComponentGuid": "7c11497d-de47-8eee-b80a-967b984a2822",
+        "DraftInstructionCount": 0,
+        "UnparsedGaps": [
+          "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults.",
+          "When coming back to install this mod",
+          "If you are not intending to play in widescreen, install the base mod only at this point"
+        ],
+        "ConditionalDrafts": [],
+        "RejectedDrafts": 1
+      },
+      "MethodContext": {
+        "Method": "TSLPatcher",
+        "MethodTruncated": false,
+        "Kind": "Patcher",
+        "GuideDefaults": {
+          "PreambleStatus": "Inspected",
+          "PatcherDestination": "<<kotorDirectory>>",
+          "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+          "NoOverrideOrModulesSubfolders": true
+        },
+        "ExplicitDirectionsTakePrecedence": true,
+        "ArchiveBinding": "Unresolved"
+      }
+    },
+    "Heading": "Galaxy Map Fix",
+    "InstallationMethod": "TSLPatcher",
+    "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+    "Language": [
+      "YES"
+    ],
+    "NameFieldContent": "[Galaxy Map Fix Pack](http://deadlystream.com/files/file/1068-k1-galaxy-map-fix-pack/)",
+    "WidescreenOnly": false
+  },
+  "canonical_input_component": {
+    "Guid": "7c11497d-de47-8eee-b80a-967b984a2822",
+    "Name": "Galaxy Map Fix Pack",
+    "Author": "Kexikus & Sith Holocron",
+    "Description": "Moves the planets on the K1 Galaxy Map to their canon positions, and animates the screen on the Ebon Hawk",
+    "Directions": "If intending to play [in widescreen](#optional-widescreen-extended-widescreen-support-mods) and with the widescreen menus mod (part of several additional widescreen support mods [here](/modding/mod_builds/k1/widescreen)), install this mod *after* completing the rest of this guide, including widescreen menus installation (this is the only mod you will have to install out of presented order). When coming back to install this mod, if using widescreen you will move the file from the optional download \"HR Menu Patch.zip\" which corresponds to your resolution to your override folder, *after* completing the installation of the base mod. If you are not intending to play in widescreen, install the base mod only at this point.",
+    "Tier": "3 - Suggested",
+    "Category": [
+      "Graphics Improvement",
+      "Immersion"
+    ],
+    "IsSelected": true,
+    "Dependencies": [],
+    "Restrictions": [],
+    "InstallBefore": [],
+    "InstallAfter": [],
+    "Instructions": [],
+    "Options": [],
+    "ResourceRegistry": {
+      "http://deadlystream.com/files/file/1068-k1-galaxy-map-fix-pack/": {
+        "Files": {},
+        "HandlerMetadata": {}
+      }
+    },
+    "DraftReview": {
+      "RequiresReview": true,
+      "Result": {
+        "ComponentGuid": "7c11497d-de47-8eee-b80a-967b984a2822",
+        "DraftInstructionCount": 0,
+        "UnparsedGaps": [
+          "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults.",
+          "When coming back to install this mod",
+          "If you are not intending to play in widescreen, install the base mod only at this point"
+        ],
+        "ConditionalDrafts": [],
+        "RejectedDrafts": 1
+      },
+      "MethodContext": {
+        "Method": "TSLPatcher",
+        "MethodTruncated": false,
+        "Kind": "Patcher",
+        "GuideDefaults": {
+          "PreambleStatus": "Inspected",
+          "PatcherDestination": "<<kotorDirectory>>",
+          "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+          "NoOverrideOrModulesSubfolders": true
+        },
+        "ExplicitDirectionsTakePrecedence": true,
+        "ArchiveBinding": "Unresolved"
+      }
+    },
+    "Heading": "Galaxy Map Fix",
+    "InstallationMethod": "TSLPatcher",
+    "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+    "Language": [
+      "YES"
+    ],
+    "NameFieldContent": "[Galaxy Map Fix Pack](http://deadlystream.com/files/file/1068-k1-galaxy-map-fix-pack/)",
+    "WidescreenOnly": false
+  },
+  "plan_step": {
+    "id": "step-180",
+    "source_heading": "### Galaxy Map Fix",
+    "operations": [
+      {
+        "type": "extract",
+        "source": "{archives}/K1 Galaxy Map Fix Pack.zip",
+        "destination": "{extract}/step-180/1"
+      },
+      {
+        "type": "gui_patcher",
+        "patcher": "{extract}/step-180/1/TSLPatcher.exe",
+        "sha256": "013655cd871a71e0f5b50f80ed0d32308912916ba7e12e2a366f42d992a71b16",
+        "argv": [
+          "/usr/bin/wine",
+          "{extract}/step-180/1/TSLPatcher.exe"
+        ],
+        "cwd": "{extract}/step-180/1",
+        "success_log": "{extract}/step-180/1/installlog.rtf",
+        "success_markers": [
+          "Done. All changes have been applied."
+        ],
+        "failure_regex": [
+          "Error: ",
+          "Warning: ",
+          "Done\\. Some changes may have been applied"
+        ],
+        "expected_changes": "changed_manifest",
+        "wine_registry": [
+          {
+            "key": "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders",
+            "name": "Desktop",
+            "data": "{game_win}"
+          },
+          {
+            "key": "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders",
+            "name": "Desktop",
+            "data": "{game_win}"
+          }
+        ],
+        "actions": [
+          {
+            "wait_window": "^TSLPatcher - Select installation type$",
+            "timeout": 120
+          },
+          {
+            "sleep": 2
+          },
+          {
+            "click": [
+              248,
+              181
+            ],
+            "window": "^TSLPatcher - Select installation type$"
+          },
+          {
+            "wait_window": "^(Canon Galaxy Map for K1)",
+            "timeout": 120
+          },
+          {
+            "sleep": 3
+          },
+          {
+            "click": [
+              502,
+              433
+            ],
+            "window": "^(Canon Galaxy Map for K1)"
+          },
+          {
+            "wait_window": "^Browse for Folder$",
+            "timeout": 120
+          },
+          {
+            "sleep": 2
+          },
+          {
+            "click": [
+              62,
+              69
+            ],
+            "window": "^Browse for Folder$"
+          },
+          {
+            "sleep": 1
+          },
+          {
+            "click": [
+              157,
+              274
+            ],
+            "window": "^Browse for Folder$"
+          },
+          {
+            "wait_log": 600
+          }
+        ]
+      }
+    ]
+  },
+  "archive": {
+    "filename": "K1 Galaxy Map Fix Pack.zip",
+    "sha256": "ba66f17ae0bb1358b2aead343450613f5dd586c8d076e2a142629e912cf7e6b4",
+    "bytes": 7742433
+  },
+  "members": [
+    {
+      "path": "ReadMe.txt",
+      "bytes": 3271,
+      "sha256": "6564a3e2a06c5b81646623717ee3c2fc039ed37c640874c021cf88e1631e2366",
+      "directory": false
+    },
+    {
+      "path": "tslpatchdata/",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "directory": true
+    },
+    {
+      "path": "tslpatchdata/changes.ini",
+      "bytes": 2150,
+      "sha256": "37bdc4fb342c2e19103ce284e2746a9631a192f4a58ff0554fee54db611b0b61",
+      "directory": false
+    },
+    {
+      "path": "tslpatchdata/galaxymap.gui",
+      "bytes": 17933,
+      "sha256": "209e45e85d3b9420bdea98c929e08f90fc5b55d8e297ae1204db7b1f150a4226",
+      "directory": false
+    },
+    {
+      "path": "tslpatchdata/info.rtf",
+      "bytes": 9814,
+      "sha256": "dc1939eea6b8a5b69c3eb4445c9a73d110dbaa1ba5b2f9e39b69179b87b935c3",
+      "directory": false
+    },
+    {
+      "path": "tslpatchdata/lbl_strforge.tga",
+      "bytes": 4140,
+      "sha256": "7d9eb0fc0084947edd75174185d655214f913099251afe26527864651f66ffef",
+      "directory": false
+    },
+    {
+      "path": "tslpatchdata/LEH_scre03.tga",
+      "bytes": 6569150,
+      "sha256": "482314423f069609384884dc4b0a2acfa041e3ef4fe878dd3b62b32abea7e45c",
+      "directory": false
+    },
+    {
+      "path": "tslpatchdata/LEH_scre03.txi",
+      "bytes": 110,
+      "sha256": "4cf597bf7fb6e9946faa19a468432f0a5bce46d6efb5e19fbee7ae7d9d4aebfc",
+      "directory": false
+    },
+    {
+      "path": "tslpatchdata/namespaces.ini",
+      "bytes": 1021,
+      "sha256": "1197890c946e5f87bed2d1acd97b2cfd2deea9667e4947f3ac666a87d7c1a0f1",
+      "directory": false
+    },
+    {
+      "path": "tslpatchdata/OrdMantell/",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "directory": true
+    },
+    {
+      "path": "tslpatchdata/OrdMantell/changes.ini",
+      "bytes": 2251,
+      "sha256": "38a00304261dc59572b6e6e168182e2a996d05c77c8b912a7eff3c3067d40765",
+      "directory": false
+    },
+    {
+      "path": "tslpatchdata/OrdMantell/galaxymap.gui",
+      "bytes": 17933,
+      "sha256": "209e45e85d3b9420bdea98c929e08f90fc5b55d8e297ae1204db7b1f150a4226",
+      "directory": false
+    },
+    {
+      "path": "tslpatchdata/OrdMantell/info.rtf",
+      "bytes": 9887,
+      "sha256": "8923d4fe4664ed56976e71be9129cb3ee3774a14e0d1159a0905aac74b045281",
+      "directory": false
+    },
+    {
+      "path": "tslpatchdata/OrdMantell/lbl_live05.tga",
+      "bytes": 1068,
+      "sha256": "bced758abb589deca628757ea6ea47e8569006cd9b89a2d3dd3474ba2a627374",
+      "directory": false
+    },
+    {
+      "path": "tslpatchdata/OrdMantell/lbl_strforge.tga",
+      "bytes": 4140,
+      "sha256": "7d9eb0fc0084947edd75174185d655214f913099251afe26527864651f66ffef",
+      "directory": false
+    },
+    {
+      "path": "tslpatchdata/OrdMantell/LEH_scre03.tga",
+      "bytes": 9310460,
+      "sha256": "595f4abf2ac0f64c653741aca6d71534ea482dfadfdc47c10b2afd8e5366c9a3",
+      "directory": false
+    },
+    {
+      "path": "tslpatchdata/OrdMantell/LEH_scre03.txi",
+      "bytes": 110,
+      "sha256": "440047d7a7d48f158fb5f29158bca840daa7fb400c3d6a563a58866d92177e40",
+      "directory": false
+    },
+    {
+      "path": "TSLPatcher.exe",
+      "bytes": 681984,
+      "sha256": "013655cd871a71e0f5b50f80ed0d32308912916ba7e12e2a366f42d992a71b16",
+      "directory": false
+    }
+  ],
+  "namespaces": [
+    {
+      "index": 0,
+      "namespace_id": "Vanilla",
+      "name": "Vanilla version",
+      "ini_filename": "changes.ini",
+      "info_filename": "info.rtf",
+      "data_path": "",
+      "description": "Use this version if you don't have any mod planets installed."
+    },
+    {
+      "index": 1,
+      "namespace_id": "Ord Mantell",
+      "name": "Ord Mantell version",
+      "ini_filename": "changes.ini",
+      "info_filename": "info.rtf",
+      "data_path": "OrdMantell",
+      "description": "Use this version if you have RedHawke's Ord Mantell mod installed."
+    }
+  ],
+  "selected_namespace_id": "Vanilla",
+  "selected_namespace_index": 0,
+  "native_outcome_contract": "native-zero-warnings-changed-game-v1",
+  "admission_scope": "input-and-explicit-choice-only; no component approval or completion",
+  "consumer_gaps": [
+    "actual-full-base-native-outcome-CI-proof",
+    "actual-install-checkpoint-recovery-and-receipt-proof"
+  ]
+}

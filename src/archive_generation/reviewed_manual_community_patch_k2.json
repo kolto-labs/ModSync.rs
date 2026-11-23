@@ -1,0 +1,260 @@
+{
+  "schema": 1,
+  "source_guide_sha256": "f442bdf574031623ed577609730d887069b9bc8e38e8e2f38ecc43a7e7487d5f",
+  "source_plan_sha256": "0add8c1aeb7cdfad3df4b21761e135c150aa7832cf3fc0edabe01a91245a9258",
+  "recipes": [
+    {
+      "component_guid": "216eb8b6-3076-8a92-bd7d-012862b10b32",
+      "source_heading": "### K2CP",
+      "source_component_index": 8,
+      "plan_step_index": 8,
+      "raw_input_component": {
+        "Guid": "216eb8b6-3076-8a92-bd7d-012862b10b32",
+        "Name": "K2 Community Patch",
+        "Author": "Multiple; A Future Pilot, JCarter426 Curates",
+        "Description": "A community bugfix and general improvement patch for KOTOR 2 meant to be a supplement to TSLRCM, fixing bugs that TSLRCM didn't catch or viewed too minor to address; highly recommended.",
+        "Directions": "Remember, warnings during an installation are normal—errors are not.",
+        "Tier": "1 - Essential",
+        "Category": [
+          "Graphics Improvement",
+          "Bugfix"
+        ],
+        "IsSelected": true,
+        "Dependencies": [
+          "bee5a72b-d748-8f83-8261-81758a9bfc56"
+        ],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/1280-kotor-2-community-patch/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DependencyNames": [
+          "TSLRCM"
+        ],
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "216eb8b6-3076-8a92-bd7d-012862b10b32",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "TSLPatcher Mod",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "Heading": "K2CP",
+        "InstallationMethod": "TSLPatcher Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "NO"
+        ],
+        "NameFieldContent": "[K2 Community Patch](https://deadlystream.com/files/file/1280-kotor-2-community-patch/)",
+        "WidescreenOnly": false
+      },
+      "canonical_input_component": {
+        "Guid": "216eb8b6-3076-8a92-bd7d-012862b10b32",
+        "Name": "K2 Community Patch",
+        "Author": "Multiple; A Future Pilot, JCarter426 Curates",
+        "Description": "A community bugfix and general improvement patch for KOTOR 2 meant to be a supplement to TSLRCM, fixing bugs that TSLRCM didn't catch or viewed too minor to address; highly recommended.",
+        "Directions": "Remember, warnings during an installation are normal—errors are not.",
+        "Tier": "1 - Essential",
+        "Category": [
+          "Graphics Improvement",
+          "Bugfix"
+        ],
+        "IsSelected": true,
+        "Dependencies": [
+          "bee5a72b-d748-8f83-8261-81758a9bfc56"
+        ],
+        "Restrictions": [],
+        "InstallBefore": [],
+        "InstallAfter": [],
+        "Instructions": [],
+        "Options": [],
+        "ResourceRegistry": {
+          "https://deadlystream.com/files/file/1280-kotor-2-community-patch/": {
+            "Files": {},
+            "HandlerMetadata": {}
+          }
+        },
+        "DependencyNames": [
+          "TSLRCM"
+        ],
+        "DraftReview": {
+          "RequiresReview": true,
+          "Result": {
+            "ComponentGuid": "216eb8b6-3076-8a92-bd7d-012862b10b32",
+            "DraftInstructionCount": 0,
+            "UnparsedGaps": [
+              "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults."
+            ],
+            "ConditionalDrafts": [],
+            "RejectedDrafts": 0
+          },
+          "MethodContext": {
+            "Method": "TSLPatcher Mod",
+            "MethodTruncated": false,
+            "Kind": "Patcher",
+            "GuideDefaults": {
+              "PreambleStatus": "Inspected",
+              "PatcherDestination": "<<kotorDirectory>>",
+              "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+              "NoOverrideOrModulesSubfolders": true
+            },
+            "ExplicitDirectionsTakePrecedence": true,
+            "ArchiveBinding": "Unresolved"
+          }
+        },
+        "Heading": "K2CP",
+        "InstallationMethod": "TSLPatcher Mod",
+        "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+        "Language": [
+          "NO"
+        ],
+        "NameFieldContent": "[K2 Community Patch](https://deadlystream.com/files/file/1280-kotor-2-community-patch/)",
+        "WidescreenOnly": false
+      },
+      "canonicalization": {
+        "method": "production-guide-loader",
+        "raw_component_sha256": "d2eb255a5e41d3084d13a0034efb86336c5e32e23905c3518fa6b2b704b21b9f",
+        "canonical_component_sha256": "d2eb255a5e41d3084d13a0034efb86336c5e32e23905c3518fa6b2b704b21b9f",
+        "cli_binary_sha256": "8840f5a5585fcd5d9a767fde46dc7cdff60cf631550e1c82a69fb366280caeba",
+        "raw_export_sha256": "2a0d2edc7fd7f365d1b0c718c206bb085c870852a4ab450917e3491443b80e15",
+        "canonical_export_sha256": "3c23c98154f00038825e9e746b884b5937a9e80b2ea03c6a1e5b9ca7f00f6a3e",
+        "source_separator_changes": 0,
+        "root_trailing_separator_changes": 0
+      },
+      "plan_step": {
+        "id": "step-009",
+        "source_heading": "### K2CP",
+        "operations": [
+          {
+            "type": "extract",
+            "source": "{archives}/K2CP_v1.6.3.zip",
+            "destination": "{extract}/step-009/1"
+          },
+          {
+            "type": "gui_patcher",
+            "patcher": "{extract}/step-009/1/INSTALL.exe",
+            "sha256": "1a267454b2efcd61232332be83f4da4ffe88bd6770c5a0df517880062b1a75e8",
+            "argv": [
+              "/usr/bin/wine",
+              "{extract}/step-009/1/INSTALL.exe"
+            ],
+            "cwd": "{extract}/step-009/1",
+            "success_log": "{extract}/step-009/1/installlog.rtf",
+            "success_markers": [
+              "Done. All changes have been applied."
+            ],
+            "failure_regex": [
+              "Error: ",
+              "Warning: ",
+              "Done\\. Some changes may have been applied"
+            ],
+            "expected_changes": "changed_manifest",
+            "wine_registry": [
+              {
+                "key": "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders",
+                "name": "Desktop",
+                "data": "{game_win}"
+              },
+              {
+                "key": "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders",
+                "name": "Desktop",
+                "data": "{game_win}"
+              }
+            ],
+            "actions": [
+              {
+                "wait_window": "^(KOTOR 2 Community Patch)",
+                "timeout": 120
+              },
+              {
+                "sleep": 3
+              },
+              {
+                "click": [
+                  502,
+                  433
+                ],
+                "window": "^(KOTOR 2 Community Patch)"
+              },
+              {
+                "wait_window": "^Browse for Folder$",
+                "timeout": 120
+              },
+              {
+                "sleep": 2
+              },
+              {
+                "click": [
+                  62,
+                  69
+                ],
+                "window": "^Browse for Folder$"
+              },
+              {
+                "sleep": 1
+              },
+              {
+                "click": [
+                  157,
+                  274
+                ],
+                "window": "^Browse for Folder$"
+              },
+              {
+                "wait_log": 600
+              }
+            ]
+          }
+        ]
+      },
+      "archives": [
+        {
+          "filename": "K2CP_v1.6.3.zip",
+          "sha256": "6e734ed7e81ad8169d12870ce9fcf829bd56b88f22e7ea20fb37fcb85b8580c1"
+        }
+      ],
+      "native_patcher": {
+        "operation_index": 1,
+        "extract_operation_index": 0,
+        "installer": {
+          "path": "INSTALL.exe",
+          "bytes": 686080,
+          "sha256": "1a267454b2efcd61232332be83f4da4ffe88bd6770c5a0df517880062b1a75e8"
+        },
+        "changes_ini": {
+          "path": "tslpatchdata/changes.ini",
+          "bytes": 47577,
+          "sha256": "caa72cb34e8180a27e0464cf6e4fae29d9ce8e68417f1efc713b563293629b1d"
+        },
+        "inventory_sha256": "a700eb0c4b5133e6c2828fccbf49a1592ee7f992748019f12fa935ccf930311c",
+        "certificate_sha256": "ff12b3996d65521ef97a89adcaaa1df279305e569027e7c0dfcf805672798b07",
+        "arguments": "changes.ini",
+        "destination": "<<kotorDirectory>>",
+        "success_contract": "native-zero-warnings-changed-game-v1"
+      }
+    }
+  ]
+}

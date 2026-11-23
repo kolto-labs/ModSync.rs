@@ -1,0 +1,206 @@
+{
+  "schema": 1,
+  "policy": "closed-reviewed-source-revision-v1",
+  "revision_id": "sith-uniform-revised-public-7z-231ca858",
+  "game": "k1",
+  "owner_guid": "ed488679-bc04-892d-973b-107511862024",
+  "component_index": 80,
+  "original_guide_sha256": "44067788c6cb7a83b38d468817f273ce5cc901cd5e000c0f9ff65f8af15fc6ed",
+  "original_plan_sha256": "1b402ba085625c4863795069eaacaef0f53e8ea7179e56a5bd150d88eb9c0a74",
+  "original_step": {
+    "id": "step-081",
+    "source_heading": "### Sith Uniform Reformation Revised",
+    "operations": [
+      {
+        "type": "extract",
+        "source": "{archives}/Heyorange_s_Sith Uniform_Reformation_Revised.zip",
+        "destination": "{extract}/step-081/1"
+      },
+      {
+        "type": "delete",
+        "path": "{extract}/step-081/1/installlog.rtf"
+      },
+      {
+        "type": "gui_patcher",
+        "patcher": "{extract}/step-081/1/INSTALL.exe",
+        "sha256": "1a267454b2efcd61232332be83f4da4ffe88bd6770c5a0df517880062b1a75e8",
+        "argv": [
+          "/usr/bin/wine",
+          "{extract}/step-081/1/INSTALL.exe"
+        ],
+        "cwd": "{extract}/step-081/1",
+        "success_log": "{extract}/step-081/1/installlog.rtf",
+        "success_markers": [
+          "Done. All changes have been applied."
+        ],
+        "failure_regex": [
+          "Error: ",
+          "Warning: ",
+          "Done\\. Some changes may have been applied"
+        ],
+        "expected_changes": "changed_manifest",
+        "wine_registry": [
+          {
+            "key": "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders",
+            "name": "Desktop",
+            "data": "{game_win}"
+          },
+          {
+            "key": "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders",
+            "name": "Desktop",
+            "data": "{game_win}"
+          }
+        ],
+        "actions": [
+          {
+            "wait_window": "^TSLPatcher - Select installation type$",
+            "timeout": 120
+          },
+          {
+            "sleep": 2
+          },
+          {
+            "key": [
+              "Down"
+            ],
+            "window": "^TSLPatcher - Select installation type$"
+          },
+          {
+            "sleep": 1
+          },
+          {
+            "click": [
+              248,
+              181
+            ],
+            "window": "^TSLPatcher - Select installation type$"
+          },
+          {
+            "wait_window": "^(Game Data Patcher for KotOR/TSL|Heyorange's Sith Uniform Reformation)",
+            "timeout": 120
+          },
+          {
+            "sleep": 3
+          },
+          {
+            "click": [
+              502,
+              433
+            ],
+            "window": "^(Game Data Patcher for KotOR/TSL|Heyorange's Sith Uniform Reformation)"
+          },
+          {
+            "wait_window": "^Browse for Folder$",
+            "timeout": 120
+          },
+          {
+            "sleep": 2
+          },
+          {
+            "click": [
+              62,
+              69
+            ],
+            "window": "^Browse for Folder$"
+          },
+          {
+            "sleep": 1
+          },
+          {
+            "click": [
+              157,
+              274
+            ],
+            "window": "^Browse for Folder$"
+          },
+          {
+            "wait_log": 600
+          }
+        ]
+      }
+    ]
+  },
+  "original_archive": {
+    "filename": "Heyorange_s_Sith Uniform_Reformation_Revised.zip",
+    "sha256": "0ac82a9a19b137e58d3ed2f3fcc28e2beab40dce09214f852d520b9f90577ab3"
+  },
+  "revision_archive": {
+    "filename": "Heyorange_s_Sith Uniform_Reformation_Revised.7z",
+    "publisher_filename": "Heyorange's_Sith Uniform_Reformation_Revised.7z",
+    "sha256": "231ca858a5c354c3a76f8408b06256376930bcc999e8967491b1bc750547abe0",
+    "bytes": 139261662
+  },
+  "publisher_download": {
+    "source_id": "6e60e499b93a1193627759acaac41143d1d7fa2b860b7ed23466c8b90140c434",
+    "source_url": "https://deadlystream.com/files/file/2808-heyoranges-sith-uniform-reformation-revised/",
+    "receipt_sha256": "eb0c4cf0d28d32e521bd57ab647ccf28e7fdececb66611f6e93ec4bf7634eccd",
+    "checked_at_unix": 1794758957.406005,
+    "version_metadata": "External version/ETag/LastModified not recorded; no inferred version number"
+  },
+  "installer": {
+    "path": "INSTALL.exe",
+    "kind": "file",
+    "bytes": 686080,
+    "crc32": "e13eb4b2",
+    "sha256": "1a267454b2efcd61232332be83f4da4ffe88bd6770c5a0df517880062b1a75e8"
+  },
+  "selected_ini": {
+    "path": "tslpatchdata/k1cp.ini",
+    "kind": "file",
+    "bytes": 18246,
+    "crc32": "b0366239",
+    "sha256": "51fd2182fa36dc08bbd2f0a9a1dea9ecbe6f52e5d1c61ac95d6e7eb7e7a2890b"
+  },
+  "namespaces": {
+    "path": "tslpatchdata/namespaces.ini",
+    "kind": "file",
+    "bytes": 1151,
+    "crc32": "79454dc7",
+    "sha256": "b3a5f25126ebca4171bddeee5d50c301d880b73346f9ad4de020865b38c10d85"
+  },
+  "author_info": {
+    "path": "tslpatchdata/k1cp.rtf",
+    "kind": "file",
+    "bytes": 38372,
+    "crc32": "2883fdd3",
+    "sha256": "04ad350cd6093d803a615b8b1cb5943872b618336ac3bdbcab11c2805a6299fa"
+  },
+  "selected_namespace": {
+    "index": 1,
+    "key": "Namespace2",
+    "id": "k1cp",
+    "ini_name": "k1cp.ini",
+    "data_path": "",
+    "name": "KOTOR Community Patch-Compatible Installation"
+  },
+  "guide_choice_basis": "Original guide directs Community Patch-compatible installation; original plan presses Down once in namespace selector; current pinned map names namespace1 k1cp explicitly. Alternate basic/korriban/k1r choices remain unselected.",
+  "bounded_inventory": {
+    "members": 110,
+    "files": 109,
+    "expanded_bytes": 542155537,
+    "maximum_member_bytes": 16496721,
+    "ordinary_member_ceiling": 134217728,
+    "source_specific_expansion_limit": 542155537
+  },
+  "certificate_sha256": "7e0f5c921dc374c255e095c4f2cec4aa81303992df9a8d164dc19003097d8ec0",
+  "configuration_contract": {
+    "game": "K1",
+    "disabled_lookup_game_hint": "LookupGameFolder=0 with authored LookupGameNumber=2; actual destination remains typed K1",
+    "compiler_required": false,
+    "install_groups": {
+      "install_folder0": "modules",
+      "install_folder1": "override"
+    },
+    "gff_count": 29,
+    "native_outcome": "native-zero-warnings-changed-game-v1",
+    "inactive_sections": "Nine exact unreachable authored sections in k1cp; three of them also occur in initial basic INI. An unused Equip_ItemList root has dangling AddField references; exclude only proved unreachable nodes from graph resource analysis, preserve all raw INI and active native operations."
+  },
+  "boundary": "Current public7z revision is distinct from originalzip; full original owner/plan retained, selected native configuration independently derived from fresh whole-hash authenticated decoded bytes; no publisher-executable or game equivalence claim.",
+  "initial_ini": {
+    "path": "tslpatchdata/changes.ini",
+    "kind": "file",
+    "bytes": 18208,
+    "crc32": "46bde5dc",
+    "sha256": "59c0f6d55a88defad5ede8e3b7df715f41bdd26cfc3df870e6ebf6f6b4ef22b4"
+  }
+}

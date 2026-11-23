@@ -17,7 +17,10 @@ pub(crate) struct ValueBudget {
 }
 
 const MAX_LOGICAL_BYTES: usize = 8 * 1024 * 1024;
-const MAX_NODES: usize = 100_000;
+// A complete guide includes thousands of instructions and their verified source
+// records. Keep a global work bound while the independent 8 MiB logical-byte
+// and 128-level depth bounds still apply before serializer allocation.
+const MAX_NODES: usize = 1_000_000;
 const MAX_DEPTH: usize = 128;
 
 impl ValueBudget {
@@ -49,7 +52,7 @@ impl ValueBudget {
             .ok_or_else(|| anyhow::anyhow!("Guide document node count overflow"))?;
         ensure!(
             self.nodes <= MAX_NODES,
-            "Guide document exceeds 100,000 nodes across this save"
+            "Guide document exceeds 1,000,000 nodes across this save"
         );
         Ok(())
     }

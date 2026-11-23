@@ -1,0 +1,112 @@
+{
+  "repository": "https://github.com/kolto-labs/odynsscomp",
+  "upstream_commit": "00c53a90ba1c2ed9085f896e37d0c053b4fecc52",
+  "crate": "bionsscomp",
+  "policy_version": 2,
+  "reviewed_manifest_sha256": "c488c91f7935311ac8b7da4f9efee515ceeec970929a9cfa5bad474484c32209",
+  "vendored_manifest_sha256": "defef58ccd4fb80f40f74ea22a71e910434a64d1ad0969599e5914a1b43a5240",
+  "source_files": [
+    {
+      "path": "src/ast.rs",
+      "upstream_sha256": "9c9affd8eb326db8774bfe5c7d79a5100a1d387a2c4ad25d11a1c56ba0237ad8",
+      "reviewed_sha256": "e0f4bae06a912193bec1afbd5ed6a67bd466cc83d3902b714589d29b7c56d75a",
+      "vendored_sha256": "5470d976afd133396943490585c9b6dd96485782a49388b608392f0275eb53a9",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/budget.rs",
+      "upstream_sha256": null,
+      "reviewed_sha256": "4388d785723be8e955f70c7a1f0b1998589d138e9760cdaa3bde99e031e6b091",
+      "vendored_sha256": "4388d785723be8e955f70c7a1f0b1998589d138e9760cdaa3bde99e031e6b091",
+      "omitted_trailing_test_modules": 0
+    },
+    {
+      "path": "src/codegen.rs",
+      "upstream_sha256": "27a53ec0bec2da506977abaccd3cc7c7ed193f4bd257ab4785ca78fe59a50a3e",
+      "reviewed_sha256": "3e4d9cc05683dfd1d02a254c4d6000f67633b6f039e0c0d3ff84187bce38f37f",
+      "vendored_sha256": "06586529238dd922ad0f522a46a19379dbcdde314793d3d29e576fa44b83513c",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/error.rs",
+      "upstream_sha256": "82f0b14f09bc18c4c288d724a7933b0d0ad0b579b35a08fe8720fca7a3707677",
+      "reviewed_sha256": "5e3b6e9d6677b00ec66a111c30e81c2f53a8c8ee44b27074f342931dce9e9900",
+      "vendored_sha256": "2d07aea1b1fe2bedf194c7899f44be14ca67427d678f6571678f354f3f8eb629",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/lexer.rs",
+      "upstream_sha256": "c7fb4a9c90c19f7765d738280bc98f6c83c08161032775d2ba18ea59d7bc56ba",
+      "reviewed_sha256": "c8f3b05b3787f9792b345d099f3cefd46cd4a55156bb7bde4d590d273cf62892",
+      "vendored_sha256": "97dff07e462c81d9b4d1d9f1f2df913729a3c3fdbc0b655092f32f965b0248a6",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/lib.rs",
+      "upstream_sha256": "d40620f2abffd2d38d88367801c319627d82caafd8006629d89530ade1b1412e",
+      "reviewed_sha256": "4243517b060a1dc53c15aa450ed17051a4c4e6be7c7acda484b1a3264a41effd",
+      "vendored_sha256": "988b55fe47fd2c900b02a957ff1aa2aea852c304d9ece2eaf808ce8ad5bace5c",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/ncs.rs",
+      "upstream_sha256": "2a3b9970228372c95352e32ad37aec3ec0c43034cea5e8e9e61b01a747505dbe",
+      "reviewed_sha256": "03462962ee2085d9f249dbbd1867de595c59f7a724646fe5cbfaa0bf2dadc9c7",
+      "vendored_sha256": "771c07b8ca481f119175672e7e86a143b003a237321211899f04743fa2b35b26",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/nwscript.rs",
+      "upstream_sha256": "f82ca9acddfdc5f0ab5375f70365944423343e07d706b432b485d04607a5dda9",
+      "reviewed_sha256": "54c05a06e3bf0fd5078bce7850ebd845b97ccf2f9fc116d05faaac957a510192",
+      "vendored_sha256": "f5460fa1f6bac969e4a6dfaf3fdc65088e301e3d9f7450a9b4cc9a735d330453",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/parser.rs",
+      "upstream_sha256": "4b43ea20a857674c1cf9c9ac627729f1f611e0be9ac2167ba89a149dbc3c8bd5",
+      "reviewed_sha256": "b091791e0229586ddfb2fd5033f88a849390ec6df7e77a33e781d4d0f0ba7c66",
+      "vendored_sha256": "189a731efec2194496c679412a0e9a9f00657ac2fadc4efda3f6727a91bfb3bf",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/preprocessor.rs",
+      "upstream_sha256": "48f59828c62b2eea2abaffe2523edafb4ec38c69256abffaf4e858fde9241792",
+      "reviewed_sha256": "aba1951bf8d3b1d953291bd37f7c3c9488f21fa324bc953350869b20de401639",
+      "vendored_sha256": "6b3daa38defe732d099296f60d1a0d3b8804c2d01064870bd48c133176eb679e",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/sema.rs",
+      "upstream_sha256": "a973b35b6ed581bcf1ced650c6ef734bd8d33be3a8c37d76a6d67678ef4da2bd",
+      "reviewed_sha256": "9e086c93f0cfdd863172672e10e8009c8a1fe6613b019dc83cd7808348125b4a",
+      "vendored_sha256": "9cf3451c3cdf23b915e18fe5073f0a23171392308e4b06910c8cad359d6b8d45",
+      "omitted_trailing_test_modules": 1,
+      "production_eof_whitespace_normalized": true
+    },
+    {
+      "path": "src/virtual_compile.rs",
+      "upstream_sha256": null,
+      "reviewed_sha256": "9221865dda22d239b2bb425b59f535c9017bae020a94fd067cd1c3c9ae1b7f95",
+      "vendored_sha256": "9221865dda22d239b2bb425b59f535c9017bae020a94fd067cd1c3c9ae1b7f95",
+      "omitted_trailing_test_modules": 0
+    }
+  ],
+  "license_files": {
+    "LICENSE": "8486a10c4393cee1c25392769ddd3b2d6c242d6ec7928e1414efff7dfb2f07ef",
+    "NOTICE": "6073cdb81fcbad9bbda430cb9aab9af94342ca089584bc05653f009eb5d94d7b"
+  },
+  "production_formatting": "Rustfmt edition 2021 after trailing cfg(test) module omission; formatting changes from the stripped production prefix are trailing EOF whitespace only.",
+  "policy_v2_source_bound_basis": "Original pinned K1 source/include members are 100960 and 99789 bytes; per-member 128 KiB with unchanged 1 MiB total namespace. Expression segments allow 192 tokens; recursion remains 256. Other token, AST, work and output ceilings are unchanged.",
+  "parser_recursion_fix": "Precedence climbing replaces descent through every unused binary level; max_recursion remains 256. Production CLI accepts all seven original K1 Bastila sources with representative numeric substitutions; five earlier successful outputs retain identical NCS hashes. No original compiler or game equivalence claim.",
+  "manifest_eof_whitespace_normalized": true
+}

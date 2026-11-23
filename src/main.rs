@@ -3,6 +3,7 @@ mod cli_acquisition;
 mod cli_compat;
 mod cli_session;
 mod easy_cli;
+mod execute_runner_cli;
 mod maintenance_cli;
 mod profile_cli;
 mod protocol_cli;
@@ -60,6 +61,20 @@ enum Action {
     Maintenance(maintenance_cli::MaintenanceArgs),
     /// Open the desktop installer (also the default with no command).
     Gui {
+        /// Stream full desktop installation and validation events to stderr.
+        #[arg(long)]
+        stream_output: bool,
+        /// Retain verified component boundaries for desktop installation.
+        #[arg(long)]
+        component_checkpoints: bool,
+        /// Select the patcher for this desktop invocation.
+        #[arg(long, value_enum)]
+        patcher_engine: Option<PatcherEngineArg>,
+        /// Explicit executable for the selected desktop patcher.
+        #[arg(long, requires = "patcher_engine")]
+        patcher: Option<PathBuf>,
+        #[command(flatten)]
+        execute_runner: execute_runner_cli::ExecuteRunnerArgs,
         #[arg(long)]
         settings_dir: Option<PathBuf>,
         #[arg(long)]
@@ -308,6 +323,9 @@ enum Action {
         #[arg(long)]
         exclude_incoming_only: bool,
     },
+    /// Print the selected execution order and shared base/remaining phase plan.
+    /// Reads only the supplied guide; never validates or installs game content.
+    PhasePlan { input: PathBuf },
     /// Print the resolved selection without downloading or installing.
     Selection(SelectionArgs),
     /// Simulate instructions without changing the game or mod directory.
@@ -352,6 +370,9 @@ enum Action {
         /// Draft instructions from prose; generated steps require review before installation.
         #[arg(long)]
         parse_directions: bool,
+        /// Omit empty instruction defaults from TOML, preserving their complete loaded model.
+        #[arg(long)]
+        compact_instruction_defaults: bool,
         /// Mark a component's displayed drafts reviewed (GUID; repeat for multiple components).
         #[arg(long)]
         review_draft: Vec<String>,
@@ -674,6 +695,18 @@ struct ConversionProcessing {
     download: bool,
     #[arg(long)]
     source_path: Option<PathBuf>,
+    /// Bind the pinned K1 widescreen profile to its three original guide owners.
+    #[arg(long, requires_all = ["source_path", "k1_source_guide", "k1_galaxy_namespace"])]
+    k1_widescreen_profile: Option<String>,
+    /// Explicit source-derived Steam 3C-FD preparation before the complete K2 ModList.
+    #[arg(long, value_parser = ["steam-windows-source-3cfd-v1"])]
+    k2_preparation_profile: Option<String>,
+    /// Original pinned K1 Markdown guide used to reconstruct complete source context.
+    #[arg(long, requires = "k1_widescreen_profile")]
+    k1_source_guide: Option<PathBuf>,
+    /// Explicit Galaxy Map Fix Pack namespace; this fixed profile admits Vanilla.
+    #[arg(long, requires = "k1_widescreen_profile", value_parser = ["Vanilla"])]
+    k1_galaxy_namespace: Option<String>,
     /// JSON object mapping guide link URLs to archive filename(s) in --source-path; mapped links bypass filename matching in --auto-generate-local.
     #[arg(long, requires = "source_path")]
     archive_map: Option<PathBuf>,
@@ -697,6 +730,8 @@ enum ValidationOutput {
 
 #[derive(Args)]
 struct InstallArgs {
+    #[command(flatten)]
+    execute_runner: execute_runner_cli::ExecuteRunnerArgs,
     /// Write SHA-256 inventories at each reached instruction to a fresh directory.
     #[arg(long)]
     filesystem_trace: Option<PathBuf>,
@@ -802,7 +837,7 @@ struct InstallArgs {
         visible_alias = "odypatcher-path"
     )]
     patcher: Option<PathBuf>,
-    /// Patcher backend (saved preference, otherwise linked OdyPatcher).
+    /// Patcher backend (saved preference, otherwise linked OdyPatcher); mod-packaged runs each authenticated shipped installer GUI.
     #[arg(long, value_enum, ignore_case = true)]
     patcher_engine: Option<PatcherEngineArg>,
     /// Existing scratch folder outside the game and mod trees (defaults to system temp).
@@ -1113,6 +1148,7 @@ fn validate_without_roots(
         (args.non_interactive, "--non-interactive"),
         (args.direct_markdown, "--direct-markdown"),
         (args.allow_processes, "--allow-processes"),
+        (args.execute_runner.is_configured(), "--execute-request-dir"),
         (args.patcher.is_some(), "--patcher"),
         (args.patcher_engine.is_some(), "--patcher-engine"),
         (args.scratch_dir.is_some(), "--scratch-dir"),
@@ -1202,6 +1238,8 @@ enum PatcherEngineArg {
     K,
     #[value(name = "holo-patcher", alias = "Holopatcher", alias = "holopatcher")]
     Holo,
+    #[value(name = "mod-packaged", alias = "ModPackaged")]
+    ModPackaged,
 }
 impl From<PatcherEngineArg> for PatcherEngine {
     fn from(value: PatcherEngineArg) -> Self {
@@ -1209,6 +1247,7 @@ impl From<PatcherEngineArg> for PatcherEngine {
             PatcherEngineArg::Ody => Self::OdyPatcher,
             PatcherEngineArg::K => Self::KPatcher,
             PatcherEngineArg::Holo => Self::HoloPatcher,
+            PatcherEngineArg::ModPackaged => Self::ModPackaged,
         }
     }
 }
@@ -1301,6 +1340,26 @@ fn process_conversion_inner(
     input: Option<&std::path::Path>,
     cancelled: &std::sync::Arc<std::sync::atomic::AtomicBool>,
 ) -> Result<()> {
+    if let Some(profile) = &options.k1_widescreen_profile {
+        modsync::k1_widescreen_recipe::bind_guide(
+            guide,
+            profile,
+            options
+                .k1_galaxy_namespace
+                .as_deref()
+                .context("K1 namespace required")?,
+            options
+                .k1_source_guide
+                .as_deref()
+                .context("K1 source guide required")?,
+            options
+                .source_path
+                .as_deref()
+                .context("K1 source archives required")?,
+            &modsync::archive::Options::default(),
+            cancelled,
+        )?;
+    }
     if let Some(path) = &options.spoiler_free {
         let text = modsync::editor::read_document(path)?;
         let overlay = modsync::spoiler::apply_markdown(guide, &text)?;
@@ -1382,9 +1441,23 @@ fn process_conversion_inner(
         conversion_cancelled(cancelled)?;
         let resolved = load_resolved_archives(path, guide)?;
         modsync::draft::generate_method_contexts(guide);
-        let reports = modsync::archive_generation::resolved::generate(
+        let files: Vec<_> = resolved
+            .iter()
+            .map(|request| request.files.clone())
+            .collect();
+        let vendor_languages = resolved
+            .iter()
+            .filter_map(|request| {
+                request
+                    .vendor_language
+                    .as_ref()
+                    .map(|language| (request.component_guid.clone(), language.clone()))
+            })
+            .collect();
+        let reports = modsync::archive_generation::resolved::generate_with_vendor_languages(
             guide,
-            &resolved,
+            &files,
+            &vendor_languages,
             options.source_path.as_deref(),
             &modsync::archive::Options::default(),
             cancelled,
@@ -1420,6 +1493,9 @@ fn process_conversion_inner(
             eprintln!("Warning: {warning}");
         }
     }
+    if let Some(profile) = &options.k2_preparation_profile {
+        modsync::k2_preparation::bind_guide(guide, profile)?;
+    }
     conversion_cancelled(cancelled)?;
     Ok(())
 }
@@ -1427,7 +1503,7 @@ fn process_conversion_inner(
 fn load_resolved_archives(
     path: &std::path::Path,
     guide: &Guide,
-) -> Result<Vec<modsync::archive_generation::resolved::ResolvedFiles>> {
+) -> Result<Vec<modsync::archive_generation::resolved::ResolvedRequest>> {
     use anyhow::ensure;
     use std::collections::BTreeSet;
 
@@ -1445,7 +1521,7 @@ fn load_resolved_archives(
         bytes.len() <= 8 * 1024 * 1024,
         "Resolved archive input exceeds 8 MiB"
     );
-    let resolved: Vec<modsync::archive_generation::resolved::ResolvedFiles> =
+    let resolved: Vec<modsync::archive_generation::resolved::ResolvedRequest> =
         serde_json::from_slice(&bytes)?;
     ensure!(
         !resolved.is_empty() && resolved.len() <= 4096,
@@ -1475,6 +1551,11 @@ fn load_resolved_archives(
         total_files = total_files
             .checked_add(binding.filenames.len())
             .context("Resolved archive filename count overflow")?;
+        let reviewed_vendor = binding.vendor_language.as_deref() == Some("english")
+            && binding.component_guid == modsync::vendor_installer::GUID
+            && binding.filenames == [modsync::vendor_installer::FILENAME]
+            && binding.sha256.as_deref() == Some(modsync::vendor_installer::SHA256)
+            && binding.size_bytes == Some(modsync::vendor_installer::SIZE);
         for filename in &binding.filenames {
             ensure!(
                 !filename.is_empty()
@@ -1488,14 +1569,19 @@ fn load_resolved_archives(
                 "Resolved archive filename must be a safe literal basename"
             );
             ensure!(
-                matches!(
-                    std::path::Path::new(filename)
-                        .extension()
-                        .and_then(|extension| extension.to_str())
-                        .map(str::to_ascii_lowercase)
-                        .as_deref(),
-                    Some("zip" | "7z" | "rar")
-                ),
+                reviewed_vendor
+                    || modsync::archive_generation::reviewed_manual::allows_raw_input(
+                        &binding.component_guid,
+                        filename,
+                    )?
+                    || matches!(
+                        std::path::Path::new(filename)
+                            .extension()
+                            .and_then(|extension| extension.to_str())
+                            .map(str::to_ascii_lowercase)
+                            .as_deref(),
+                        Some("zip" | "7z" | "rar")
+                    ),
                 "Resolved archive filename must name a ZIP, 7z, or RAR archive"
             );
             total_name_bytes = total_name_bytes
@@ -1623,6 +1709,11 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             GuiInvocation::default(),
         ),
         Some(Action::Gui {
+            stream_output,
+            component_checkpoints,
+            patcher_engine,
+            patcher,
+            execute_runner,
             settings_dir,
             input,
             game_dir,
@@ -1641,6 +1732,10 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             protocol,
             allow_multiple_instances,
             GuiInvocation {
+                stream_output,
+                component_checkpoints,
+                patcher_override: patcher_engine.map(|engine| (engine.into(), patcher)),
+                execute_runner: execute_runner.build()?,
                 easy_session,
                 probe: GuiProbe {
                     nexus_mods_api_key,
@@ -2471,6 +2566,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             output_path,
             stdin,
             format,
+            compact_instruction_defaults,
             parse_directions,
             review_draft,
             review_verified_drafts,
@@ -2535,7 +2631,8 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             }
             let format = format.as_deref().unwrap_or("toml");
             conversion_cancelled(&cancelled)?;
-            let text = guide.render(format)?;
+            let text = guide
+                .render_with_compact_instruction_defaults(format, compact_instruction_defaults)?;
             conversion_cancelled(&cancelled)?;
             if let Some(path) = output_path.as_ref().or(output.as_ref()) {
                 if processing.download
@@ -3144,6 +3241,52 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
             );
             Ok(())
         }
+        Some(Action::PhasePlan { input }) => {
+            use modsync::phase::{Phase, component_phase};
+            let mut guide = load_validation_guide(&input, true)?;
+            guide.ordering.widescreen_last = true;
+            let ordered = guide.ordered()?;
+            let execution_order: Vec<_> = ordered
+                .iter()
+                .map(|component| component.guid.as_str())
+                .collect();
+            let base: Vec<_> = ordered
+                .iter()
+                .filter(|component| component_phase(component) == Phase::Base)
+                .map(|component| component.guid.as_str())
+                .collect();
+            let remaining: Vec<_> = ordered
+                .iter()
+                .filter(|component| component_phase(component) == Phase::Remaining)
+                .map(|component| component.guid.as_str())
+                .collect();
+            ensure!(
+                execution_order
+                    .iter()
+                    .copied()
+                    .eq(base.iter().chain(&remaining).copied()),
+                "Selected execution order cannot be represented by Base then Remaining phases"
+            );
+            let base_all: Vec<_> = guide
+                .components
+                .iter()
+                .filter(|component| component_phase(component) == Phase::Base)
+                .map(|component| component.guid.as_str())
+                .collect();
+            let remaining_all: Vec<_> = guide
+                .components
+                .iter()
+                .filter(|component| component_phase(component) == Phase::Remaining)
+                .map(|component| component.guid.as_str())
+                .collect();
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&serde_json::json!({"schema_version":1,
+                "execution_order":execution_order,"base":base,"remaining":remaining,
+                "base_all":base_all,"remaining_all":remaining_all,"installed":false}))?
+            );
+            Ok(())
+        }
         Some(Action::Selection(args)) => {
             use modsync::selection;
             let mut guide = Guide::load_for_install_preserving_selection(&args.input)?;
@@ -3496,6 +3639,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                     } else {
                         let mut settings = Settings::new(&paths.source, &paths.game)?;
                         settings.cancelled = dispatch_cancelled.clone();
+                        settings.execute_runner = args.execute_runner.build()?;
                         settings.archive.scratch_dir = args.scratch_dir.clone();
                         settings.archive.max_expanded_bytes = args.max_expanded_bytes;
                         Some(Engine::new_with_case_insensitive_pathing(
@@ -3596,6 +3740,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                     "Supplied installer configuration requires install"
                 );
                 settings.allow_processes = args.allow_processes;
+                settings.execute_runner = args.execute_runner.build()?;
                 settings.patcher = args.patcher.or_else(|| {
                     patcher_preferences
                         .filter(|preferences| preferences.engine == patcher_engine)
@@ -3666,7 +3811,8 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                         return present_validation_report(&report, args.errors_only, report_mode);
                     }
                 }
-                .with_component_checkpoints(component_checkpoints);
+                .with_component_checkpoints(component_checkpoints)
+                .with_checkpoint_history_forbidden(args.no_checkpoint);
                 if args.managed {
                     let deployment = modsync::deployment::Service::resolve_readonly(
                         &paths.game,
@@ -3762,7 +3908,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                     } else {
                         engine.install_observed_report(&guide, emit, progress)?
                     };
-                    if args.managed || component_checkpoints {
+                    if report.managed.is_some() || report.checkpoint.is_some() {
                         if args.json || args.install_progress_json {
                             println!(
                                 "{}",
@@ -3855,6 +4001,10 @@ struct GuiProbe {
 
 #[derive(Default)]
 struct GuiInvocation {
+    stream_output: bool,
+    component_checkpoints: bool,
+    patcher_override: Option<(PatcherEngine, Option<PathBuf>)>,
+    execute_runner: Option<modsync::engine::ProvidedInstallerRunner>,
     probe: GuiProbe,
     easy_session: Option<PathBuf>,
 }
@@ -3869,6 +4019,10 @@ fn gui(
     invocation: GuiInvocation,
 ) -> Result<()> {
     let GuiInvocation {
+        stream_output,
+        component_checkpoints,
+        patcher_override,
+        execute_runner,
         probe,
         easy_session,
     } = invocation;
@@ -3890,6 +4044,10 @@ fn gui(
             protocol,
             allow_multiple_instances,
             ui::LaunchContext {
+                stream_output,
+                component_checkpoints,
+                patcher_override,
+                execute_runner,
                 probe,
                 easy_session,
             },
@@ -3904,6 +4062,10 @@ fn gui(
             settings_dir,
             protocol,
             allow_multiple_instances,
+            stream_output,
+            component_checkpoints,
+            patcher_override,
+            execute_runner,
             probe.nexus_mods_api_key,
             probe.nexus_api_base,
             probe.extra_ca_file,

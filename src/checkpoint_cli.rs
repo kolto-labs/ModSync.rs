@@ -111,6 +111,17 @@ enum Action {
         #[arg(long)]
         session: String,
     },
+    /// Export verified finalized lineage, hashing each distinct content object once.
+    ExportHistory {
+        #[command(flatten)]
+        roots: RootArgs,
+        #[arg(long)]
+        session: String,
+        #[arg(long)]
+        checkpoint: String,
+        #[arg(long)]
+        output_dir: PathBuf,
+    },
     /// Verify checkpoint metadata and every referenced content object.
     Verify {
         #[command(flatten)]
@@ -233,6 +244,16 @@ impl CheckpointArgs {
         let mut incomplete_repair = false;
         let result = (|| -> Result<serde_json::Value> {
             Ok(match self.action {
+                Action::ExportHistory {
+                    roots,
+                    session,
+                    checkpoint,
+                    output_dir,
+                } => {
+                    roots
+                        .store()?
+                        .export_history(&session, &checkpoint, &output_dir, &cancelled)?
+                }
                 Action::DeleteSession { roots, session } => {
                     let bound = roots.roots()?;
                     let store = Store::open(&bound)?;

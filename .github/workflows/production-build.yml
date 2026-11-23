@@ -1,0 +1,86 @@
+name: Exact-head production application builds
+on:
+  workflow_call:
+    inputs:
+      feature_sha: {type: string, required: true}
+      modes: {type: string, default: '["cli","gui"]'}
+    secrets:
+      CACHE_ENCRYPTION_KEY: {required: true}
+  workflow_dispatch:
+    inputs:
+      feature_sha:
+        description: Exact current workflow commit (40 lowercase hex characters)
+        required: true
+        type: string
+permissions: {contents: read, actions: read}
+concurrency:
+  group: production-build-${{ github.repository }}-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  production:
+    name: production-${{ matrix.mode }}
+    if: github.repository == 'kolto-labs/ModSync.rs'
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: ${{ fromJSON(inputs.modes || '["cli","gui"]') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    steps:
+      - name: Admit exact owned head
+        env:
+          FEATURE_SHA: ${{ inputs.feature_sha || github.sha }}
+          DISPATCH_SHA: ${{ inputs.feature_sha }}
+        run: |
+          [[ "$FEATURE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          source_sha="$GITHUB_SHA"
+          if [[ "$GITHUB_EVENT_NAME" == pull_request ]]; then
+            source_sha=$(python -c 'import json,os; p=json.load(open(os.environ["GITHUB_EVENT_PATH"])); assert p["pull_request"]["head"]["repo"]["full_name"]==os.environ["GITHUB_REPOSITORY"]; print(p["pull_request"]["head"]["sha"])')
+          fi
+          test "$FEATURE_SHA" = "$source_sha"
+          if [[ "$GITHUB_WORKFLOW_REF" == */production-build.yml@* ]]; then
+            test "$GITHUB_WORKFLOW_SHA" = "$GITHUB_SHA"
+            test "$DISPATCH_SHA" = "$GITHUB_SHA"
+          fi
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ inputs.feature_sha || github.sha }}
+          persist-credentials: false
+      - name: Prepare production toolchain and native libraries
+        timeout-minutes: 15
+        run: |
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=60 update -qq
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=60 install -y --no-install-recommends openssl pkg-config libssl-dev libxkbcommon-x11-dev libx11-dev libxcursor-dev libxrandr-dev libxi-dev libgl1-mesa-dev libwayland-dev
+          rustup toolchain install 1.95.0 --profile minimal
+      - name: Build once with clean environment and record exact compiled inputs
+        id: build
+        timeout-minutes: 40
+        env:
+          MODE: ${{ matrix.mode }}
+        run: |
+          umask 077
+          env -i PATH="$PATH" HOME="$HOME" \
+            GITHUB_REPOSITORY="$GITHUB_REPOSITORY" GITHUB_REPOSITORY_ID="$GITHUB_REPOSITORY_ID" \
+            GITHUB_REPOSITORY_OWNER_ID="$GITHUB_REPOSITORY_OWNER_ID" GITHUB_REF="$GITHUB_REF" GITHUB_SHA="$GITHUB_SHA" \
+            GITHUB_RUN_ID="$GITHUB_RUN_ID" GITHUB_RUN_ATTEMPT="$GITHUB_RUN_ATTEMPT" GITHUB_JOB="$GITHUB_JOB" \
+            GITHUB_WORKFLOW_REF="$GITHUB_WORKFLOW_REF" GITHUB_WORKFLOW_SHA="$GITHUB_WORKFLOW_SHA" \
+            GITHUB_EVENT_NAME="$GITHUB_EVENT_NAME" GITHUB_OUTPUT="$GITHUB_OUTPUT" \
+            GITHUB_EVENT_PATH="$GITHUB_EVENT_PATH" \
+            python tools/modsync-ci/production_build.py produce --mode "$MODE" --output "$RUNNER_TEMP/production-publish"
+      - name: Seal only application binary and provenance after credential-free build
+        env:
+          CACHE_ENCRYPTION_KEY: ${{ secrets.CACHE_ENCRYPTION_KEY }}
+          MODE: ${{ matrix.mode }}
+        run: |
+          umask 077
+          python tools/modsync-ci/production_build.py seal --mode "$MODE" --input "$RUNNER_TEMP/production-publish" --output "$RUNNER_TEMP/production-encrypted"
+      - name: Publish encrypted application bundle and nonsecret outer metadata only
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ${{ steps.build.outputs.artifact_name }}
+          path: |
+            ${{ runner.temp }}/production-encrypted/production.seal
+            ${{ runner.temp }}/production-encrypted/build-provenance.json
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7

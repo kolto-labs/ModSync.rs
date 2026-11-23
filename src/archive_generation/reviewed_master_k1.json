@@ -1,0 +1,213 @@
+{
+  "schema": 1,
+  "policy": "k1-npc-clothing-exact-community-patch-master-v1",
+  "source_guide_sha256": "44067788c6cb7a83b38d468817f273ce5cc901cd5e000c0f9ff65f8af15fc6ed",
+  "source_plan_sha256": "1b402ba085625c4863795069eaacaef0f53e8ea7179e56a5bd150d88eb9c0a74",
+  "legacy_book_sha256": "b04b7331b5001f81698feb5571460ea9e2e486d032956abb22967d704254c338",
+  "owner_guid": "f966fc1f-6b47-88fc-9050-07b1371eb56a",
+  "owner_source_index": 46,
+  "owner_step": "step-047",
+  "original_unresolved_masters": [
+    "K1 Community Patch"
+  ],
+  "original_dependencies": [],
+  "owner_original": {
+    "Guid": "f966fc1f-6b47-88fc-9050-07b1371eb56a",
+    "Name": "NPC Clothing M",
+    "Author": "Dark Hope",
+    "Description": "Continuing her tradition of naming things as unhelpfully as possible, this is a clothing pack for male commoners by Dark Hope. To those put off by the default changes to N_CommM07 and N_CommM08, don't worry, we don't use the ones that alter the base design.",
+    "Directions": "Delete n_commm07.tga and N_CommMD01.tga. Delete N_CommM08.tga, then make a copy of N_CommM0801 and paste it in the same directory. This should create a duplicate file; rename that duplicate file to \"N_CommM08.tga\" and then move all files to override.",
+    "Tier": "2 - Recommended",
+    "Category": [
+      "Graphics Improvement"
+    ],
+    "IsSelected": true,
+    "Dependencies": [],
+    "Restrictions": [],
+    "InstallBefore": [],
+    "InstallAfter": [],
+    "Instructions": [
+      {
+        "Action": "Delete",
+        "Source": [
+          "<<modDirectory>>/n_commm07.tga",
+          "<<modDirectory>>/N_CommMD01.tga"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": false,
+        "Dependencies": [],
+        "Restrictions": []
+      },
+      {
+        "Action": "Delete",
+        "Source": [
+          "<<modDirectory>>/N_CommM08.tga"
+        ],
+        "Destination": "",
+        "Arguments": "",
+        "Overwrite": false,
+        "Dependencies": [],
+        "Restrictions": []
+      },
+      {
+        "Action": "Move",
+        "Source": [
+          "<<modDirectory>>/o/*"
+        ],
+        "Destination": "<<kotorDirectory>>\\Override",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      },
+      {
+        "Action": "Move",
+        "Source": [
+          "<<modDirectory>>/a/*"
+        ],
+        "Destination": "<<kotorDirectory>>\\Override",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "ResourceRegistry": {
+      "https://deadlystream.com/files/file/2516-npc-clothing-m/": {
+        "Files": {},
+        "HandlerMetadata": {}
+      }
+    },
+    "DownloadInstructions": "Ignore the txi.rar file.",
+    "DraftReview": {
+      "RequiresReview": true,
+      "Result": {
+        "ComponentGuid": "f966fc1f-6b47-88fc-9050-07b1371eb56a",
+        "DraftInstructionCount": 4,
+        "UnparsedGaps": [
+          "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults.",
+          "rename that duplicate file to \"N_CommM08.tga\" and"
+        ],
+        "ConditionalDrafts": [],
+        "RejectedDrafts": 0
+      },
+      "MethodContext": {
+        "Method": "Loose-File Mod",
+        "MethodTruncated": false,
+        "Kind": "LooseFile",
+        "GuideDefaults": {
+          "PreambleStatus": "Inspected",
+          "PatcherDestination": "<<kotorDirectory>>",
+          "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+          "NoOverrideOrModulesSubfolders": true
+        },
+        "ExplicitDirectionsTakePrecedence": true,
+        "ArchiveBinding": "Unresolved"
+      }
+    },
+    "Heading": "Male NPC Clothing",
+    "InstallationMethod": "Loose-File Mod",
+    "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+    "Language": [
+      "YES"
+    ],
+    "NameFieldContent": "[NPC Clothing M](https://deadlystream.com/files/file/2516-npc-clothing-m/)",
+    "UnresolvedMasters": [
+      "K1 Community Patch"
+    ],
+    "WidescreenOnly": false
+  },
+  "predecessor_guid": "6fb1971d-5775-85e5-9e77-ecc68a896e84",
+  "predecessor_source_index": 5,
+  "predecessor_step": "step-006",
+  "predecessor_url": "https://deadlystream.com/files/file/1258-kotor-1-community-patch/",
+  "predecessor_original": {
+    "Guid": "6fb1971d-5775-85e5-9e77-ecc68a896e84",
+    "Name": "KOTOR Community Patch",
+    "Author": "Various Authors; Darth Parametric, JCarter426 & A Future Pilot Collate",
+    "Description": "An ambitious compilation intending to be a comprehensive bugfix mod for the original game, the KOTOR Community Patch combines hundreds of various fixes and improvements from over a dozen other mods, as well as fixes put together by AFP, DP and JC on their own. With bugfixes as important to KOTOR as TSLRCM's are to KOTOR 2, I can't recommend its use highly enough.",
+    "Directions": "Be aware that this mod is installed via the HoloPatcher, a new install method. For your purposes as the enduser, it functions almost identically to the TSLPatcher. Run the installer, then move the files from the patch to your override.",
+    "Tier": "1 - Essential",
+    "Category": [
+      "Bugfix",
+      "Graphics Improvement",
+      "Immersion"
+    ],
+    "IsSelected": true,
+    "Dependencies": [],
+    "Restrictions": [],
+    "InstallBefore": [],
+    "InstallAfter": [],
+    "Instructions": [
+      {
+        "Action": "Patcher",
+        "Source": [
+          "<<modDirectory>>/installer"
+        ],
+        "Destination": "<<kotorDirectory>>",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      },
+      {
+        "Action": "Move",
+        "Source": [
+          "<<modDirectory>>/f/*"
+        ],
+        "Destination": "<<kotorDirectory>>\\Override",
+        "Arguments": "",
+        "Overwrite": true,
+        "Dependencies": [],
+        "Restrictions": []
+      }
+    ],
+    "Options": [],
+    "ResourceRegistry": {
+      "https://deadlystream.com/files/file/1258-kotor-1-community-patch/": {
+        "Files": {},
+        "HandlerMetadata": {}
+      },
+      "https://mega.nz/file/gQZR1TZY#U7XN5teK9wjXC5Hnj7MFlmHYb8UFyaV5R17ksIuj7Jc": {
+        "Files": {},
+        "HandlerMetadata": {}
+      }
+    },
+    "DraftReview": {
+      "RequiresReview": true,
+      "Result": {
+        "ComponentGuid": "6fb1971d-5775-85e5-9e77-ecc68a896e84",
+        "DraftInstructionCount": 2,
+        "UnparsedGaps": [
+          "Installation method requires observed archive contents and explicit review before its sources, destinations, exclusions, and installer choices can be bound; no actions were generated from the method or guide defaults.",
+          "Installation method is unsupported, mixed, or exceeds 256 characters; explicit archive-aware interpretation is required."
+        ],
+        "ConditionalDrafts": [],
+        "RejectedDrafts": 0
+      },
+      "MethodContext": {
+        "Method": "HoloPatcher Mod, Loose-File Patch",
+        "MethodTruncated": false,
+        "Kind": "Unsupported",
+        "ExplicitDirectionsTakePrecedence": true,
+        "ArchiveBinding": "Unresolved",
+        "GuideDefaults": {
+          "PreambleStatus": "Inspected",
+          "PatcherDestination": "<<kotorDirectory>>",
+          "LooseFilesDestination": "<<kotorDirectory>>\\Override",
+          "NoOverrideOrModulesSubfolders": true
+        }
+      }
+    },
+    "InstallationMethod": "HoloPatcher Mod, Loose-File Patch",
+    "InstallationWarning": "DRAFT INSTRUCTIONS: parsed from guide prose by the natural-language importer. Review before installing - never auto-trusted.",
+    "Language": [
+      "YES for Russian and French only",
+      "follow the instructions on the mod page to use"
+    ],
+    "NameFieldContent": "[KOTOR Community Patch](https://deadlystream.com/files/file/1258-kotor-1-community-patch/) and [**Patch**](https://mega.nz/file/gQZR1TZY#U7XN5teK9wjXC5Hnj7MFlmHYb8UFyaV5R17ksIuj7Jc)",
+    "WidescreenOnly": false
+  }
+}

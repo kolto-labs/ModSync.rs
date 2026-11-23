@@ -184,6 +184,12 @@ impl Engine {
             .get(instruction)
             .context("Action is out of range")?
             .clone();
+        ensure!(
+            !crate::k1_widescreen_recipe::contains_native(&owner)
+                && !crate::archive_generation::source_plan_patcher::contains_native(&owner)
+                && !crate::archive_generation::reviewed_master::contains_resolved(&owner),
+            "Native and resolved-master recipe operations require their complete reviewed component and guide schedule"
+        );
         owner.instructions = vec![action];
         self.selected = selected_guid_keys(guide);
         self.selected_names = guide
@@ -287,15 +293,9 @@ impl Engine {
             InstallPhase::InstallingComponent,
             "Applying recorded action",
         );
-        #[cfg(windows)]
-        {
-            self.checkpoint_process = Some((Arc::clone(&lock), intent.clone()));
-        }
+        self.checkpoint_process = Some((Arc::clone(&lock), intent.clone()));
         let execution = self.component(&owner, &mut emit, Some(&mut observer));
-        #[cfg(windows)]
-        {
-            self.checkpoint_process = None;
-        }
+        self.checkpoint_process = None;
         execution.context("Action stopped; restore its checkpoint before retrying")?;
         ensure!(
             self.authoring_inputs == remaining_inputs,
