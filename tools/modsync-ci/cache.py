@@ -45,6 +45,10 @@ LOOSE_SUFFIX = re.compile(r"\.[A-Za-z0-9]{1,8}$")
 HTML_REJECTED = "not a supported archive (HTML and unknown payloads rejected)"
 TOOL_PROVIDERS = ("mega", "google-drive")
 PINS_PATH = Path(__file__).with_name("seed_pins.json")
+PLAN_PATHS = tuple(Path(__file__).parent / "fixtures" / "ci" / name
+                   for name in ("k1-manual-plan.json", "k2-manual-plan.json"))
+PLAN_PIN_STATE = {"pins": None}
+PINNED_MISSING = "pinned-version-not-in-history"
 PIN_PROVIDERS = ("nexus", "gamefront")
 PIN_PROVENANCE = "operator-local-download"
 PIN_EXTENSIONS = ("zip", "7z", "rar", LOOSE)
@@ -1003,6 +1007,53 @@ def load_pins(path=None):
     return pins
 
 
+def load_plan_pins(paths=None):
+    """{archive file name: frozenset of SHA-256} from the manual plans' archive_sha256, read once.
+
+    The plans are the authority for which bytes a restored `{archives}/<name>` must have; a plan that
+    cannot be read or has a malformed table is an error, never an empty mapping.
+    """
+    with STATE_LOCK:
+        if paths is None and PLAN_PIN_STATE["pins"] is not None:
+            return PLAN_PIN_STATE["pins"]
+        pins = {}
+        for path in paths or PLAN_PATHS:
+            path = Path(path)
+            try:
+                document = json.loads(path.read_text(encoding="utf-8"))
+            except (OSError, ValueError) as error:
+                raise ValueError("manual plan pins unreadable: %s (%s)" % (path.name, type(error).__name__)) from None
+            table = document.get("archive_sha256") if isinstance(document, dict) else None
+            if not isinstance(table, dict):
+                raise ValueError("manual plan pins malformed: %s has no archive_sha256 object" % path.name)
+            for token, sha in table.items():
+                name = token[len("{archives}/"):] if isinstance(token, str) and token.startswith("{archives}/") else ""
+                if not name or "/" in name or not isinstance(sha, str) or not SHA256.fullmatch(sha):
+                    raise ValueError("manual plan pins malformed: %s has an invalid archive_sha256 entry" % path.name)
+                pins.setdefault(name, set()).add(sha)
+        pins = {name: frozenset(shas) for name, shas in pins.items()}
+        if paths is None:
+            PLAN_PIN_STATE["pins"] = pins
+        return pins
+
+
+def plan_pin_for(item, name):
+    """SHA-256 values the manual plans accept for this DeadlyStream archive name, or None if unpinned."""
+    if item.get("provider") != "deadlystream" or not isinstance(name, str):
+        return None
+    return load_plan_pins().get(name)
+
+
+def plan_conflicts(item, entry):
+    """Stored objects whose archive name a manual plan pins to other bytes."""
+    conflicts = []
+    for each in entry_objects(entry):
+        pinned = plan_pin_for(item, each.get("archive_name"))
+        if pinned is not None and each.get("sha256") not in pinned:
+            conflicts.append(each)
+    return conflicts
+
+
 def reviewed_pin_matches(item, entry, pins):
     """Compare reviewed body identities independently of mutable status/evidence tags."""
     pin = (pins or {}).get(item.get("id"))
@@ -1128,7 +1179,18 @@ def refresh_one(item, old, root, args, endpoint=None, depth=0):
     return result
 
 
-def fetch_many(item, old, root, args, rows, depth):
+def fetch_many(item, old, root, args, rows, depth, want=None):
+    if want is not None:
+        # A past version's file list: keep the one file with the wanted bytes, hash the rest only.
+        seen = []
+        for row in rows:
+            try:
+                fetched = fetch_item(item, {}, root, args, row["url"], depth, want)
+            except VersionMismatch as mismatch:
+                seen.extend(mismatch.files)
+                continue
+            return {**fetched, "listed_name": row["name"], "row": row["r"]}
+        raise VersionMismatch(seen)
     previous = {each.get("endpoint_id"): each for each in entry_objects(old)}
     budget = args.max_bytes
     objects = []
@@ -1152,16 +1214,156 @@ def announced_size(headers):
     return int(match[2]) if match and int(match[1]) + 1 == int(match[2]) else None
 
 
-def fetch_item(item, old, root, args, endpoint=None, depth=0):
+class VersionMismatch(ValueError):
+    """A DeadlyStream download whose bytes differ from the manual plan pin for its file name."""
+
+    def __init__(self, files):
+        super().__init__("downloaded archive differs from its manual plan pin")
+        self.files = files
+
+
+class PinnedVersionMissing(ValueError):
+    def __init__(self, message, history):
+        super().__init__(message)
+        self.version_history = history
+
+
+class Changelog(HTMLParser):
+    """Every link of a page with its text, for DeadlyStream version-history links."""
+
+    def __init__(self):
+        super().__init__()
+        self.links = []
+        self.open = None
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "a":
+            href = dict(attrs).get("href")
+            self.open = {"href": href, "text": []} if href else None
+            if self.open is not None:
+                self.links.append(self.open)
+
+    def handle_endtag(self, tag):
+        if tag == "a":
+            self.open = None
+
+    def handle_data(self, data):
+        if self.open is not None:
+            self.open["text"].append(data)
+
+
+def history_page(url, page, args):
+    """Source and final URL of a page of this DeadlyStream file (the file page or one changelog page)."""
+    with request(url, args, {"Referer": page}) as response:
+        if "html" not in response.headers.get("Content-Type", "").lower():
+            raise ValueError("version history page is not HTML")
+        final = urlsplit(checked_url(response.geturl()))
+        same = FILE_ID.match(final.path)
+        if (final.scheme != "https" or final.port not in (None, 443) or final.hostname != urlsplit(page).hostname
+                or not same or same[1] != FILE_ID.match(urlsplit(page).path)[1]):
+            raise ValueError("version history redirect changed file identity")
+        body = response.read(2 * 1024 * 1024 + 1)
+        if len(body) > 2 * 1024 * 1024:
+            raise ValueError("landing page too large")
+        source = body.decode("utf-8", errors="replace")
+        if re.search(r"cf-turnstile|g-recaptcha(?!-response)|h-captcha|/cdn-cgi/challenge-platform|<title>\s*Just a moment", source, re.I):
+            raise ValueError("provider challenge/CAPTCHA; blocked-pending-user-action")
+        return source, response.geturl()
+
+
+def page_links(source, base, page):
+    """(absolute URL, query, link text) of links to this file page itself on the same https host."""
+    parser = Changelog()
+    parser.feed(source)
+    parser.close()
+    target = urlsplit(page)
+    for link in parser.links:
+        url = urljoin(base, html.unescape(link["href"]))
+        parsed = urlsplit(url)
+        if (parsed.scheme == "https" and parsed.port in (None, 443) and parsed.hostname == target.hostname
+                and parsed.path.rstrip("/") == target.path.rstrip("/")):
+            yield checked_url(url), parse_qs(parsed.query), " ".join("".join(link["text"]).split())
+
+
+def changelog_versions(source, base, page):
+    """[(changelog id, version label or None)] of past versions, newest first; id 0 is the current one."""
+    found = {}
+    for _, query, text in page_links(source, base, page):
+        number = query.get("changelog", [""])[0]
+        if re.fullmatch(r"[0-9]{1,12}", number) and int(number) > 0:
+            label = text if text and len(text) <= 40 and re.search(r"[0-9]", text) else None
+            found[int(number)] = found.get(int(number)) or label
+    return sorted(found.items(), reverse=True)
+
+
+def version_download(source, base, page, number):
+    """The `?do=download&version=<id>` link of one changelog page."""
+    for url, query, _ in page_links(source, base, page):
+        if query.get("do") == ["download"] and query.get("version") == [str(number)] and "r" not in query:
+            return url
+    raise ValueError("changelog page has no download link for its version")
+
+
+def pinned_version(item, root, args, mismatch):
+    """Walk the file's DeadlyStream version history for the bytes the manual plan pins.
+
+    The first past version whose file hashes to the pin is stored and returned under the pinned name;
+    every version hashed is recorded. No match fails the item: the unpinned bytes are never used.
+    """
+    name = mismatch.files[0]["file"]
+    pinned = plan_pin_for(item, name)
+    history = [{"changelog": 0, "label": "current", **each} for each in mismatch.files]
+    origin = urlsplit(item["url"])
+    if not FILE_ID.match(origin.path):
+        raise ValueError("pinned archive is not on a DeadlyStream file page")
+    page = urlunsplit(("https", origin.hostname, origin.path, "", ""))
+    try:
+        source, base = history_page(page, page, args)
+    except (ValueError, OSError, HTTPException) as error:
+        raise PinnedVersionMissing("version history unavailable for %s: %s" % (name, safe_reason(error)),
+                                   history) from None
+    want = {"file": name, "sha256": pinned}
+    for number, label in changelog_versions(source, base, page):
+        record = {"changelog": number, "label": label}
+        try:
+            changelog, changelog_base = history_page(page + "?changelog=%d" % number, page, args)
+            link = version_download(changelog, changelog_base, page, number)
+            found = fetch_item(item, {}, root, args, link, 0, want)
+        except VersionMismatch as other:
+            history.extend({**record, **each} for each in other.files)
+            if not other.files:
+                history.append({**record, "error": "version lists no files"})
+            continue
+        except (ValueError, OSError, HTTPException) as error:
+            history.append({**record, "error": safe_reason(error)})
+            continue
+        history.append({**record, "file": found["archive_name"], "sha256": found["sha256"], "size": found["size"]})
+        return {**found, "pinned_version": record, "version_history": history}
+    raise PinnedVersionMissing("%s: %s pinned to sha256 %s; none of %d hashed version(s) match"
+                               % (PINNED_MISSING, name, ",".join(sorted(pinned)),
+                                  sum(1 for each in history if "sha256" in each)), history)
+
+
+def fetch_item(item, old, root, args, endpoint=None, depth=0, want=None):
+    """Fetch one endpoint. `want` ({file, sha256}) is set only inside a version-history walk."""
+    try:
+        return fetch_endpoint(item, old, root, args, endpoint, depth, want)
+    except VersionMismatch as mismatch:
+        if want is not None or not mismatch.files:
+            raise
+        return pinned_version(item, root, args, mismatch)
+
+
+def fetch_endpoint(item, old, root, args, endpoint=None, depth=0, want=None):
     previous_bundle = old
     old = {} if "objects" in old else old
     endpoint = endpoint or resolve(item, args)
     if isinstance(endpoint, list):
-        return fetch_many(item, previous_bundle, root, args, endpoint, depth + 1)
+        return fetch_many(item, previous_bundle, root, args, endpoint, depth + 1, want)
     if item["provider"] in TOOL_PROVIDERS:
         return fetch_with_tool(item, root, args)
     endpoint_key = endpoint_id(endpoint)
-    valid = local_valid(root, old)
+    valid = local_valid(root, old) and not plan_conflicts(item, old)
     headers = {"Referer": item["url"]} if item["provider"] == "deadlystream" else {}
     if valid and old.get("endpoint_id") == endpoint_key:
         if old.get("etag"):
@@ -1188,12 +1390,12 @@ def fetch_item(item, old, root, args, endpoint=None, depth=0):
             rows = page_rows(response, item)
             if len(rows) > 1 or multi_selectors(item):
                 response.close()
-                return fetch_many(item, previous_bundle, root, args, rows, depth + 1)
+                return fetch_many(item, previous_bundle, root, args, rows, depth + 1, want)
             attachment = rows[0]["url"]
             if endpoint_id(attachment) == endpoint_key:
                 raise ValueError("download endpoint did not resolve to an attachment; provider adapter required")
             response.close()
-            return fetch_item(item, old, root, args, attachment, depth + 1)
+            return fetch_item(item, old, root, args, attachment, depth + 1, want)
         expected = announced_size(response.headers)
         if expected is not None and expected > args.max_bytes:
             raise ValueError("archive exceeds size limit")
@@ -1228,6 +1430,11 @@ def fetch_item(item, old, root, args, endpoint=None, depth=0):
                     raise ValueError("downloaded file does not match the reviewed direct link; "
                                      "re-review archive_selections.json")
                 name = pinned_direct["file"]
+            pinned = want["sha256"] if want is not None else plan_pin_for(item, name)
+            if pinned is not None and sha not in pinned:
+                raise VersionMismatch([{"file": name, "sha256": sha, "size": size}])
+            if want is not None:
+                name = want["file"]
             if not (valid and old.get("sha256") == sha):
                 os.replace(path, root / "objects" / sha)
             etag = response.headers.get("ETag")
@@ -2167,6 +2374,7 @@ def verified_selection(item, entry, root, args, pins=None):
     return (bool(entry_objects(entry)) and objects_match_selection(item, entry)
             and original_guide_inputs.required_matches(item, entry, entry)
             and reviewed_pin_matches(item, entry, pins)
+            and not plan_conflicts(item, entry)
             and local_valid(root, entry)
             and all(verified_object(item, stored, root, args) for stored in entry_objects(entry)))
 
@@ -2239,7 +2447,10 @@ def acquire(item, old, root, args, pins):
             cache_source = recover_objects(item, old, root, args, pins)
             valid = bool(cache_source) and verified_selection(item, old, root, args, pins)
         if not valid or not verified_selection(item, old, root, args, pins):
-            raise AcquisitionFailure(safe_reason(error), mode, True, "failed-no-valid-cache") from None
+            failure = AcquisitionFailure(safe_reason(error), mode, True, "failed-no-valid-cache")
+            if isinstance(getattr(error, "version_history", None), list):
+                failure.version_history = error.version_history
+            raise failure from None
         reason = failure_reason(error)
         record_failure(item, "cached-fallback", reason=reason, echo=False)
         warn("provider attempt failed for " + item["id"][:8] + " (" + reason
@@ -2532,6 +2743,7 @@ def main(argv=None):
         manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {"schema": 1, "entries": {}}
         if manifest.get("schema") != 1 or not isinstance(manifest.get("entries"), dict):
             raise ValueError("unsupported manifest schema")
+        load_plan_pins()
         if args.remote:
             pull_manifest(args, root, manifest)
         restored_names = {}
@@ -2602,6 +2814,9 @@ def main(argv=None):
                 entry["source"] = source
                 if isinstance(old.get("acquisition"), dict):
                     entry["acquisition"] = copy.deepcopy(old["acquisition"])
+                history = [record for each in entry_objects(old) for record in each.get("version_history", [])]
+                if history:
+                    entry["version_history"] = copy.deepcopy(history)
                 if old.get("provenance") == original_guide_inputs.PROVENANCE:
                     entry["provenance"] = old["provenance"]
                     entry["reviewed_original_guide_input"] = copy.deepcopy(old["reviewed_original_guide_input"])
@@ -2661,7 +2876,11 @@ def main(argv=None):
                     prune(root, manifest, limit, stage["hold"], stage_dir)
                     continue
                 entry.update(status="unresolved", reason=safe_reason(error))
-                if (args.command == "restore" and args.deselect_unavailable
+                if isinstance(getattr(error, "version_history", None), list):
+                    entry["version_history"] = copy.deepcopy(error.version_history)
+                if str(error).startswith(PINNED_MISSING):
+                    entry["status"] = PINNED_MISSING
+                elif (args.command == "restore" and args.deselect_unavailable
                         and not args.cache_only):
                     mark_unavailable(entry, item, report)
                 if args.command == "refresh" and old and not is_pinned(item, old, pins):
