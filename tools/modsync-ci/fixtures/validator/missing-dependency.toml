@@ -1,0 +1,14 @@
+[metadata]
+title = "Validator gate: selected component depends on a component the guide does not contain"
+
+[[thisMod]]
+Guid = "gate-addon"
+Name = "Gate addon"
+Tier = "Essential"
+IsSelected = true
+Dependencies = ["gate-not-in-this-guide"]
+
+[[thisMod.Instructions]]
+Action = "Copy"
+Source = ["<<modDirectory>>/sample.tga"]
+Destination = "<<kotorDirectory>>/Override"
