@@ -1,5 +1,9 @@
+import contextlib
 import hashlib
+import io
+import tempfile
 import unittest
+from pathlib import Path
 
 import patcher_comparison as pc
 
@@ -89,6 +93,56 @@ class Judge(unittest.TestCase):
         comparisons, wrong = run(lanes(), operations=[])
         self.assertEqual(wrong, [])
         self.assertEqual([b["key"] for b in comparisons[0]["boundaries"]], ["final"])
+
+    def test_the_route_pair_compares_every_component_and_does_not_repeat_the_final_tree(self):
+        comparisons, _ = run(lanes())
+        route = [c for c in comparisons if c["candidate"] == ["mod-packaged", "gui"]][0]
+        # The last component is the final tree, so it is diffed once, not twice.
+        self.assertEqual([b["key"] for b in route["boundaries"]],
+                         [f"component/{PATCHED}/1", f"component/{PLAIN}/1"])
+
+    def test_a_route_difference_in_a_component_without_a_patcher_is_named_at_that_component(self):
+        bad = {("mod-packaged", "gui"): {f"component/{PLAIN}/1": tree(**{"override/a.2da": "patched",
+                                                                         "override/b.tga": "gui"})}}
+        _, wrong = run(lanes(bad))
+        route = [w for w in wrong if w["reference"] == ["mod-packaged", "cli"]]
+        self.assertEqual(route, [{"lane": ["mod-packaged", "gui"], "reference": ["mod-packaged", "cli"],
+                                  "first_differing_boundary": f"component/{PLAIN}/1", "differing_files": 1}])
+
+    def test_preparation_is_compared_and_can_be_the_first_difference(self):
+        cells = lanes()
+        for cell in cells:
+            cells[cell] = {"sessionBaseline": cells[cell]["sessionBaseline"], "preparation": tree(),
+                           **{k: v for k, v in cells[cell].items() if k != "sessionBaseline"}}
+        cells[("ody-patcher", "cli")]["preparation"] = tree(**{"dialog.tlk": "other"})
+        _, wrong = run(cells)
+        self.assertEqual([(w["lane"], w["first_differing_boundary"]) for w in wrong],
+                         [(["ody-patcher", "cli"], "preparation")])
+
+
+class Integration(unittest.TestCase):
+    def test_load_boundary_reads_the_retained_game_tree_and_rejects_a_changed_document(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            game = tree(**{"override/a.2da": "x"})
+            pc.write(root / "boundary-0000.json", {"key": "k", "game": game})
+            handle = (root, {"document": "boundary-0000.json", "sha256": pc.file_hash(root / "boundary-0000.json")})
+            self.assertEqual(pc.load_boundary(handle), game)
+            with self.assertRaises(ValueError):
+                pc.load_boundary((root, {"document": "boundary-0000.json", "sha256": "0" * 64}))
+
+    def test_verdict_fails_and_names_the_incorrect_lane_with_its_route(self):
+        wrong = [{"lane": ["mod-packaged", "gui"], "reference": ["mod-packaged", "cli"],
+                  "first_differing_boundary": "component/x/1", "differing_files": 2}]
+        with contextlib.redirect_stderr(io.StringIO()) as err:
+            self.assertEqual(pc.verdict(wrong, "k1"), 1)
+        self.assertIn("::error", err.getvalue())
+        self.assertIn("mod-packaged (gui) is the incorrect lane", err.getvalue())
+
+    def test_verdict_passes_when_every_lane_agrees(self):
+        with contextlib.redirect_stderr(io.StringIO()) as err:
+            self.assertEqual(pc.verdict([], "k1"), 0)
+        self.assertEqual(err.getvalue(), "")
 
 
 if __name__ == "__main__":

@@ -420,24 +420,35 @@ def comparison_pairs():
 
 
 def patcher_boundaries(keys, operations):
-    """Boundaries worth hashing: preparation and each component that ran a Patcher
-    operation. Components without a patcher cannot differ between patcher lanes
-    except by carrying an earlier difference, which the earlier boundary already names."""
+    """Boundaries worth hashing between backends on one route: preparation and each
+    component that ran a Patcher operation. On a shared route, a component without a
+    patcher runs identical engine code in every backend lane, so it cannot differ except
+    by carrying an earlier difference, which the earlier boundary already names."""
     guids = {str(operation[0]).lower() for operation in operations}
     return [key for key in keys if key == "preparation"
             or (key.startswith("component/") and key.split("/")[1].lower() in guids)]
 
 
+def route_boundaries(keys):
+    """Every boundary after the shared baseline. The CLI and GUI routes install every
+    component through different code, so each one can introduce a difference."""
+    return [key for key in keys if key != "sessionBaseline"]
+
+
 def judge(trees, operations, load_tree):
-    """Compare every candidate lane with its reference after each patcher component.
+    """Compare every candidate lane with its reference after each relevant component.
 
     trees maps (backend, mode) to an ordered {boundary key: handle}; load_tree(handle)
     returns that boundary's game tree. Returns (comparisons, wrong_lanes)."""
     comparisons, wrong = [], []
     for reference, candidate in comparison_pairs():
-        keys = patcher_boundaries(list(trees[reference]), operations) + ["final"]
+        ordered = list(trees[reference])
+        keys = (route_boundaries(ordered) if reference[0] == candidate[0]
+                else patcher_boundaries(ordered, operations))
+        if not keys or keys[-1] != ordered[-1]:
+            keys.append("final")
         result = {"reference": list(reference), "candidate": list(candidate), "boundaries": []}
-        first, count = None, 0
+        first, widest = None, 0
         for key in keys:
             ref_handle = list(trees[reference].values())[-1] if key == "final" else trees[reference][key]
             cand_handle = list(trees[candidate].values())[-1] if key == "final" else trees[candidate][key]
@@ -445,12 +456,30 @@ def judge(trees, operations, load_tree):
             result["boundaries"].append({"key": key, "changes": changes})
             if changes and first is None:
                 first = key
-            count += len(changes)
+            widest = max(widest, len(changes))
         comparisons.append(result)
-        if count:
+        if first is not None:
             wrong.append({"lane": list(candidate), "reference": list(reference),
-                          "first_differing_boundary": first, "differences": count})
+                          "first_differing_boundary": first, "differing_files": widest})
     return comparisons, wrong
+
+
+def load_boundary(handle):
+    """Load the game tree of a retained boundary document; handle is (root, boundary)."""
+    root, boundary = handle
+    return retained(root, boundary["document"], boundary["sha256"])["game"]
+
+
+def verdict(wrong, game):
+    """Print one GitHub error per incorrect lane and return the process exit code."""
+    for lane in wrong:
+        print(f"::error title=Patcher lane differs from {AUTHORITY}::{game}: "
+              f"{lane['lane'][0]} ({lane['lane'][1]}) differs from {lane['reference'][0]} "
+              f"({lane['reference'][1]}) first at {lane['first_differing_boundary']} "
+              f"(up to {lane['differing_files']} files differ at one boundary); "
+              f"{lane['lane'][0]} ({lane['lane'][1]}) is the incorrect lane",
+              file=sys.stderr, flush=True)
+    return 1 if wrong else 0
 
 
 def compare(args):
@@ -577,9 +606,7 @@ def compare(args):
     require(all(receipt["patcher_operations"] == authority["patcher_operations"] for receipt, _ in lanes),
             "Lanes disagree on which components run a Patcher operation")
     comparisons, wrong = judge({cell: trees for cell, (_, trees) in cells.items()},
-                               authority["patcher_operations"],
-                               lambda handle: retained(handle[0], handle[1]["document"],
-                                                       handle[1]["sha256"])["game"])
+                               authority["patcher_operations"], load_boundary)
     total, pairs = 0, []
     for pair_index, result in enumerate(comparisons):
         pair = {"reference": result["reference"], "candidate": result["candidate"], "boundaries": []}
@@ -608,15 +635,9 @@ def compare(args):
                                     "engine_sha": first["engine_sha"], "guide_sha256": first["guide_sha256"],
                                     "profile": first["profile"],
                                     "component_count": len(first["selected_guid_order"])})
-    for lane in wrong:
-        print(f"::error title=Patcher lane differs from {AUTHORITY}::{first['game']}: "
-              f"{lane['lane'][0]} ({lane['lane'][1]}) differs from {lane['reference'][0]} "
-              f"({lane['reference'][1]}) first at {lane['first_differing_boundary']} "
-              f"({lane['differences']} file differences); {lane['lane'][0]} is the incorrect lane",
-              file=sys.stderr, flush=True)
     # Admission and execution failures raise above; a completed comparison fails when
     # any lane disagrees with the packaged-patcher reference.
-    return 1 if wrong else 0
+    return verdict(wrong, first["game"])
 
 
 def main():
