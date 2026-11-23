@@ -1,0 +1,25 @@
+[metadata]
+title = "Validator gate: two selected components that restrict each other"
+
+[[thisMod]]
+Guid = "gate-variant-a"
+Name = "Gate variant A"
+Tier = "Essential"
+IsSelected = true
+Restrictions = ["gate-variant-b"]
+
+[[thisMod.Instructions]]
+Action = "Copy"
+Source = ["<<modDirectory>>/sample.tga"]
+Destination = "<<kotorDirectory>>/Override"
+
+[[thisMod]]
+Guid = "gate-variant-b"
+Name = "Gate variant B"
+Tier = "Essential"
+IsSelected = true
+
+[[thisMod.Instructions]]
+Action = "Copy"
+Source = ["<<modDirectory>>/sample.tga"]
+Destination = "<<kotorDirectory>>/Override"

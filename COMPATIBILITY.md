@@ -553,6 +553,8 @@ Those counts establish parsing only. No full K1/K2 build, comparison against a m
 
 Local Linux checks also exercised the native GUI in an isolated X11 session: load the sample guide, choose mods, validate, confirm installation, and verify the resulting TGA and removed TPC. Separate native OdyPatcher invocations through the Rust CLI installed `hello.txt` into isolated game folders using both a namespace index and a named INI, with zero patcher errors. The named-INI run preserved the original `changes.ini`. The test suite separately checks failure recovery using a controlled subprocess.
 
+Every pull request now runs the production `modsync validate` (CLI-only build) against `tools/modsync-ci/fixtures/validator/` (`validator_gate.py`). It must accept a valid guide and reject five impossible ones for their stated reason: a source that nothing provides, a destination outside the game directory, an unsupported action, a dependency absent from the guide, and two selected components that restrict each other. The game and mod trees are hashed before and after each case and must not change. Deleting a file that nothing installs is currently accepted without a warning, so it is not part of the gate.
+
 A direct HTTPS download of the RAR test fixture matched its expected SHA-256 and bytes. A second request with an incorrect hash failed without publishing the destination file.
 
 ### Streaming milestone

@@ -1,0 +1,13 @@
+[metadata]
+title = "Validator gate: destination outside the game directory"
+
+[[thisMod]]
+Guid = "gate-escape"
+Name = "Escaping destination"
+Tier = "Essential"
+IsSelected = true
+
+[[thisMod.Instructions]]
+Action = "Copy"
+Source = ["<<modDirectory>>/sample.tga"]
+Destination = "<<kotorDirectory>>/../outside"

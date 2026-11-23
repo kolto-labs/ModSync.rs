@@ -1,0 +1,13 @@
+[metadata]
+title = "Validator gate: unsupported instruction action"
+
+[[thisMod]]
+Guid = "gate-unknown-action"
+Name = "Unknown action"
+Tier = "Essential"
+IsSelected = true
+
+[[thisMod.Instructions]]
+Action = "Teleport"
+Source = ["<<modDirectory>>/sample.tga"]
+Destination = "<<kotorDirectory>>/Override"
