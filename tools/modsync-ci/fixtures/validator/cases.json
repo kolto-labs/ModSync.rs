@@ -1,0 +1,19 @@
+[
+  {"name": "valid-guide", "guide": "valid.toml", "accept": true,
+   "why": "Positive control: a gate that rejects everything must fail."},
+  {"name": "missing-source", "guide": "missing-source.toml", "accept": false,
+   "expect": "Source matches no files",
+   "why": "Copy from a file that no archive or earlier step provides."},
+  {"name": "escape-destination", "guide": "escape-destination.toml", "accept": false,
+   "expect": "Unsafe path",
+   "why": "Destination resolves outside the game directory."},
+  {"name": "unknown-action", "guide": "unknown-action.toml", "accept": false,
+   "expect": "Unsupported action",
+   "why": "Instruction action the installer does not support must stop, not be skipped."},
+  {"name": "missing-dependency", "guide": "missing-dependency.toml", "accept": false,
+   "expect": "Required dependency is absent from the guide",
+   "why": "Selected component depends on a component the guide does not contain."},
+  {"name": "restriction-conflict", "guide": "restriction-conflict.toml", "accept": false,
+   "expect": "conflicts with gate-variant-b",
+   "why": "Two selected components restrict each other."}
+]

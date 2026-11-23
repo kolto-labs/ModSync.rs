@@ -1,0 +1,13 @@
+[metadata]
+title = "Validator gate: copy from a file no archive or earlier step provides"
+
+[[thisMod]]
+Guid = "gate-missing-source"
+Name = "Missing source"
+Tier = "Essential"
+IsSelected = true
+
+[[thisMod.Instructions]]
+Action = "Copy"
+Source = ["<<modDirectory>>/does-not-exist.tga"]
+Destination = "<<kotorDirectory>>/Override"

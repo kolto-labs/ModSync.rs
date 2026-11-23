@@ -1,0 +1,28 @@
+[metadata]
+title = "Validator gate: valid guide"
+
+[[thisMod]]
+Guid = "gate-textures"
+Name = "Gate textures"
+Tier = "Essential"
+Description = "Copies the fixture texture into Override."
+IsSelected = true
+
+[[thisMod.Instructions]]
+Action = "Copy"
+Source = ["<<modDirectory>>/sample.tga"]
+Destination = "<<kotorDirectory>>/Override"
+
+[[thisMod]]
+Guid = "gate-cleanup"
+Name = "Gate cleanup"
+Tier = "Essential"
+Description = "Removes a TPC when a TGA with the same name exists."
+IsSelected = true
+Dependencies = ["gate-textures"]
+
+[[thisMod.Instructions]]
+Action = "DelDuplicate"
+Source = [".tga", ".tpc"]
+Destination = "<<kotorDirectory>>/Override"
+Arguments = ".tpc"
