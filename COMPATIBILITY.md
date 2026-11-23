@@ -337,6 +337,24 @@ placeholders survive conversion but still fail Rust execution. This does not clo
 F01/F05, full validation or complete format/action parity. Five production gates
 pass and53 frozen entries remain unchanged; no Rust tests were run.
 
+## CI archive refresh recovers the manual-plan-pinned DeadlyStream version, 2026-11-23 UTC
+
+The CI archive cache (`tools/modsync-ci/cache.py`, Python CI tooling only; the Rust
+downloader is unchanged) now holds DeadlyStream downloads to the manual plans'
+`archive_sha256` pins (`tools/modsync-ci/fixtures/ci/{k1,k2}-manual-plan.json`). Authors
+re-upload files: K1 Twi'lek Male NPC Diversity moved to v1.2 on 2026-11-18, the refresh
+stored the new bytes as a normal update, and every install lane then stopped at
+`observe_k1_bound_model` with `source_program_archive_identity_changed`. A download whose
+file name the plans pin to other bytes now walks the page's version history
+(`?changelog=<id>` → `?do=download&version=<id>`), hashes each past version, records
+every hash in the entry's `version_history`, and keeps the first that matches, stored
+under the pinned name. No match fails the item with `pinned-version-not-in-history`; the
+unpinned bytes are never stored, and a cached object that contradicts a pin no longer
+counts as a cache hit or a fallback. File names without a plan pin behave as before.
+An unreadable or malformed plan stops the run. Covered by
+`test_cache_version_history.py` (12 tests, offline HTML fixtures); the live changelog
+markup was confirmed on the Twi'lek page, and the first CI refresh is the live proof.
+
 ## DeadlyStream pages with loose files or non-ASCII file names, 2026-11-14 UTC
 
 A DeadlyStream page that offers an archive beside a loose file now plans only its
