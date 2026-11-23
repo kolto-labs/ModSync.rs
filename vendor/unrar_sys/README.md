@@ -22,7 +22,15 @@
    likewise spells `wbemidl.h` in lower case. These real MinGW headers work
    on case-sensitive build hosts without external header aliases. Windows
    SDK builds retain the same includes on their case-insensitive filesystem.
-3. The Cargo manifest retains upstream package/dependency/features definitions,
+3. `src/lib.rs` declares the UnRAR FFI block and the `ChangeVolProc`,
+   `ProcessDataProc` and `Callback` function-pointer types `extern "system"`
+   instead of `extern "C"`. `dll.hpp` declares the API `PASCAL` and the
+   callbacks `CALLBACK`, both `__stdcall` on Windows (empty only under
+   `_UNIX`). `"system"` is stdcall on 32-bit x86 Windows, which fixes the
+   `i686-pc-windows-msvc` link (decorated `_RAROpenArchiveEx@4` etc. names),
+   and is identical to `"C"` on every other target. The sibling `unrar` crate
+   is vendored in `vendor/unrar` so its callback matches this type.
+4. The Cargo manifest retains upstream package/dependency/features definitions,
    explicitly disabling automatic tests, examples and benches. Root Cargo.toml
    selects this directory through `[patch.crates-io]`.
 

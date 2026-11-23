@@ -84,4 +84,5 @@ objc2-foundation = { version = "=0.3.2", default-features = false, features = ["
 # unrar_sys 0.5.8 build-host/target correction; see vendor/unrar_sys/README.md.
 [patch.crates-io]
 serde_json = { path = "vendor/serde_json" }
+unrar = { path = "vendor/unrar" }
 unrar_sys = { path = "vendor/unrar_sys" }
