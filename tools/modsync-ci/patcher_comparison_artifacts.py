@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Authenticate six current-run encrypted comparison exports and compare them."""
+"""Authenticate the current run's encrypted comparison exports (three backends per
+installed route) and compare them."""
 
 import argparse
 import contextlib
@@ -97,7 +98,7 @@ def validate_artifact(artifact, name, repository, expected, source):
             "Comparison artifact belongs to another source/run/repository")
 
 
-def selected_artifacts(api, repository, expected, source, game):
+def selected_artifacts(api, repository, expected, source, game, modes=comparison.MODES):
     found = []
     for page in range(1, 21):
         response = api.get(f"/actions/runs/{expected['run_id']}/artifacts?per_page=100&page={page}")
@@ -113,7 +114,7 @@ def selected_artifacts(api, repository, expected, source, game):
     else:
         raise ValueError("Run artifact pagination exceeded bound")
     selected = []
-    for backend, mode in itertools.product(comparison.BACKENDS, comparison.MODES):
+    for backend, mode in itertools.product(comparison.BACKENDS, modes):
         name = artifact_name(game, backend, mode, expected)
         matches = [artifact for artifact in found if artifact.get("name") == name]
         require(len(matches) == 1, "Missing or duplicate current comparison cell artifact")
@@ -124,7 +125,7 @@ def selected_artifacts(api, repository, expected, source, game):
         require(all(fresh[key] == artifact[key] for key in ("id", "name", "digest", "size_in_bytes", "workflow_run")),
                 "Comparison artifact metadata changed before download")
         selected.append((backend, mode, fresh))
-    require(len({artifact["id"] for _, _, artifact in selected}) == 6,
+    require(len({artifact["id"] for _, _, artifact in selected}) == len(comparison.BACKENDS) * len(modes),
             "Comparison cells reused an artifact")
     return selected
 
@@ -355,7 +356,12 @@ def main():
     parser.add_argument("--game", required=True, choices=("k1", "k2"))
     parser.add_argument("--work-dir", required=True)
     parser.add_argument("--output-dir", required=True)
+    parser.add_argument("--modes", default=",".join(comparison.MODES),
+                        help="comma-separated routes the run installed (cli, gui or both)")
     args = parser.parse_args()
+    modes = tuple(mode for mode in comparison.MODES if mode in args.modes.split(","))
+    if not modes or len(modes) != len(set(args.modes.split(","))):
+        parser.error("--modes must name cli, gui or both")
     os.umask(0o077)
     try:
         expected, source = expected_identity(os.environ)
@@ -364,7 +370,7 @@ def main():
         work.mkdir(mode=0o700, parents=True)
         api = API()
         repository, _ = validate_run(api, expected, source, os.environ)
-        artifacts = selected_artifacts(api, repository, expected, source, args.game)
+        artifacts = selected_artifacts(api, repository, expected, source, args.game, modes)
         client = ArtifactsClient(REPOSITORY, os.environ["GITHUB_TOKEN"])
         receipts, retained = [], []
         for backend, mode, artifact in artifacts:
@@ -398,7 +404,8 @@ def main():
         comparison.write(work / "artifact-receipts.json", {"identity": expected, "artifacts": retained})
         with (work / "comparison-events.jsonl").open("x", encoding="utf-8") as events:
             with contextlib.redirect_stdout(events):
-                result = comparison.compare(argparse.Namespace(receipt=receipts, output_dir=str(output)))
+                result = comparison.compare(argparse.Namespace(receipt=receipts, output_dir=str(output),
+                                                               modes=modes))
         with (work / "comparison-events.jsonl").open(encoding="utf-8") as events:
             for line in events:
                 value = json.loads(line)

@@ -219,7 +219,9 @@ jobs:
       MOD_CACHE_S3_ENDPOINT: ${{ vars.MOD_CACHE_BUCKET && secrets.MOD_CACHE_S3_ENDPOINT || '' }}
   comparison:
     needs: [plan, install]
-    if: ${{ !cancelled() && (needs.plan.outputs.operation == 'full' || needs.plan.outputs.operation == 'install') && contains(fromJSON(needs.plan.outputs.modes || '[]'), 'cli') && contains(fromJSON(needs.plan.outputs.modes || '[]'), 'gui') }}
+    # Every installation plan runs all three patcher backends per route, so every
+    # one is compared against the packaged-patcher lane, for one route or both.
+    if: ${{ !cancelled() && (needs.plan.outputs.operation == 'full' || needs.plan.outputs.operation == 'install') }}
     strategy:
       fail-fast: false
       matrix:
@@ -227,6 +229,7 @@ jobs:
     uses: ./.github/workflows/fullrun-compare.yml
     with:
       game: ${{ matrix.game }}
+      modes: ${{ needs.plan.outputs.modes }}
     secrets:
       CACHE_ENCRYPTION_KEY: ${{ secrets.CACHE_ENCRYPTION_KEY }}
       DIAGNOSTICS_ENCRYPTION_KEY: ${{ !vars.DIAGNOSTICS_ENCRYPTION_RECIPIENT && secrets.DIAGNOSTICS_ENCRYPTION_KEY || '' }}
@@ -280,7 +283,7 @@ jobs:
           OPERATION: ${{ needs.plan.outputs.operation || 'check' }}
           REQUIRE_DOWNLOADER: ${{ needs.plan.outputs.release_candidate || 'false' }}
           REQUIRE_PRODUCTION: ${{ needs.plan.outputs.operation == 'full' || needs.plan.outputs.operation == 'install' }}
-          REQUIRE_COMPARISON: ${{ (needs.plan.outputs.operation == 'full' || needs.plan.outputs.operation == 'install') && contains(fromJSON(needs.plan.outputs.modes || '[]'), 'cli') && contains(fromJSON(needs.plan.outputs.modes || '[]'), 'gui') }}
+          REQUIRE_COMPARISON: ${{ needs.plan.outputs.operation == 'full' || needs.plan.outputs.operation == 'install' }}
         run: python tools/modsync-ci/fullrun_contract.py aggregate --operation "$OPERATION" --output "$RUNNER_TEMP/fullrun-result.json"
       - name: Retain public requested-scope verdict
         if: ${{ success() || failure() }}

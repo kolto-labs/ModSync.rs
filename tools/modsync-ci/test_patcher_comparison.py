@@ -1,3 +1,4 @@
+import argparse
 import contextlib
 import hashlib
 import io
@@ -89,10 +90,20 @@ class Judge(unittest.TestCase):
         keys = [b["key"] for b in comparisons[0]["boundaries"]]
         self.assertNotIn(f"component/{PLAIN}/1", keys)
 
-    def test_a_guide_without_patcher_operations_compares_only_the_final_tree(self):
-        comparisons, wrong = run(lanes(), operations=[])
-        self.assertEqual(wrong, [])
-        self.assertEqual([b["key"] for b in comparisons[0]["boundaries"]], ["final"])
+    def test_a_plan_with_no_patcher_operation_is_refused_as_vacuous(self):
+        with self.assertRaisesRegex(ValueError, "vacuous"):
+            run(lanes(), operations=[])
+
+    def test_a_single_route_plan_compares_each_backend_with_the_packaged_lane_of_that_route(self):
+        self.assertEqual(pc.comparison_pairs(("cli",)), [
+            (("mod-packaged", "cli"), ("ody-patcher", "cli")),
+            (("mod-packaged", "cli"), ("holo-patcher", "cli")),
+        ])
+        cells = {cell: trees for cell, trees in lanes().items() if cell[1] == "gui"}
+        cells[("holo-patcher", "gui")] = dict(cells[("holo-patcher", "gui")],
+                                              **{f"component/{PATCHED}/1": tree(**{"override/a.2da": "drift"})})
+        _, wrong = pc.judge(cells, OPERATIONS, lambda handle: handle, ("gui",))
+        self.assertEqual([w["lane"] for w in wrong], [["holo-patcher", "gui"]])
 
     def test_the_route_pair_compares_every_component_and_does_not_repeat_the_final_tree(self):
         comparisons, _ = run(lanes())
@@ -138,6 +149,13 @@ class Integration(unittest.TestCase):
             self.assertEqual(pc.verdict(wrong, "k1"), 1)
         self.assertIn("::error", err.getvalue())
         self.assertIn("mod-packaged (gui) is the incorrect lane", err.getvalue())
+
+    def test_compare_requires_three_receipts_per_installed_route(self):
+        for modes, receipts, expected in ((("cli",), 6, "Exactly 3"), (None, 3, "Exactly 6")):
+            with self.assertRaisesRegex(ValueError, expected):
+                pc.compare(argparse.Namespace(receipt=["r"] * receipts, output_dir="unused", modes=modes))
+        with self.assertRaisesRegex(ValueError, "Unsupported route set"):
+            pc.compare(argparse.Namespace(receipt=["r"] * 3, output_dir="unused", modes=("tui",)))
 
     def test_verdict_passes_when_every_lane_agrees(self):
         with contextlib.redirect_stderr(io.StringIO()) as err:
