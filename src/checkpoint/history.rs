@@ -7,6 +7,14 @@ use anyhow::{Context, Result, ensure};
 use sha2::{Digest, Sha256};
 use std::collections::BTreeSet;
 
+mod validated;
+use validated::Boundary;
+pub(super) use validated::CheckedHistory;
+
+// Full documents remain bounded independently. This limits total validation I/O,
+// while compact ancestry retention makes memory independent of tree count.
+pub(super) const MAX_HISTORY_BYTES: u64 = 64 * 1024 * 1024 * 1024;
+
 pub(super) fn definition_hash(definitions: &[serde_json::Value]) -> Result<String> {
     Ok(format!(
         "{:x}",
@@ -48,13 +56,77 @@ pub(super) fn validate_definitions(definitions: &[serde_json::Value]) -> Result<
 }
 
 impl Store {
-    /// Read immutable ancestry, not arbitrary orphan documents. Prefix equality uses
-    /// canonical scalar-preserving JSON of full definitions, never GUIDs alone.
+    /// Validate every full ancestor, retaining only document identities and browse metadata.
+    /// Prefix equality still compares complete scalar-preserving definitions.
     pub(super) fn checked_history(
         &self,
         session_id: &str,
-    ) -> Result<(Session, Head, Vec<Checkpoint>)> {
-        self.checked_history_inner(session_id, &mut BTreeSet::new(), &mut 0)
+    ) -> Result<(Session, Head, CheckedHistory)> {
+        self.checked_history_inner(session_id, &mut BTreeSet::new(), &mut 0, &mut Vec::new())
+    }
+
+    pub(super) fn checked_lineage(
+        &self,
+        session_id: &str,
+    ) -> Result<Vec<(Session, Head, CheckedHistory)>> {
+        let mut lineage = Vec::new();
+        self.checked_history_inner(session_id, &mut BTreeSet::new(), &mut 0, &mut lineage)?;
+        Ok(lineage)
+    }
+
+    fn validate_history_head(
+        &self,
+        session: &Session,
+        head: &Head,
+        current: &Checkpoint,
+    ) -> Result<()> {
+        ensure!(
+            head.generation
+                == current
+                    .sequence
+                    .checked_add(1)
+                    .context("HEAD generation overflow")?,
+            "HEAD generation differs from checkpoint sequence"
+        );
+        if head.status == "CleanupRequired" {
+            ensure!(
+                session.install_scope == "install"
+                    && matches!(current.kind.as_str(), "Component" | "Preparation")
+                    && current.parent_id.is_some()
+                    && (current.kind == "Preparation" || !current.completed_components.is_empty())
+                    && head.generation > 1,
+                "Cleanup HEAD is not bound to a committed install component"
+            );
+        }
+        if matches!(head.status.as_str(), "Complete" | "FinalizeCleanupRequired") {
+            ensure!(
+                current.completed_components.len() == session.ordered_components.len()
+                    && (head.status != "FinalizeCleanupRequired"
+                        || session.install_scope == "install"),
+                "Complete HEAD has an incomplete definition prefix"
+            );
+        }
+        if session.install_scope == "install"
+            && (matches!(head.status.as_str(), "Complete" | "FinalizeCleanupRequired")
+                || head.finalization_receipt.is_some())
+        {
+            ensure!(
+                head.finalization_receipt.as_ref()
+                    == Some(
+                        &super::finalize::expected_receipt(
+                            &self.roots,
+                            session,
+                            current,
+                            head.finalization_receipt
+                                .as_ref()
+                                .and_then(|receipt| receipt.install_report.as_ref())
+                        )?
+                        .1
+                    ),
+                "Finalized HEAD receipt differs from immutable completed checkpoint"
+            );
+        }
+        Ok(())
     }
 
     fn checked_history_inner(
@@ -62,18 +134,22 @@ impl Store {
         session_id: &str,
         seen_sessions: &mut BTreeSet<String>,
         total_bytes: &mut u64,
-    ) -> Result<(Session, Head, Vec<Checkpoint>)> {
+        lineage: &mut Vec<(Session, Head, CheckedHistory)>,
+    ) -> Result<(Session, Head, CheckedHistory)> {
         ensure!(
             seen_sessions.len() < 128 && seen_sessions.insert(session_id.into()),
             "Checkpoint session lineage cycles or exceeds bound"
         );
         self.validate_location()?;
         let session = self.read_session(session_id)?;
+        if let Some(binding) = &session.backend_binding {
+            binding.validate()?;
+        }
         let head = self.read_head(session_id)?;
         let mut next = Some(head.checkpoint_id.clone());
         let mut seen = BTreeSet::new();
-        let mut history = Vec::new();
-
+        let mut entries: Vec<Boundary> = Vec::new();
+        let mut child_preparation = None;
         while let Some(checkpoint_id) = next {
             ensure!(
                 seen.insert(checkpoint_id.clone()),
@@ -95,10 +171,14 @@ impl Store {
                 )
                 .context("Checkpoint history byte count overflow")?;
             ensure!(
-                *total_bytes <= 256 * 1024 * 1024,
-                "Checkpoint ancestry exceeds 256 MiB document budget"
+                *total_bytes <= MAX_HISTORY_BYTES,
+                "Checkpoint ancestry exceeds 64 GiB validation I/O budget"
             );
             let checkpoint = self.read_checkpoint(session_id, &checkpoint_id)?;
+            ensure!(
+                checkpoint.backend_binding == session.backend_binding,
+                "Checkpoint backend authority differs from its immutable session"
+            );
             let length = checkpoint.completed_components.len();
             ensure!(
                 length <= session.ordered_components.len()
@@ -106,91 +186,63 @@ impl Store {
                         == canonical_bytes(&session.ordered_components[..length])?,
                 "Checkpoint completed definitions are not the immutable session prefix"
             );
+            if let Some(child) = entries.last() {
+                ensure!(
+                    child.sequence
+                        == checkpoint
+                            .sequence
+                            .checked_add(1)
+                            .context("Checkpoint sequence overflow")?
+                        && child.parent_id.as_deref() == Some(checkpoint.checkpoint_id.as_str())
+                        && if child.kind == "Preparation" {
+                            checkpoint.preparation.is_none()
+                                && child_preparation.is_some()
+                                && checkpoint.completed_components.is_empty()
+                                && child.completed_components == 0
+                        } else {
+                            child.completed_components == length + 1
+                                && child_preparation == checkpoint.preparation
+                        },
+                    "Checkpoint chain sequence/prefix growth is invalid"
+                );
+            } else {
+                self.validate_history_head(&session, &head, &checkpoint)?;
+            }
+            if checkpoint.parent_id.is_none() {
+                ensure!(
+                    checkpoint.kind == "Baseline" && checkpoint.sequence == 0,
+                    "Checkpoint chain does not terminate at baseline"
+                );
+                ensure!(
+                    checkpoint.completed_components == session.initial_completed_components,
+                    "Baseline does not preserve the inherited completed prefix"
+                );
+            }
             next = checkpoint.parent_id.clone();
-            history.push(checkpoint);
+            child_preparation = checkpoint.preparation.clone();
+            entries.push(Boundary::capture(&checkpoint)?);
         }
-        history.reverse();
-        ensure!(history.first().is_some_and(|checkpoint| checkpoint.kind == "Baseline" && checkpoint.sequence == 0), "Checkpoint chain does not terminate at baseline");
-        for pair in history.windows(2) {
-            ensure!(
-                pair[1].sequence == pair[0].sequence + 1
-                    && pair[1].parent_id.as_deref() == Some(pair[0].checkpoint_id.as_str())
-                    && pair[1].completed_components.len() == pair[0].completed_components.len() + 1,
-                "Checkpoint chain sequence/prefix growth is invalid"
-            );
-        }
-        let current = history.last().context("Empty checkpoint history")?;
-        ensure!(
-            head.generation
-                == current
-                    .sequence
-                    .checked_add(1)
-                    .context("HEAD generation overflow")?,
-            "HEAD generation differs from checkpoint sequence"
-        );
-        if head.status == "CleanupRequired" {
-            ensure!(
-                session.install_scope == "install"
-                    && current.kind == "Component"
-                    && current.parent_id.is_some()
-                    && !current.completed_components.is_empty()
-                    && head.generation > 1,
-                "Cleanup HEAD is not bound to a committed install component"
-            );
-        }
-        ensure!(
-            history
-                .first()
-                .is_some_and(|baseline| baseline.completed_components
-                    == session.initial_completed_components),
-            "Baseline does not preserve the inherited completed prefix"
-        );
-        if matches!(head.status.as_str(), "Complete" | "FinalizeCleanupRequired") {
-            ensure!(
-                current.completed_components.len() == session.ordered_components.len()
-                    && (head.status != "FinalizeCleanupRequired"
-                        || session.install_scope == "install"),
-                "Complete HEAD has an incomplete definition prefix"
-            );
-        }
-        if session.install_scope == "install"
-            && (matches!(head.status.as_str(), "Complete" | "FinalizeCleanupRequired")
-                || head.finalization_receipt.is_some())
-        {
-            ensure!(
-                head.finalization_receipt.as_ref()
-                    == Some(
-                        &super::finalize::expected_receipt(
-                            &self.roots,
-                            &session,
-                            current,
-                            head.finalization_receipt
-                                .as_ref()
-                                .and_then(|receipt| receipt.install_report.as_ref())
-                        )?
-                        .1
-                    ),
-                "Finalized HEAD receipt differs from immutable completed checkpoint"
-            );
-        }
+        ensure!(!entries.is_empty(), "Empty checkpoint history");
+        entries.reverse();
+        let history = CheckedHistory::new(&session, Some(head.clone()), entries)?;
         if let (Some(parent_session), Some(parent_checkpoint)) =
             (&session.parent_session_id, &session.parent_checkpoint_id)
         {
+            // Recursion retains compact indexes only, never a full tree per lineage level.
             let (parent, _, parent_history) =
-                self.checked_history_inner(parent_session, seen_sessions, total_bytes)?;
+                self.checked_history_inner(parent_session, seen_sessions, total_bytes, lineage)?;
             ensure!(
                 parent.origin == session.origin,
                 "Branch parent capability differs"
             );
-            let target = parent_history
-                .iter()
-                .find(|checkpoint| &checkpoint.checkpoint_id == parent_checkpoint)
-                .context("Branch parent is not committed ancestry")?;
-            let baseline = history.first().context("Branch baseline missing")?;
+            let target = parent_history.get(self, parent_checkpoint)?;
+            let baseline = history.baseline(self)?;
             ensure!(
                 session.initial_completed_components == target.completed_components
+                    && session.backend_binding == parent.backend_binding
                     && session.participants == parent.participants
                     && session.ancestor_shells == parent.ancestor_shells
+                    && baseline.preparation == target.preparation
                     && baseline.game == target.game
                     && baseline.auxiliary_snapshots == target.auxiliary_snapshots
                     && baseline.ancestor_shells == target.ancestor_shells
@@ -200,9 +252,10 @@ impl Store {
             );
         }
         ensure!(
-            self.read_head(session_id)? == head,
-            "Checkpoint HEAD changed during history read; retry"
+            self.read_head(session_id)? == head && self.read_session(session_id)? == session,
+            "Checkpoint HEAD or session changed during history read; retry"
         );
+        lineage.push((session.clone(), head.clone(), history.clone()));
         Ok((session, head, history))
     }
 
@@ -214,10 +267,7 @@ impl Store {
         let (session, head, history) = self.checked_history(session_id)?;
         let selected = checkpoint_id.unwrap_or(&head.checkpoint_id);
         id(selected)?;
-        let checkpoint = history
-            .into_iter()
-            .find(|checkpoint| checkpoint.checkpoint_id == selected)
-            .context("Checkpoint is not in committed HEAD ancestry")?;
+        let checkpoint = history.get(self, selected)?;
         let pending_operations = self
             .pending_operations()?
             .into_iter()
@@ -246,14 +296,8 @@ impl Store {
         id(to)?;
         self.pending_operations()?;
         let (_, head, history) = self.checked_history(session_id)?;
-        let from_document = history
-            .iter()
-            .find(|checkpoint| checkpoint.checkpoint_id == from)
-            .context("Diff source is not in committed ancestry")?;
-        let to_document = history
-            .iter()
-            .find(|checkpoint| checkpoint.checkpoint_id == to)
-            .context("Diff destination is not in committed ancestry")?;
+        let from_document = &history.get(self, from)?;
+        let to_document = &history.get(self, to)?;
         let mut changes = Vec::new();
         for (tree, before, after) in [
             (TreeRoot::Mods, &from_document.mods, &to_document.mods),
@@ -328,12 +372,14 @@ impl Store {
         let selected = checkpoint_id.unwrap_or(&head.checkpoint_id);
         id(selected)?;
         let end = history
+            .entries
             .iter()
             .position(|checkpoint| checkpoint.checkpoint_id == selected)
             .context("Provenance checkpoint is not in committed ancestry")?;
         let mut previous = None;
         let mut events = Vec::new();
-        for checkpoint in &history[..=end] {
+        for boundary in &history.entries[..=end] {
+            let checkpoint = history.get(self, &boundary.checkpoint_id)?;
             let entries = match tree {
                 TreeRoot::Mods => &checkpoint.mods.entries,
                 TreeRoot::Game => &checkpoint.game.entries,

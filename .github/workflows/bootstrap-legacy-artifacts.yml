@@ -1,0 +1,343 @@
+name: Bootstrap retained legacy ciphertext
+on:
+  workflow_dispatch:
+    inputs:
+      seed_run_id:
+        description: Reviewed source seed run ID (1-6 packs); leave both pins empty for the fixed legacy snapshot
+        type: string
+        default: ''
+      seed_head_sha:
+        description: Exact reviewed 40-character source seed commit SHA
+        type: string
+        default: ''
+permissions: {contents: read, actions: read}
+concurrency:
+  group: bootstrap-legacy-artifacts-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  plan:
+    if: github.repository == 'kolto-labs/ModSync.rs'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Pin source artifacts and merge every retained index fragment
+        id: plan
+        env:
+          ARTSTORE_REPOSITORY: kolto-labs/odyssey-ci
+          ARTSTORE_TOKEN: ${{ secrets.ARTSTORE_READ_TOKEN }}
+          PYTHONDONTWRITEBYTECODE: '1'
+          SEED_RUN_ID: ${{ inputs.seed_run_id }}
+          SEED_HEAD_SHA: ${{ inputs.seed_head_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python - <<'PY'
+          import json, os, re, stat, sys, time, zipfile
+          from pathlib import Path
+          sys.path.insert(0, 'tools/modsync-ci')
+          import artstore, artstore_core as core, artstore_client
+          expected = {
+              12579095591: 'artstore-pack-40140028316-1-0',
+              12578900978: 'artstore-pack-40140028316-1-1',
+              12578632144: 'artstore-pack-40140028316-1-2',
+              12570369662: 'artstore-pack-40119239110-1-0',
+              12416193997: 'artstore-pack-39755768203-1-0',
+              12302900035: 'artstore-pack-39499301515-1-0',
+              12574050387: 'game-k2-sealed',
+              12571721820: 'game-k1-sealed',
+              12578522140: 'artstore-index-40140028316-1-0',
+              12569439598: 'artstore-index-40119239110-1-0',
+              12415594937: 'artstore-index-39755768203-1-0',
+              12301995270: 'artstore-index-39499301515-1-0',
+          }
+          seed_run = os.environ.get('SEED_RUN_ID', '')
+          seed_sha = os.environ.get('SEED_HEAD_SHA', '')
+          seed_mode = bool(seed_run or seed_sha)
+          if seed_mode and (not re.fullmatch(r'[1-9][0-9]*', seed_run)
+                            or not re.fullmatch(r'[0-9a-f]{40}', seed_sha)):
+              raise SystemExit('Seed migration requires both a positive run ID and reviewed 40-hex commit SHA')
+          expected_indexes, expected_packs = (1, 1) if seed_mode else (4, 6)
+          allowed_heads = {seed_sha} if seed_mode else {
+              'ea7c6c9de63ad2fa9706f9092958559277dbc447',
+              '0f5faf88fa37cf859412b8cc71f6da018bf7a9c4'}
+          client = artstore_client.from_environment()
+          if client is None:
+              raise SystemExit('Temporary source read credential is required')
+          listing = client.list_artifacts()
+          pinned = []
+          seed_attempts = set()
+          for item in listing:
+              run = item.get('workflow_run') or {}
+              if seed_mode:
+                  if run.get('id') != int(seed_run) or not (item['name'].startswith((core.PACK_PREFIX, core.INDEX_PREFIX)) or item['name'] == 'mod-archive-manifest-sealed'):
+                      continue
+                  name_match = re.fullmatch(r'artstore-(?:pack|index)-' + seed_run + r'-([1-9][0-9]*)-(?:[0-9]+|seed)', item['name'])
+                  if item['name'] != 'mod-archive-manifest-sealed':
+                      if name_match is None:
+                          raise SystemExit('Seed artifact name does not match the pinned source run')
+                      seed_attempts.add(name_match[1])
+                  elif not 0 < item['size_in_bytes'] <= 32 * 1024**2:
+                      raise SystemExit('Sealed source manifest exceeds its bound')
+              elif item['id'] not in expected:
+                  continue
+              if ((not seed_mode and item['name'] != expected[item['id']])
+                      or not re.fullmatch(r'sha256:[0-9a-f]{64}', item.get('digest') or '')
+                      or run.get('repository_id') != 1427366340
+                      or run.get('head_repository_id') != 1427366340
+                      or run.get('head_sha') not in allowed_heads
+                      or not 0 < item['size_in_bytes'] <= 4 * 1024**3):
+                  raise SystemExit('Source artifact identity or digest is invalid')
+              pinned.append({key: item[key] for key in (
+                  'id', 'name', 'digest', 'size_in_bytes', 'workflow_run', 'expires_at', 'created_at')})
+          if seed_mode:
+              expected_packs = sum(item['name'].startswith(core.PACK_PREFIX) for item in pinned)
+              manifests = sum(item['name'] == 'mod-archive-manifest-sealed' for item in pinned)
+              if (not 1 <= expected_packs <= 6 or len(seed_attempts) != 1 or manifests > 1
+                      or len(pinned) != expected_packs + 1 + manifests
+                      or sum(item['name'].startswith(core.INDEX_PREFIX) for item in pinned) != 1):
+                  raise SystemExit('Expected one to six seed packs, one index and at most one sealed manifest from one source attempt')
+              for item in pinned:
+                  item['source_attempt'] = int(next(iter(seed_attempts)))
+          elif len(pinned) != len(expected):
+              raise SystemExit('A pinned source artifact is missing or expired')
+          base = Path(os.environ['RUNNER_TEMP']) / 'bootstrap-plan'
+          index_dir = base / 'index'
+          index_dir.mkdir(parents=True)
+          fragments = []
+          indexes = [item for item in pinned if item['name'].startswith(core.INDEX_PREFIX)]
+          now = time.time()
+          packs = artstore._packs_by_name(pinned, now)
+          for item in indexes:
+              archive_path = base / ('source-%s.zip' % item['id'])
+              client.download_zip(item['id'], archive_path, expect_digest=item['digest'])
+              if archive_path.stat().st_size != item['size_in_bytes']:
+                  raise SystemExit('Source index ZIP size mismatch')
+              with zipfile.ZipFile(archive_path) as archive:
+                  entries = archive.infolist()
+                  if len(entries) != 1 or entries[0].filename != 'index.json':
+                      raise SystemExit('Unexpected index ZIP members')
+                  member = entries[0]
+                  mode = member.external_attr >> 16
+                  if (member.is_dir() or stat.S_IFMT(mode) not in (0, stat.S_IFREG)
+                          or member.flag_bits & 1 or not 0 < member.file_size <= artstore.MAX_INDEX_BYTES):
+                      raise SystemExit('Unsafe index ZIP member')
+                  fragment_path = base / ('fragment-%s.json' % item['id'])
+                  with archive.open(member) as source, fragment_path.open('xb') as dest:
+                      import shutil
+                      shutil.copyfileobj(source, dest)
+                  fragments.append(artstore._reconcile(core.load_index(fragment_path), packs, now))
+                  fragment_path.unlink()
+              archive_path.unlink()
+          merged = core.merge_indexes(fragments, now)
+          if (len(fragments) != expected_indexes or len(packs) != expected_packs
+                  or set(merged['packs']) != set(packs)):
+              raise SystemExit('Merged index does not cover exactly the pinned source packs')
+          core.dump_index(merged, index_dir / 'index.json')
+          provenance = {'schema_version': 1, 'source_repository': client.repo,
+                        'migration_mode': 'seed' if seed_mode else 'legacy',
+                        'source_indexes': indexes, 'source_payloads': [item for item in pinned if item not in indexes],
+                        'target_repository': os.environ['GITHUB_REPOSITORY'],
+                        'target_sha': os.environ['GITHUB_SHA'], 'target_run_id': os.environ['GITHUB_RUN_ID']}
+          (index_dir / 'transfer-provenance.json').write_text(json.dumps(provenance, sort_keys=True, indent=2))
+          (base / 'plan.json').write_text(json.dumps(provenance, sort_keys=True, indent=2))
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write('matrix=' + json.dumps({'artifact': provenance['source_payloads']}, separators=(',', ':')) + '\n')
+          print('Pinned %d encrypted payload artifacts; merged %d index fragments'
+                % (len(provenance['source_payloads']), len(fragments)))
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: bootstrap-legacy-plan-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/bootstrap-plan
+          retention-days: 90
+          if-no-files-found: error
+  transfer:
+    name: Transfer ${{ matrix.artifact.name }}
+    needs: plan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: bootstrap-legacy-plan-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/bootstrap-plan
+      - name: Verify ZIP and copy only original sealed members
+        env:
+          ARTSTORE_REPOSITORY: kolto-labs/odyssey-ci
+          ARTSTORE_TOKEN: ${{ secrets.ARTSTORE_READ_TOKEN }}
+          ARTIFACT_RECORD: ${{ toJSON(matrix.artifact) }}
+          PYTHONDONTWRITEBYTECODE: '1'
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python - <<'PY'
+          import hashlib, json, os, re, stat, sys, zipfile
+          from pathlib import Path
+          sys.path.insert(0, 'tools/modsync-ci')
+          import artstore_client, artstore_core as core, game_backup, seal
+          record = json.loads(os.environ['ARTIFACT_RECORD'])
+          temp = Path(os.environ['RUNNER_TEMP'])
+          plan = json.loads((temp / 'bootstrap-plan/plan.json').read_text())
+          if record not in plan['source_payloads']:
+              raise SystemExit('Artifact is outside the pinned transfer plan')
+          client = artstore_client.from_environment()
+          archive_path = temp / 'source.zip'
+          client.download_zip(record['id'], archive_path, expect_digest=record['digest'])
+          if archive_path.stat().st_size != record['size_in_bytes']:
+              raise SystemExit('Source ZIP size mismatch')
+          output = temp / 'transfer'
+          output.mkdir()
+          is_game = record['name'] in ('game-k1-sealed', 'game-k2-sealed')
+          is_manifest = record['name'] == 'mod-archive-manifest-sealed'
+          copied = {}
+          with zipfile.ZipFile(archive_path) as archive:
+              entries = archive.infolist()
+              if not entries or len(entries) > 10000 or sum(m.file_size for m in entries) > 4 * 1024**3:
+                  raise SystemExit('ZIP member count or expanded size is invalid')
+              for member in entries:
+                  name = member.filename
+                  part = re.fullmatch(r'[0-9a-f]{64}\.part', name)
+                  manifest = is_game and name == 'manifest.json'
+                  sealed_manifest = is_manifest and name == 'manifest.seal'
+                  mode = member.external_attr >> 16
+                  if (not (part or manifest or sealed_manifest) or name in copied or member.is_dir()
+                          or stat.S_IFMT(mode) not in (0, stat.S_IFREG) or member.flag_bits & 1
+                          or not 0 < member.file_size <= (4 * 1024**3 if part else 32 * 1024**2 if sealed_manifest else 1024**2)):
+                      raise SystemExit('Unsafe or unexpected payload ZIP member')
+                  digest = hashlib.sha256()
+                  count = 0
+                  with archive.open(member) as source, (output / name).open('xb') as dest:
+                      magic = seal.MAGIC if sealed_manifest else core.MAGIC
+                      prefix = source.read(len(magic))
+                      if (part or sealed_manifest) and prefix != magic:
+                          raise SystemExit('Payload is not an encrypted artstore part')
+                      digest.update(prefix)
+                      dest.write(prefix)
+                      count += len(prefix)
+                      while chunk := source.read(1024 * 1024):
+                          count += len(chunk)
+                          digest.update(chunk)
+                          dest.write(chunk)
+                  if count != member.file_size or part and digest.hexdigest() != name[:-5]:
+                      raise SystemExit('Encrypted member size or digest mismatch')
+                  copied[name] = count
+          if is_manifest:
+              if set(copied) != {'manifest.seal'}:
+                  raise SystemExit('Unexpected sealed manifest members')
+              required = dict(copied)
+          elif is_game:
+              manifest = game_backup.parse_manifest((output / 'manifest.json').read_text(), record['name'][5:7])
+              required = {part['stored_sha256'] + '.part': part['stored_size'] for part in manifest['parts']}
+              if set(copied) != set(required) | {'manifest.json'}:
+                  raise SystemExit('Game manifest and encrypted members disagree')
+          else:
+              index = core.load_index(temp / 'bootstrap-plan/index/index.json')
+              required = {part['stored_sha256'] + '.part': part['stored_size']
+                          for blob in index['blobs'].values() for part in blob['parts']
+                          if part['pack'] == record['name']}
+              if not required:
+                  raise SystemExit('Pack has no indexed ciphertext members')
+          if any(copied.get(name) != size for name, size in required.items()):
+              raise SystemExit('Index or manifest member sizes disagree')
+          provenance = {'schema_version': 1, 'source_repository': client.repo, 'source_artifact': record,
+                        'source_attempt': record.get('source_attempt'),
+                        'target_repository': os.environ['GITHUB_REPOSITORY'],
+                        'target_sha': os.environ['GITHUB_SHA'], 'target_run_id': os.environ['GITHUB_RUN_ID']}
+          (output / 'transfer-provenance.json').write_text(json.dumps(provenance, sort_keys=True, indent=2))
+          archive_path.unlink()
+          print('Verified and copied encrypted members without decryption')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ${{ matrix.artifact.name }}
+          path: ${{ runner.temp }}/transfer
+          compression-level: 0
+          retention-days: 90
+          if-no-files-found: error
+  publish-index:
+    # Merge the latest cumulative index under the same lock as other writers.
+    concurrency: {group: fullrun-mod-cache-writer, cancel-in-progress: false}
+    needs: [plan, transfer]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: bootstrap-legacy-plan-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/bootstrap-plan
+      - name: Preserve the current repository index in this cumulative publication
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PYTHONDONTWRITEBYTECODE: '1'
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python - <<'PY'
+          import json, os, sys, time
+          from pathlib import Path
+          sys.path.insert(0, 'tools/modsync-ci')
+          import artstore, artstore_core as core, artstore_client
+          repository = os.environ['GITHUB_REPOSITORY']
+          if repository != 'kolto-labs/ModSync.rs':
+              raise SystemExit('Index publication must remain in the owning repository')
+          client = artstore_client.ArtifactsClient(repository, os.environ['GITHUB_TOKEN'])
+          listing = client.list_artifacts(include_expired=True)
+          now = time.time()
+          base = Path(os.environ['RUNNER_TEMP']) / 'bootstrap-plan'
+          imported = core.load_index(base / 'index/index.json')
+          previous = artstore._index_from_listing(
+              client, listing, artstore.INDEX_FETCH_LIMIT, now, strict=True)
+          merged = core.merge_indexes([previous, imported], now)
+          packs = artstore._packs_by_name(listing, now)
+          artstore._reconcile(merged, packs, now)
+          if not set(previous['blobs']) <= set(merged['blobs']):
+              raise SystemExit('Cumulative publication lost a prior object association')
+          for digest, blob in imported['blobs'].items():
+              if digest not in merged['blobs'] or merged['blobs'][digest]['size'] != blob['size']:
+                  raise SystemExit('Cumulative publication lost an imported object')
+              if any(not merged['packs'].get(part['pack'], {}).get('artifact_id')
+                     for part in merged['blobs'][digest]['parts']):
+                  raise SystemExit('Imported object is not covered by live owning-repository packs')
+          core.dump_index(merged, base / 'index/index.json')
+          receipt = {'schema_version': 1, 'repository': repository,
+                     'sha': os.environ['GITHUB_SHA'], 'run_id': os.environ['GITHUB_RUN_ID'],
+                     'run_attempt': os.environ['GITHUB_RUN_ATTEMPT'],
+                     'prior_object_count': len(previous['blobs']),
+                     'imported_object_count': len(imported['blobs']),
+                     'published_object_count': len(merged['blobs']),
+                     'prior_indexes': [{key: item.get(key) for key in
+                         ('id', 'name', 'digest', 'workflow_run', 'expires_at')}
+                         for item in listing if str(item.get('name', '')).startswith(core.INDEX_PREFIX)
+                         and not artstore._is_dead(item, now)]}
+          (base / 'index/index-merge-provenance.json').write_text(json.dumps(receipt, sort_keys=True, indent=2))
+          print('Cumulative index preserves %d prior and %d imported objects (%d total)'
+                % (len(previous['blobs']), len(imported['blobs']), len(merged['blobs'])))
+          PY
+      # Consumers reconcile the original pack names to their new target artifact IDs.
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: artstore-index-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/bootstrap-plan/index
+          retention-days: 90
+          if-no-files-found: error

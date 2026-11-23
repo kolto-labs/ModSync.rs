@@ -1,0 +1,103 @@
+{
+  "schema": 1,
+  "policy": "closed-reviewed-source-revision-v1",
+  "revision_id": "improved-enlightenment-corruption-public-v1_0_1-b373",
+  "game": "k2",
+  "owner_guid": "e015887a-be0f-86d1-830e-92d82c8fc46c",
+  "component_index": 135,
+  "original_guide_sha256": "f442bdf574031623ed577609730d887069b9bc8e38e8e2f38ecc43a7e7487d5f",
+  "original_plan_sha256": "0add8c1aeb7cdfad3df4b21761e135c150aa7832cf3fc0edabe01a91245a9258",
+  "original_step": {
+    "id": "step-136",
+    "source_heading": "### Improved Enlightenment/Corruption",
+    "operations": [
+      {
+        "type": "extract",
+        "source": "{archives}/Improved Enlightenment and Corruption Feats.zip",
+        "destination": "{extract}/step-136/1"
+      },
+      {
+        "type": "copy",
+        "source": "{extract}/step-136/1/Improved Enlightenment and Corruption Feats/to override/a_influence_dec.ncs",
+        "destination": "{game}/override/a_influence_dec.ncs"
+      },
+      {
+        "type": "copy",
+        "source": "{extract}/step-136/1/Improved Enlightenment and Corruption Feats/to override/a_influence_inc.ncs",
+        "destination": "{game}/override/a_influence_inc.ncs"
+      }
+    ]
+  },
+  "original_archive": {
+    "filename": "Improved Enlightenment and Corruption Feats.zip",
+    "sha256": "0c6db43f218d6d5bf73b1be8e3f7dc469254f3168920b6af6fa8513313617597"
+  },
+  "revision_archive": {
+    "filename": "Improved_Enlightenment_and_Corruption_Feats_v1_0_1.zip",
+    "sha256": "b3730c98a05a12ee0a6610a57570be62ff14a7217abaef667ced9b4b541f7eed",
+    "bytes": 4370
+  },
+  "publisher_download": {
+    "source_id": "b5e8bd00abb1552134512314ddb129643e2462f64ba6f09ef966d3207ebbb8ea",
+    "source_url": "https://deadlystream.com/files/file/2577-improved-ls-enlightenment-ds-corruption-feats/",
+    "receipt_sha256": "e67ce5df4f05a29e2f674cf4cf7292851406205e047e18710575387f3f12f7bf",
+    "version_metadata": "Filename explicitly claims v1_0_1; no external version/ETag/LastModified recorded"
+  },
+  "author_readme": {
+    "path": "Improved_Enlightenment_and_Corruption_Feats_v1_0_1/readme.txt",
+    "kind": "file",
+    "bytes": 1756,
+    "crc32": "89170a5d",
+    "sha256": "b7e48e98f04ebc15b7931635da4bf8e8d345bb4af583248867cc65d32fcf72df"
+  },
+  "selected_payloads": [
+    {
+      "path": "Improved_Enlightenment_and_Corruption_Feats_v1_0_1/to override/a_influence_dec.ncs",
+      "kind": "file",
+      "bytes": 484,
+      "crc32": "8e09c6d2",
+      "sha256": "28f9e15b61e42adb1357b65fff2f407ca578bf6e9ee4c5b3cc5f83ffd23f026a"
+    },
+    {
+      "path": "Improved_Enlightenment_and_Corruption_Feats_v1_0_1/to override/a_influence_inc.ncs",
+      "kind": "file",
+      "bytes": 482,
+      "crc32": "b5f3b98c",
+      "sha256": "3d31d106c7ce4d9ebe6834d4effaf2aacf2cf6b1688dfa511f890ca99eb52f71"
+    }
+  ],
+  "inert_reference_sources": [
+    {
+      "path": "Improved_Enlightenment_and_Corruption_Feats_v1_0_1/source/a_influence_dec.nss",
+      "kind": "file",
+      "bytes": 1473,
+      "crc32": "0b7a74de",
+      "sha256": "c34fef91987bd9f7453dac0c8ec487887bdd259d12218fbff0728a7001884f9c"
+    },
+    {
+      "path": "Improved_Enlightenment_and_Corruption_Feats_v1_0_1/source/a_influence_inc.nss",
+      "kind": "file",
+      "bytes": 1469,
+      "crc32": "0a49c29b",
+      "sha256": "96849a404a3b45c11e8d89a45329e8e890515bb6a1d6bcb795fae43dfbb7f337"
+    }
+  ],
+  "configuration_contract": {
+    "mode": "loose-file-copy",
+    "installer": "absent",
+    "ini": "absent",
+    "namespace": "absent",
+    "compiler_required": false,
+    "installation": "Author README directs copying contents of to override; only supplied compiled NCS payloads are installed",
+    "author_behavior_delta": "Original guide describes tripling influence changes. Current packaged README describes +50%; both supplied reference NSS scripts multiply by3/2 when LS Enlightenment or DS Corruption is present. Preserve this as an explicit source-version change; do not claim old/new equivalence or prove supplied NCS equality from reference NSS alone.",
+    "guide_tripling_equivalence_verified": false
+  },
+  "bounded_inventory": {
+    "members": 8,
+    "files": 5,
+    "expanded_bytes": 5664
+  },
+  "certificate_sha256": "7b589c23b753e4db00363ecac5da5787c1ea4e3b78185418d402460ccb3b8eb9",
+  "boundary": "Distinctcurrent4370byteb373ZIPandv1_0_1folder, original0c6dbZIPandfullguide/planpreserved. Freshfullbody/memberreplayrequired; noEXE/compilerexecution, gameplayproof, oldnewpayload-equivalenceclaim, or invented installer choice.",
+  "disposition": "held-current-influence-regression"
+}

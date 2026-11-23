@@ -1,0 +1,61 @@
+[package]
+autotests = false
+autobenches = false
+autoexamples = false
+name = "odypatcher"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.77"
+authors = ["Boden Crouch"]
+description = "Game data patcher and mod installer for Star Wars: Knights of the Old Republic I and II"
+homepage = "https://github.com/bodencrouch/OdyPatcher"
+repository = "https://github.com/bodencrouch/OdyPatcher"
+license = "AGPL-3.0-or-later"
+readme = "UPSTREAM-README.md"
+keywords = ["kotor", "modding", "patcher", "gff", "2da"]
+categories = ["game-development", "command-line-utilities"]
+
+[lib]
+test = false
+doctest = false
+name = "odypatcher"
+path = "src/lib.rs"
+
+[[bin]]
+name = "odypatcher"
+path = "src/main.rs"
+
+[features]
+default = ["gui", "nss-compiler"]
+gui = ["dep:eframe", "dep:egui", "dep:egui_extras", "dep:rfd"]
+nss-compiler = ["dep:bionsscomp", "dep:rustix"]
+
+[dependencies]
+eframe = { version = "0.32", optional = true, default-features = false, features = [
+    "glow",
+    "default_fonts",
+    "wayland",
+    "x11",
+] }
+egui = { version = "0.32", optional = true }
+egui_extras = { version = "0.32", optional = true }
+rfd = { version = "0.15", optional = true, default-features = false, features = ["xdg-portal", "tokio"] }
+
+kotor-formats = { git = "https://github.com/holowan-biolabs/kotor-formats", tag = "v0.1.0" }
+
+bionsscomp = { version = "1.0.0", path = "../bionsscomp", optional = true }
+
+# To work against a local kotor-formats checkout instead of the pinned tag,
+# uncomment:
+# [patch."https://github.com/holowan-biolabs/kotor-formats"]
+# kotor-formats = { path = "../kotor-formats/crates/kotor-formats" }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+# Safe descriptor-relative, no-follow loading for the opt-in strict NSS bridge.
+rustix = { version = "=1.1.4", features = ["fs"], optional = true }
+
+[profile.release]
+opt-level = 2
+lto = "thin"
+strip = true
+panic = "unwind"

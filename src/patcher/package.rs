@@ -125,6 +125,7 @@ fn engine_name(engine: PatcherEngine) -> &'static str {
         PatcherEngine::HoloPatcher => "HoloPatcher",
         PatcherEngine::OdyPatcher => "OdyPatcher",
         PatcherEngine::KPatcher => "KPatcher",
+        PatcherEngine::ModPackaged => "ModPackaged",
     }
 }
 fn verified(root: &Path, manifest: &Manifest) -> Result<PathBuf> {

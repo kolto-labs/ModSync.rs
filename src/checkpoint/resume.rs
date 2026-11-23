@@ -4,7 +4,7 @@ use super::{
     store::{Store, canonical_bytes},
 };
 use crate::recovery;
-use anyhow::{Context, Result, ensure};
+use anyhow::{Result, ensure};
 use sha2::{Digest, Sha256};
 use std::{
     collections::{BTreeMap, BTreeSet},
@@ -30,6 +30,17 @@ impl Store {
         participants: &BTreeMap<String, ParticipantBinding>,
         flag: &AtomicBool,
     ) -> Result<ResumePlan> {
+        self.resume_plan_with_backend(request, definitions, participants, None, flag)
+    }
+
+    pub fn resume_plan_with_backend(
+        &self,
+        request: &ResumeRequest,
+        definitions: &[serde_json::Value],
+        participants: &BTreeMap<String, ParticipantBinding>,
+        backend_binding: Option<&BackendBinding>,
+        flag: &AtomicBool,
+    ) -> Result<ResumePlan> {
         cancelled(flag)?;
         self.ensure_no_pending()?;
         self.ensure_other_sessions_settled(&request.expected.session_id)?;
@@ -40,7 +51,11 @@ impl Store {
                 && head.checkpoint_id == request.expected.checkpoint_id,
             "Resume HEAD is stale or unresolved"
         );
-        let target = history.last().context("Resume checkpoint missing")?;
+        ensure!(
+            session.backend_binding.as_ref() == backend_binding,
+            "Resume backend or invocation/source authority differs"
+        );
+        let target = &history.current(self)?;
         super::history::validate_definitions(definitions)?;
         let prefix = &target.completed_components;
         ensure!(
@@ -106,6 +121,7 @@ impl Store {
             source_changes: changes,
             source_root_mode_changed: mods.root_mode != target.mods.root_mode,
             context: InstallContext {
+                backend_binding: session.backend_binding.clone(),
                 ordered_components: definitions.to_vec(),
                 initial_completed_components: prefix.clone(),
                 participants: participants.clone(),
@@ -138,9 +154,10 @@ impl Store {
                 && head.status == plan.source_status,
             "Resume plan HEAD changed during preflight"
         );
-        let target = history.last().context("Resume target missing")?;
+        let target = &history.current(self)?;
         ensure!(
-            session.participants == plan.context.participants
+            session.backend_binding == plan.context.backend_binding
+                && session.participants == plan.context.participants
                 && target.completed_components == plan.context.initial_completed_components,
             "Resume plan context changed"
         );

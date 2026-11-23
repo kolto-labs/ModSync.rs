@@ -125,6 +125,32 @@ impl Engine {
         component: &Component,
         instruction: &Instruction,
     ) -> Result<Resolution> {
+        if matches!(instruction.action.as_str(), "ExtractTo" | "CopyFile") {
+            let path = self.extension_source_path(instruction)?;
+            let content = &self
+                .files
+                .get(&self.path_policy.key(&path))
+                .context("Explicit file Source is missing; automatic recovery is not permitted")?
+                .1;
+            ensure!(
+                content.open()?.metadata()?.is_file(),
+                "Explicit Source must be a regular file"
+            );
+            if instruction.action == "ExtractTo" {
+                ensure!(
+                    path.starts_with(&self.settings.roots.mods),
+                    "ExtractTo Source must be in the mod directory"
+                );
+                self.extraction_target(&path, instruction)?;
+            } else {
+                self.copy_file_destination(instruction)?;
+            }
+            return Ok(Resolution {
+                sources: vec![path],
+                writes: Vec::new(),
+                satisfied: false,
+            });
+        }
         let patcher = instruction.action == "Patcher";
         let direct = if patcher {
             ensure!(

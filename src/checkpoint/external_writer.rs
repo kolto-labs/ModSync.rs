@@ -28,21 +28,44 @@ pub(crate) struct Gate {
     bytes: Vec<u8>,
 }
 impl Gate {
-    pub(crate) fn register(roots: &Roots, requests: &Path, prefix: Option<&Path>) -> Result<Self> {
+    /// Require the caller's held root lock and exact running operation; discovering
+    /// somebody else's singleton journal never grants external writer ownership.
+    pub(crate) fn require_owner(
+        roots: &Roots,
+        lock: &recovery::Lock,
+        operation: &super::OperationIntent,
+    ) -> Result<()> {
         ensure_clear(&roots.game)?;
         let store = Store::open(roots)?;
+        store.require_lock(lock)?;
         let operations = store.pending_operations()?;
         ensure!(
             operations.len() == 1,
             "External writer needs exactly one owned active checkpoint operation"
         );
+        ensure!(
+            operation.kind == "InstallComponent"
+                && operation.phase == "Materializing"
+                && operations[0] == *operation,
+            "External writer checkpoint is not the caller's owned Materializing component"
+        );
+        Ok(())
+    }
+    pub(crate) fn register(
+        roots: &Roots,
+        lock: &recovery::Lock,
+        operation: &super::OperationIntent,
+        requests: &Path,
+        prefix: Option<&Path>,
+    ) -> Result<Self> {
+        Self::require_owner(roots, lock, operation)?;
         let requests = fs::canonicalize(requests)?;
         let prefix = prefix.map(fs::canonicalize).transpose()?;
         let bytes = serde_json::to_vec_pretty(&serde_json::json!({
             "schemaVersion": 1, "origin": super::persistence::writer_origin()?,
             "writerId": uuid::Uuid::new_v4().to_string(), "status": "mayHaveLiveWriters",
             "mods": roots.mods, "game": roots.game, "requestDirectory": requests,
-            "winePrefix": prefix, "checkpointOperation": operations[0], "ownerPid": std::process::id()
+            "winePrefix": prefix, "checkpointOperation": operation, "ownerPid": std::process::id()
         }))?;
         ensure!(
             bytes.len() <= 4 * 1024 * 1024,
