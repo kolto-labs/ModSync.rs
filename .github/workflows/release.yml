@@ -132,7 +132,7 @@ jobs:
           flags=(--target "$SHA" --title "ModSync $TAG" --generate-notes)
           [ "$PRERELEASE" = true ] && flags+=(--prerelease)
           gh release create "$TAG" "${flags[@]}" release/*
-          echo "Published $TAG with $(ls release | wc -l) files." >> "$GITHUB_STEP_SUMMARY"
+          echo "Published $TAG with $(find release -maxdepth 1 -type f | wc -l) files." >> "$GITHUB_STEP_SUMMARY"
 
   nexus:
     name: Nexus Mods (${{ matrix.label }})
@@ -197,7 +197,8 @@ jobs:
             echo "::error::$FILE_ID_VARIABLE must be a Nexus file group ID (a number)."
             exit 1
           fi
-          if [ "$(printf '%s\n' $ALL_IDS | grep -cx "$FILE_ID")" -gt 1 ]; then
+          read -ra ids <<< "$ALL_IDS"
+          if [ "$(printf '%s\n' "${ids[@]}" | grep -cx "$FILE_ID")" -gt 1 ]; then
             echo "::error::Each platform needs its own Nexus file group, or one upload would archive another."
             exit 1
           fi

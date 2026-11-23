@@ -29,10 +29,12 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
+      # Lint every workflow on each PR, with the shared runner-label config, so a
+      # change that breaks the branch-push quick checks cannot merge unnoticed.
       - name: Validate workflow syntax and expressions
         uses: docker://rhysd/actionlint:1.7.12
         with:
-          args: .github/workflows/ci.yml
+          args: -color -config-file .github/actionlint.yaml
 
   production:
     runs-on: ubuntu-latest
