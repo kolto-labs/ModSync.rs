@@ -655,7 +655,7 @@ Guide preamble from structured input: `draft::guide_defaults` now also reads `me
 
 `tools/check_drafts.py` compares the pinned C# service's raw objects rather than relying on lossy C# JSON export. It assigns the input's prose fields directly because the legacy JSON loader drops some installation warnings. Across 19 focused cases and four desktop guide component sets (669 component records), instructions, option names/descriptions/selections, warnings, gaps and conditional notes matched with zero differences. The corpus inputs are parsed component JSON, so this proves the draft stage, not complete C# Markdown ingestion or installation. Source/input hashes and scope are in `docs/parity/draft-check.json`. Since 2026-10-04 a drafted Rename deliberately differs (see "Drafted Renames" below).
 
-Some reference drafts are demonstrably incomplete interpretations: generic patterns can yield one-letter folder names, and numeric ranges can yield root placeholders. Matching them does not certify a correct install. Complete local archive-based generation, full direct-Markdown preflight rules (including 4GB/widescreen exclusions), editing unresolved drafts and full-build acceptance remain open. The Rust review gate enforces the draft service's never-auto-trust contract; C# direct-Markdown preflight currently counts flagged drafts as executable without that gate. This workflow difference must be reconciled before claiming full parity.
+Some reference drafts are demonstrably incomplete interpretations: generic patterns can yield one-letter folder names, and numeric ranges can yield root placeholders. Matching them does not certify a correct install. Explicit drafting no longer produces these; see "Corrected drafting on request, 2026-11-23 UTC". Complete local archive-based generation, full direct-Markdown preflight rules (including 4GB/widescreen exclusions), editing unresolved drafts and full-build acceptance remain open. The Rust review gate enforces the draft service's never-auto-trust contract; C# direct-Markdown preflight currently counts flagged drafts as executable without that gate. This workflow difference must be reconciled before claiming full parity.
 
 All 31 regular local integration tests pass with and without desktop features, alongside formatting and Clippy. Native X11 acceptance exercised automatic drafting, rejection before review, visible instructions/diagnostics, acceptance, validation, and an isolated install whose resulting bytes and source removal were verified. The preceding Markdown commit's Windows CI failure was an LF-only malformed-input test transform against a CRLF checkout; the test now normalizes line endings before mutation.
 
@@ -1360,6 +1360,53 @@ preselects 2 instead of 5 (`Base install` and the HQ Cockpit Skyboxes medium opt
 The 4 unselected options C# also drafts from loose wording (`and install both`, `only
 the`, `a non-English mod`, `mod`) are kept. An option's GUID depends on its position,
 so an option that followed a skipped one gets a new GUID.
+
+## Corrected drafting on request, 2026-11-23 UTC
+
+An explicit request to draft from prose, `convert --parse-directions` or the desktop
+"Draft instructions from prose" button, now uses a corrected reading
+(`draft::generate_corrected`). Load-time drafting is unchanged: desktop file-open, CLI
+install/validate, `fetch-downloads` and every reviewed-recipe binding still call
+`draft::generate`, which keeps the pinned C# output byte for byte. Reviewed recipes
+compare a fresh draft of their source guide with stored, SHA-256 pinned inputs, and a
+guide opened for install must still match them, so that output cannot change.
+
+The corrected reading drafts a step only when its source names a file, a file list, a
+wildcard, a quoted name, a path or a named folder:
+
+- A folder name comes from the words before "folder", after the last "in", "from",
+  "within" or "inside" and without a leading article. "move all the files in the
+  Creatures folder" drafts `Creatures\*`, not `the\*`; "Move everything from the
+  Straight Fixes, Resolution Fixes, and Aesthetic Improvements folders" drafts the three
+  folders, not `e\*`; "files from the mod's Override folder" drafts `Override\*`.
+- The pinned catch-all patterns end on a lazy source with nothing required after it, so
+  they capture one letter (`f` from "the files"). The corrected ones run the source to a
+  destination, punctuation, a joining word or the end of the step.
+- Prose with no such source ("move the files from the patch", "the movie files",
+  "Extract the mod"), a choice ("from one of those folders", "Malak (Red Eyes) or Malak
+  (Blue Eyes)"), a described folder ("the corresponding folder", "the resolution folder
+  corresponding to ..."), a count ("the 7 folders"), a folder of the game ("your main
+  game folder"), files picked by prefix ("files beginning "PFBBL"") and copy-then-rename
+  steps draft nothing and stay review gaps. A Copy's Destination is a folder, so a copy
+  under a new name has no instruction form.
+- "copy" drafts a Copy, not a Move that would remove the original, and a verb must
+  start a word, so "Remove a.tga" is not read as "move a.tga".
+- "w_lghtsbr_001.tga from the alt_texture folder" drafts `alt_texture\w_lghtsbr_001.tga`.
+- "DXN_BWa1 through DXN_BWa8.tpc" drafts `DXN_BWa*.tpc`, and a range with no extension
+  ("PFBI01 through PFBI04") is a gap. The pinned reading drafts `<<modDirectory>>\`, the
+  mod directory root, for both.
+- Download options: `and install both`, `only the`, `just the main`, `mod` and the
+  options in an "If wishing to ..." sentence are no longer drafted, "Download only the
+  Damaged version" offers `Damaged`, and "I recommend the Medium texture option for the
+  best balance ..." offers `Medium texture`.
+
+Patcher, Execute and DelDuplicate sources are tool keywords (`installer`,
+`DelDuplicateTGA-TPC`) and keep the pinned reading. Drafted steps still require review
+before installing. On the KOTOR 1 Full Build 31 of 197 components draft differently and
+on the KOTOR 2 source plan 29 of 151; neither has a one-letter or `the` folder left.
+These were compared component by component with the pinned output; no install was run.
+`tests/drafts.rs` and its C# reference still pin `draft::generate`, which this change
+leaves as it was.
 
 `fetch-downloads` now drafts prose Markdown on its working copy of the guide, as
 `selection`, `validate`, `install` and the desktop already did. Before, it loaded the
