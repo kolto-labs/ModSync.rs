@@ -128,10 +128,22 @@ class WorkflowGraph(unittest.TestCase):
         self.assertIn("github.head_ref || github.ref_name", main["concurrency"]["group"])
         self.assertIn("!= 'quick'", main["jobs"]["toolkit"]["if"])
         self.assertIn("!= 'quick'", main["jobs"]["result"]["if"])
+        # Narrow non-CI push triggers: site deploy from main and version-tag releases.
+        allowed_push = {
+            "pages.yml": {"branches": ["main"]},
+            "release.yml": {"tags": ["v[0-9]+.[0-9]+.[0-9]+"]},
+        }
         for path in (ROOT / ".github/workflows").glob("*.yml"):
             document = yaml.load(path.read_text(), Loader=yaml.BaseLoader)
-            if path.name != "fullrun.yml":
-                self.assertNotIn("push", document.get("on", {}), path.name)
+            if path.name == "fullrun.yml":
+                continue
+            push = document.get("on", {}).get("push")
+            if path.name in allowed_push:
+                for key, value in allowed_push[path.name].items():
+                    self.assertEqual(push.get(key), value, path.name)
+                self.assertNotIn("branches-ignore", push, path.name)
+            else:
+                self.assertIsNone(push, path.name)
     def test_pr_reads_pinned_k1_auxiliary_cache_without_enabling_publication(self):
         import fullrun_stage
         archive = yaml.load((ROOT / ".github/workflows/cache-archives.yml").read_text(), Loader=yaml.BaseLoader)
