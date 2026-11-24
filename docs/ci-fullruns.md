@@ -48,6 +48,12 @@ The stage workflows are reusable **inside this repository**. The operator entry 
 
 The required `p2p` stage uses two private Linux network namespaces connected only to each other, with separate filesystem views, home directories and caches. Production ModSync authors the torrent, seeds on device 1 and downloads on device 2. The proof checks exact payload bytes, SHA-256 and the actual sender upload counter. A fresh receiver must reject a wrong SHA-256 after a real transfer. Device 2 then seeds its downloaded archive back to a fresh device-1 workspace after the original is moved outside both views. Tracker/proxy-list acquisition is disabled and the devices have no Internet route. The bounded public receipt records isolation, transfer outcomes and cleanup.
 
+### Download modes
+
+`cache-first` reuses verified cached archives. `sample` downloads exactly one archive source per run live, drawn across the requested games from the run id and attempt, and takes the rest from the verified cache; it is the release-candidate default. `refresh` attempts every provider and falls back to verified cache. Live downloads happen once, in the `archives` stage; on a full run the install lanes read its cache.
+
+P2P is checked by two separate tests. The first, identity, needs no binary and no network: the `p2p` stage's `P2P identity (info hash creation)` job runs `test_torrent_identity.py`, and the `archives` stage creates the info hash of every pinned archive version it holds verified bytes for (`torrent_identity.py survey`), compares it with `tools/modsync-ci/fixtures/ci/{k1,k2}-p2p-identity.json` and uploads a public `p2p-identity` receipt. To pin new versions, copy the `created-unpinned` entries from that receipt into the pin file, or run `survey --write-pins` against a verified object cache; an existing pin is never replaced. The second test is the two-device transfer above, shown as `P2P availability (two-device loopback, seeder pending)` because no long-lived seeder exists yet; it runs only after the identity job passes.
+
 The legacy operation named `seed` is an optional staged archive-store import. Its S3/rclone credentials belong only to that import; ModSync peer seeding runs in the required `p2p` stage without those credentials. The two-device proof requires Linux namespace provisioning and fails when isolation cannot be established.
 
 ## Configuration and credentials

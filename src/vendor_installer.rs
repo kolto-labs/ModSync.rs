@@ -132,6 +132,23 @@ pub(crate) fn bind(
     Ok(())
 }
 
+/// The reviewed guide component a vendor binding was made from, for definition
+/// comparisons only. It is admitted only while it still equals the reviewed
+/// context, and it is never proof that the installer ran: `before` replays that.
+pub(crate) fn declared_original_definition(component: &Component) -> Result<Option<Component>> {
+    let Some(binding) = component.metadata.get("VendorInstallerBinding") else {
+        return Ok(None);
+    };
+    let original: Component = serde_json::from_value(
+        binding
+            .get("InputComponent")
+            .cloned()
+            .context("Missing vendor input context")?,
+    )?;
+    input_context(&original)?;
+    Ok(Some(original))
+}
+
 pub(crate) fn replay(
     component: &Component,
     root: &Path,

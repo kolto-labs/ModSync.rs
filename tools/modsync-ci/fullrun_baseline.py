@@ -11,6 +11,7 @@ changes the destination of new backups. CACHE_ENCRYPTION_KEY is passed only to
 the local game-cache unpack process, never to an application process.
 """
 import argparse
+import errno
 import hashlib
 import os
 from pathlib import Path
@@ -206,7 +207,17 @@ def recover(game, seal_dir, game_dir, *, legacy_repository="", local_only=False,
             shutil.copyfile(seal, staging)
             os.replace(staging, seal_dir / game_backup.RESTORED_SEAL)
             game_dir.parent.mkdir(parents=True, exist_ok=True)
-            verified_game.rename(game_dir)
+            try:
+                verified_game.rename(game_dir)
+            except OSError as error:
+                # Exhaustive lanes put the game on a loop-mounted filesystem, so the
+                # verified tree under RUNNER_TEMP cannot be renamed into it. Restore
+                # the same verified seal directly at the destination instead of
+                # copying, so only freshly verified bytes are ever materialized.
+                if error.errno != errno.EXDEV:
+                    raise
+                verify_seal(game, seal_dir / game_backup.RESTORED_SEAL, game_dir, environ)
+                print("baseline verified at destination (separate filesystem)", flush=True)
             result["available"] = True
     return result
 

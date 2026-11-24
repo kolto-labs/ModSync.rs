@@ -50,7 +50,7 @@ const SPECS: [Spec; 2] = [
     Spec {
         owner: K1,
         index: 181,
-        book: "b04b7331b5001f81698feb5571460ea9e2e486d032956abb22967d704254c338",
+        book: "38a1231f12632d0765b9741343db92ee5858f27405ab2bdb8667119ad71e8d6b",
         guide: include_bytes!("../source_plan_k1.md"),
         guide_sha: "44067788c6cb7a83b38d468817f273ce5cc901cd5e000c0f9ff65f8af15fc6ed",
         plan: include_bytes!("../../../tools/modsync-ci/fixtures/ci/k1-manual-plan.json"),
@@ -177,6 +177,12 @@ fn source_definition(c: &Component) -> Result<Component> {
     if let Some(origin) = super::super::source_plan_patcher::declared_original_definition(c)? {
         return Ok(origin);
     }
+    if let Some(origin) = crate::vendor_installer::declared_original_definition(c)? {
+        return Ok(origin);
+    }
+    if let Some(origin) = super::super::resolved::declared_original_definition(c)? {
+        return Ok(origin);
+    }
     Ok(c.clone())
 }
 pub(super) fn validate_guide(guide: &Guide) -> Result<()> {
@@ -197,6 +203,7 @@ pub(super) fn validate_guide(guide: &Guide) -> Result<()> {
             "UCO master owner must occur exactly once"
         );
         let mut previous = None;
+        let mut differing = Vec::new();
         for &(guid, index) in spec.priors {
             let positions = guide
                 .components
@@ -215,12 +222,28 @@ pub(super) fn validate_guide(guide: &Guide) -> Result<()> {
                 "UCO predecessor source order changed"
             );
             previous = Some(positions[0].0);
-            ensure!(
-                comparable(&source_definition(positions[0].1)?)?
-                    == comparable(&a.source.components[index])?,
-                "UCO prerequisite differs from its complete compiled original definition"
-            );
+            let bound = comparable(&source_definition(positions[0].1)?)?;
+            let original = comparable(&a.source.components[index])?;
+            if bound != original {
+                // Name the prerequisite and its differing top-level fields: twelve
+                // predecessors share this check, and the values may hold guide text.
+                let fields = original
+                    .as_object()
+                    .into_iter()
+                    .flatten()
+                    .map(|(key, _)| key)
+                    .chain(bound.as_object().into_iter().flatten().map(|(key, _)| key))
+                    .filter(|key| bound.get(key.as_str()) != original.get(key.as_str()))
+                    .collect::<std::collections::BTreeSet<_>>();
+                differing.push(format!("{guid} ({}) in {fields:?}", positions[0].1.name));
+            }
         }
+        // Every differing prerequisite is reported at once, not only the first.
+        ensure!(
+            differing.is_empty(),
+            "UCO prerequisite differs from its complete compiled original definition: {}",
+            differing.join("; ")
+        );
         if let Some(order) = guide.metadata.get("ModSyncSourceOrder") {
             let order = order.as_array().context("Invalid UCO source order")?;
             let mut required = spec

@@ -61,7 +61,7 @@ const BOOKS: [BookSpec; 9] = [
     BookSpec {
         filename: "reviewed_manual_k1.json",
         content: include_str!("reviewed_manual_k1.json"),
-        sha256: "b04b7331b5001f81698feb5571460ea9e2e486d032956abb22967d704254c338",
+        sha256: "38a1231f12632d0765b9741343db92ee5858f27405ab2bdb8667119ad71e8d6b",
         guide_sha256: "44067788c6cb7a83b38d468817f273ce5cc901cd5e000c0f9ff65f8af15fc6ed",
         plan_sha256: "1b402ba085625c4863795069eaacaef0f53e8ea7179e56a5bd150d88eb9c0a74",
         count: 66,

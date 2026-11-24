@@ -1,0 +1,1119 @@
+{
+ "schema": 1,
+ "piece_length": 2097152,
+ "archives": {
+  "{archives}/4k atton [tpc version].7z": {
+   "sha256": "2f6fa069edf7ae7086bbf51389410aabfe36b3adbde0227dfe2c3c1125345520",
+   "bytes": 28907497,
+   "name": "4k atton [tpc version].7z",
+   "info_hash": "20a821ec0abc2ff1403bbbf83f5f7e4df91fb8db",
+   "magnet": "magnet:?xt=urn%3Abtih%3A20a821ec0abc2ff1403bbbf83f5f7e4df91fb8db&dn=4k+atton+%5Btpc+version%5D.7z"
+  },
+  "{archives}/Alignment_Affects_Force_Powers_TSL_v101.zip": {
+   "sha256": "cd140d856ca5f6835985beeab84e3276c16fb57cc7033fcb9ee9fc215e8fbda5",
+   "bytes": 575065,
+   "name": "Alignment_Affects_Force_Powers_TSL_v101.zip",
+   "info_hash": "a95d7de90b39da55d285b33b2c262b10fe8a1eeb",
+   "magnet": "magnet:?xt=urn%3Abtih%3Aa95d7de90b39da55d285b33b2c262b10fe8a1eeb&dn=Alignment_Affects_Force_Powers_TSL_v101.zip"
+  },
+  "{archives}/Animated energy shields.rar": {
+   "sha256": "1d27e32b71a409270352437a9be26bdce107e443be5bc98716adcc948f75678d",
+   "bytes": 22989544,
+   "name": "Animated energy shields.rar",
+   "info_hash": "fa3f2dbf87c76a3a79d821e2a2235aa8e893bbf0",
+   "magnet": "magnet:?xt=urn%3Abtih%3Afa3f2dbf87c76a3a79d821e2a2235aa8e893bbf0&dn=Animated+energy+shields.rar"
+  },
+  "{archives}/AtrisHolocron.7z": {
+   "sha256": "af911024285b5e734c43ae4653dd14babdc1bb9878f957b02191033c55f7ff2c",
+   "bytes": 923581,
+   "name": "AtrisHolocron.7z",
+   "info_hash": "810edfe48eb3bfea4e40606b4d589aaa321549d0",
+   "magnet": "magnet:?xt=urn%3Abtih%3A810edfe48eb3bfea4e40606b4d589aaa321549d0&dn=AtrisHolocron.7z"
+  },
+  "{archives}/Balance Tweak Pack 1.1.rar": {
+   "sha256": "c4c8febde4a963a345a80cf70b0e134995ffc312fc8018748509eceaa7e61fdc",
+   "bytes": 1452216,
+   "name": "Balance Tweak Pack 1.1.rar",
+   "info_hash": "a8a54d3eb3650c8c4aef2259027ee71d89feee40",
+   "magnet": "magnet:?xt=urn%3Abtih%3Aa8a54d3eb3650c8c4aef2259027ee71d89feee40&dn=Balance+Tweak+Pack+1.1.rar"
+  },
+  "{archives}/Bao-Dur - Darth Maul.rar": {
+   "sha256": "9cca538860c7ff1861c9473ef07b26275278d0b8ca39c907ee0a674297b6eac8",
+   "bytes": 2010455,
+   "name": "Bao-Dur - Darth Maul.rar",
+   "info_hash": "3d8c9748dfa8592decfe65463788091a22761931",
+   "magnet": "magnet:?xt=urn%3Abtih%3A3d8c9748dfa8592decfe65463788091a22761931&dn=Bao-Dur+-+Darth+Maul.rar"
+  },
+  "{archives}/Bao-Dur_Can_Wear_Heavy_Armor.zip": {
+   "sha256": "ade6ec5adb97903725048c0faa724206c9dfdf63c35bf5f45ec7029d722f05f8",
+   "bytes": 1032467,
+   "name": "Bao-Dur_Can_Wear_Heavy_Armor.zip",
+   "info_hash": "af991b2780a2b7bca2182f52979725d30f6a5d26",
+   "magnet": "magnet:?xt=urn%3Abtih%3Aaf991b2780a2b7bca2182f52979725d30f6a5d26&dn=Bao-Dur_Can_Wear_Heavy_Armor.zip"
+  },
+  "{archives}/Better Disciple Meditation.zip": {
+   "sha256": "abdc7157ce333f841c5fb275c01a237c34c64f3bad3a07446a7cd1ec1f8bad73",
+   "bytes": 532304,
+   "name": "Better Disciple Meditation.zip",
+   "info_hash": "4ce26a8f2202fed0215e17379ad003ef7fbfb66e",
+   "magnet": "magnet:?xt=urn%3Abtih%3A4ce26a8f2202fed0215e17379ad003ef7fbfb66e&dn=Better+Disciple+Meditation.zip"
+  },
+  "{archives}/Better Jekk_Jekk Tarr Thugs.zip": {
+   "sha256": "2e921a217017ae5770b4531fbb59603bf2acdd3f77e7945264f81ab19e56009c",
+   "bytes": 9348844,
+   "name": "Better Jekk_Jekk Tarr Thugs.zip",
+   "info_hash": "b92a6183ca4346b64c852fd186cda4743283b61e",
+   "magnet": "magnet:?xt=urn%3Abtih%3Ab92a6183ca4346b64c852fd186cda4743283b61e&dn=Better+Jekk_Jekk+Tarr+Thugs.zip"
+  },
+  "{archives}/CK-Classic Class Attack Bonus.zip": {
+   "sha256": "a37f98d5e91262a74d728b786769d6934f7257fa55f9c81f442ac1da0a351e56",
+   "bytes": 333804,
+   "name": "CK-Classic Class Attack Bonus.zip",
+   "info_hash": "46c08c46b14b8eb2cee667bb175ed81214b82fec",
+   "magnet": "magnet:?xt=urn%3Abtih%3A46c08c46b14b8eb2cee667bb175ed81214b82fec&dn=CK-Classic+Class+Attack+Bonus.zip"
+  },
+  "{archives}/CK-Red floating lightsabers.zip": {
+   "sha256": "418547ac2d5fbf691553a9920f44ca05ea174df782a15ac7eb312f6e5c427233",
+   "bytes": 5293,
+   "name": "CK-Red floating lightsabers.zip",
+   "info_hash": "428637c39be60c571fc9a8151871056fc8a1c524",
+   "magnet": "magnet:?xt=urn%3Abtih%3A428637c39be60c571fc9a8151871056fc8a1c524&dn=CK-Red+floating+lightsabers.zip"
+  },
+  "{archives}/C_DrdWar.rar": {
+   "sha256": "cf22d2803ac9efdcc597455c8a070572e588160a19d19b74e4b26cc13c33c922",
+   "bytes": 48975113,
+   "name": "C_DrdWar.rar",
+   "info_hash": "2b313219d661b9e83a9d4cda6f689ce2f00159ae",
+   "magnet": "magnet:?xt=urn%3Abtih%3A2b313219d661b9e83a9d4cda6f689ce2f00159ae&dn=C_DrdWar.rar"
+  },
+  "{archives}/Canonical Jedi Exile - Compatibility Patch-1060-3-0-1629717058.rar": {
+   "sha256": "25cf282dfb28ffdf1255008595d5feaa11683b3250d3d99e6e7e69dbe7553f33",
+   "bytes": 11265701,
+   "name": "Canonical Jedi Exile - Compatibility Patch-1060-3-0-1629717058.rar",
+   "info_hash": "ab2ef5fff6fd9a3b692fe2b0d6eacd1026b42039",
+   "magnet": "magnet:?xt=urn%3Abtih%3Aab2ef5fff6fd9a3b692fe2b0d6eacd1026b42039&dn=Canonical+Jedi+Exile+-+Compatibility+Patch-1060-3-0-1629717058.rar"
+  },
+  "{archives}/Canonical Jedi Exile 1.2.rar": {
+   "sha256": "8ae10c86dba2cd947d864ab42b7331db5379f23c9851093b9fed259a69c37b9d",
+   "bytes": 578507,
+   "name": "Canonical Jedi Exile 1.2.rar",
+   "info_hash": "3d17550bbf99d5ae32540368c223e3c8184ba395",
+   "magnet": "magnet:?xt=urn%3Abtih%3A3d17550bbf99d5ae32540368c223e3c8184ba395&dn=Canonical+Jedi+Exile+1.2.rar"
+  },
+  "{archives}/Choose Mira or Hanharr.rar": {
+   "sha256": "496e85c5e7da18906ea100dfafb6b8172ee7364103d5c864770778077bd998f3",
+   "bytes": 7462,
+   "name": "Choose Mira or Hanharr.rar",
+   "info_hash": "a000c308f13c6a96b5a2cdc4995c28ebf05f6c9f",
+   "magnet": "magnet:?xt=urn%3Abtih%3Aa000c308f13c6a96b5a2cdc4995c28ebf05f6c9f&dn=Choose+Mira+or+Hanharr.rar"
+  },
+  "{archives}/Consistent Bastila Recognition.7z": {
+   "sha256": "6dca6a4374bf7bb92206afd062518c31003a3343b2ad4de60e9f508e5c0d2ab6",
+   "bytes": 9271273,
+   "name": "Consistent Bastila Recognition.7z",
+   "info_hash": "109aa1c27a0ab9037ef09b4536cf685b8f6d9ae5",
+   "magnet": "magnet:?xt=urn%3Abtih%3A109aa1c27a0ab9037ef09b4536cf685b8f6d9ae5&dn=Consistent+Bastila+Recognition.7z"
+  },
+  "{archives}/DI_HRBM_2.7z": {
+   "sha256": "c809672ec443216194061c7958664b47c2210f5abc63d1a59cd49d700f695991",
+   "bytes": 550147,
+   "name": "DI_HRBM_2.7z",
+   "info_hash": "1f417870666e311e10404d6027329cbfabe7f6ac",
+   "magnet": "magnet:?xt=urn%3Abtih%3A1f417870666e311e10404d6027329cbfabe7f6ac&dn=DI_HRBM_2.7z"
+  },
+  "{archives}/DXN_Cl02.rar": {
+   "sha256": "ef5d044a113affff731145cd6bb455cf8a20fb71667716a734bf80c5faa82c55",
+   "bytes": 8367,
+   "name": "DXN_Cl02.rar",
+   "info_hash": "43b45f22cade5b13b61ef13b160942b1a1836433",
+   "magnet": "magnet:?xt=urn%3Abtih%3A43b45f22cade5b13b61ef13b160942b1a1836433&dn=DXN_Cl02.rar"
+  },
+  "{archives}/Dahnis Unique Look.7z": {
+   "sha256": "334a02d189b8b73ce655ec42362f9c97b734156e70e1769757ceb03a1fc500a6",
+   "bytes": 10260516,
+   "name": "Dahnis Unique Look.7z",
+   "info_hash": "fcd1cedbdd1de07bc7bf1c1ea3c50d7f5950049a",
+   "magnet": "magnet:?xt=urn%3Abtih%3Afcd1cedbdd1de07bc7bf1c1ea3c50d7f5950049a&dn=Dahnis+Unique+Look.7z"
+  },
+  "{archives}/Dark Harbinger.zip": {
+   "sha256": "bd3fe5a99b92888267cb15e4eb350b6f3a98798f66a0b4757ac749f9c01d2a14",
+   "bytes": 5198485,
+   "name": "Dark Harbinger.zip",
+   "info_hash": "1458305b8e8e4abdf11e8e598fe73413fd34b85e",
+   "magnet": "magnet:?xt=urn%3Abtih%3A1458305b8e8e4abdf11e8e598fe73413fd34b85e&dn=Dark+Harbinger.zip"
+  },
+  "{archives}/Darth Sapien__39_s Presents T3M4 HD.rar": {
+   "sha256": "aa8d6064570684d06cd7a6e8839bb2a4d096f642ee203d94665fa7c1555b4b4a",
+   "bytes": 5072574,
+   "name": "Darth Sapien__39_s Presents T3M4 HD.rar",
+   "info_hash": "7671b930ffca12719d627f714466f3958cde4cce",
+   "magnet": "magnet:?xt=urn%3Abtih%3A7671b930ffca12719d627f714466f3958cde4cce&dn=Darth+Sapien__39_s+Presents+T3M4+HD.rar"
+  },
+  "{archives}/Darth Sion and Male Exile Mod.7z": {
+   "sha256": "a62d6e5ee771d5f4569da5f13acadb285843c4fb0af007eaefcb94102cd5d2fa",
+   "bytes": 10165029,
+   "name": "Darth Sion and Male Exile Mod.7z",
+   "info_hash": "6f98d17b9ff720de7ce35b7cc6f5f91c25a8324d",
+   "magnet": "magnet:?xt=urn%3Abtih%3A6f98d17b9ff720de7ce35b7cc6f5f91c25a8324d&dn=Darth+Sion+and+Male+Exile+Mod.7z"
+  },
+  "{archives}/Darth sapiens presents HD 2K Visas Marr.rar": {
+   "sha256": "0cedf1092dd426c30921ba70915266ff59d1a76415fd13c37d6e4b14e31f6600",
+   "bytes": 6541857,
+   "name": "Darth sapiens presents HD 2K Visas Marr.rar",
+   "info_hash": "338db2936270a2874115dbd37f3e8bfa11cd0c4f",
+   "magnet": "magnet:?xt=urn%3Abtih%3A338db2936270a2874115dbd37f3e8bfa11cd0c4f&dn=Darth+sapiens+presents+HD+2K+Visas+Marr.rar"
+  },
+  "{archives}/Detran_s Darth Revan.zip": {
+   "sha256": "7a70a356065e120cca1198b2bb3bd92a833c18b93ad98914d53171ca2e673def",
+   "bytes": 3162990,
+   "name": "Detran_s Darth Revan.zip",
+   "info_hash": "53a9bf6afed0dba171b1bb3ef675da7406b46a99",
+   "magnet": "magnet:?xt=urn%3Abtih%3A53a9bf6afed0dba171b1bb3ef675da7406b46a99&dn=Detran_s+Darth+Revan.zip"
+  },
+  "{archives}/Door Mural-1632-1-0-1713374023.zip": {
+   "sha256": "7add8cda2320f0bf5e0e6bbc6739a5c59fb68083429c93e59f8f2f49f32df1d9",
+   "bytes": 17869526,
+   "name": "Door Mural-1632-1-0-1713374023.zip",
+   "info_hash": "2ca9ddb7617445f3416812cb0a57e7769c080267",
+   "magnet": "magnet:?xt=urn%3Abtih%3A2ca9ddb7617445f3416812cb0a57e7769c080267&dn=Door+Mural-1632-1-0-1713374023.zip"
+  },
+  "{archives}/Droid animations fix.rar": {
+   "sha256": "3953b486e5bd959d4a89d3aabfc437437bc7f4bf983a32f039389efcaf56cf86",
+   "bytes": 2909689,
+   "name": "Droid animations fix.rar",
+   "info_hash": "14a348b4bd34de981dbcac14b657a31b1df3540d",
+   "magnet": "magnet:?xt=urn%3Abtih%3A14a348b4bd34de981dbcac14b657a31b1df3540d&dn=Droid+animations+fix.rar"
+  },
+  "{archives}/Droid special weapons fix for TSL v2.0.7z": {
+   "sha256": "fd3d701877be0b1b5bceb1cf549f459742621abe950f94897a0226d18af4193b",
+   "bytes": 382430,
+   "name": "Droid special weapons fix for TSL v2.0.7z",
+   "info_hash": "f9801829a480b18221c672cded6f03fdb7c2c0d0",
+   "magnet": "magnet:?xt=urn%3Abtih%3Af9801829a480b18221c672cded6f03fdb7c2c0d0&dn=Droid+special+weapons+fix+for+TSL+v2.0.7z"
+  },
+  "{archives}/Duros HD.rar": {
+   "sha256": "ae659aec0268b25c3db95d7121e7ab21dc03f7d8d1091fd2e399b7e80e80292a",
+   "bytes": 18574687,
+   "name": "Duros HD.rar",
+   "info_hash": "521bc5b1044ec8ebad39e1ead84add969eb99636",
+   "magnet": "magnet:?xt=urn%3Abtih%3A521bc5b1044ec8ebad39e1ead84add969eb99636&dn=Duros+HD.rar"
+  },
+  "{archives}/Duros Patch.zip": {
+   "sha256": "2103a6c6fc5d165a0358c8e40685026b54915d3b04c038848bd4bbdd72989905",
+   "bytes": 195914,
+   "name": "Duros Patch.zip",
+   "info_hash": "66299fabae8b1291930d02b3739c25199ab8f1e2",
+   "magnet": "magnet:?xt=urn%3Abtih%3A66299fabae8b1291930d02b3739c25199ab8f1e2&dn=Duros+Patch.zip"
+  },
+  "{archives}/Effixians_PFHC03_Restoration.zip": {
+   "sha256": "7baeed1536bff84311357bd4a386638417e4444c95a0d0cc29cc7fad4e36c769",
+   "bytes": 3667686,
+   "name": "Effixians_PFHC03_Restoration.zip",
+   "info_hash": "ffa539883dcffdfaec299ea4a1f0347a3989c117",
+   "magnet": "magnet:?xt=urn%3Abtih%3Affa539883dcffdfaec299ea4a1f0347a3989c117&dn=Effixians_PFHC03_Restoration.zip"
+  },
+  "{archives}/Expanded lore friendly mandalores mask HD 6 versions.rar": {
+   "sha256": "ba50e241faa8ce4f8d36e7ec61ff5f9d5397198fc8701ff8fea27ab994141847",
+   "bytes": 45965967,
+   "name": "Expanded lore friendly mandalores mask HD 6 versions.rar",
+   "info_hash": "ec016f518ec466cc4e5c086848af71953d2af9f8",
+   "magnet": "magnet:?xt=urn%3Abtih%3Aec016f518ec466cc4e5c086848af71953d2af9f8&dn=Expanded+lore+friendly+mandalores+mask+HD+6+versions.rar"
+  },
+  "{archives}/Extended Enclave.2.5.2.rar": {
+   "sha256": "ee329c08a30fd9b0e66766e51d841127f477bc8d9acfdc5be94e10fa4933db70",
+   "bytes": 13851214,
+   "name": "Extended Enclave.2.5.2.rar",
+   "info_hash": "2e24c85ad0cfe8076d0c054007cd0937327834d2",
+   "magnet": "magnet:?xt=urn%3Abtih%3A2e24c85ad0cfe8076d0c054007cd0937327834d2&dn=Extended+Enclave.2.5.2.rar"
+  },
+  "{archives}/Extended Korriban Arrival 1.2.rar": {
+   "sha256": "2fabe48a3ba1e87e0643af3dba9ba17b505b5e79a00363d9cf0dd8b44d0ab694",
+   "bytes": 314636,
+   "name": "Extended Korriban Arrival 1.2.rar",
+   "info_hash": "d62628792c22a2266f41d10823c2c55b0da88db5",
+   "magnet": "magnet:?xt=urn%3Abtih%3Ad62628792c22a2266f41d10823c2c55b0da88db5&dn=Extended+Korriban+Arrival+1.2.rar"
+  },
+  "{archives}/FS_Fit_Handmaiden Patch.rar": {
+   "sha256": "dc294dbdfbdf83718fd720a84ebab27a8804f075ce41723faacf2ea57d52b03b",
+   "bytes": 204038,
+   "name": "FS_Fit_Handmaiden Patch.rar",
+   "info_hash": "875daac3741c3f148a4f4387f2aec31b3d660775",
+   "magnet": "magnet:?xt=urn%3Abtih%3A875daac3741c3f148a4f4387f2aec31b3d660775&dn=FS_Fit_Handmaiden+Patch.rar"
+  },
+  "{archives}/FS_Fit_Handmaiden.7z": {
+   "sha256": "71b8e0d8d563ebcba0b5a02b5613afc8a5f8cf05f9bd4860a100496fa67a55cd",
+   "bytes": 1030339,
+   "name": "FS_Fit_Handmaiden.7z",
+   "info_hash": "3fe380dcbed745cc1267459eee8da576a3c9e1db",
+   "magnet": "magnet:?xt=urn%3Abtih%3A3fe380dcbed745cc1267459eee8da576a3c9e1db&dn=FS_Fit_Handmaiden.7z"
+  },
+  "{archives}/FTL Hyperspace Loop-1161-1-1-1647298435.rar": {
+   "sha256": "b83a07ff94e3b363149a831a82c37b6cf2891689c2f1bd04665b6e00b31ba754",
+   "bytes": 807420,
+   "name": "FTL Hyperspace Loop-1161-1-1-1647298435.rar",
+   "info_hash": "1d4a01a2176617997df98e91c32a01cf307b6021",
+   "magnet": "magnet:?xt=urn%3Abtih%3A1d4a01a2176617997df98e91c32a01cf307b6021&dn=FTL+Hyperspace+Loop-1161-1-1-1647298435.rar"
+  },
+  "{archives}/FireandIceHDWhee.zip": {
+   "sha256": "fd04e947a31f419a0b5f51af28b74701de37640ec06279160278aa23b0abaa8e",
+   "bytes": 2969524,
+   "name": "FireandIceHDWhee.zip",
+   "info_hash": "5c62f6112ca3777996efd4fbe31e9579553c67cb",
+   "magnet": "magnet:?xt=urn%3Abtih%3A5c62f6112ca3777996efd4fbe31e9579553c67cb&dn=FireandIceHDWhee.zip"
+  },
+  "{archives}/Fixed Hologram Models and Admiralty Redux - Compatibility Patch-1060-3-0-1629717121.rar": {
+   "sha256": "6d781cd15eeceae1d87ff7cbfb0bdd8a99f2cd90123bde81ccca02f1d064ee8e",
+   "bytes": 10588354,
+   "name": "Fixed Hologram Models and Admiralty Redux - Compatibility Patch-1060-3-0-1629717121.rar",
+   "info_hash": "d0a183dfd16d771f5e56b303305920e6888dd7bc",
+   "magnet": "magnet:?xt=urn%3Abtih%3Ad0a183dfd16d771f5e56b303305920e6888dd7bc&dn=Fixed+Hologram+Models+and+Admiralty+Redux+-+Compatibility+Patch-1060-3-0-1629717121.rar"
+  },
+  "{archives}/Fixed_Czerka_Salvager.zip": {
+   "sha256": "5fdcdcfeae8ef1187c42b8ec336a2e260ea510aec02d49fd050a5948b9655953",
+   "bytes": 351508,
+   "name": "Fixed_Czerka_Salvager.zip",
+   "info_hash": "71e7cb0c45903bb7abd10556c68546208c3423bb",
+   "magnet": "magnet:?xt=urn%3Abtih%3A71e7cb0c45903bb7abd10556c68546208c3423bb&dn=Fixed_Czerka_Salvager.zip"
+  },
+  "{archives}/For_Mandalore_v1_2_1.zip": {
+   "sha256": "2c9567efd36cd75f2a3ce209262cf6b54a7a48828dae3263477e7f4b9a21bd3c",
+   "bytes": 16398814,
+   "name": "For_Mandalore_v1_2_1.zip",
+   "info_hash": "bc168d84556e8b6bc0ea0c28f26e6b08a577bd17",
+   "magnet": "magnet:?xt=urn%3Abtih%3Abc168d84556e8b6bc0ea0c28f26e6b08a577bd17&dn=For_Mandalore_v1_2_1.zip"
+  },
+  "{archives}/Freedon Nadd_s Tomb ritual and water textures.zip": {
+   "sha256": "99968523d6ac21cabf85fe4df2eb5f3602a1c8bde750981e3aa4f80f7a00c56a",
+   "bytes": 28472260,
+   "name": "Freedon Nadd_s Tomb ritual and water textures.zip",
+   "info_hash": "8b58d15a7d9d50d247b0e3b56cd4f5ca628f0038",
+   "magnet": "magnet:?xt=urn%3Abtih%3A8b58d15a7d9d50d247b0e3b56cd4f5ca628f0038&dn=Freedon+Nadd_s+Tomb+ritual+and+water+textures.zip"
+  },
+  "{archives}/HD Computer Panel_ Damaged Version For Malachor.7z": {
+   "sha256": "284af868ed28a4c8d6a72f31294194d97c34ebc67f1962d04961c5da54911e82",
+   "bytes": 24959837,
+   "name": "HD Computer Panel_ Damaged Version For Malachor.7z",
+   "info_hash": "b2d7f305e0d1145597b348422ca2562936f318d2",
+   "magnet": "magnet:?xt=urn%3Abtih%3Ab2d7f305e0d1145597b348422ca2562936f318d2&dn=HD+Computer+Panel_+Damaged+Version+For+Malachor.7z"
+  },
+  "{archives}/HQSkyboxesII_TSL.7z": {
+   "sha256": "55b539d8e6818a86c61440188deb65e483526408f0bbea51fb36af2321f912b8",
+   "bytes": 98901138,
+   "name": "HQSkyboxesII_TSL.7z",
+   "info_hash": "c5599969b25f76b306509853feffb4cf4f9dcd9a",
+   "magnet": "magnet:?xt=urn%3Abtih%3Ac5599969b25f76b306509853feffb4cf4f9dcd9a&dn=HQSkyboxesII_TSL.7z"
+  },
+  "{archives}/Harbinger_Arrival_Enhancement_for_TSLRCM_v1.1.7z": {
+   "sha256": "58fc3627b42a12e09b0b03e59fa89e34e3ad9fd214dd4f36f3af473a5b1f6dbb",
+   "bytes": 1940514,
+   "name": "Harbinger_Arrival_Enhancement_for_TSLRCM_v1.1.7z",
+   "info_hash": "cfa782440addf4025738449d5b02db7494b5dc1a",
+   "magnet": "magnet:?xt=urn%3Abtih%3Acfa782440addf4025738449d5b02db7494b5dc1a&dn=Harbinger_Arrival_Enhancement_for_TSLRCM_v1.1.7z"
+  },
+  "{archives}/Improved Enlightenment and Corruption Feats.zip": {
+   "sha256": "0c6db43f218d6d5bf73b1be8e3f7dc469254f3168920b6af6fa8513313617597",
+   "bytes": 8802,
+   "name": "Improved Enlightenment and Corruption Feats.zip",
+   "info_hash": "43523f3938110faad371aa4f8361398526cf4b0b",
+   "magnet": "magnet:?xt=urn%3Abtih%3A43523f3938110faad371aa4f8361398526cf4b0b&dn=Improved+Enlightenment+and+Corruption+Feats.zip"
+  },
+  "{archives}/Improved Peragus Asteroid Fields v1.2.zip": {
+   "sha256": "d0c5200784fab252b048b82fdff6e011afd3af132f10bb6bbc27015132eb53ce",
+   "bytes": 1076830,
+   "name": "Improved Peragus Asteroid Fields v1.2.zip",
+   "info_hash": "577197d6cdcc4744ac24d0619edf26b93f7b4edd",
+   "magnet": "magnet:?xt=urn%3Abtih%3A577197d6cdcc4744ac24d0619edf26b93f7b4edd&dn=Improved+Peragus+Asteroid+Fields+v1.2.zip"
+  },
+  "{archives}/Improved_Force_Sight_v1_1_2.zip": {
+   "sha256": "7db59fe4e0bce6259152fc9f5334df8c1196b4e696b4aaba8aa503cb154a92e6",
+   "bytes": 9534261,
+   "name": "Improved_Force_Sight_v1_1_2.zip",
+   "info_hash": "f98e3d91ac0cddad76f2e5ffce62f2593505a16e",
+   "magnet": "magnet:?xt=urn%3Abtih%3Af98e3d91ac0cddad76f2e5ffce62f2593505a16e&dn=Improved_Force_Sight_v1_1_2.zip"
+  },
+  "{archives}/Ithorian HD.rar": {
+   "sha256": "8c55f445b1b5292ab5e0e3c1213302045b8f43a7654d084c5875c7fb5f4282cb",
+   "bytes": 27626443,
+   "name": "Ithorian HD.rar",
+   "info_hash": "c016b18bcb135c51187bebe4d395a9782ce9ffd6",
+   "magnet": "magnet:?xt=urn%3Abtih%3Ac016b18bcb135c51187bebe4d395a9782ce9ffd6&dn=Ithorian+HD.rar"
+  },
+  "{archives}/JC_s Blaster Visual Effects for K2.zip": {
+   "sha256": "81cc75ca1099aacaa19f705f2c50b7313718cb6f93fbf4759d3372149fb0b880",
+   "bytes": 244296,
+   "name": "JC_s Blaster Visual Effects for K2.zip",
+   "info_hash": "70c95ade3d3bbbf17e5709060e0bdf42e19e6ab8",
+   "magnet": "magnet:?xt=urn%3Abtih%3A70c95ade3d3bbbf17e5709060e0bdf42e19e6ab8&dn=JC_s+Blaster+Visual+Effects+for+K2.zip"
+  },
+  "{archives}/JC_s Lightsaber Visual Effects for K2 v1.5.zip": {
+   "sha256": "c863eebb4bd0ebcf03e556de10c33a105bf2608e1be9b46912fa9791ae3a2229",
+   "bytes": 2275955,
+   "name": "JC_s Lightsaber Visual Effects for K2 v1.5.zip",
+   "info_hash": "35f544e2e416e9f91d6f4e1aa5d5aa8393ffcf91",
+   "magnet": "magnet:?xt=urn%3Abtih%3A35f544e2e416e9f91d6f4e1aa5d5aa8393ffcf91&dn=JC_s+Lightsaber+Visual+Effects+for+K2+v1.5.zip"
+  },
+  "{archives}/JC_s Minor Fixes - Compatibility Patch-1060-3-0-1629717168.rar": {
+   "sha256": "514c51b56e784b09d26c93e85b669daef1af34b0e479ffc0749ae99999676ed9",
+   "bytes": 33480956,
+   "name": "JC_s Minor Fixes - Compatibility Patch-1060-3-0-1629717168.rar",
+   "info_hash": "dec6d8c28b59332948d315a0bf6b41e9c6ad1302",
+   "magnet": "magnet:?xt=urn%3Abtih%3Adec6d8c28b59332948d315a0bf6b41e9c6ad1302&dn=JC_s+Minor+Fixes+-+Compatibility+Patch-1060-3-0-1629717168.rar"
+  },
+  "{archives}/JC_s Minor Fixes for K2 v1.5.zip": {
+   "sha256": "7887416f4cd8f483885121366adedb2c18d39d4bb54123c3ce1239a7652361d5",
+   "bytes": 18954190,
+   "name": "JC_s Minor Fixes for K2 v1.5.zip",
+   "info_hash": "bdc9840fe0344a9dbdee415583d9a74e2015bde4",
+   "magnet": "magnet:?xt=urn%3Abtih%3Abdc9840fe0344a9dbdee415583d9a74e2015bde4&dn=JC_s+Minor+Fixes+for+K2+v1.5.zip"
+  },
+  "{archives}/JC_s Supermodel Fix for K2 v1.6.zip": {
+   "sha256": "430e422cea22ee06308d628d4a3ed98240d1abff0b60a8931716c763f03937ef",
+   "bytes": 8712438,
+   "name": "JC_s Supermodel Fix for K2 v1.6.zip",
+   "info_hash": "bcb1bbfdd3c74045793f09cb495896fad642f956",
+   "magnet": "magnet:?xt=urn%3Abtih%3Abcb1bbfdd3c74045793f09cb495896fad642f956&dn=JC_s+Supermodel+Fix+for+K2+v1.6.zip"
+  },
+  "{archives}/K2 Companion Starting Armors 1.1.zip": {
+   "sha256": "782bd218cb37ce5313e0ada4f86a9099475bb40913a9a3bc3a063e31323d03c4",
+   "bytes": 367758,
+   "name": "K2 Companion Starting Armors 1.1.zip",
+   "info_hash": "9aeb0a7ab41b831f2f9f3bf0f381a41d350b9e5e",
+   "magnet": "magnet:?xt=urn%3Abtih%3A9aeb0a7ab41b831f2f9f3bf0f381a41d350b9e5e&dn=K2+Companion+Starting+Armors+1.1.zip"
+  },
+  "{archives}/K2CP_v1.6.3.zip": {
+   "sha256": "6e734ed7e81ad8169d12870ce9fcf829bd56b88f22e7ea20fb37fcb85b8580c1",
+   "bytes": 80523387,
+   "name": "K2CP_v1.6.3.zip",
+   "info_hash": "fa3f060554e270585b9b3d7313993090dfc4ae9c",
+   "magnet": "magnet:?xt=urn%3Abtih%3Afa3f060554e270585b9b3d7313993090dfc4ae9c&dn=K2CP_v1.6.3.zip"
+  },
+  "{archives}/KOTOR 2 Community Patch - Compatibility Patch-1060-3-0-1629717259.rar": {
+   "sha256": "1110b6879a1a69103e8a56d944db5ccb650c149cbfc634b33e5c05203469e4f6",
+   "bytes": 275630105,
+   "name": "KOTOR 2 Community Patch - Compatibility Patch-1060-3-0-1629717259.rar",
+   "info_hash": "0685e72b4a503126bf4072d8d17063da8b08ad85",
+   "magnet": "magnet:?xt=urn%3Abtih%3A0685e72b4a503126bf4072d8d17063da8b08ad85&dn=KOTOR+2+Community+Patch+-+Compatibility+Patch-1060-3-0-1629717259.rar"
+  },
+  "{archives}/KOTOR2-Citadel-Station-Backdrop_v2.0.0_4k.zip": {
+   "sha256": "ddaae12569dd7cf29d9097f7ff15a773b55cb2b80237b01310b27bc49c4dccbd",
+   "bytes": 2887658,
+   "name": "KOTOR2-Citadel-Station-Backdrop_v2.0.0_4k.zip",
+   "info_hash": "b3e8f419a07b7b2ddb80f7e49bc360b35e07eae7",
+   "magnet": "magnet:?xt=urn%3Abtih%3Ab3e8f419a07b7b2ddb80f7e49bc360b35e07eae7&dn=KOTOR2-Citadel-Station-Backdrop_v2.0.0_4k.zip"
+  },
+  "{archives}/KOTOR2-Crystal-Attunement_v2.0.5.zip": {
+   "sha256": "0e2b4852a0c07e4b7a4a4f4aaee74b3fc90ac8b2ada8853cf508fff0c32c279f",
+   "bytes": 981732,
+   "name": "KOTOR2-Crystal-Attunement_v2.0.5.zip",
+   "info_hash": "b53fad3d183e415f6bd939d0e82c15a1792498ca",
+   "magnet": "magnet:?xt=urn%3Abtih%3Ab53fad3d183e415f6bd939d0e82c15a1792498ca&dn=KOTOR2-Crystal-Attunement_v2.0.5.zip"
+  },
+  "{archives}/KOTOR2-Handmaiden-Sisters_v3.0.0.zip": {
+   "sha256": "e42dbe037582156058fc3ab1e539aae6d1887f95a391ec3abe4dd21ea3cd5cf9",
+   "bytes": 1703874,
+   "name": "KOTOR2-Handmaiden-Sisters_v3.0.0.zip",
+   "info_hash": "24abb88bea76c07bf412dbd46d5f90012f0f18ad",
+   "magnet": "magnet:?xt=urn%3Abtih%3A24abb88bea76c07bf412dbd46d5f90012f0f18ad&dn=KOTOR2-Handmaiden-Sisters_v3.0.0.zip"
+  },
+  "{archives}/KOTOR2-TOMB_v1.0.3.zip": {
+   "sha256": "fd7348b11ae5a3214e9e56add63a285d9396bfeeb6cad1ee1e850d0731dcdaa4",
+   "bytes": 750410,
+   "name": "KOTOR2-TOMB_v1.0.3.zip",
+   "info_hash": "91363049322a69b5ea22bed36c91a319508d752b",
+   "magnet": "magnet:?xt=urn%3Abtih%3A91363049322a69b5ea22bed36c91a319508d752b&dn=KOTOR2-TOMB_v1.0.3.zip"
+  },
+  "{archives}/KOTOR2-Thematic-Companions_v1.0.3.zip": {
+   "sha256": "3bd5f2077cde31793882119d7d498acdf4db4877ff499e994bebba660304d226",
+   "bytes": 375947,
+   "name": "KOTOR2-Thematic-Companions_v1.0.3.zip",
+   "info_hash": "e405c248114a7a8159398d074f18f2e78f1a78b0",
+   "magnet": "magnet:?xt=urn%3Abtih%3Ae405c248114a7a8159398d074f18f2e78f1a78b0&dn=KOTOR2-Thematic-Companions_v1.0.3.zip"
+  },
+  "{archives}/KOTOR2-Thematic-Jedi-Masters_v1.0.1.zip": {
+   "sha256": "61adba64bbc1783e06565e324213a4f022a55126a5e409444a5bf4ad5d5c6930",
+   "bytes": 399797,
+   "name": "KOTOR2-Thematic-Jedi-Masters_v1.0.1.zip",
+   "info_hash": "f40e2068cb009461adbaac1e323454ef4af29fe4",
+   "magnet": "magnet:?xt=urn%3Abtih%3Af40e2068cb009461adbaac1e323454ef4af29fe4&dn=KOTOR2-Thematic-Jedi-Masters_v1.0.1.zip"
+  },
+  "{archives}/Kill The Ithorian 1.1.zip": {
+   "sha256": "27357c5929795e9286e8e5ad27384f0c6dfdac0b60db1d52f104393be60b61e3",
+   "bytes": 6930,
+   "name": "Kill The Ithorian 1.1.zip",
+   "info_hash": "1ebe3f2a6ab2ae12355d1504c82fb617244be188",
+   "magnet": "magnet:?xt=urn%3Abtih%3A1ebe3f2a6ab2ae12355d1504c82fb617244be188&dn=Kill+The+Ithorian+1.1.zip"
+  },
+  "{archives}/Kinrath Egg Bash Crystal Drop V0.9.rar": {
+   "sha256": "79778364ea1ef91252909ce47bd1c409c2a994bffd5b1998f7f3f2a53ec92634",
+   "bytes": 2426,
+   "name": "Kinrath Egg Bash Crystal Drop V0.9.rar",
+   "info_hash": "95e9fc969f1108e04f16f15cbd0536836c3e577e",
+   "magnet": "magnet:?xt=urn%3Abtih%3A95e9fc969f1108e04f16f15cbd0536836c3e577e&dn=Kinrath+Egg+Bash+Crystal+Drop+V0.9.rar"
+  },
+  "{archives}/Kiosk HD 15.03.2024.rar": {
+   "sha256": "e77a881d231baef41543c45af30eca72d8c05f58359fa88b238c8bc92fa561c4",
+   "bytes": 2157170,
+   "name": "Kiosk HD 15.03.2024.rar",
+   "info_hash": "d3c4ca0aaccdb724ebec14d76ae0f1c68c457cef",
+   "magnet": "magnet:?xt=urn%3Abtih%3Ad3c4ca0aaccdb724ebec14d76ae0f1c68c457cef&dn=Kiosk+HD+15.03.2024.rar"
+  },
+  "{archives}/Kiosk Model Fix K2.7z": {
+   "sha256": "bb62d4d973781db25bc562d1bb769e6eb1219c71ee463fb10589ed143893c73e",
+   "bytes": 14573,
+   "name": "Kiosk Model Fix K2.7z",
+   "info_hash": "50efa8762979d7fc5b2b76a30524f593a7768f4d",
+   "magnet": "magnet:?xt=urn%3Abtih%3A50efa8762979d7fc5b2b76a30524f593a7768f4d&dn=Kiosk+Model+Fix+K2.7z"
+  },
+  "{archives}/Kreia_Fall_In-game_1.2.rar": {
+   "sha256": "eef68f35f82c1fe6b933ce3047d2e47f1bf92700251705f7316b3435b59be859",
+   "bytes": 10935240,
+   "name": "Kreia_Fall_In-game_1.2.rar",
+   "info_hash": "0c69dbc0792e75e5552afc24b97f7caa1d74c689",
+   "magnet": "magnet:?xt=urn%3Abtih%3A0c69dbc0792e75e5552afc24b97f7caa1d74c689&dn=Kreia_Fall_In-game_1.2.rar"
+  },
+  "{archives}/KreiasLightsaberLongSword_v1.1.zip": {
+   "sha256": "c46ab8c8bfa6fc183839949a063179263614e8721932f72ed626974619dc1b29",
+   "bytes": 514464,
+   "name": "KreiasLightsaberLongSword_v1.1.zip",
+   "info_hash": "4d8124a938785ab895bc4c49d14cd9f5d2445be5",
+   "magnet": "magnet:?xt=urn%3Abtih%3A4d8124a938785ab895bc4c49d14cd9f5d2445be5&dn=KreiasLightsaberLongSword_v1.1.zip"
+  },
+  "{archives}/LJJT1.2.7z": {
+   "sha256": "f239a7f23c764d1a29c40dc0202c68160b3f81aab5c4f27d4f45b8a0b17004ba",
+   "bytes": 9314825,
+   "name": "LJJT1.2.7z",
+   "info_hash": "1e4ccaff3910103d54f85bcd4bda35fccc278d64",
+   "magnet": "magnet:?xt=urn%3Abtih%3A1e4ccaff3910103d54f85bcd4bda35fccc278d64&dn=LJJT1.2.7z"
+  },
+  "{archives}/Maintenance_Officer_New_Dead_Ver1.2.zip": {
+   "sha256": "2dbdc868cc003be8512b636f29615f537d027b9958ab1f19b26cec2eac368ce4",
+   "bytes": 735386,
+   "name": "Maintenance_Officer_New_Dead_Ver1.2.zip",
+   "info_hash": "ace0948afc3a327be2ecfa4b4ddc17e5ecf9564a",
+   "magnet": "magnet:?xt=urn%3Abtih%3Aace0948afc3a327be2ecfa4b4ddc17e5ecf9564a&dn=Maintenance_Officer_New_Dead_Ver1.2.zip"
+  },
+  "{archives}/Mandalorian Worn-Out Armour Reskin.rar": {
+   "sha256": "8b38c3bb158395af5718db3a02f74f4995f06ebb1e93975f90355b330e0e89f8",
+   "bytes": 1574488,
+   "name": "Mandalorian Worn-Out Armour Reskin.rar",
+   "info_hash": "b5080d9a4a31ebddc148ff46930798f2a49a9b27",
+   "magnet": "magnet:?xt=urn%3Abtih%3Ab5080d9a4a31ebddc148ff46930798f2a49a9b27&dn=Mandalorian+Worn-Out+Armour+Reskin.rar"
+  },
+  "{archives}/Mines_Overhaul_TSL_v1_1.zip": {
+   "sha256": "da4b6e9cf1c789d88223536e08d99e51aed1ec0d4e155f7dc0444aae8cce278e",
+   "bytes": 12014231,
+   "name": "Mines_Overhaul_TSL_v1_1.zip",
+   "info_hash": "19cc0c8025f49cd92cf98b943efb76c8fe9ac62a",
+   "magnet": "magnet:?xt=urn%3Abtih%3A19cc0c8025f49cd92cf98b943efb76c8fe9ac62a&dn=Mines_Overhaul_TSL_v1_1.zip"
+  },
+  "{archives}/Miscellaneous Compatibility Patches-1060-3-0-1629717320.rar": {
+   "sha256": "aae7b6984e70839e2059196618b3f38535dcac3aec4f802dd74079563605df37",
+   "bytes": 127735225,
+   "name": "Miscellaneous Compatibility Patches-1060-3-0-1629717320.rar",
+   "info_hash": "4248b6fbc2bfec267e3d61c222e2037403d292e1",
+   "magnet": "magnet:?xt=urn%3Abtih%3A4248b6fbc2bfec267e3d61c222e2037403d292e1&dn=Miscellaneous+Compatibility+Patches-1060-3-0-1629717320.rar"
+  },
+  "{archives}/N_VrookH.rar": {
+   "sha256": "e9f8d36cb5aee36e2ad50ac94d4cdfac6382e822885588948b11e845d09fb4d7",
+   "bytes": 1959110,
+   "name": "N_VrookH.rar",
+   "info_hash": "defca985097c4fd549772a269e8a84caab3f9c02",
+   "magnet": "magnet:?xt=urn%3Abtih%3Adefca985097c4fd549772a269e8a84caab3f9c02&dn=N_VrookH.rar"
+  },
+  "{archives}/N_oldAMH01.rar": {
+   "sha256": "b15813262cec4c277b6c948c0c6638f7640a09e47778512838ca930bfb2846af",
+   "bytes": 1706103,
+   "name": "N_oldAMH01.rar",
+   "info_hash": "3971be1929265d36ced9f9152b1f902d0871442d",
+   "magnet": "magnet:?xt=urn%3Abtih%3A3971be1929265d36ced9f9152b1f902d0871442d&dn=N_oldAMH01.rar"
+  },
+  "{archives}/Nihilus_Visas.rar": {
+   "sha256": "4fe110ef8cb9dcddcc327e96afd7aaece9f523099104b934b0d7a99e5387ae92",
+   "bytes": 6417,
+   "name": "Nihilus_Visas.rar",
+   "info_hash": "f65a1e2c99f6ffb65c01c2ac0b890968ffeaa050",
+   "magnet": "magnet:?xt=urn%3Abtih%3Af65a1e2c99f6ffb65c01c2ac0b890968ffeaa050&dn=Nihilus_Visas.rar"
+  },
+  "{archives}/No_Health_Regeneration_v1_1_1.zip": {
+   "sha256": "c51b67ac4608fa0827f7390a454937430d08b43eed84d6757d878381a86d5708",
+   "bytes": 9887312,
+   "name": "No_Health_Regeneration_v1_1_1.zip",
+   "info_hash": "d8918feef79268a6330e8cd98b0fb2698e2133bf",
+   "magnet": "magnet:?xt=urn%3Abtih%3Ad8918feef79268a6330e8cd98b0fb2698e2133bf&dn=No_Health_Regeneration_v1_1_1.zip"
+  },
+  "{archives}/Onderon news make sense v1.1.zip": {
+   "sha256": "545fc28e3eae621e8ffb5c36642ef05e3ead6604ea0217a4b3a40978635d6373",
+   "bytes": 9406760,
+   "name": "Onderon news make sense v1.1.zip",
+   "info_hash": "4e526e6002d04b7f2877f4308a38424ea3e62005",
+   "magnet": "magnet:?xt=urn%3Abtih%3A4e526e6002d04b7f2877f4308a38424ea3e62005&dn=Onderon+news+make+sense+v1.1.zip"
+  },
+  "{archives}/PLC_CompPnl.rar": {
+   "sha256": "64b0192c3870b980b63e1fcb3fd6b0b9a5aa6850f1a7d905377930e2855b11d2",
+   "bytes": 5416818,
+   "name": "PLC_CompPnl.rar",
+   "info_hash": "16696986498148b9d8da4a19ab4dfc7cfc3d3dc4",
+   "magnet": "magnet:?xt=urn%3Abtih%3A16696986498148b9d8da4a19ab4dfc7cfc3d3dc4&dn=PLC_CompPnl.rar"
+  },
+  "{archives}/PLC_Desk.rar": {
+   "sha256": "07acdd9289ce71e11cb4dd71e4bcaaee726cd703b60eeab1dce0c603c133d6ba",
+   "bytes": 3209713,
+   "name": "PLC_Desk.rar",
+   "info_hash": "6d901416183b8e9789dad375854ac36c6edb28e9",
+   "magnet": "magnet:?xt=urn%3Abtih%3A6d901416183b8e9789dad375854ac36c6edb28e9&dn=PLC_Desk.rar"
+  },
+  "{archives}/PLC_Sign.rar": {
+   "sha256": "5618241bf4ea2c01c1d4f0908f1748170d91b3d5030692682dc01576ead8d602",
+   "bytes": 13366060,
+   "name": "PLC_Sign.rar",
+   "info_hash": "1998abd605180ab74fd978ee39683cdf03679453",
+   "magnet": "magnet:?xt=urn%3Abtih%3A1998abd605180ab74fd978ee39683cdf03679453&dn=PLC_Sign.rar"
+  },
+  "{archives}/PartySwap 1.5.7z": {
+   "sha256": "818370f4b19731700dd754095b4fa5a8dcc7dc8a782f73ffc8723765f60b0b8d",
+   "bytes": 10465786,
+   "name": "PartySwap 1.5.7z",
+   "info_hash": "4920f97b77a69fa47cf8054857d17c4c7454e8fd",
+   "magnet": "magnet:?xt=urn%3Abtih%3A4920f97b77a69fa47cf8054857d17c4c7454e8fd&dn=PartySwap+1.5.7z"
+  },
+  "{archives}/PartySwap_EEnclave_ComPatch.7z": {
+   "sha256": "e2dec782485b04eab7348e21eac701e177fd0e5738ed598b7de1936370a5bf84",
+   "bytes": 9763995,
+   "name": "PartySwap_EEnclave_ComPatch.7z",
+   "info_hash": "e6c52c408b505c0afdf19994bb7662cf4a6b1037",
+   "magnet": "magnet:?xt=urn%3Abtih%3Ae6c52c408b505c0afdf19994bb7662cf4a6b1037&dn=PartySwap_EEnclave_ComPatch.7z"
+  },
+  "{archives}/Peragus Medical Bay Enhancement v1_3.7z": {
+   "sha256": "f97772190452b04fa1166d1ba6ccfc6ffe0c6d78c9cadf1cf91e24dcebf93a8f",
+   "bytes": 8027110,
+   "name": "Peragus Medical Bay Enhancement v1_3.7z",
+   "info_hash": "cef018a8ea9da755c3208cac962029317e754a83",
+   "magnet": "magnet:?xt=urn%3Abtih%3Acef018a8ea9da755c3208cac962029317e754a83&dn=Peragus+Medical+Bay+Enhancement+v1_3.7z"
+  },
+  "{archives}/Peragus_II_by_Trench.7z": {
+   "sha256": "d47006068a046f7905d7f9a565cdf7d5bcd1d876819f5c712b2af52181b40fb7",
+   "bytes": 5515910,
+   "name": "Peragus_II_by_Trench.7z",
+   "info_hash": "3dea58b5072388b70a0b19ec23793587d55801e6",
+   "magnet": "magnet:?xt=urn%3Abtih%3A3dea58b5072388b70a0b19ec23793587d55801e6&dn=Peragus_II_by_Trench.7z"
+  },
+  "{archives}/Prologue Item Recovery.7z": {
+   "sha256": "ca2e4f200e57ef4ddd732e25a175c0bb097d2fd0d64d99388eec2c71c7f79247",
+   "bytes": 244068,
+   "name": "Prologue Item Recovery.7z",
+   "info_hash": "2a40e67a5c68fc8b62d8abdd227eea1991ec66b1",
+   "magnet": "magnet:?xt=urn%3Abtih%3A2a40e67a5c68fc8b62d8abdd227eea1991ec66b1&dn=Prologue+Item+Recovery.7z"
+  },
+  "{archives}/Remote Tells Influence Patch for TSLRCM.zip": {
+   "sha256": "1825fff8de3443fff13eeee2bd5828832a7d0dcf11e6054c2a646bf81d8d8d87",
+   "bytes": 10766,
+   "name": "Remote Tells Influence Patch for TSLRCM.zip",
+   "info_hash": "d5a66ee7d9a9bcb2cc6acbb912e0dfa130a68bf5",
+   "magnet": "magnet:?xt=urn%3Abtih%3Ad5a66ee7d9a9bcb2cc6acbb912e0dfa130a68bf5&dn=Remote+Tells+Influence+Patch+for+TSLRCM.zip"
+  },
+  "{archives}/RepTab HD.rar": {
+   "sha256": "c06c475f64ca9cb4f6bffc85c4d25a96e72c7e8ff52d076b9960524a89ab61d6",
+   "bytes": 9382284,
+   "name": "RepTab HD.rar",
+   "info_hash": "6220f56f516ecc89a61c49183959c721ef6f6363",
+   "magnet": "magnet:?xt=urn%3Abtih%3A6220f56f516ecc89a61c49183959c721ef6f6363&dn=RepTab+HD.rar"
+  },
+  "{archives}/RepairHK47_v1_1.zip": {
+   "sha256": "271ddaa4337c16b1399c701eae91315390bf3d6a49b6c990a11c4652ea315c12",
+   "bytes": 81154656,
+   "name": "RepairHK47_v1_1.zip",
+   "info_hash": "18a8a057579786a3e03f1b515dc2f28838f0aa91",
+   "magnet": "magnet:?xt=urn%3Abtih%3A18a8a057579786a3e03f1b515dc2f28838f0aa91&dn=RepairHK47_v1_1.zip"
+  },
+  "{archives}/Replacement Loading Screens for KotOR2 Original Pack Part 1.7z": {
+   "sha256": "dec6f60dd54a1f3525274466a370b487f4e6b8cbaf08738791b532f6410768cd",
+   "bytes": 97972101,
+   "name": "Replacement Loading Screens for KotOR2 Original Pack Part 1.7z",
+   "info_hash": "009fbeee8bbed368d17ac06918d689c2c6bff803",
+   "magnet": "magnet:?xt=urn%3Abtih%3A009fbeee8bbed368d17ac06918d689c2c6bff803&dn=Replacement+Loading+Screens+for+KotOR2+Original+Pack+Part+1.7z"
+  },
+  "{archives}/Replacement Loading Screens for KotOR2 Original Pack Part 3.7z": {
+   "sha256": "70a67e065e79bacb1881678a3f146a89db69a515578ef09b090c464db05532ec",
+   "bytes": 37585784,
+   "name": "Replacement Loading Screens for KotOR2 Original Pack Part 3.7z",
+   "info_hash": "58471ca8d3d11d16e2f9119929e7b8998ec01b7e",
+   "magnet": "magnet:?xt=urn%3Abtih%3A58471ca8d3d11d16e2f9119929e7b8998ec01b7e&dn=Replacement+Loading+Screens+for+KotOR2+Original+Pack+Part+3.7z"
+  },
+  "{archives}/Rescaled Trandoshans.zip": {
+   "sha256": "f8939839eac387aa8e120116686baa7281b3226cdb5b941ba7d7389040e5b644",
+   "bytes": 528129,
+   "name": "Rescaled Trandoshans.zip",
+   "info_hash": "33553c5f6cc7b59e4b18d3f299dd7b389df352f2",
+   "magnet": "magnet:?xt=urn%3Abtih%3A33553c5f6cc7b59e4b18d3f299dd7b389df352f2&dn=Rescaled+Trandoshans.zip"
+  },
+  "{archives}/SAWL_2.0.zip": {
+   "sha256": "f347b4c728a52dfc816134b297af5ce7fc1b506eeae88437fcb77445efb97ebf",
+   "bytes": 9379189,
+   "name": "SAWL_2.0.zip",
+   "info_hash": "6c889ff97952f2d9e88ed0de5ed5f18e6041a9a7",
+   "magnet": "magnet:?xt=urn%3Abtih%3A6c889ff97952f2d9e88ed0de5ed5f18e6041a9a7&dn=SAWL_2.0.zip"
+  },
+  "{archives}/SH_EHCockpitUpgrade_LEH_Scre01_MS.7z": {
+   "sha256": "1ffd749b8ffcfeb6d5735161e72d1360bf72e7f398abdc3765b4c655b7abe2dc",
+   "bytes": 2192608,
+   "name": "SH_EHCockpitUpgrade_LEH_Scre01_MS.7z",
+   "info_hash": "a7bfba1f85261e236923068c4ab8478abe8b80c4",
+   "magnet": "magnet:?xt=urn%3Abtih%3Aa7bfba1f85261e236923068c4ab8478abe8b80c4&dn=SH_EHCockpitUpgrade_LEH_Scre01_MS.7z"
+  },
+  "{archives}/SH_EHCockpitUpgrade_LEH_Scre02.7z": {
+   "sha256": "80259ba20a0b8b0730b22a9b5d72decb4c412cd8a063a87fafbe26ca0d378e20",
+   "bytes": 4186165,
+   "name": "SH_EHCockpitUpgrade_LEH_Scre02.7z",
+   "info_hash": "af8a01a546929d0f523435b6d197a7d8680e57ad",
+   "magnet": "magnet:?xt=urn%3Abtih%3Aaf8a01a546929d0f523435b6d197a7d8680e57ad&dn=SH_EHCockpitUpgrade_LEH_Scre02.7z"
+  },
+  "{archives}/SH_Peragus Large Monitor Adjustment.7z": {
+   "sha256": "d6e87d5c093f8a9eccedda24006a0192e4c56b4c034a94756fbba21fc3009c5f",
+   "bytes": 5199305,
+   "name": "SH_Peragus Large Monitor Adjustment.7z",
+   "info_hash": "cdbd23d39c9bcf822642228cd64eaf284258d6d5",
+   "magnet": "magnet:?xt=urn%3Abtih%3Acdbd23d39c9bcf822642228cd64eaf284258d6d5&dn=SH_Peragus+Large+Monitor+Adjustment.7z"
+  },
+  "{archives}/SH_Refurbished Astromech Droids.7z": {
+   "sha256": "bcb3d557723039fb087c5f6457f572aa902e2041596097ceda78c73886a4181d",
+   "bytes": 14871241,
+   "name": "SH_Refurbished Astromech Droids.7z",
+   "info_hash": "b3b9e5db609df4a52d14790b2c79a88f103f1dae",
+   "magnet": "magnet:?xt=urn%3Abtih%3Ab3b9e5db609df4a52d14790b2c79a88f103f1dae&dn=SH_Refurbished+Astromech+Droids.7z"
+  },
+  "{archives}/SH_Swoop Monitors.7z": {
+   "sha256": "0618d67e634d238edae5fb104018f1b468de3250056ff9484a4755eecfff683c",
+   "bytes": 25822455,
+   "name": "SH_Swoop Monitors.7z",
+   "info_hash": "40f2128a0283b2de4f7e934b6665451a4958d6f3",
+   "magnet": "magnet:?xt=urn%3Abtih%3A40f2128a0283b2de4f7e934b6665451a4958d6f3&dn=SH_Swoop+Monitors.7z"
+  },
+  "{archives}/SH_TSL_RandomPanels.7z": {
+   "sha256": "a071d276ce964c67f46c128bf8914f9a3f2ed9da69af3ae42b86f7c2a6ae248b",
+   "bytes": 18207743,
+   "name": "SH_TSL_RandomPanels.7z",
+   "info_hash": "024bb21724d4ab5e436702a75587662d45040ce4",
+   "magnet": "magnet:?xt=urn%3Abtih%3A024bb21724d4ab5e436702a75587662d45040ce4&dn=SH_TSL_RandomPanels.7z"
+  },
+  "{archives}/Sapiens Nihilus TPC.7z": {
+   "sha256": "5a304bab1a157c27fa57a8da52cc999771926e057569302ce850e59c972a2677",
+   "bytes": 4033469,
+   "name": "Sapiens Nihilus TPC.7z",
+   "info_hash": "d9877811f4ac208a16b376831930b3d942a7334e",
+   "magnet": "magnet:?xt=urn%3Abtih%3Ad9877811f4ac208a16b376831930b3d942a7334e&dn=Sapiens+Nihilus+TPC.7z"
+  },
+  "{archives}/Silent Sion Restoration.zip": {
+   "sha256": "b3e5c90f8001a299fdc3464ff74edc98c9e19a11e7759a8095a0cef508782789",
+   "bytes": 12852,
+   "name": "Silent Sion Restoration.zip",
+   "info_hash": "7e7a60e2374e8e37b40446bf210091761d5545dc",
+   "magnet": "magnet:?xt=urn%3Abtih%3A7e7a60e2374e8e37b40446bf210091761d5545dc&dn=Silent+Sion+Restoration.zip"
+  },
+  "{archives}/Sith Art-1632-1-1713373365.zip": {
+   "sha256": "d5a4625c467128f9465d02f7470d611027478eea68fb5fe24eb6e30838b2c5d2",
+   "bytes": 5397819,
+   "name": "Sith Art-1632-1-1713373365.zip",
+   "info_hash": "6730a85c57486e464f913bce62aa166ee2d7b744",
+   "magnet": "magnet:?xt=urn%3Abtih%3A6730a85c57486e464f913bce62aa166ee2d7b744&dn=Sith+Art-1632-1-1713373365.zip"
+  },
+  "{archives}/Sith Holocron - Replacement Loading Screens for KotOR2 Original Pack_ part 2.7z": {
+   "sha256": "6989f4a1697b7ef553b7582413613d87854e893aff19214df18d349963bec0f9",
+   "bytes": 91847028,
+   "name": "Sith Holocron - Replacement Loading Screens for KotOR2 Original Pack_ part 2.7z",
+   "info_hash": "1426dcb12167e46a37b10f5a1abf69e44c503463",
+   "magnet": "magnet:?xt=urn%3Abtih%3A1426dcb12167e46a37b10f5a1abf69e44c503463&dn=Sith+Holocron+-+Replacement+Loading+Screens+for+KotOR2+Original+Pack_+part+2.7z"
+  },
+  "{archives}/Smoother G0-T0-1296-1-0-1750625306.7z": {
+   "sha256": "cab07129802e4efa128981c6644c8895b3181c1854e47b9b5130208478a83658",
+   "bytes": 156213,
+   "name": "Smoother G0-T0-1296-1-0-1750625306.7z",
+   "info_hash": "ba3b3140130fb7a164d5d8041eac1da2037b85a6",
+   "magnet": "magnet:?xt=urn%3Abtih%3Aba3b3140130fb7a164d5d8041eac1da2037b85a6&dn=Smoother+G0-T0-1296-1-0-1750625306.7z"
+  },
+  "{archives}/Spark_Effect_v1.0.7z": {
+   "sha256": "4d34d5f4934c3bd31637c01790142c62a62a4f460ce937b60e1de60f530938fd",
+   "bytes": 584286,
+   "name": "Spark_Effect_v1.0.7z",
+   "info_hash": "bf2bb6bad379ed0d8c1108e5647bbbaa12c31dfc",
+   "magnet": "magnet:?xt=urn%3Abtih%3Abf2bb6bad379ed0d8c1108e5647bbbaa12c31dfc&dn=Spark_Effect_v1.0.7z"
+  },
+  "{archives}/Stylized Portraits TSL 1.3.7z": {
+   "sha256": "5383e2e192604de9c2b15ba2ccac0ae2cfafc9583702c5632b57b80709649c1d",
+   "bytes": 8797640,
+   "name": "Stylized Portraits TSL 1.3.7z",
+   "info_hash": "cf654cfcdbab9ee3a370a2f4f015b38ea84bbce3",
+   "magnet": "magnet:?xt=urn%3Abtih%3Acf654cfcdbab9ee3a370a2f4f015b38ea84bbce3&dn=Stylized+Portraits+TSL+1.3.7z"
+  },
+  "{archives}/TSL - AI Upscaled Icon Overhaul (All in One).7z": {
+   "sha256": "3e0293d37018f45f7205d4fd87f3eefb4239745cb49fbc0b09e9e56aaeb95b6b",
+   "bytes": 47075958,
+   "name": "TSL - AI Upscaled Icon Overhaul (All in One).7z",
+   "info_hash": "9a9d88c4f6e76bc58f10fefef3ddfe5252881048",
+   "magnet": "magnet:?xt=urn%3Abtih%3A9a9d88c4f6e76bc58f10fefef3ddfe5252881048&dn=TSL+-+AI+Upscaled+Icon+Overhaul+%28All+in+One%29.7z"
+  },
+  "{archives}/TSL Ebon Hawk Map v1.2.3.7z": {
+   "sha256": "08972e6f67956786179d7cd979a5c610b3da1a0cf3f30e931cfcbd49e98e7bd9",
+   "bytes": 9575112,
+   "name": "TSL Ebon Hawk Map v1.2.3.7z",
+   "info_hash": "140a33f5ea6ea2ae0586a1942456183b9f1655a7",
+   "magnet": "magnet:?xt=urn%3Abtih%3A140a33f5ea6ea2ae0586a1942456183b9f1655a7&dn=TSL+Ebon+Hawk+Map+v1.2.3.7z"
+  },
+  "{archives}/TSL Expanded Ending v1_1.7z": {
+   "sha256": "9efef263ea1c24ea379078ecf65a2dbf354f29b63725094acd095d5143404ed7",
+   "bytes": 7837100,
+   "name": "TSL Expanded Ending v1_1.7z",
+   "info_hash": "a89a808cde2db362974067dcf81da202b0d75930",
+   "magnet": "magnet:?xt=urn%3Abtih%3Aa89a808cde2db362974067dcf81da202b0d75930&dn=TSL+Expanded+Ending+v1_1.7z"
+  },
+  "{archives}/TSL HD Cockpit Skyboxes - Medium Resolution TPC.zip": {
+   "sha256": "53409f413bce484f76b7f7fc20e3cd19207197df6762f809f256cb9964203640",
+   "bytes": 6374762,
+   "name": "TSL HD Cockpit Skyboxes - Medium Resolution TPC.zip",
+   "info_hash": "05372ce7bc01c4b1398835d830c1bb2975d0a578",
+   "magnet": "magnet:?xt=urn%3Abtih%3A05372ce7bc01c4b1398835d830c1bb2975d0a578&dn=TSL+HD+Cockpit+Skyboxes+-+Medium+Resolution+TPC.zip"
+  },
+  "{archives}/TSL Mira Unpoofed v1.0.3.7z": {
+   "sha256": "04285d3215ca2f2794f37bb16ac3f2b4a4e84c3ffa822ec01a2f757975d0e2d0",
+   "bytes": 981511,
+   "name": "TSL Mira Unpoofed v1.0.3.7z",
+   "info_hash": "f46e62f9117b4f0b89aa87ed991b042bd6583953",
+   "magnet": "magnet:?xt=urn%3Abtih%3Af46e62f9117b4f0b89aa87ed991b042bd6583953&dn=TSL+Mira+Unpoofed+v1.0.3.7z"
+  },
+  "{archives}/TSL Mira_s Vanilla Escape for TSLRCM v1_0.zip": {
+   "sha256": "495145d92eaf1a30e327c8b2d947d163374766b351e3d27f367baba3f745a6f8",
+   "bytes": 463235,
+   "name": "TSL Mira_s Vanilla Escape for TSLRCM v1_0.zip",
+   "info_hash": "73ce01e36749ce144371a0e610062c4c37d348d2",
+   "magnet": "magnet:?xt=urn%3Abtih%3A73ce01e36749ce144371a0e610062c4c37d348d2&dn=TSL+Mira_s+Vanilla+Escape+for+TSLRCM+v1_0.zip"
+  },
+  "{archives}/TSL Transparent Cockpit Windows v1_1_2 - Reskin Friendly.7z": {
+   "sha256": "b56dcc7faa7572dd49598e7b25e84c8626f5b04dc1dc44a149c88d9642771bed",
+   "bytes": 20491220,
+   "name": "TSL Transparent Cockpit Windows v1_1_2 - Reskin Friendly.7z",
+   "info_hash": "589cb9801929f076b80fe2e96a246f3cb70cbfd2",
+   "magnet": "magnet:?xt=urn%3Abtih%3A589cb9801929f076b80fe2e96a246f3cb70cbfd2&dn=TSL+Transparent+Cockpit+Windows+v1_1_2+-+Reskin+Friendly.7z"
+  },
+  "{archives}/TSL Twi_lek Heads v1.3.2.7z": {
+   "sha256": "c7c9242db696579a87107353d0fa8055175e1bc61aa3f1281c930f8597d892bc",
+   "bytes": 13726319,
+   "name": "TSL Twi_lek Heads v1.3.2.7z",
+   "info_hash": "c3dc72075cf004ce5b369882c8f16eb57fd9f8b3",
+   "magnet": "magnet:?xt=urn%3Abtih%3Ac3dc72075cf004ce5b369882c8f16eb57fd9f8b3&dn=TSL+Twi_lek+Heads+v1.3.2.7z"
+  },
+  "{archives}/TSL Twi_lek Male NPC Diversity.7z": {
+   "sha256": "01b1df6f26145e12b0d98f40203efe92af365f6295f784043c888e69562a430d",
+   "bytes": 13787769,
+   "name": "TSL Twi_lek Male NPC Diversity.7z",
+   "info_hash": "804a986cc09db774371f1bc6804d2ceaec10f777",
+   "magnet": "magnet:?xt=urn%3Abtih%3A804a986cc09db774371f1bc6804d2ceaec10f777&dn=TSL+Twi_lek+Male+NPC+Diversity.7z"
+  },
+  "{archives}/TSLGalaxyMapFixPack.zip": {
+   "sha256": "a8800d28b5721f75dcf9c26971ff1dd1040164761ddf5136113dbdf254626951",
+   "bytes": 9672197,
+   "name": "TSLGalaxyMapFixPack.zip",
+   "info_hash": "40d7a48a5deadfd87f854480e09517e807129917",
+   "magnet": "magnet:?xt=urn%3Abtih%3A40d7a48a5deadfd87f854480e09517e807129917&dn=TSLGalaxyMapFixPack.zip"
+  },
+  "{archives}/TSL_Backdrop_Improvements_1_4.7z": {
+   "sha256": "db2502890d81ae5e1d38b9a9145f054fa69b521283b5aec349e25f1ce86f1331",
+   "bytes": 107346790,
+   "name": "TSL_Backdrop_Improvements_1_4.7z",
+   "info_hash": "68e913e88b7f9d35bf3590197198aa3b3f21bb53",
+   "magnet": "magnet:?xt=urn%3Abtih%3A68e913e88b7f9d35bf3590197198aa3b3f21bb53&dn=TSL_Backdrop_Improvements_1_4.7z"
+  },
+  "{archives}/TSL_Darth_Malaks_Armour_PMBM05_Reskin-9-1-0.7z": {
+   "sha256": "fa14574479abb668b1cb145bb46cd70e6e72a65e1a0d9553245b24aba16bfc43",
+   "bytes": 1059675,
+   "name": "TSL_Darth_Malaks_Armour_PMBM05_Reskin-9-1-0.7z",
+   "info_hash": "d2aaed9d72714525f08eed5e2e02f1872c30a496",
+   "magnet": "magnet:?xt=urn%3Abtih%3Ad2aaed9d72714525f08eed5e2e02f1872c30a496&dn=TSL_Darth_Malaks_Armour_PMBM05_Reskin-9-1-0.7z"
+  },
+  "{archives}/TSL_Head_Model_Fixes_by_RedRob41.zip": {
+   "sha256": "d925d495a7d31e45c2cc47a591b0bdfa97b06d119fab7a79fe2e71ef56f4a177",
+   "bytes": 182252,
+   "name": "TSL_Head_Model_Fixes_by_RedRob41.zip",
+   "info_hash": "b8d8e3d2539ea526449170e4043fbec0792e3c63",
+   "magnet": "magnet:?xt=urn%3Abtih%3Ab8d8e3d2539ea526449170e4043fbec0792e3c63&dn=TSL_Head_Model_Fixes_by_RedRob41.zip"
+  },
+  "{archives}/TSL_High_Quality_Blasters.zip": {
+   "sha256": "a088f3bf81891ea2713e46e60cdf7926aa30287ed86991788fecc6745f8996c3",
+   "bytes": 23973258,
+   "name": "TSL_High_Quality_Blasters.zip",
+   "info_hash": "982fb023eee8bacd157a0b66ba41a4e65e64e777",
+   "magnet": "magnet:?xt=urn%3Abtih%3A982fb023eee8bacd157a0b66ba41a4e65e64e777&dn=TSL_High_Quality_Blasters.zip"
+  },
+  "{archives}/TSL_prestige_save_fixes.zip": {
+   "sha256": "daf1e5fc8715958dc11f87bd36ac5e327868c6360cbef45595c32d02ea06703c",
+   "bytes": 5951,
+   "name": "TSL_prestige_save_fixes.zip",
+   "info_hash": "6ad95df1f4d8b026ad840cd4dae77a1d67bf73fb",
+   "magnet": "magnet:?xt=urn%3Abtih%3A6ad95df1f4d8b026ad840cd4dae77a1d67bf73fb&dn=TSL_prestige_save_fixes.zip"
+  },
+  "{archives}/The Sith Lords Restored Content Mod - Compatibility Patch-1060-3-0-1629717420.rar": {
+   "sha256": "16dbc3654bbaf4a15de5b6d89b649f2c5a44efcf1114f4055d0b11bae6149ee9",
+   "bytes": 79298469,
+   "name": "The Sith Lords Restored Content Mod - Compatibility Patch-1060-3-0-1629717420.rar",
+   "info_hash": "0a9af241050e3cb74f95e76dc893f253b3765f31",
+   "magnet": "magnet:?xt=urn%3Abtih%3A0a9af241050e3cb74f95e76dc893f253b3765f31&dn=The+Sith+Lords+Restored+Content+Mod+-+Compatibility+Patch-1060-3-0-1629717420.rar"
+  },
+  "{archives}/Thematic Sith Lords 2.7z": {
+   "sha256": "96d7eeceb73cba3951b96da03e0dafd5ca6decb942be5e7717e8998fb519ab7e",
+   "bytes": 279986,
+   "name": "Thematic Sith Lords 2.7z",
+   "info_hash": "bfc11819873277c3b0461903667ddba64e88956a",
+   "magnet": "magnet:?xt=urn%3Abtih%3Abfc11819873277c3b0461903667ddba64e88956a&dn=Thematic+Sith+Lords+2.7z"
+  },
+  "{archives}/True_Sith_Assassins_v1c1.zip": {
+   "sha256": "fdf24e7751cc6183da0d07e8a4df051dc9a2cfb820201fbca3b09360aa6befa3",
+   "bytes": 10026138,
+   "name": "True_Sith_Assassins_v1c1.zip",
+   "info_hash": "4e589e6e93f54f2dc16ba89fe081e9266e1ab42c",
+   "magnet": "magnet:?xt=urn%3Abtih%3A4e589e6e93f54f2dc16ba89fe081e9266e1ab42c&dn=True_Sith_Assassins_v1c1.zip"
+  },
+  "{archives}/URCMTP 1.3.rar": {
+   "sha256": "e98c94d53dfccaddf6753aa58662e1afd1d6ebb0241f66c8000ba0ff3a2f13b5",
+   "bytes": 1366051,
+   "name": "URCMTP 1.3.rar",
+   "info_hash": "3bd40a195126e81d05d0c77f0c9cd432757acd0a",
+   "magnet": "magnet:?xt=urn%3Abtih%3A3bd40a195126e81d05d0c77f0c9cd432757acd0a&dn=URCMTP+1.3.rar"
+  },
+  "{archives}/Ultimate Character Overhaul -REDUX- ( LITE ) - TPC Version-1060-3-0-1628674441.rar": {
+   "sha256": "54862b9062d1caa891cbf05fe06fd77882bd9755a6c2349e4b5a64ac3bcb13bc",
+   "bytes": 529327004,
+   "name": "Ultimate Character Overhaul -REDUX- ( LITE ) - TPC Version-1060-3-0-1628674441.rar",
+   "info_hash": "f862f70102e88d528a06942174756c19d85efd5f",
+   "magnet": "magnet:?xt=urn%3Abtih%3Af862f70102e88d528a06942174756c19d85efd5f&dn=Ultimate+Character+Overhaul+-REDUX-+%28+LITE+%29+-+TPC+Version-1060-3-0-1628674441.rar"
+  },
+  "{archives}/Ultimate Dantooine High Resolution - TPC Version-1103-2-1-1670680013.rar": {
+   "sha256": "27ee469896ea7096672feef033b6c448f52680eb354dce20cd66915d23c98752",
+   "bytes": 750063088,
+   "name": "Ultimate Dantooine High Resolution - TPC Version-1103-2-1-1670680013.rar",
+   "info_hash": "306b2c09760e83ac407816a8f0a7d931141950cb",
+   "magnet": "magnet:?xt=urn%3Abtih%3A306b2c09760e83ac407816a8f0a7d931141950cb&dn=Ultimate+Dantooine+High+Resolution+-+TPC+Version-1103-2-1-1670680013.rar"
+  },
+  "{archives}/Ultimate Dxun High Resolution - TPC Version-1105-1-1-1670681825.rar": {
+   "sha256": "810be6bccaaea067fdb4e74d5de0840f0a1e217f3492075b6beb2aa8b8fc2d89",
+   "bytes": 482504635,
+   "name": "Ultimate Dxun High Resolution - TPC Version-1105-1-1-1670681825.rar",
+   "info_hash": "66197d38d80b9776c0a834f7404fb98cd0678a17",
+   "magnet": "magnet:?xt=urn%3Abtih%3A66197d38d80b9776c0a834f7404fb98cd0678a17&dn=Ultimate+Dxun+High+Resolution+-+TPC+Version-1105-1-1-1670681825.rar"
+  },
+  "{archives}/Ultimate High Resolution Texture Pack - TPC Version-1100-1-1-1670426755.rar": {
+   "sha256": "61fd130601101471c40a6982c2b066208ea70b435d2cdc02e998fe5656b9b00b",
+   "bytes": 1391063691,
+   "name": "Ultimate High Resolution Texture Pack - TPC Version-1100-1-1-1670426755.rar",
+   "info_hash": "bd1459e6d8a8567f7b328c74bbdf60a26443975b",
+   "magnet": "magnet:?xt=urn%3Abtih%3Abd1459e6d8a8567f7b328c74bbdf60a26443975b&dn=Ultimate+High+Resolution+Texture+Pack+-+TPC+Version-1100-1-1-1670426755.rar"
+  },
+  "{archives}/Ultimate Korriban High Resolution - TPC Version-1104-1-0-1607783470.rar": {
+   "sha256": "6dbb6a726bd2dc930a7c338addffc39626d3a948d85458a2d1a20a708d4cc35b",
+   "bytes": 109304258,
+   "name": "Ultimate Korriban High Resolution - TPC Version-1104-1-0-1607783470.rar",
+   "info_hash": "449a1b383b0f588804addfcd325c9a3205417e66",
+   "magnet": "magnet:?xt=urn%3Abtih%3A449a1b383b0f588804addfcd325c9a3205417e66&dn=Ultimate+Korriban+High+Resolution+-+TPC+Version-1104-1-0-1607783470.rar"
+  },
+  "{archives}/Ultimate Malachor V High Resolution - TPC Version-1106-1-1-1670682360.rar": {
+   "sha256": "711e16c8cfc82fa4a7d410ef4b7520f2564088b182be4cb493113121213c6bc0",
+   "bytes": 202714575,
+   "name": "Ultimate Malachor V High Resolution - TPC Version-1106-1-1-1670682360.rar",
+   "info_hash": "e7fc608d3027bdf0cd5117182d5adac33265be4e",
+   "magnet": "magnet:?xt=urn%3Abtih%3Ae7fc608d3027bdf0cd5117182d5adac33265be4e&dn=Ultimate+Malachor+V+High+Resolution+-+TPC+Version-1106-1-1-1670682360.rar"
+  },
+  "{archives}/Ultimate Nar Shaddaa High Resolution - TPC Version-1101-2-1-1670677562.rar": {
+   "sha256": "6dd006e47fe60bb078f2a2b061ab2a1e200c6b4b05b5a2e4cb448fbff324a426",
+   "bytes": 807988379,
+   "name": "Ultimate Nar Shaddaa High Resolution - TPC Version-1101-2-1-1670677562.rar",
+   "info_hash": "434a280cdac752ff41e9f926a3a4d27e91f0a594",
+   "magnet": "magnet:?xt=urn%3Abtih%3A434a280cdac752ff41e9f926a3a4d27e91f0a594&dn=Ultimate+Nar+Shaddaa+High+Resolution+-+TPC+Version-1101-2-1-1670677562.rar"
+  },
+  "{archives}/Ultimate Onderon High Resolution - TPC Version-1102-1-1-1670678459.rar": {
+   "sha256": "76c9267d1b06db45c5a0231a27e457a29f22ef00654d963b0ad3ed78dfd1364a",
+   "bytes": 333596075,
+   "name": "Ultimate Onderon High Resolution - TPC Version-1102-1-1-1670678459.rar",
+   "info_hash": "7045907c8fc9769f57758732cb8f8c1e9ab2b4c9",
+   "magnet": "magnet:?xt=urn%3Abtih%3A7045907c8fc9769f57758732cb8f8c1e9ab2b4c9&dn=Ultimate+Onderon+High+Resolution+-+TPC+Version-1102-1-1-1670678459.rar"
+  },
+  "{archives}/Ultimate_Robes_Repair_For_TSL_v1.3.7z": {
+   "sha256": "0dc88d87fa4ba85e5a90cc79079a1557ebc9e5a52165de8424b8ebcd977b8fc1",
+   "bytes": 2652648,
+   "name": "Ultimate_Robes_Repair_For_TSL_v1.3.7z",
+   "info_hash": "c4bf4fcb758b57f553ddfed9dfde9050a63beb1e",
+   "magnet": "magnet:?xt=urn%3Abtih%3Ac4bf4fcb758b57f553ddfed9dfde9050a63beb1e&dn=Ultimate_Robes_Repair_For_TSL_v1.3.7z"
+  },
+  "{archives}/Upscale+ Character Fixes - TSL V0.52 (2x tpc).7z": {
+   "sha256": "e7cbe400393e0c4da3f230baa064ce315babaa5795278deb33fc17844c32dd7a",
+   "bytes": 254086161,
+   "name": "Upscale+ Character Fixes - TSL V0.52 (2x tpc).7z",
+   "info_hash": "cf15080462e2b7e575d9a191943539352c610bc4",
+   "magnet": "magnet:?xt=urn%3Abtih%3Acf15080462e2b7e575d9a191943539352c610bc4&dn=Upscale%2B+Character+Fixes+-+TSL+V0.52+%282x+tpc%29.7z"
+  },
+  "{archives}/VCChanges1.1.zip": {
+   "sha256": "9d194d49f3e45614d20b680e13854c28110ff68a6b759c2bd11d82538d0b90e7",
+   "bytes": 10972681,
+   "name": "VCChanges1.1.zip",
+   "info_hash": "e18b24a8c10a5326c41b89839e1590100bf59aab",
+   "magnet": "magnet:?xt=urn%3Abtih%3Ae18b24a8c10a5326c41b89839e1590100bf59aab&dn=VCChanges1.1.zip"
+  },
+  "{archives}/VSTMF1.4.7z": {
+   "sha256": "61046731358c5a0484979315eb7c16a9571f5bd34da7f967f8dda2d08cb5c163",
+   "bytes": 9374876,
+   "name": "VSTMF1.4.7z",
+   "info_hash": "7dea0ca082b2037a2044a49ac2ef0840bec02950",
+   "magnet": "magnet:?xt=urn%3Abtih%3A7dea0ca082b2037a2044a49ac2ef0840bec02950&dn=VSTMF1.4.7z"
+  },
+  "{archives}/Visas Less Clipping.7z": {
+   "sha256": "dd08d47b6dc7b4e1baccb62a907d471503f5464152b2789ed7fac0daa8a0dfb0",
+   "bytes": 57299,
+   "name": "Visas Less Clipping.7z",
+   "info_hash": "2994d137db330702aa6f08eb18ce03df470ce071",
+   "magnet": "magnet:?xt=urn%3Abtih%3A2994d137db330702aa6f08eb18ce03df470ce071&dn=Visas+Less+Clipping.7z"
+  },
+  "{archives}/[TSL] Repair Affects Stun Droid.zip": {
+   "sha256": "6886a3d5cb7c01019ce5b01ec78e240ec900f07b1d0c4b1775a9b4c434978ec1",
+   "bytes": 362022,
+   "name": "[TSL] Repair Affects Stun Droid.zip",
+   "info_hash": "29636c29e5aee4b3eb52cbfbfc27a621f85f9ceb",
+   "magnet": "magnet:?xt=urn%3Abtih%3A29636c29e5aee4b3eb52cbfbfc27a621f85f9ceb&dn=%5BTSL%5D+Repair+Affects+Stun+Droid.zip"
+  },
+  "{archives}/[TSL]_Animated_Computer_Panel_v2.0.0.7z": {
+   "sha256": "6b904712627b46e5d242d2282136f7f3e0fafabca120ae197c4e59f85cfcf56c",
+   "bytes": 1565107,
+   "name": "[TSL]_Animated_Computer_Panel_v2.0.0.7z",
+   "info_hash": "401011e2f6bd242bea77cdd2f575acd5108e7539",
+   "magnet": "magnet:?xt=urn%3Abtih%3A401011e2f6bd242bea77cdd2f575acd5108e7539&dn=%5BTSL%5D_Animated_Computer_Panel_v2.0.0.7z"
+  },
+  "{archives}/[TSL]_Fixed_Hologram_Models_and_Admiralty_Redux_for_TSLRCM_v1.61.7z": {
+   "sha256": "7e922a771723fd3de1560cc7c40b71132505c96a620e11dc34450296e8b7c467",
+   "bytes": 4476787,
+   "name": "[TSL]_Fixed_Hologram_Models_and_Admiralty_Redux_for_TSLRCM_v1.61.7z",
+   "info_hash": "ae795c34672091e260f5d10fb9a0879566120ce3",
+   "magnet": "magnet:?xt=urn%3Abtih%3Aae795c34672091e260f5d10fb9a0879566120ce3&dn=%5BTSL%5D_Fixed_Hologram_Models_and_Admiralty_Redux_for_TSLRCM_v1.61.7z"
+  },
+  "{archives}/[TSL]_Thigh-High_Boots_For_Twilek_Body_MODDERS_RESOURCE.7z": {
+   "sha256": "5ed4056d9329200849aab9bfd7a657065808bc51bb23a505abe9a02173493e39",
+   "bytes": 826508,
+   "name": "[TSL]_Thigh-High_Boots_For_Twilek_Body_MODDERS_RESOURCE.7z",
+   "info_hash": "f8da19fb4b84b13e83e699c5e048ca78a5016078",
+   "magnet": "magnet:?xt=urn%3Abtih%3Af8da19fb4b84b13e83e699c5e048ca78a5016078&dn=%5BTSL%5D_Thigh-High_Boots_For_Twilek_Body_MODDERS_RESOURCE.7z"
+  },
+  "{archives}/aleema_ketos_robe_description_correction.zip": {
+   "sha256": "a19181f2920b714e62b0f1b700e8cf38dc9ad48865261814f9a529801d741e23",
+   "bytes": 3558,
+   "name": "aleema_ketos_robe_description_correction.zip",
+   "info_hash": "7df6d805be65d24e435be522f7c08965e15a7c7f",
+   "magnet": "magnet:?xt=urn%3Abtih%3A7df6d805be65d24e435be522f7c08965e15a7c7f&dn=aleema_ketos_robe_description_correction.zip"
+  },
+  "{archives}/bettersion.7z": {
+   "sha256": "768379e1d057ac414c7427694dd546064b9d7ff86efcd416fe0e81d8cf01b207",
+   "bytes": 29463924,
+   "name": "bettersion.7z",
+   "info_hash": "f68a4f5f07503e22e9cb59684dcb18843f472469",
+   "magnet": "magnet:?xt=urn%3Abtih%3Af68a4f5f07503e22e9cb59684dcb18843f472469&dn=bettersion.7z"
+  },
+  "{archives}/dendis_merchant_mod.rar": {
+   "sha256": "88ebcdef87b6aa264702e41da57733b01ed38410558d0b7e2a42dd961647f7b3",
+   "bytes": 259527,
+   "name": "dendis_merchant_mod.rar",
+   "info_hash": "4c32e4d5e7bf8617cccd444145986e5877150c03",
+   "magnet": "magnet:?xt=urn%3Abtih%3A4c32e4d5e7bf8617cccd444145986e5877150c03&dn=dendis_merchant_mod.rar"
+  },
+  "{archives}/dm_qrts.rar": {
+   "sha256": "b01f4e6f40ef48db3af3983fe61da5edc0c08c75a645f5fe9b31fcf8baa86136",
+   "bytes": 2855850,
+   "name": "dm_qrts.rar",
+   "info_hash": "2c22898f0714e6a15aa2778af7bda0d3e5f3d639",
+   "magnet": "magnet:?xt=urn%3Abtih%3A2c22898f0714e6a15aa2778af7bda0d3e5f3d639&dn=dm_qrts.rar"
+  },
+  "{archives}/hd_npc_portraits_tsl-1.1.7z": {
+   "sha256": "27130e9134c6c0ba845fad3b197539c5afd91048fdba1b5df42a56964a7030e9",
+   "bytes": 7374347,
+   "name": "hd_npc_portraits_tsl-1.1.7z",
+   "info_hash": "9fb22f07965394d8406cb20ec5ad02e0c2a5256c",
+   "magnet": "magnet:?xt=urn%3Abtih%3A9fb22f07965394d8406cb20ec5ad02e0c2a5256c&dn=hd_npc_portraits_tsl-1.1.7z"
+  },
+  "{archives}/hd_pc_portraits_tsl-1.1.7z": {
+   "sha256": "5899299b7b1fbbc00f8008ea18b13e1163bf4acc1bf24b4ff29a4b69c14e534f",
+   "bytes": 22374875,
+   "name": "hd_pc_portraits_tsl-1.1.7z",
+   "info_hash": "e99f2eac565fffaa9f514d57b653a68c5166dbe6",
+   "magnet": "magnet:?xt=urn%3Abtih%3Ae99f2eac565fffaa9f514d57b653a68c5166dbe6&dn=hd_pc_portraits_tsl-1.1.7z"
+  },
+  "{archives}/k2-pfhc06-fix.zip": {
+   "sha256": "616e74f314ab4c725ed1a6962b85c0ea9d0b6952ee24a8d19ce82e80b11104eb",
+   "bytes": 75043,
+   "name": "k2-pfhc06-fix.zip",
+   "info_hash": "75dd8e3be55bafafcde09df6c31070acfb183007",
+   "magnet": "magnet:?xt=urn%3Abtih%3A75dd8e3be55bafafcde09df6c31070acfb183007&dn=k2-pfhc06-fix.zip"
+  },
+  "{archives}/lightsaber_hilt variety_v2.0.zip": {
+   "sha256": "d919b681374c883539513004a21e9d0387c1acd5e6333d3dc26b9a8cd836bfdf",
+   "bytes": 1631370,
+   "name": "lightsaber_hilt variety_v2.0.zip",
+   "info_hash": "e9a0e6ea4446af622374385efb4e843f2fa91107",
+   "magnet": "magnet:?xt=urn%3Abtih%3Ae9a0e6ea4446af622374385efb4e843f2fa91107&dn=lightsaber_hilt+variety_v2.0.zip"
+  },
+  "{archives}/relightingtsl_003EBOg_1.2.zip": {
+   "sha256": "ed2c7fb1ca98153e20f7eec5242da3925b416f5c262c6b731029fd37124e432f",
+   "bytes": 213247,
+   "name": "relightingtsl_003EBOg_1.2.zip",
+   "info_hash": "186b2cde8f3160ab1d4da658cf53d3e12bf6c8b0",
+   "magnet": "magnet:?xt=urn%3Abtih%3A186b2cde8f3160ab1d4da658cf53d3e12bf6c8b0&dn=relightingtsl_003EBOg_1.2.zip"
+  },
+  "{archives}/relightingtsl_101PERt_2.1.zip": {
+   "sha256": "207b626cd8450434e0b2ea3cc207f9cafaef25f03576609552f68affb21a89a8",
+   "bytes": 1121230,
+   "name": "relightingtsl_101PERt_2.1.zip",
+   "info_hash": "f96c5ad4fb61c65a27da466e4bd4c0f8ec1361b7",
+   "magnet": "magnet:?xt=urn%3Abtih%3Af96c5ad4fb61c65a27da466e4bd4c0f8ec1361b7&dn=relightingtsl_101PERt_2.1.zip"
+  },
+  "{archives}/relightingtsl_102PERfklnt_1.0.zip": {
+   "sha256": "44fee8eea4d399f1f5013dc379130844895c2cfbe20d0608c8b6ffd67e1fd8b6",
+   "bytes": 132181,
+   "name": "relightingtsl_102PERfklnt_1.0.zip",
+   "info_hash": "6f4ca08d94b802f0fcdbc72bb8e71c2de43e25fe",
+   "magnet": "magnet:?xt=urn%3Abtih%3A6f4ca08d94b802f0fcdbc72bb8e71c2de43e25fe&dn=relightingtsl_102PERfklnt_1.0.zip"
+  },
+  "{archives}/relightingtsl_298TELk_1.0.zip": {
+   "sha256": "9b898a0561eaa73397a3993563a881536f194b5f15be3a659f0eb0e00cc019c9",
+   "bytes": 1338206,
+   "name": "relightingtsl_298TELk_1.0.zip",
+   "info_hash": "9206d11fe8fa8806d661d2e6421083ad31635a90",
+   "magnet": "magnet:?xt=urn%3Abtih%3A9206d11fe8fa8806d661d2e6421083ad31635a90&dn=relightingtsl_298TELk_1.0.zip"
+  },
+  "{archives}/remote_influence.zip": {
+   "sha256": "8331ae9647516034a61d3ae24bd1847cbcab1a6e4cd4d3cf14fb075cb8052e85",
+   "bytes": 10088,
+   "name": "remote_influence.zip",
+   "info_hash": "cf238dc15b2d530f606306b9e8579d4eec26cf8c",
+   "magnet": "magnet:?xt=urn%3Abtih%3Acf238dc15b2d530f606306b9e8579d4eec26cf8c&dn=remote_influence.zip"
+  },
+  "{archives}/scruffyatton.zip": {
+   "sha256": "b041b400796c471d6b69324fdac6aa3fdeab04278037512bdf2d59c309f2a676",
+   "bytes": 813694,
+   "name": "scruffyatton.zip",
+   "info_hash": "58b5f060f4bfa81119e558fb5911d3ecccbd3701",
+   "magnet": "magnet:?xt=urn%3Abtih%3A58b5f060f4bfa81119e558fb5911d3ecccbd3701&dn=scruffyatton.zip"
+  },
+  "{archives}/thorium_charge_mod.rar": {
+   "sha256": "c102073d22af6fb00a56c28858c1c406181658287464bbcec7494d1265164700",
+   "bytes": 1755,
+   "name": "thorium_charge_mod.rar",
+   "info_hash": "458416169cfcae5d05b12f4ca37d3d58eefbdbf1",
+   "magnet": "magnet:?xt=urn%3Abtih%3A458416169cfcae5d05b12f4ca37d3d58eefbdbf1&dn=thorium_charge_mod.rar"
+  },
+  "{archives}/tslrcm2022.exe": {
+   "sha256": "94c99c4807da4b304de6e0efed1be55e0f43d13cc5a274582ed3323ac0e2f1a6",
+   "bytes": 137947655,
+   "name": "tslrcm2022.exe",
+   "info_hash": "b082bbf1014094b559682ff9e321a21a619680c1",
+   "magnet": "magnet:?xt=urn%3Abtih%3Ab082bbf1014094b559682ff9e321a21a619680c1&dn=tslrcm2022.exe"
+  },
+  "{archives}/visual_effects_tsl.7z": {
+   "sha256": "b9518e4e00f0d6b3abee394592eee3377079f74ec18c245107d588fe172a373b",
+   "bytes": 247638,
+   "name": "visual_effects_tsl.7z",
+   "info_hash": "3a52a016ab42f534e01cba7af136318de4816f0d",
+   "magnet": "magnet:?xt=urn%3Abtih%3A3a52a016ab42f534e01cba7af136318de4816f0d&dn=visual_effects_tsl.7z"
+  }
+ }
+}

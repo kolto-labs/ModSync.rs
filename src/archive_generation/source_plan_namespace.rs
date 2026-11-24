@@ -1606,10 +1606,13 @@ fn validate_configuration(
             .message
             .starts_with("There are some orphaned ini sections")
         {
+            // The patcher's note lists the orphaned sections; a reviewer needs that
+            // exact set to classify them, so the refusal carries it.
             ensure!(
                 inactive_sections::classify(entry, &parser, &log.message)?
                     || source_revisions_uniform::classify_inactive(entry, &parser, &log.message)?,
-                "Selected namespace has unclassified inactive sections"
+                "Selected namespace has unclassified inactive sections: {}",
+                log.message.trim().replace('\n', ", ")
             );
         }
     }

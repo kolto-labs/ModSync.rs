@@ -337,6 +337,158 @@ placeholders survive conversion but still fail Rust execution. This does not clo
 F01/F05, full validation or complete format/action parity. Five production gates
 pass and53 frozen entries remain unchanged; no Rust tests were run.
 
+## K1 recipe book matches the current draft again; two refusals name their cause, 2026-11-24 UTC
+
+Engine data and two error messages; no behaviour of a successful install changed. No
+Rust tests were run.
+
+K1 install lanes stopped at `guide_selection` with `Component differs from exact reviewed
+recipe context` for Stunbaton HD and Zaalbar HD. The guide and the archives were
+unchanged. The recipe book `src/archive_generation/reviewed_manual_k1.json` still
+embedded the options that the draft produced before negated recommendations stopped
+becoming options (the "recommend against" entry below): two for Stunbaton HD, one for
+Zaalbar HD. Those options carried no instructions, dependencies or restrictions and no
+plan step referred to them. Recipes 32 and 41 now hold the components the engine drafts
+today, with their digests, and the book hash and the master data hash that pin them were
+updated in `reviewed_manual.rs`, `reviewed_master.rs`, `reviewed_master/uco.rs`,
+`reviewed_master_k1.json` and `tools/modsync-ci/ports.py`.
+
+Proof boundary. With the built CLI, all 66 recipes' raw and canonical input components
+equal the engine's current output for the compiled K1 guide, and every embedded digest
+matches. The archive-bound path that raised the refusal needs the mod archives and was
+not run locally; the next K1 install lane is the proof.
+
+Two refusals now carry what a reviewer needs. `UCO prerequisite differs from its complete
+compiled original definition` names the prerequisite's GUID and name and the top-level
+fields that differ. `Selected namespace has unclassified inactive sections` lists the
+orphaned sections the patcher reported; K1 Taris Rapid Transit hits it and has no
+classification yet, which is not fixed here.
+
+The first refusal then named its cause in run 45329233118: The Sith Lords Restored
+Content Mod (`bee5a72b`), differing in `Instructions` and `VendorInstallerBinding`. The
+vendor installer binding rewrites that component, and the UCO definition comparison knew
+how to recover the original from three other generators but not from this one.
+`vendor_installer::declared_original_definition` now returns the binding's stored input
+component, admitted only while it still equals the reviewed context, and the comparison
+uses it. As with the other three, this is a definition comparison only and never proof
+that the installer ran. Checked locally: the stored input equals the engine's draft of
+that component from the compiled K2 guide in every field but the loader form of
+`Language`, which the run did not report as differing. Run 45337846523 (commit
+`69916fa`) confirmed it: the comparison passed that component and four more and stopped
+at the next one.
+
+That next one is Maintenance Officer Realistic Reskin (`a2072211`), differing in
+`ArchiveMethodBinding` and `Instructions`: the same gap for the archive method binding.
+`resolved::declared_original_definition` now restores the method-only component that
+binding was made from (instructions, options and the binding receipt removed), admitted
+only if the result is method-only again, and the comparison uses it. The refusal now
+lists every differing prerequisite at once instead of the first. Whether any of the
+remaining seven prerequisites differs is shown by the next K2 lane.
+
+## CI archive cache recovers a pinned version after a renamed re-upload, 2026-11-24 UTC
+
+Python CI tooling only. The pinned-version recovery of 2026-11-23 was keyed by archive
+file name, so an author who re-uploaded under a new name slipped past it: DeadlyStream
+`544-partyswap` now serves `PartySwap 1.6.1.7z`, the K2 plan pins `PartySwap 1.5.7z`,
+and the new bytes were stored as an ordinary update. `cache.renamed_plan_pin` now links
+an unpinned DeadlyStream file name on a single-file page to a plan pin when the two
+names are equal once version numbers and extension are ignored, that pin is the only
+such candidate, and its bytes are not already in the cache. The version history is then
+walked as before and a match is stored under the pinned name.
+
+Because the link by name is a guess, a pin that is not in the history does not fail the
+item: the current upload is kept as before, a warning is printed and the entry records
+`pin_not_in_history` with every hashed version. Multi-file pages, direct links, other
+providers and cached objects that are never re-downloaded are unchanged; the last is why
+`Heyorange_s_Sith Uniform_Reformation_Revised.zip`, whose reviewed `.7z` revision is
+served from the artifact store, is not recovered by this. Covered by
+`test_cache_version_history.py` (16 tests, offline HTML fixtures). Live proof: in run
+45329233118 (commit `8eb1cef`) the archive stage hashed `PartySwap 1.6.1.7z` and
+`PartySwap 1.6.7z`, found the pinned bytes as the third version and restored them as
+`PartySwap 1.5.7z`.
+
+## CI release candidates download one drawn mod per run live, 2026-11-24 UTC
+
+Python CI tooling and workflow policy only; no Rust source changed and no Rust tests
+were run. A third download mode, `sample`, joins `cache-first` and `refresh`. The archive
+stage draws exactly one archive source per run, across all requested games, from the
+run id and attempt (`fullrun_stage.sample_draw`; policy-skipped helpers are never
+drawn), restores that one source with `--download-mode refresh`, then restores every
+source from the verified cache. The stage fails unless the drawn source's report shows a real provider attempt.
+Release candidates now default to `sample` instead of `refresh`; `refresh` remains
+selectable and still satisfies the release gate, `cache-first` still does not.
+
+This narrows a proof boundary on purpose. A release-candidate run no longer shows that
+every provider was attempted, only the one drawn source, so a broken download for
+any other mod is found when its turn is drawn or when a `refresh` run is requested.
+In exchange a run no longer asks DeadlyStream and Nexus for every archive. A provider
+attempt that ends in a verified cache fallback still counts as an attempt, as it did for
+`refresh`. Covered by `test_fullrun_sample.py` (13 tests, three of them for the identity receipts); run 45303323274
+showed the earlier one-per-game form downloading its drawn sources live; the one-per-run
+form is proven by its first run.
+
+## CI creates one P2P identity per pinned archive version, 2026-11-24 UTC
+
+Python CI tooling only; no Rust source changed and no Rust tests were run. A pinned
+version is its archive bytes (`archive_sha256`) plus its file name, and
+`tools/modsync-ci/torrent_identity.py` derives the BitTorrent v1 info hash and magnet
+for that pair with the rules of `src/p2p.rs::rebuild_single_info` (one file, 2 MiB
+pieces, the pinned creator's extra empty checksum on an exact piece boundary). The same
+bytes under the same name always give the same info hash; another name is another
+torrent, which is why every pinned magnet must state its name (`dn`).
+
+P2P now has two separate CI tests:
+
+1. Identity. `test_torrent_identity.py` (12 tests) recreates five info hashes that the
+   production CLI reported as `rebuilt` for the same bytes and names
+   (`torrent-seed --authored-magnet` with a wrong hash, checked on 2026-11-24, including
+   files of exactly one and two pieces), checks that all 200 K1 and 159 K2 pinned file
+   names are valid torrent names, and validates the pin files
+   `tools/modsync-ci/fixtures/ci/{k1,k2}-p2p-identity.json`. The archive stage then
+   creates the identity of every pinned version whose verified bytes are in its object
+   cache and uploads a public `p2p-identity` receipt. A version whose identity cannot be
+   created, or differs from its pin, fails that stage; an existing pin is never replaced.
+2. Transfer. The two-device loopback (`p2p_loopback.py`) is unchanged in what it
+   transfers and additionally requires the pinned torrent creator to mint the same info
+   hash as `torrent_identity.py` for its fixture.
+
+Pinned: 199 of 200 K1 and all 159 K2 versions. Run 45303323274 (commit `cdc8710`)
+gave the first 106 and 85; the rest had no bytes left because the identity step ran
+after the stage had trimmed its object cache to the 2.5 GiB bound. The stage now creates
+the identities itself, just before that trim (`fullrun_stage.p2p_identities`), and the
+workflow step reads those receipts. Run 45322164517 (commit `f639619`) then gave 93 and
+73 more. Each of the first 191 pins was recreated on two later runners (runs
+45312276943 and 45322164517) and matched every time. K2 `PartySwap 1.5.7z` followed in
+run 45329233118, once the renamed re-upload was recovered (entry above); that run also
+recreated all 357 earlier pins and each matched. Still unpinned, with no verified bytes
+in any run: K1 `Heyorange_s_Sith Uniform_Reformation_Revised.zip`, whose page now serves
+a reviewed `.7z` revision from the artifact store. In run 45303323274
+the second test passed, so the torrent creator minted the info hash that
+`torrent_identity.py` computed for the loopback fixture.
+
+Limits. The pins live beside the manual plans because the plan parser rejects unknown
+keys. No long-lived seeder exists, so neither test shows that a pinned version can be
+fetched from a public swarm. ModSync itself still accepts a magnet without a name and
+falls back to the local file name; the name requirement is enforced for CI pins only.
+
+## CI archive refresh recovers the manual-plan-pinned DeadlyStream version, 2026-11-23 UTC
+
+The CI archive cache (`tools/modsync-ci/cache.py`, Python CI tooling only; the Rust
+downloader is unchanged) now holds DeadlyStream downloads to the manual plans'
+`archive_sha256` pins (`tools/modsync-ci/fixtures/ci/{k1,k2}-manual-plan.json`). Authors
+re-upload files: K1 Twi'lek Male NPC Diversity moved to v1.2 on 2026-11-18, the refresh
+stored the new bytes as a normal update, and every install lane then stopped at
+`observe_k1_bound_model` with `source_program_archive_identity_changed`. A download whose
+file name the plans pin to other bytes now walks the page's version history
+(`?changelog=<id>` → `?do=download&version=<id>`), hashes each past version, records
+every hash in the entry's `version_history`, and keeps the first that matches, stored
+under the pinned name. No match fails the item with `pinned-version-not-in-history`; the
+unpinned bytes are never stored, and a cached object that contradicts a pin no longer
+counts as a cache hit or a fallback. File names without a plan pin behave as before.
+An unreadable or malformed plan stops the run. Covered by
+`test_cache_version_history.py` (12 tests, offline HTML fixtures); the live changelog
+markup was confirmed on the Twi'lek page, and the first CI refresh is the live proof.
+
 ## DeadlyStream pages with loose files or non-ASCII file names, 2026-11-14 UTC
 
 A DeadlyStream page that offers an archive beside a loose file now plans only its

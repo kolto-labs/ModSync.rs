@@ -3,7 +3,7 @@
   "policy": "k1-npc-clothing-exact-community-patch-master-v1",
   "source_guide_sha256": "44067788c6cb7a83b38d468817f273ce5cc901cd5e000c0f9ff65f8af15fc6ed",
   "source_plan_sha256": "1b402ba085625c4863795069eaacaef0f53e8ea7179e56a5bd150d88eb9c0a74",
-  "legacy_book_sha256": "b04b7331b5001f81698feb5571460ea9e2e486d032956abb22967d704254c338",
+  "legacy_book_sha256": "38a1231f12632d0765b9741343db92ee5858f27405ab2bdb8667119ad71e8d6b",
   "owner_guid": "f966fc1f-6b47-88fc-9050-07b1371eb56a",
   "owner_source_index": 46,
   "owner_step": "step-047",

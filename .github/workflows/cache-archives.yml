@@ -125,6 +125,47 @@ jobs:
           python tools/modsync-ci/fullrun_stage.py refresh --guides guide-input --games "$GAMES" \
             --cache "$RUNNER_TEMP/mod-cache" --output "$RUNNER_TEMP/archive-evidence" \
             --install-profile "$INSTALL_PROFILE" --download-mode "$DOWNLOAD_MODE"
+      # First P2P test: each pinned version (bytes and name) has one creatable info hash.
+      # No torrent session, peer or credential is involved; transfer is the separate p2p job.
+      - name: Create the P2P identity of every pinned archive version
+        id: p2p-identity
+        # Also after a failed acquisition: bytes already verified in the object cache keep
+        # their identity, and one unreachable mod site must not hide every other receipt.
+        if: ${{ (success() || failure()) && (steps.refresh.outcome == 'success' || steps.refresh.outcome == 'failure') }}
+        env:
+          GAMES: ${{ inputs.games }}
+        run: |
+          python - <<'PYIDENTITY'
+          import json,os,sys
+          from pathlib import Path
+          sys.path.insert(0,'tools/modsync-ci')
+          import torrent_identity
+          games=json.loads(os.environ['GAMES'])
+          assert isinstance(games,list) and games and all(game in ('k1','k2') for game in games)
+          root,fixtures=Path(os.environ['RUNNER_TEMP']),Path('tools/modsync-ci/fixtures/ci')
+          codes=[]
+          for game in games:
+              receipt=root/'p2p-identity'/(game+'-p2p-identity.json')
+              if receipt.is_file() and not receipt.is_symlink():
+                  # Written by the archive stage before it trimmed the object cache.
+                  result=json.loads(receipt.read_text())
+                  print(json.dumps({key:result.get(key) for key in ('status','plan','pinned_archives','counts','problems')},sort_keys=True))
+                  codes.append(0 if result.get('status')=='passed' else 1)
+              else:
+                  # The stage stopped before that point: use whatever verified bytes remain.
+                  codes.append(torrent_identity.main(['survey','--plan',str(fixtures/(game+'-manual-plan.json')),
+                      '--pins',str(fixtures/(game+'-p2p-identity.json')),'--objects',str(root/'mod-cache'/'objects'),
+                      '--receipt',str(receipt)]))
+          sys.exit(max(codes))
+          PYIDENTITY
+      - name: Upload public P2P identity receipt
+        if: ${{ (success() || failure()) && steps.p2p-identity.outcome != 'skipped' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: p2p-identity-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/p2p-identity
+          if-no-files-found: warn
+          retention-days: 14
       - name: Admit only the six verified public objects for auxiliary caching
         id: k1-public-ready
         if: ${{ inputs.cache_writer && startsWith(github.ref, 'refs/heads/') && steps.refresh.outcome == 'success' && steps.k1-public-key.outputs.applicable == 'true' && steps.k1-public-cache.outputs.cache-hit != 'true' }}

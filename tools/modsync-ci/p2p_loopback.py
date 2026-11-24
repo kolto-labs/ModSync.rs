@@ -21,6 +21,8 @@ import time
 import uuid
 import zipfile
 
+import torrent_identity
+
 DIRECT = ["--no-proxy", "--peer-proxy-list-url", "", "--tracker-list-url", ""]
 
 
@@ -286,6 +288,16 @@ def main():
                 magnet, torrent_info = info.get("magnet", ""), info.get("torrentInfo")
                 if not magnet.startswith("magnet:?") or info.get("sha256") != expected:
                     raise RuntimeError("Production authoring returned an invalid identity")
+                # The first P2P test creates identities without this binary. Here the
+                # pinned torrent creator must mint the very same one for the same bytes.
+                created = torrent_identity.create(archive, archive.name)
+                minted_hash, minted_name = torrent_identity.parse_magnet(magnet)
+                receipt["identity"] = {"name": created["name"], "info_hash": created["info_hash"],
+                                       "minted_info_hash": minted_hash, "minted_name": minted_name}
+                if (created["sha256"] != expected or created["info_hash"] != minted_hash
+                        or minted_name not in (None, created["name"])):
+                    raise RuntimeError("Production authoring and torrent_identity disagree on the info hash")
+                receipt["identity"]["matches_production_creator"] = True
 
                 def trial(label, source_device, source, destination_device, destination, wrong=False):
                     seed, ready, peer = sandbox.start(source_device, source, "/device/files/fixture.zip", magnet, torrent_info)

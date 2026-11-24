@@ -40,6 +40,14 @@ def setUpModule():
     patch = mock.patch.object(ports, "game_file_state", lambda root: {"call": next(calls)})
     patch.start()
     unittest.addModuleCleanup(patch.stop)
+    # Output redaction replaces the value of every secret-named environment variable.
+    # A host variable with a short value (such as "1") would otherwise rewrite the
+    # digits these tests assert on, so they run without the host's secret-named variables.
+    environment = mock.patch.dict(os.environ)
+    environment.start()
+    unittest.addModuleCleanup(environment.stop)
+    for name in [name for name in os.environ if ports.live_output._SECRET.search(name)]:
+        del os.environ[name]
 
 
 def component(name, guid, **extra):

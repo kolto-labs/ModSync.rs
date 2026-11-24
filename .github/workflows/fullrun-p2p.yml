@@ -9,7 +9,28 @@ on:
       MODSYNC_SOURCE_TOKEN: {required: false}
 permissions: {contents: read}
 jobs:
+  # First test: an info hash can be created for a pinned version, without the binary or a network.
+  identity:
+    name: P2P identity (info hash creation)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout owned CI
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: ${{ github.repository }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with: {python-version: '3.12'}
+      - name: Create info hashes for known versions and check every committed pin
+        working-directory: tools/modsync-ci
+        run: python -m unittest -v test_torrent_identity
+  # Second test: real transfer between two isolated devices. No long-lived seeder
+  # exists yet, so this proves the engine path, not public swarm availability.
   isolated-devices:
+    name: P2P availability (two-device loopback, seeder pending)
+    needs: identity
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     env: {RUSTUP_TOOLCHAIN: 1.95.0}

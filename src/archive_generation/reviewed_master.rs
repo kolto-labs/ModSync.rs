@@ -16,10 +16,10 @@ pub(crate) fn is_generator(generator: &str) -> bool {
 pub(crate) const BINDING: &str = "ReviewedMasterBinding";
 pub(crate) const GENERATOR: &str = "reviewed-source-master-v1";
 const DATA: &str = include_str!("reviewed_master_k1.json");
-const DATA_SHA: &str = "766236adcae5c0b720bacd8701274286d19d2a3753dbecbd4b2daa6faedf0ac9";
+const DATA_SHA: &str = "f9f8a2aa3684612988e4a436267308ee4cac83c8c6088a5fd823a8c2f7df33e6";
 const OWNER: &str = "f966fc1f-6b47-88fc-9050-07b1371eb56a";
 const PRIOR: &str = "6fb1971d-5775-85e5-9e77-ecc68a896e84";
-const BOOK_SHA: &str = "b04b7331b5001f81698feb5571460ea9e2e486d032956abb22967d704254c338";
+const BOOK_SHA: &str = "38a1231f12632d0765b9741343db92ee5858f27405ab2bdb8667119ad71e8d6b";
 
 fn authority() -> Result<Value> {
     ensure!(
