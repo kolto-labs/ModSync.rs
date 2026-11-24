@@ -337,6 +337,25 @@ placeholders survive conversion but still fail Rust execution. This does not clo
 F01/F05, full validation or complete format/action parity. Five production gates
 pass and53 frozen entries remain unchanged; no Rust tests were run.
 
+## CI release candidates download one drawn mod per game live, 2026-11-24 UTC
+
+Python CI tooling and workflow policy only; no Rust source changed and no Rust tests
+were run. A third download mode, `sample`, joins `cache-first` and `refresh`. For each
+game the archive stage draws one archive source from the run id and attempt
+(`fullrun_stage.sample_source`; policy-skipped helpers are never drawn), restores that
+one source with `--download-mode refresh`, then restores every source from the verified
+cache. The stage fails unless the drawn source's report shows a real provider attempt.
+Release candidates now default to `sample` instead of `refresh`; `refresh` remains
+selectable and still satisfies the release gate, `cache-first` still does not.
+
+This narrows a proof boundary on purpose. A release-candidate run no longer shows that
+every provider was attempted, only one drawn source per game, so a broken download for
+any other mod is found when its turn is drawn or when a `refresh` run is requested.
+In exchange a run no longer asks DeadlyStream and Nexus for every archive. A provider
+attempt that ends in a verified cache fallback still counts as an attempt, as it did for
+`refresh`. Covered by `test_fullrun_sample.py` (10 tests); the first release-candidate run
+is the live proof.
+
 ## CI creates one P2P identity per pinned archive version, 2026-11-24 UTC
 
 Python CI tooling only; no Rust source changed and no Rust tests were run. A pinned

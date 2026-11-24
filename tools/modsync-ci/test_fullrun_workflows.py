@@ -72,7 +72,7 @@ class WorkflowGraph(unittest.TestCase):
         for event, requested, write, base, expected, profile, download, writer in (
                 ("push", "", False, "feature", "check", "quick", "cache-first", False),
                 ("pull_request", "", True, "feature", "full", "full", "cache-first", True),
-                ("pull_request", "", True, "main", "full", "exhaustive", "refresh", True),
+                ("pull_request", "", True, "main", "full", "exhaustive", "sample", True),
                 ("workflow_dispatch", "full", False, "feature", "full", "minimal", "cache-first", False),
                 ("workflow_dispatch", "games", True, "feature", "games", "minimal", "cache-first", True),
                 ("workflow_dispatch", "install", True, "feature", "install", "minimal", "cache-first", False),
@@ -117,7 +117,7 @@ class WorkflowGraph(unittest.TestCase):
                      {"labels": [{"name": "release-candidate"}]}):
             policy = fullrun_contract.workflow_policy("pull_request", {"pull_request": pull},
                                                      requested_profile="minimal", requested_download="cache-first")
-            self.assertEqual((policy["install_profile"], policy["download_mode"]), ("exhaustive", "refresh"))
+            self.assertEqual((policy["install_profile"], policy["download_mode"]), ("exhaustive", "sample"))
         with self.assertRaises(ValueError):
             fullrun_contract.plan(config, config["repository"], "a" * 40, operation="full",
                                   event="pull_request", trusted_pull_request=False)

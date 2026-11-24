@@ -224,12 +224,63 @@ def source_filter(scope):
     return [argument for identity in scope["archive_source_ids"] for argument in ("--source-id", identity)]
 
 
+DOWNLOAD_MODES = ("cache-first", "sample", "refresh")
+
+
+def cache_mode(args):
+    """The mode every archive is restored with. A sampled run reuses the verified cache."""
+    mode = getattr(args, "download_mode", "cache-first")
+    if mode not in DOWNLOAD_MODES:
+        raise ValueError("unsupported download mode")
+    return "cache-first" if mode == "sample" else mode
+
+
+def sample_seed(environ=None):
+    """One draw per workflow run attempt, repeatable from the run's public identity."""
+    environ = os.environ if environ is None else environ
+    return "%s:%s" % (environ.get("GITHUB_RUN_ID") or "local", environ.get("GITHUB_RUN_ATTEMPT") or "1")
+
+
+def sample_source(scope, game, seed):
+    """The one archive source this run downloads live; None when nothing can be downloaded."""
+    candidates = sorted(set(scope["archive_source_ids"]) - set(scope["non_acquisition_policy_source_ids"]))
+    if not candidates:
+        return None
+    draw = int(hashlib.sha256(("%s:%s" % (seed, game)).encode()).hexdigest(), 16)
+    return candidates[draw % len(candidates)]
+
+
+def sample_report(output, game):
+    return Path(output) / ("live-sample-%s.json" % game)
+
+
+def sampled_attempt(args, game, scope):
+    """Return the drawn source once its live provider attempt is on record, else raise."""
+    chosen = sample_source(scope, game, sample_seed())
+    if chosen is None:
+        return None
+    path = sample_report(args.output, game)
+    if path.is_symlink() or path.stat().st_size > 32 * 1024 * 1024:
+        raise ValueError("unsafe live sample report")
+    report = json.loads(path.read_text())
+    entries = report["entries"]
+    if (report.get("command") != "restore" or report.get("ok") is not True or len(entries) != 1
+            or entries[0].get("id") != chosen or entries[0].get("status") != "restored"):
+        raise ValueError("live sample did not restore the drawn source")
+    acquisition = entries[0].get("acquisition", {})
+    if acquisition.get("download_mode") != "refresh" or acquisition.get("provider_attempted") is not True:
+        raise ValueError("live sample lacks a real provider attempt")
+    return chosen
+
+
 def downloader_validation(args, games):
     """Describe real provider attempts separately from verified cache reuse."""
     mode = getattr(args, "download_mode", "cache-first")
+    restore_mode = cache_mode(args)
     scopes = {game: install_scope(args, game) for game in games}
     selected = {identity for scope in scopes.values() for identity in scope["archive_source_ids"]}
     attempted, downloaded, fallback, policies, valid, seen = set(), set(), set(), set(), set(), set()
+    sampled, expected_samples = set(), 0
     failures = []
     for game, scope in scopes.items():
         path = Path(args.output) / ("verify-%s.json" % game)
@@ -251,7 +302,7 @@ def downloader_validation(args, games):
                     policies.add(identity)
                     continue
                 acquisition = entry.get("acquisition", {})
-                if entry.get("status") != "restored" or acquisition.get("download_mode") != mode:
+                if entry.get("status") != "restored" or acquisition.get("download_mode") != restore_mode:
                     raise ValueError("downloader input is not verified for the requested mode")
                 valid.add(identity)
                 if acquisition.get("provider_attempted") is True:
@@ -266,13 +317,18 @@ def downloader_validation(args, games):
                 if (acquisition.get("provider_outcome") == "cached-fallback"
                         or acquisition.get("valid_cache_fallback") is True):
                     fallback.add(identity)
-        except (OSError, ValueError, KeyError, TypeError):
+            if mode == "sample" and sample_source(scope, game, sample_seed()) is not None:
+                expected_samples += 1
+                sampled.add(sampled_attempt(args, game, scope))
+        except (OSError, ValueError, KeyError, TypeError, IndexError, AttributeError):
             failures.append(game)
     missing = selected - valid - policies
     unattempted = selected - attempted - policies if mode == "refresh" else set()
-    passed = not failures and not missing and not unattempted and seen == selected
+    passed = (not failures and not missing and not unattempted and seen == selected
+              and (mode != "sample" or len(sampled) >= min(1, expected_samples)))
     return {"schema_version": 1, "status": "passed" if passed else "failed",
         "install_profile": getattr(args, "install_profile", "minimal"), "download_mode": mode,
+        "live_sample_source_ids": sorted(sampled),
         "selected_source_ids": sorted(selected), "provider_attempted_source_ids": sorted(attempted),
         "valid_cache_fallback_source_ids": sorted(fallback), "downloaded_source_ids": sorted(downloaded),
         "non_acquisition_policy_source_ids": sorted(policies),
@@ -319,7 +375,7 @@ def restore_with_public_supplement(command, log, args, game, destination, report
             raise failure
         return supplemental_public_inputs.ensure(args.guides, destination, args.cache,
             report_path, map_path, Path(args.output) / "k2-supplemental-public-inputs.json",
-            download_mode=getattr(args, "download_mode", "cache-first"))
+            download_mode=cache_mode(args))
     if failure is not None:
         raise failure
     return None
@@ -340,11 +396,23 @@ def refresh_archives(args, games):
         scope = scopes[game]
         contract.write_json(evidence / ("install-profile-%s.json" % game), scope)
         report_path = evidence / ("verify-%s.json" % game)
+        chosen = (sample_source(scope, game, sample_seed())
+                  if getattr(args, "download_mode", "cache-first") == "sample" else None)
+        if chosen is not None:
+            # One live provider download per game and run keeps the downloaders exercised
+            # without asking every mod site for every archive. Its verified bytes land in
+            # the cache, so the complete restore below reads them like any other archive.
+            with tempfile.TemporaryDirectory(prefix="archive-live-sample-", dir=cache_root.parent) as live:
+                checked([sys.executable, str(HERE / "cache.py"), "restore", *guides(args.guides, [game]),
+                         "--cache-dir", args.cache, "--destination", live,
+                         "--report", str(sample_report(evidence, game)), "--download-mode", "refresh",
+                         "--source-id", chosen, *uncached_options([game]), *remote_options()],
+                        evidence / ("live-sample-%s-private.log" % game))
         with tempfile.TemporaryDirectory(prefix="archive-verification-", dir=cache_root.parent) as temporary:
             map_path = evidence / ("verify-%s-archive-map.json" % game)
             restore_with_public_supplement([sys.executable, str(HERE / "cache.py"), "restore", *guides(args.guides, [game]),
                      "--cache-dir", args.cache, "--destination", temporary, "--report", str(report_path),
-                     "--download-mode", getattr(args, "download_mode", "cache-first"),
+                     "--download-mode", cache_mode(args),
                      *source_filter(scope),
                      *(["--archive-map", str(map_path)] if game == "k2" else []),
                      *uncached_options([game]), *remote_options()], evidence / ("verify-%s-private.log" % game),
@@ -364,7 +432,7 @@ def refresh_archives(args, games):
             if scope["requires_k1_widescreen_inputs"] and native_k1_scope(args.guides):
                 auxiliary = k1_widescreen_inputs.ensure(
                     Path(temporary), cache_root, evidence / "k1-native-inputs.json",
-                    download_mode=getattr(args, "download_mode", "cache-first"))
+                    download_mode=cache_mode(args))
                 if auxiliary.get("ok") is not True:
                     raise ValueError("Pinned K1 native inputs unavailable; inspect encrypted acquisition evidence")
                 receipts[-1]["native_widescreen_inputs_verified"] = 6
@@ -506,7 +574,7 @@ def install(args):
     options = uncached_options([args.game])
     restore_with_public_supplement([sys.executable, str(HERE / "cache.py"), "restore", *guides(args.guides, [args.game]),
              "--cache-dir", args.cache, "--destination", str(work / "archives"),
-             "--download-mode", getattr(args, "download_mode", "cache-first"),
+             "--download-mode", cache_mode(args),
              *(source_filter(scope) if scope is not None else []),
              "--archive-map", str(temp / "archive-map.json"), "--report", str(temp / "restore.json"),
              *options, *remote_options()], temp / "restore-private.log", args, args.game,
@@ -516,7 +584,7 @@ def install(args):
     if (scope is None or scope["requires_k1_widescreen_inputs"]) and native_k1_scope(args.guides):
         auxiliary = k1_widescreen_inputs.ensure(
             work / "archives", Path(args.cache), temp / "k1-native-inputs.json",
-            download_mode=getattr(args, "download_mode", "cache-first"))
+            download_mode=cache_mode(args))
         if auxiliary.get("ok") is not True:
             raise ValueError("Pinned K1 native inputs unavailable; inspect encrypted acquisition evidence")
     if args.game == "k1" and scope is not None:
@@ -682,8 +750,9 @@ def main(argv=None):
         if name in ("refresh", "install"):
             child.add_argument("--install-profile", choices=("minimal", "full", "exhaustive"),
                                default="minimal", help="original guide coverage to acquire and install")
-            child.add_argument("--download-mode", choices=("cache-first", "refresh"),
-                               default="cache-first", help="reuse verified cache, or check every selected upstream input")
+            child.add_argument("--download-mode", choices=DOWNLOAD_MODES, default="cache-first",
+                               help="reuse verified cache; sample downloads one drawn source live; "
+                                    "refresh checks every selected upstream input")
         if name == "seed":
             child.add_argument("--dry-run", action="store_true")
         if name in ("identity", "install"):

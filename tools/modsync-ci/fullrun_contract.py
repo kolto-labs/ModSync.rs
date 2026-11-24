@@ -83,7 +83,7 @@ def plan(config, execution_repository, own_sha, counterpart_sha="", operation="c
 DEFAULT_WORKFLOW_POLICY = {
     "push": "quick", "pull_request": "full", "workflow_dispatch": "minimal",
     "release_candidate": "exhaustive", "default_download_mode": "cache-first",
-    "release_download_mode": "refresh", "release_target_branches": ["main", "master"],
+    "release_download_mode": "sample", "release_target_branches": ["main", "master"],
     "release_branch_prefixes": ["release/", "release-please--"],
     "release_labels": ["release", "release-candidate"],
 }
@@ -100,10 +100,10 @@ def workflow_policy(event, payload=None, overrides=None, requested_profile="", r
         or bool(labels.intersection(policy["release_labels"])))
     profile = policy["release_candidate"] if release else (requested_profile or policy.get(event, "minimal"))
     download = policy["release_download_mode"] if release else (requested_download or policy["default_download_mode"])
-    if profile not in ("quick", "minimal", "full", "exhaustive") or download not in ("cache-first", "refresh"):
+    if profile not in ("quick", "minimal", "full", "exhaustive") or download not in ("cache-first", "sample", "refresh"):
         raise ValueError("unsupported installation profile or download policy")
-    if release and (profile != "exhaustive" or download != "refresh"):
-        raise ValueError("release candidates require exhaustive installation and downloader refresh")
+    if release and (profile != "exhaustive" or download not in ("sample", "refresh")):
+        raise ValueError("release candidates require exhaustive installation and a live downloader attempt")
     return {"install_profile": profile, "download_mode": download,
             "release_candidate": release, "require_downloader_attempts": release}
 

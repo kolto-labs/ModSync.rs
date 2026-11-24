@@ -21,9 +21,9 @@ on:
         options: [minimal, full, exhaustive]
         default: minimal
       download_mode:
-        description: Cache-first, or try every download and fall back to valid cached versions
+        description: Cache-first, sample (one random mod per game live, the rest cached), or refresh (try every download)
         type: choice
-        options: [cache-first, refresh]
+        options: [cache-first, sample, refresh]
         default: cache-first
       counterpart_sha:
         description: Exact mod-builds guide commit; empty uses the reviewed .github/fullrun.json pin
@@ -56,7 +56,7 @@ env:
   FULLRUN_DEFAULTS: >-
     {"push":"quick","pull_request":"full","workflow_dispatch":"minimal",
      "release_candidate":"exhaustive","default_download_mode":"cache-first",
-     "release_download_mode":"refresh","release_target_branches":["main","master"],
+     "release_download_mode":"sample","release_target_branches":["main","master"],
      "release_branch_prefixes":["release/","release-please--"],"release_labels":["release","release-candidate"]}
 permissions: {contents: read, actions: read}
 concurrency:
@@ -196,7 +196,7 @@ jobs:
     uses: ./.github/workflows/fullrun-lane.yml
     with:
       install_profile: ${{ needs.plan.outputs.install_profile }}
-      # The archive producer exercises refresh once; consumers reuse its verified cache.
+      # The archive producer does every live download once; consumers reuse its verified cache.
       # Standalone install dispatches still honor the requested downloader mode.
       download_mode: ${{ needs.plan.outputs.operation == 'full' && 'cache-first' || needs.plan.outputs.download_mode }}
       engine_repository: ${{ needs.plan.outputs.engine_repository }}
