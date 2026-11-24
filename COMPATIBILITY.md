@@ -439,7 +439,7 @@ torrent, which is why every pinned magnet must state its name (`dn`).
 
 P2P now has two separate CI tests:
 
-1. Identity. `test_torrent_identity.py` (11 tests) recreates five info hashes that the
+1. Identity. `test_torrent_identity.py` (12 tests) recreates five info hashes that the
    production CLI reported as `rebuilt` for the same bytes and names
    (`torrent-seed --authored-magnet` with a wrong hash, checked on 2026-11-24, including
    files of exactly one and two pieces), checks that all 200 K1 and 159 K2 pinned file

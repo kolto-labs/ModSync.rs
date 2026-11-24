@@ -242,6 +242,25 @@ class Survey(unittest.TestCase):
             self.assertEqual(identity.main([*arguments, "--plan", str(self.root / "absent"), "--pins", str(self.pins)]), 1)
         self.assertEqual(errors.getvalue().count("unusable plan or pin file"), 2)
 
+    def test_refused_new_pins_are_reported_and_leave_the_pin_file_alone(self):
+        from contextlib import redirect_stderr
+        from unittest import mock
+        before = self.pins.read_text()
+        real = identity.validate_pins
+        calls = []
+
+        def refuse_second(document, archives):
+            calls.append(document)
+            if len(calls) == 2:
+                raise identity.IdentityError("one info hash is pinned for two different contents")
+            return real(document, archives)
+
+        with mock.patch.object(identity, "validate_pins", side_effect=refuse_second), \
+                redirect_stderr(io.StringIO()) as errors:
+            code, _ = self.run_survey("--write-pins")
+        self.assertEqual((code, self.pins.read_text()), (1, before))
+        self.assertIn("new pins refused", errors.getvalue())
+
 
 if __name__ == "__main__":
     unittest.main()

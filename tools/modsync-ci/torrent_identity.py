@@ -284,6 +284,10 @@ def main(argv=None):
     except OSError as error:
         print("torrent_identity: cannot write the receipt or pin file: %s" % type(error).__name__, file=sys.stderr)
         return 1
+    except IdentityError as error:
+        # The merged pins failed their own rules: nothing was written to the pin file.
+        print("torrent_identity: new pins refused: %s" % error, file=sys.stderr)
+        return 1
     print(json.dumps({"status": receipt["status"], "plan": receipt["plan"], "pinned_archives": len(archives),
                       "counts": receipt["counts"], "problems": problems}, sort_keys=True))
     return 1 if failed else 0
