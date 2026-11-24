@@ -2062,8 +2062,9 @@ def artstore_session():
                         if callable(reuse_urls):
                             reuse_urls()
                         session = {"client": client, "index": module.load_index(client)}
-                except Exception:
-                    warn("artifact store index unavailable; continuing without it")
+                except Exception as error:
+                    # The type alone says token, network or format; a message could carry a URL.
+                    warn("artifact store index unavailable (%s); continuing without it" % type(error).__name__)
             ARTSTORE_STATE["session"] = session
         return ARTSTORE_STATE["session"]
 
@@ -2208,8 +2209,8 @@ def stage_candidates(root, manifest, stage_dir=None):
         deferred = deferred_shas()
         return [{"path": str(found[sha]), "sha256": sha}
                 for sha in sorted(wanted, key=lambda sha: (sha not in deferred, sha))]
-    except Exception:
-        warn("artifact store index unreadable; nothing staged")
+    except Exception as error:
+        warn("artifact store index unreadable (%s); nothing staged" % type(error).__name__)
         return []
 
 

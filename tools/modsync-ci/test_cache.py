@@ -140,6 +140,19 @@ class DeadPackTests(unittest.TestCase):
             each.join()
         self.assertEqual(len(loads), 1)
 
+    def test_an_index_failure_names_only_the_exception_type(self):
+        def load_index(client=None, **options):
+            raise ConnectionResetError("https://store.invalid/index?credential=hidden")
+
+        cache.ARTSTORE_STATE["module"] = types.SimpleNamespace(
+            load_index=load_index, fetch=lambda *a, **k: False,
+            client_mod=types.SimpleNamespace(from_environment=lambda: object()))
+        with mock.patch.object(cache, "warn") as warn:
+            self.assertIsNone(cache.artstore_session())
+        message, = warn.call_args.args
+        self.assertIn("(ConnectionResetError)", message)
+        self.assertNotIn("hidden", message)
+
 
 class RecoverTests(unittest.TestCase):
     def setUp(self):
