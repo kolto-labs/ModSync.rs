@@ -382,14 +382,15 @@ P2P now has two separate CI tests:
    transfers and additionally requires the pinned torrent creator to mint the same info
    hash as `torrent_identity.py` for its fixture.
 
-Pinned so far, from the archive-stage receipt of run 45303323274 (commit `cdc8710`):
-106 of 200 K1 and 85 of 159 K2 versions. The other 94 and 74 had no verified bytes in
-that run's object cache: the identity step ran after the stage had trimmed the cache to
-its 2.5 GiB bound. The stage now creates the identities itself, just before that trim
-(`fullrun_stage.p2p_identities`), and the workflow step reads those receipts; whether
-that covers all 359 versions is shown by its first run. Run 45312276943 (commit
-`94a81be`) recreated all 191 pinned identities on another runner and each matched its
-pin. In run 45303323274
+Pinned: 199 of 200 K1 and 158 of 159 K2 versions. Run 45303323274 (commit `cdc8710`)
+gave the first 106 and 85; the rest had no bytes left because the identity step ran
+after the stage had trimmed its object cache to the 2.5 GiB bound. The stage now creates
+the identities itself, just before that trim (`fullrun_stage.p2p_identities`), and the
+workflow step reads those receipts. Run 45322164517 (commit `f639619`) then gave 93 and
+73 more. Each of the first 191 pins was recreated on two later runners (runs
+45312276943 and 45322164517) and matched every time. Still unpinned, with no verified
+bytes in any run: K1 `Heyorange_s_Sith Uniform_Reformation_Revised.zip` and K2
+`PartySwap 1.5.7z`. In run 45303323274
 the second test passed, so the torrent creator minted the info hash that
 `torrent_identity.py` computed for the loopback fixture.
 
