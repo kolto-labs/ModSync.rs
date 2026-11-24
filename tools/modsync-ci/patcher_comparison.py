@@ -410,12 +410,14 @@ def differences(left, right):
     return changes
 
 
-def comparison_pairs():
+def comparison_pairs(modes=MODES):
     """(reference, candidate) cells. Each backend is held against the packaged-patcher
-    lane of the same route; the packaged GUI route is held against its CLI route."""
-    pairs = [((AUTHORITY, mode), (backend, mode)) for mode in MODES
+    lane of the same route; when both routes ran, the packaged GUI route is held
+    against its CLI route."""
+    pairs = [((AUTHORITY, mode), (backend, mode)) for mode in modes
              for backend in BACKENDS if backend != AUTHORITY]
-    pairs.append(((AUTHORITY, "cli"), (AUTHORITY, "gui")))
+    if set(modes) == set(MODES):
+        pairs.append(((AUTHORITY, "cli"), (AUTHORITY, "gui")))
     return pairs
 
 
@@ -435,13 +437,17 @@ def route_boundaries(keys):
     return [key for key in keys if key != "sessionBaseline"]
 
 
-def judge(trees, operations, load_tree):
+def judge(trees, operations, load_tree, modes=MODES):
     """Compare every candidate lane with its reference after each relevant component.
 
     trees maps (backend, mode) to an ordered {boundary key: handle}; load_tree(handle)
     returns that boundary's game tree. Returns (comparisons, wrong_lanes)."""
+    # With no Patcher operation, every lane installs the same instructions with no
+    # patcher in play, so equal trees would prove nothing about any patcher.
+    require(operations, "No selected component runs a Patcher operation; the patcher "
+                        "comparison would be vacuous")
     comparisons, wrong = [], []
-    for reference, candidate in comparison_pairs():
+    for reference, candidate in comparison_pairs(modes):
         ordered = list(trees[reference])
         keys = (route_boundaries(ordered) if reference[0] == candidate[0]
                 else patcher_boundaries(ordered, operations))
@@ -483,7 +489,11 @@ def verdict(wrong, game):
 
 
 def compare(args):
-    require(len(args.receipt) == 6, "Exactly six independently exported receipts are required")
+    modes = tuple(getattr(args, "modes", None) or MODES)
+    require(modes and set(modes) <= set(MODES) and len(set(modes)) == len(modes), "Unsupported route set")
+    expected_cells = len(BACKENDS) * len(modes)
+    require(len(args.receipt) == expected_cells,
+            f"Exactly {expected_cells} independently exported receipts are required")
     lanes = []
     cells = set()
     for path in map(Path, args.receipt):
@@ -501,7 +511,7 @@ def compare(args):
                 and re.fullmatch(r"[0-9a-f]{40}", receipt["engine_sha"]) is not None,
                 "Invalid source or engine digest")
         cell = (receipt["backend"], receipt["mode"])
-        require(cell in set(itertools.product(BACKENDS, MODES)) and cell not in cells,
+        require(cell in set(itertools.product(BACKENDS, modes)) and cell not in cells,
                 "Repeated or unsupported comparison cell")
         cells.add(cell)
         root = path.parent
@@ -594,19 +604,19 @@ def compare(args):
         require(trees["sessionBaseline"][1]["game_tree_sha256"] == receipt["baseline_game_tree_sha256"]
                 and list(trees.values())[-1][1]["game_tree_sha256"] == receipt["final_game_tree_sha256"],
                 "Baseline or final tree digest differs")
-    require(len({lane[0]["session_chain"][-1]["session_id"] for lane in lanes}) == 6,
-            "Six cells reused an installation session")
-    for mode in MODES:
+    require(len({lane[0]["session_chain"][-1]["session_id"] for lane in lanes}) == expected_cells,
+            "Comparison cells reused an installation session")
+    for mode in modes:
         require(len({receipt["binary_sha256"] for receipt, _ in lanes if receipt["mode"] == mode}) == 1,
                 "Backend cells used different binaries for the same route")
     output = Path(args.output_dir)
     output.mkdir(mode=0o700, parents=True, exist_ok=False)
     cells = {(receipt["backend"], receipt["mode"]): (receipt, trees) for receipt, trees in lanes}
-    authority = cells[(AUTHORITY, MODES[0])][0]
+    authority = cells[(AUTHORITY, modes[0])][0]
     require(all(receipt["patcher_operations"] == authority["patcher_operations"] for receipt, _ in lanes),
             "Lanes disagree on which components run a Patcher operation")
     comparisons, wrong = judge({cell: trees for cell, (_, trees) in cells.items()},
-                               authority["patcher_operations"], load_boundary)
+                               authority["patcher_operations"], load_boundary, modes)
     total, pairs = 0, []
     for pair_index, result in enumerate(comparisons):
         pair = {"reference": result["reference"], "candidate": result["candidate"], "boundaries": []}
@@ -627,7 +637,7 @@ def compare(args):
         pairs.append(pair)
     write(output / "private-diff.json", {"schema": SCHEMA, "game": first["game"], "authority": AUTHORITY,
                                          "pairs": pairs})
-    write(output / "summary.json", {"schema": SCHEMA, "game": first["game"], "cells": 6,
+    write(output / "summary.json", {"schema": SCHEMA, "game": first["game"], "cells": expected_cells, "modes": list(modes),
                                     "pairs": len(pairs), "differences": total, "equal": total == 0,
                                     "authority": AUTHORITY, "wrong_lanes": wrong,
                                     "patcher_components": len({str(op[0]).lower() for op in
@@ -650,6 +660,8 @@ def main():
     capture.add_argument("--mode", required=True, choices=MODES)
     comparison = sub.add_parser("compare")
     comparison.add_argument("--receipt", action="append", required=True)
+    comparison.add_argument("--mode", dest="modes", action="append", choices=MODES,
+                            help="installed route; repeat for both (default: cli and gui)")
     comparison.add_argument("--output-dir", required=True)
     args = parser.parse_args()
     try:

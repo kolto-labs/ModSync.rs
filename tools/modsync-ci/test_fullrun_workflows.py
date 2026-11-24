@@ -30,6 +30,17 @@ class WorkflowGraph(unittest.TestCase):
                         self.assertTrue((ROOT / action[2:] / "action.yml").is_file())
                     for tool in re.findall(r"tools/modsync-ci/[A-Za-z0-9_-]+\.py", step.get("run", "")):
                         self.assertTrue((ROOT / tool).is_file(), tool)
+    def test_every_installation_plan_runs_and_requires_the_patcher_comparison(self):
+        # A single-route dispatch still runs all three backends, so it must still be
+        # compared against the packaged lane rather than pass as "unverified".
+        main = yaml.load((ROOT / ".github/workflows/fullrun.yml").read_text(), Loader=yaml.BaseLoader)
+        comparison = main["jobs"]["comparison"]
+        self.assertNotIn("modes", comparison["if"])
+        self.assertEqual(comparison["with"]["modes"], "${{ needs.plan.outputs.modes }}")
+        required = main["jobs"]["result"]["steps"][1]["env"]["REQUIRE_COMPARISON"]
+        self.assertNotIn("modes", required)
+        self.assertIn("install", required)
+
     def test_matrix_has_no_fail_fast_and_honest_final_collector(self):
         main = yaml.load((ROOT / ".github/workflows/fullrun.yml").read_text(), Loader=yaml.BaseLoader)
         self.assertEqual(main["jobs"]["install"]["strategy"]["fail-fast"], "false")

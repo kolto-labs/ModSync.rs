@@ -1,8 +1,10 @@
-name: Compare six real patcher installations
+name: Compare real patcher installations against the packaged patcher
 on:
   workflow_call:
     inputs:
       game: {type: string, required: true}
+      # JSON list of installed routes, e.g. '["cli","gui"]' or '["cli"]'.
+      modes: {type: string, default: '["cli","gui"]'}
     secrets:
       CACHE_ENCRYPTION_KEY: {required: true}
       DIAGNOSTICS_ENCRYPTION_KEY: {required: false}
@@ -26,11 +28,12 @@ jobs:
       - name: Verify same-run provenance and compare every component and final tree
         env:
           GAME: ${{ inputs.game }}
+          MODES: ${{ join(fromJSON(inputs.modes), ',') }}
           GITHUB_TOKEN: ${{ github.token }}
           CACHE_ENCRYPTION_KEY: ${{ secrets.CACHE_ENCRYPTION_KEY }}
         run: |
           umask 077
-          python tools/modsync-ci/patcher_comparison_artifacts.py --game "$GAME" \
+          python tools/modsync-ci/patcher_comparison_artifacts.py --game "$GAME" --modes "$MODES" \
             --work-dir "$RUNNER_TEMP/comparison-inputs" --output-dir "$RUNNER_TEMP/comparison-evidence"
       - name: Retain complete encrypted file differences
         if: ${{ success() || failure() }}
