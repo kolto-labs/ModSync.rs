@@ -382,8 +382,10 @@ item: the current upload is kept as before, a warning is printed and the entry r
 providers and cached objects that are never re-downloaded are unchanged; the last is why
 `Heyorange_s_Sith Uniform_Reformation_Revised.zip`, whose reviewed `.7z` revision is
 served from the artifact store, is not recovered by this. Covered by
-`test_cache_version_history.py` (16 tests, offline HTML fixtures). Whether DeadlyStream
-still serves PartySwap 1.5 in its history is not known; the next archive stage shows it.
+`test_cache_version_history.py` (16 tests, offline HTML fixtures). Live proof: in run
+45329233118 (commit `8eb1cef`) the archive stage hashed `PartySwap 1.6.1.7z` and
+`PartySwap 1.6.7z`, found the pinned bytes as the third version and restored them as
+`PartySwap 1.5.7z`.
 
 ## CI release candidates download one drawn mod per run live, 2026-11-24 UTC
 
@@ -430,15 +432,17 @@ P2P now has two separate CI tests:
    transfers and additionally requires the pinned torrent creator to mint the same info
    hash as `torrent_identity.py` for its fixture.
 
-Pinned: 199 of 200 K1 and 158 of 159 K2 versions. Run 45303323274 (commit `cdc8710`)
+Pinned: 199 of 200 K1 and all 159 K2 versions. Run 45303323274 (commit `cdc8710`)
 gave the first 106 and 85; the rest had no bytes left because the identity step ran
 after the stage had trimmed its object cache to the 2.5 GiB bound. The stage now creates
 the identities itself, just before that trim (`fullrun_stage.p2p_identities`), and the
 workflow step reads those receipts. Run 45322164517 (commit `f639619`) then gave 93 and
 73 more. Each of the first 191 pins was recreated on two later runners (runs
-45312276943 and 45322164517) and matched every time. Still unpinned, with no verified
-bytes in any run: K1 `Heyorange_s_Sith Uniform_Reformation_Revised.zip` and K2
-`PartySwap 1.5.7z`. In run 45303323274
+45312276943 and 45322164517) and matched every time. K2 `PartySwap 1.5.7z` followed in
+run 45329233118, once the renamed re-upload was recovered (entry above); that run also
+recreated all 357 earlier pins and each matched. Still unpinned, with no verified bytes
+in any run: K1 `Heyorange_s_Sith Uniform_Reformation_Revised.zip`, whose page now serves
+a reviewed `.7z` revision from the artifact store. In run 45303323274
 the second test passed, so the torrent creator minted the info hash that
 `torrent_identity.py` computed for the loopback fixture.
 

@@ -569,6 +569,13 @@
    "info_hash": "1998abd605180ab74fd978ee39683cdf03679453",
    "magnet": "magnet:?xt=urn%3Abtih%3A1998abd605180ab74fd978ee39683cdf03679453&dn=PLC_Sign.rar"
   },
+  "{archives}/PartySwap 1.5.7z": {
+   "sha256": "818370f4b19731700dd754095b4fa5a8dcc7dc8a782f73ffc8723765f60b0b8d",
+   "bytes": 10465786,
+   "name": "PartySwap 1.5.7z",
+   "info_hash": "4920f97b77a69fa47cf8054857d17c4c7454e8fd",
+   "magnet": "magnet:?xt=urn%3Abtih%3A4920f97b77a69fa47cf8054857d17c4c7454e8fd&dn=PartySwap+1.5.7z"
+  },
   "{archives}/PartySwap_EEnclave_ComPatch.7z": {
    "sha256": "e2dec782485b04eab7348e21eac701e177fd0e5738ed598b7de1936370a5bf84",
    "bytes": 9763995,
