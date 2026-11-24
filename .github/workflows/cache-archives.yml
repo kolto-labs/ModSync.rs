@@ -129,7 +129,9 @@ jobs:
       # No torrent session, peer or credential is involved; transfer is the separate p2p job.
       - name: Create the P2P identity of every pinned archive version
         id: p2p-identity
-        if: ${{ steps.refresh.outcome == 'success' }}
+        # Also after a failed acquisition: bytes already verified in the object cache keep
+        # their identity, and one unreachable mod site must not hide every other receipt.
+        if: ${{ (success() || failure()) && (steps.refresh.outcome == 'success' || steps.refresh.outcome == 'failure') }}
         env:
           GAMES: ${{ inputs.games }}
         run: |
