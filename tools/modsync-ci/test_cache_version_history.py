@@ -80,10 +80,11 @@ class Response:
 class Site:
     """Routes request() by exact URL to an HTML page or an archive body; records every URL asked for."""
 
-    def __init__(self, archives):
+    def __init__(self, archives, names=None):
         self.pages = {PAGE: FILE_PAGE, PAGE + "?changelog=4943": changelog(4943),
                       PAGE + "?changelog=4000": changelog(4000), PAGE + "?changelog=3000": changelog(3000)}
         self.archives = archives
+        self.names = names or {}
         self.urls = []
 
     def __call__(self, url, request_args, headers=None):
@@ -92,11 +93,77 @@ class Site:
             return Response(url, self.pages[url].encode(), "text/html; charset=utf-8")
         if url in self.archives:
             return Response(url, self.archives[url], "application/x-7z-compressed",
-                            'attachment; filename="%s"' % NAME)
+                            'attachment; filename="%s"' % self.names.get(url, NAME))
         raise ValueError("HTTP 404")
 
 
 ARCHIVES = {download(): CURRENT, download(4943): V11, download(4000): V10, download(3000): V09}
+RENAMED = "Example NPC Diversity 1.2.7z"
+
+
+class RenamedUploadTests(unittest.TestCase):
+    """An author re-uploads under a new file name, which a pin keyed by file name cannot see."""
+
+    def setUp(self):
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        self.root = Path(temporary.name)
+        (self.root / "objects").mkdir()
+        self.site = Site(ARCHIVES, {download(): RENAMED})
+
+    def fetch(self, pins):
+        with mock.patch.dict(cache.PLAN_PIN_STATE, {"pins": pins}), \
+                mock.patch.object(cache, "request", self.site), \
+                mock.patch.object(cache, "validate", return_value="7z"), \
+                mock.patch.object(cache, "load_selections", return_value={}), \
+                mock.patch.object(cache, "warn") as self.warn, \
+                mock.patch.object(cache.time, "sleep"):
+            return cache.fetch_item(item(), {}, self.root, args())
+
+    def history_asked(self):
+        return [url for url in self.site.urls if "changelog=" in url]
+
+    def test_name_comparison_ignores_version_and_extension_only(self):
+        same = ("PartySwap 1.5.7z", "PartySwap 1.6.1.7z", "partyswap_v2.zip", "PartySwap.rar")
+        self.assertEqual({cache.stem_letters(name) for name in same}, {"partyswap"})
+        self.assertNotEqual(cache.stem_letters("PartySwap HD 1.5.7z"), "partyswap")
+        self.assertEqual(cache.stem_letters("1.5.7z"), "")
+
+    def test_the_pinned_version_is_recovered_under_its_pinned_name(self):
+        result = self.fetch({NAME: frozenset({sha(V10)})})
+        self.assertEqual((result["sha256"], result["archive_name"]), (sha(V10), NAME))
+        self.assertEqual(result["pinned_version"], {"changelog": 4000, "label": "1.0"})
+        self.assertEqual(result["version_history"][0]["file"], RENAMED)
+        self.assertEqual(sorted(path.name for path in (self.root / "objects").iterdir()), [sha(V10)])
+
+    def test_a_pin_missing_from_history_keeps_the_current_upload_and_says_so(self):
+        result = self.fetch({NAME: frozenset({"ab" * 32})})
+        self.assertEqual((result["sha256"], result["archive_name"]), (sha(CURRENT), RENAMED))
+        self.assertEqual(result["pin_not_in_history"], NAME)
+        self.assertEqual([each.get("sha256") for each in result["version_history"]],
+                         [sha(CURRENT), sha(V11), sha(V10), sha(V09)])
+        self.assertIn(NAME, self.warn.call_args.args[0])
+
+    def test_no_history_walk_without_exactly_one_unsatisfied_candidate(self):
+        (self.root / "held").mkdir()
+        cases = {
+            "another mod": {"Other Mod.7z": frozenset({sha(V10)})},
+            "two candidates": {NAME: frozenset({sha(V10)}), "Example NPC Diversity 0.9.zip": frozenset({sha(V09)})},
+            "current bytes are themselves pinned": {NAME: frozenset({sha(V10)}), "Alias.7z": frozenset({sha(CURRENT)})},
+            "no pins": {},
+        }
+        for label, pins in cases.items():
+            with self.subTest(label=label):
+                self.site.urls.clear()
+                result = self.fetch(pins)
+                self.assertEqual((result["sha256"], result["archive_name"]), (sha(CURRENT), RENAMED))
+                self.assertEqual(self.history_asked(), [])
+                self.assertNotIn("pin_not_in_history", result)
+        # The pinned bytes are already in the cache: nothing to recover.
+        (self.root / "objects" / sha(V10)).write_bytes(V10)
+        self.site.urls.clear()
+        result = self.fetch({NAME: frozenset({sha(V10)})})
+        self.assertEqual((result["sha256"], self.history_asked()), (sha(CURRENT), []))
 
 
 class VersionHistoryTests(unittest.TestCase):

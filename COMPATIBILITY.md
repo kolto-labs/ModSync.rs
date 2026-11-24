@@ -337,6 +337,26 @@ placeholders survive conversion but still fail Rust execution. This does not clo
 F01/F05, full validation or complete format/action parity. Five production gates
 pass and53 frozen entries remain unchanged; no Rust tests were run.
 
+## CI archive cache recovers a pinned version after a renamed re-upload, 2026-11-24 UTC
+
+Python CI tooling only. The pinned-version recovery of 2026-11-23 was keyed by archive
+file name, so an author who re-uploaded under a new name slipped past it: DeadlyStream
+`544-partyswap` now serves `PartySwap 1.6.1.7z`, the K2 plan pins `PartySwap 1.5.7z`,
+and the new bytes were stored as an ordinary update. `cache.renamed_plan_pin` now links
+an unpinned DeadlyStream file name on a single-file page to a plan pin when the two
+names are equal once version numbers and extension are ignored, that pin is the only
+such candidate, and its bytes are not already in the cache. The version history is then
+walked as before and a match is stored under the pinned name.
+
+Because the link by name is a guess, a pin that is not in the history does not fail the
+item: the current upload is kept as before, a warning is printed and the entry records
+`pin_not_in_history` with every hashed version. Multi-file pages, direct links, other
+providers and cached objects that are never re-downloaded are unchanged; the last is why
+`Heyorange_s_Sith Uniform_Reformation_Revised.zip`, whose reviewed `.7z` revision is
+served from the artifact store, is not recovered by this. Covered by
+`test_cache_version_history.py` (16 tests, offline HTML fixtures). Whether DeadlyStream
+still serves PartySwap 1.5 in its history is not known; the next archive stage shows it.
+
 ## CI release candidates download one drawn mod per run live, 2026-11-24 UTC
 
 Python CI tooling and workflow policy only; no Rust source changed and no Rust tests

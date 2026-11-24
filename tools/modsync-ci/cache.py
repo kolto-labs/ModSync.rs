@@ -1217,9 +1217,40 @@ def announced_size(headers):
 class VersionMismatch(ValueError):
     """A DeadlyStream download whose bytes differ from the manual plan pin for its file name."""
 
-    def __init__(self, files):
+    def __init__(self, files, renamed=None):
         super().__init__("downloaded archive differs from its manual plan pin")
         self.files = files
+        # (pinned name, pinned hashes) when the upload carries another file name than its pin.
+        self.renamed = renamed
+
+
+def stem_letters(name):
+    """A file name without extension, version digits or punctuation: `PartySwap 1.5.7z` -> `partyswap`."""
+    return re.sub(r"[^a-z]+", "", re.sub(r"v?\d[\d.]*", "", Path(name).stem.lower()))
+
+
+def renamed_plan_pin(item, name, sha, root):
+    """The one plan pin an unpinned DeadlyStream file name most plausibly replaced, or None.
+
+    Authors re-upload under a new name (`PartySwap 1.5.7z` became `PartySwap 1.6.1.7z`), which a pin
+    keyed by file name cannot see. A candidate needs the same name once version and extension are
+    ignored, must be the only such pin, and must not already be held in the cache.
+    """
+    if item.get("provider") != "deadlystream" or not isinstance(name, str):
+        return None
+    pins = load_plan_pins()
+    if name in pins or any(sha in shas for shas in pins.values()):
+        return None
+    letters = stem_letters(name)
+    if len(letters) < 4:
+        return None
+    candidates = [(pinned, shas) for pinned, shas in pins.items() if stem_letters(pinned) == letters]
+    if len(candidates) != 1:
+        return None
+    pinned, shas = candidates[0]
+    if any((root / "objects" / each).is_file() for each in shas):
+        return None
+    return pinned, shas
 
 
 class PinnedVersionMissing(ValueError):
@@ -1310,8 +1341,9 @@ def pinned_version(item, root, args, mismatch):
     The first past version whose file hashes to the pin is stored and returned under the pinned name;
     every version hashed is recorded. No match fails the item: the unpinned bytes are never used.
     """
-    name = mismatch.files[0]["file"]
-    pinned = plan_pin_for(item, name)
+    name, pinned = mismatch.renamed or (mismatch.files[0]["file"], None)
+    if pinned is None:
+        pinned = plan_pin_for(item, name)
     history = [{"changelog": 0, "label": "current", **each} for each in mismatch.files]
     origin = urlsplit(item["url"])
     if not FILE_ID.match(origin.path):
@@ -1344,22 +1376,41 @@ def pinned_version(item, root, args, mismatch):
                                   sum(1 for each in history if "sha256" in each)), history)
 
 
-def fetch_item(item, old, root, args, endpoint=None, depth=0, want=None):
-    """Fetch one endpoint. `want` ({file, sha256}) is set only inside a version-history walk."""
+def fetch_item(item, old, root, args, endpoint=None, depth=0, want=None, single=None):
+    """Fetch one endpoint. `want` ({file, sha256}) is set only inside a version-history walk.
+
+    `single` marks the only attachment of a single-file page, where a renamed upload is looked for.
+    """
     try:
-        return fetch_endpoint(item, old, root, args, endpoint, depth, want)
+        return fetch_endpoint(item, old, root, args, endpoint, depth, want, single)
     except VersionMismatch as mismatch:
         if want is not None or not mismatch.files:
             raise
-        return pinned_version(item, root, args, mismatch)
+        if mismatch.renamed is None:
+            return pinned_version(item, root, args, mismatch)
+        try:
+            return pinned_version(item, root, args, mismatch)
+        except PinnedVersionMissing as missing:
+            # The link by name is a guess, so an unrecoverable pin does not fail the item:
+            # the current upload is taken as before, with the search on record.
+            warn("%s: pinned %s is not in the version history; keeping the current upload %s"
+                 % (item.get("id", "?"), mismatch.renamed[0], mismatch.files[0]["file"]))
+            current = fetch_endpoint(item, old, root, args, endpoint, depth, want, False)
+            return {**current, "pin_not_in_history": mismatch.renamed[0],
+                    "version_history": missing.version_history}
 
 
-def fetch_endpoint(item, old, root, args, endpoint=None, depth=0, want=None):
+def fetch_endpoint(item, old, root, args, endpoint=None, depth=0, want=None, single=None):
     previous_bundle = old
     old = {} if "objects" in old else old
+    resolved_here = endpoint is None
     endpoint = endpoint or resolve(item, args)
     if isinstance(endpoint, list):
         return fetch_many(item, previous_bundle, root, args, endpoint, depth + 1, want)
+    # A page that resolves to one attachment is a single-file page.
+    # An explicit False (the fallback after a failed history search) switches the search off.
+    if single is None:
+        single = resolved_here and want is None and depth == 0
     if item["provider"] in TOOL_PROVIDERS:
         return fetch_with_tool(item, root, args)
     endpoint_key = endpoint_id(endpoint)
@@ -1395,7 +1446,7 @@ def fetch_endpoint(item, old, root, args, endpoint=None, depth=0, want=None):
             if endpoint_id(attachment) == endpoint_key:
                 raise ValueError("download endpoint did not resolve to an attachment; provider adapter required")
             response.close()
-            return fetch_item(item, old, root, args, attachment, depth + 1, want)
+            return fetch_item(item, old, root, args, attachment, depth + 1, want, single=want is None)
         expected = announced_size(response.headers)
         if expected is not None and expected > args.max_bytes:
             raise ValueError("archive exceeds size limit")
@@ -1433,6 +1484,9 @@ def fetch_endpoint(item, old, root, args, endpoint=None, depth=0, want=None):
             pinned = want["sha256"] if want is not None else plan_pin_for(item, name)
             if pinned is not None and sha not in pinned:
                 raise VersionMismatch([{"file": name, "sha256": sha, "size": size}])
+            renamed = renamed_plan_pin(item, name, sha, root) if single and pinned is None and not pinned_direct else None
+            if renamed is not None:
+                raise VersionMismatch([{"file": name, "sha256": sha, "size": size}], renamed)
             if want is not None:
                 name = want["file"]
             if not (valid and old.get("sha256") == sha):
