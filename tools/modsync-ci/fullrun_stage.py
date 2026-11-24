@@ -241,24 +241,25 @@ def sample_seed(environ=None):
     return "%s:%s" % (environ.get("GITHUB_RUN_ID") or "local", environ.get("GITHUB_RUN_ATTEMPT") or "1")
 
 
-def sample_source(scope, game, seed):
-    """The one archive source this run downloads live; None when nothing can be downloaded."""
-    candidates = sorted(set(scope["archive_source_ids"]) - set(scope["non_acquisition_policy_source_ids"]))
+def sample_draw(scopes, seed):
+    """The one (game, archive source) this run downloads live; None when nothing can be downloaded.
+
+    Exactly one per run, drawn across every requested game, never a policy-skipped helper.
+    """
+    candidates = sorted((game, identity) for game, scope in scopes.items()
+                        for identity in set(scope["archive_source_ids"]) - set(scope["non_acquisition_policy_source_ids"]))
     if not candidates:
         return None
-    draw = int(hashlib.sha256(("%s:%s" % (seed, game)).encode()).hexdigest(), 16)
-    return candidates[draw % len(candidates)]
+    return candidates[int(hashlib.sha256(seed.encode()).hexdigest(), 16) % len(candidates)]
 
 
 def sample_report(output, game):
     return Path(output) / ("live-sample-%s.json" % game)
 
 
-def sampled_attempt(args, game, scope):
+def sampled_attempt(args, draw):
     """Return the drawn source once its live provider attempt is on record, else raise."""
-    chosen = sample_source(scope, game, sample_seed())
-    if chosen is None:
-        return None
+    game, chosen = draw
     path = sample_report(args.output, game)
     if path.is_symlink() or path.stat().st_size > 32 * 1024 * 1024:
         raise ValueError("unsafe live sample report")
@@ -280,7 +281,7 @@ def downloader_validation(args, games):
     scopes = {game: install_scope(args, game) for game in games}
     selected = {identity for scope in scopes.values() for identity in scope["archive_source_ids"]}
     attempted, downloaded, fallback, policies, valid, seen = set(), set(), set(), set(), set(), set()
-    sampled, expected_samples = set(), 0
+    sampled = set()
     failures = []
     for game, scope in scopes.items():
         path = Path(args.output) / ("verify-%s.json" % game)
@@ -317,15 +318,19 @@ def downloader_validation(args, games):
                 if (acquisition.get("provider_outcome") == "cached-fallback"
                         or acquisition.get("valid_cache_fallback") is True):
                     fallback.add(identity)
-            if mode == "sample" and sample_source(scope, game, sample_seed()) is not None:
-                expected_samples += 1
-                sampled.add(sampled_attempt(args, game, scope))
-        except (OSError, ValueError, KeyError, TypeError, IndexError, AttributeError):
+        except (OSError, ValueError, KeyError, TypeError):
             failures.append(game)
+    draw = sample_draw(scopes, sample_seed()) if mode == "sample" else None
+    if draw is not None:
+        try:
+            sampled.add(sampled_attempt(args, draw))
+        except (OSError, ValueError, KeyError, TypeError, IndexError, AttributeError):
+            if draw[0] not in failures:
+                failures.append(draw[0])
     missing = selected - valid - policies
     unattempted = selected - attempted - policies if mode == "refresh" else set()
     passed = (not failures and not missing and not unattempted and seen == selected
-              and (mode != "sample" or len(sampled) >= min(1, expected_samples)))
+              and len(sampled) == (0 if draw is None else 1))
     return {"schema_version": 1, "status": "passed" if passed else "failed",
         "install_profile": getattr(args, "install_profile", "minimal"), "download_mode": mode,
         "live_sample_source_ids": sorted(sampled),
@@ -390,16 +395,17 @@ def refresh_archives(args, games):
     evidence = Path(args.output)
     receipts = []
     k1_auxiliary_verified = False
+    draw = (sample_draw(scopes, sample_seed())
+            if getattr(args, "download_mode", "cache-first") == "sample" else None)
     # Restore verifies every required archive; the cache cap is a storage policy,
     # never permission to count an unfetched OVER_LIMIT object as verified.
     for game in games:
         scope = scopes[game]
         contract.write_json(evidence / ("install-profile-%s.json" % game), scope)
         report_path = evidence / ("verify-%s.json" % game)
-        chosen = (sample_source(scope, game, sample_seed())
-                  if getattr(args, "download_mode", "cache-first") == "sample" else None)
+        chosen = draw[1] if draw is not None and draw[0] == game else None
         if chosen is not None:
-            # One live provider download per game and run keeps the downloaders exercised
+            # One live provider download per run keeps the downloaders exercised
             # without asking every mod site for every archive. Its verified bytes land in
             # the cache, so the complete restore below reads them like any other archive.
             with tempfile.TemporaryDirectory(prefix="archive-live-sample-", dir=cache_root.parent) as live:

@@ -21,7 +21,7 @@ on:
         options: [minimal, full, exhaustive]
         default: minimal
       download_mode:
-        description: Cache-first, sample (one random mod per game live, the rest cached), or refresh (try every download)
+        description: Cache-first, sample (one random mod per run live, the rest cached), or refresh (try every download)
         type: choice
         options: [cache-first, sample, refresh]
         default: cache-first

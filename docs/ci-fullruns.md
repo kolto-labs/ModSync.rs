@@ -50,7 +50,7 @@ The required `p2p` stage uses two private Linux network namespaces connected onl
 
 ### Download modes
 
-`cache-first` reuses verified cached archives. `sample` downloads one archive source per game live, drawn from the run id and attempt, and takes the rest from the verified cache; it is the release-candidate default. `refresh` attempts every provider and falls back to verified cache. Live downloads happen once, in the `archives` stage; on a full run the install lanes read its cache.
+`cache-first` reuses verified cached archives. `sample` downloads exactly one archive source per run live, drawn across the requested games from the run id and attempt, and takes the rest from the verified cache; it is the release-candidate default. `refresh` attempts every provider and falls back to verified cache. Live downloads happen once, in the `archives` stage; on a full run the install lanes read its cache.
 
 P2P is checked by two separate tests. The first, identity, needs no binary and no network: the `p2p` stage's `P2P identity (info hash creation)` job runs `test_torrent_identity.py`, and the `archives` stage creates the info hash of every pinned archive version it holds verified bytes for (`torrent_identity.py survey`), compares it with `tools/modsync-ci/fixtures/ci/{k1,k2}-p2p-identity.json` and uploads a public `p2p-identity` receipt. To pin new versions, copy the `created-unpinned` entries from that receipt into the pin file, or run `survey --write-pins` against a verified object cache; an existing pin is never replaced. The second test is the two-device transfer above, shown as `P2P availability (two-device loopback, seeder pending)` because no long-lived seeder exists yet; it runs only after the identity job passes.
 
