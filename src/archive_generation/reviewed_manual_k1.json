@@ -7969,42 +7969,7 @@
         "InstallBefore": [],
         "InstallAfter": [],
         "Instructions": [],
-        "Options": [
-          {
-            "Guid": "769422af-fcbd-8c0e-8113-988ffa053e19",
-            "Name": "against",
-            "Author": "",
-            "Description": "Recommended option: against",
-            "Directions": "",
-            "Tier": "",
-            "Category": [],
-            "IsSelected": true,
-            "Dependencies": [],
-            "Restrictions": [],
-            "InstallBefore": [],
-            "InstallAfter": [],
-            "Instructions": [],
-            "Options": [],
-            "ResourceRegistry": {}
-          },
-          {
-            "Guid": "fe0b100e-80f5-81b4-b02c-a7010cbeb286",
-            "Name": "\"stunbaton 2025\"",
-            "Author": "",
-            "Description": "Recommended option: \"stunbaton 2025\"",
-            "Directions": "",
-            "Tier": "",
-            "Category": [],
-            "IsSelected": true,
-            "Dependencies": [],
-            "Restrictions": [],
-            "InstallBefore": [],
-            "InstallAfter": [],
-            "Instructions": [],
-            "Options": [],
-            "ResourceRegistry": {}
-          }
-        ],
+        "Options": [],
         "ResourceRegistry": {
           "https://deadlystream.com/files/file/2430-stunbaton-hd/": {
             "Files": {},
@@ -8062,42 +8027,7 @@
         "InstallBefore": [],
         "InstallAfter": [],
         "Instructions": [],
-        "Options": [
-          {
-            "Guid": "769422af-fcbd-8c0e-8113-988ffa053e19",
-            "Name": "against",
-            "Author": "",
-            "Description": "Recommended option: against",
-            "Directions": "",
-            "Tier": "",
-            "Category": [],
-            "IsSelected": true,
-            "Dependencies": [],
-            "Restrictions": [],
-            "InstallBefore": [],
-            "InstallAfter": [],
-            "Instructions": [],
-            "Options": [],
-            "ResourceRegistry": {}
-          },
-          {
-            "Guid": "fe0b100e-80f5-81b4-b02c-a7010cbeb286",
-            "Name": "\"stunbaton 2025\"",
-            "Author": "",
-            "Description": "Recommended option: \"stunbaton 2025\"",
-            "Directions": "",
-            "Tier": "",
-            "Category": [],
-            "IsSelected": true,
-            "Dependencies": [],
-            "Restrictions": [],
-            "InstallBefore": [],
-            "InstallAfter": [],
-            "Instructions": [],
-            "Options": [],
-            "ResourceRegistry": {}
-          }
-        ],
+        "Options": [],
         "ResourceRegistry": {
           "https://deadlystream.com/files/file/2430-stunbaton-hd/": {
             "Files": {},
@@ -8141,8 +8071,8 @@
       },
       "canonicalization": {
         "method": "production-guide-loader",
-        "raw_component_sha256": "aba2843643ae2e0aad961f001c7071cc503b0a23629b2792ef872010bb6c639e",
-        "canonical_component_sha256": "aba2843643ae2e0aad961f001c7071cc503b0a23629b2792ef872010bb6c639e",
+        "raw_component_sha256": "7df51add1528c3e397534123077d0d5f4fa12f1f8732dda5987f7d4c727e384e",
+        "canonical_component_sha256": "7df51add1528c3e397534123077d0d5f4fa12f1f8732dda5987f7d4c727e384e",
         "cli_binary_sha256": "d35ca23b653b4d74ed61f574855a7d54a492c34336716e547700281b633b7d7a",
         "raw_export_sha256": "6dff78d3e3babebed63a165f224a9a3cc8aa6af6bf878f406d3ced3bb2dd6743",
         "canonical_export_sha256": "8c0cd0e8dd462b97664b0440ebbf6f7574cf8fdf9e2d1453b75fd6670d02d170",
@@ -9783,25 +9713,7 @@
             "Restrictions": []
           }
         ],
-        "Options": [
-          {
-            "Guid": "0cedce85-d532-80cb-ba71-1cb596f3d475",
-            "Name": "against the \"ZaalbarHD (Vurt's KotOR Visual Resurgence)\"",
-            "Author": "",
-            "Description": "Recommended option: against the \"ZaalbarHD (Vurt's KotOR Visual Resurgence)\"",
-            "Directions": "",
-            "Tier": "",
-            "Category": [],
-            "IsSelected": true,
-            "Dependencies": [],
-            "Restrictions": [],
-            "InstallBefore": [],
-            "InstallAfter": [],
-            "Instructions": [],
-            "Options": [],
-            "ResourceRegistry": {}
-          }
-        ],
+        "Options": [],
         "ResourceRegistry": {
           "https://deadlystream.com/files/file/2031-zaalbar-hd/": {
             "Files": {},
@@ -9870,25 +9782,7 @@
             "Restrictions": []
           }
         ],
-        "Options": [
-          {
-            "Guid": "0cedce85-d532-80cb-ba71-1cb596f3d475",
-            "Name": "against the \"ZaalbarHD (Vurt's KotOR Visual Resurgence)\"",
-            "Author": "",
-            "Description": "Recommended option: against the \"ZaalbarHD (Vurt's KotOR Visual Resurgence)\"",
-            "Directions": "",
-            "Tier": "",
-            "Category": [],
-            "IsSelected": true,
-            "Dependencies": [],
-            "Restrictions": [],
-            "InstallBefore": [],
-            "InstallAfter": [],
-            "Instructions": [],
-            "Options": [],
-            "ResourceRegistry": {}
-          }
-        ],
+        "Options": [],
         "ResourceRegistry": {
           "https://deadlystream.com/files/file/2031-zaalbar-hd/": {
             "Files": {},
@@ -9931,8 +9825,8 @@
       },
       "canonicalization": {
         "method": "production-guide-loader",
-        "raw_component_sha256": "5cf0f7c8d7738bdccf9f6c961ff5f83ff48b01f4b443afee9b3a925fb33cb384",
-        "canonical_component_sha256": "141e437d0b2817acfe9d75a40329ef063dc9daa98b072c988e6165a8c4fa0c33",
+        "raw_component_sha256": "ad18359b52eae7305b684b95ec8b3e812967e62b5a5f97db21ab7dfbd093824c",
+        "canonical_component_sha256": "ad1174ae04a0e2463b4a4ac14247d330cb54cd201d34d408b2d2de70d0eb0ddd",
         "cli_binary_sha256": "d35ca23b653b4d74ed61f574855a7d54a492c34336716e547700281b633b7d7a",
         "raw_export_sha256": "6dff78d3e3babebed63a165f224a9a3cc8aa6af6bf878f406d3ced3bb2dd6743",
         "canonical_export_sha256": "8c0cd0e8dd462b97664b0440ebbf6f7574cf8fdf9e2d1453b75fd6670d02d170",

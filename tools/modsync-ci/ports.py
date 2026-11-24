@@ -570,7 +570,7 @@ MANUAL_BIND_GENERATOR = "reviewed-manual-file-effects"
 MANUAL_PATCHER_GENERATOR = "reviewed-manual-native-patcher"
 MANUAL_BOOK_SHA256 = "f85240122267d088f7b52c1746c2edb2fdb8795846889f4158dcf59b4fd91d60"
 MANUAL_BOOKS = {
-    "k1": [("reviewed_manual_k1.json", "b04b7331b5001f81698feb5571460ea9e2e486d032956abb22967d704254c338", 66),
+    "k1": [("reviewed_manual_k1.json", "38a1231f12632d0765b9741343db92ee5858f27405ab2bdb8667119ad71e8d6b", 66),
            ("reviewed_manual_raw_inputs_k1.json", "f3dadc5ad04f7c501753ca38bf50492e067c54b8ed1df401910780d3ca836d93", 2),
            ("reviewed_manual_community_patch_k1.json", "923c0a5ebe52615247717bd3bab6ce48bad98cc664825a840465025b2b7e1fbc", 1)],
     "k2": [("reviewed_manual_k2.json", MANUAL_BOOK_SHA256, 57),

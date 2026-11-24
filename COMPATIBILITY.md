@@ -337,6 +337,34 @@ placeholders survive conversion but still fail Rust execution. This does not clo
 F01/F05, full validation or complete format/action parity. Five production gates
 pass and53 frozen entries remain unchanged; no Rust tests were run.
 
+## K1 recipe book matches the current draft again; two refusals name their cause, 2026-11-24 UTC
+
+Engine data and two error messages; no behaviour of a successful install changed. No
+Rust tests were run.
+
+K1 install lanes stopped at `guide_selection` with `Component differs from exact reviewed
+recipe context` for Stunbaton HD and Zaalbar HD. The guide and the archives were
+unchanged. The recipe book `src/archive_generation/reviewed_manual_k1.json` still
+embedded the options that the draft produced before negated recommendations stopped
+becoming options (the "recommend against" entry below): two for Stunbaton HD, one for
+Zaalbar HD. Those options carried no instructions, dependencies or restrictions and no
+plan step referred to them. Recipes 32 and 41 now hold the components the engine drafts
+today, with their digests, and the book hash and the master data hash that pin them were
+updated in `reviewed_manual.rs`, `reviewed_master.rs`, `reviewed_master/uco.rs`,
+`reviewed_master_k1.json` and `tools/modsync-ci/ports.py`.
+
+Proof boundary. With the built CLI, all 66 recipes' raw and canonical input components
+equal the engine's current output for the compiled K1 guide, and every embedded digest
+matches. The archive-bound path that raised the refusal needs the mod archives and was
+not run locally; the next K1 install lane is the proof.
+
+Two refusals now carry what a reviewer needs. `UCO prerequisite differs from its complete
+compiled original definition` names the prerequisite's GUID and name and the top-level
+fields that differ; the K2 lanes hit it and the guide is ruled out, so one of twelve
+prerequisites is bound differently from the archives. `Selected namespace has
+unclassified inactive sections` lists the orphaned sections the patcher reported; K1
+Taris Rapid Transit hits it and has no classification yet. Neither cause is fixed here.
+
 ## CI archive cache recovers a pinned version after a renamed re-upload, 2026-11-24 UTC
 
 Python CI tooling only. The pinned-version recovery of 2026-11-23 was keyed by archive
