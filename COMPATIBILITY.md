@@ -337,6 +337,40 @@ placeholders survive conversion but still fail Rust execution. This does not clo
 F01/F05, full validation or complete format/action parity. Five production gates
 pass and53 frozen entries remain unchanged; no Rust tests were run.
 
+## CI creates one P2P identity per pinned archive version, 2026-11-24 UTC
+
+Python CI tooling only; no Rust source changed and no Rust tests were run. A pinned
+version is its archive bytes (`archive_sha256`) plus its file name, and
+`tools/modsync-ci/torrent_identity.py` derives the BitTorrent v1 info hash and magnet
+for that pair with the rules of `src/p2p.rs::rebuild_single_info` (one file, 2 MiB
+pieces, the pinned creator's extra empty checksum on an exact piece boundary). The same
+bytes under the same name always give the same info hash; another name is another
+torrent, which is why every pinned magnet must state its name (`dn`).
+
+P2P now has two separate CI tests:
+
+1. Identity. `test_torrent_identity.py` (11 tests) recreates five info hashes that the
+   production CLI reported as `rebuilt` for the same bytes and names
+   (`torrent-seed --authored-magnet` with a wrong hash, checked on 2026-11-24, including
+   files of exactly one and two pieces), checks that all 200 K1 and 159 K2 pinned file
+   names are valid torrent names, and validates the pin files
+   `tools/modsync-ci/fixtures/ci/{k1,k2}-p2p-identity.json`. The archive stage then
+   creates the identity of every pinned version whose verified bytes are in its object
+   cache and uploads a public `p2p-identity` receipt. A version whose identity cannot be
+   created, or differs from its pin, fails that stage; an existing pin is never replaced.
+2. Transfer. The two-device loopback (`p2p_loopback.py`) is unchanged in what it
+   transfers and additionally requires the pinned torrent creator to mint the same info
+   hash as `torrent_identity.py` for its fixture.
+
+Limits. The pin files are empty: no real archive bytes were available where this was
+written, so no real version is pinned yet and the first archive-stage receipt is the
+source for them. The pins live beside the manual plans because the plan parser rejects
+unknown keys. Agreement with the torrent creator's own minting was not run locally (the
+build host has no IPv6, which direct seeding needs); it is asserted by the second test in
+CI. No long-lived seeder exists, so neither test shows that a pinned version can be
+fetched from a public swarm. ModSync itself still accepts a magnet without a name and
+falls back to the local file name; the name requirement is enforced for CI pins only.
+
 ## CI archive refresh recovers the manual-plan-pinned DeadlyStream version, 2026-11-23 UTC
 
 The CI archive cache (`tools/modsync-ci/cache.py`, Python CI tooling only; the Rust
