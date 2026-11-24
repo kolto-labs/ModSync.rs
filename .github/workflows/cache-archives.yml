@@ -143,9 +143,19 @@ jobs:
           games=json.loads(os.environ['GAMES'])
           assert isinstance(games,list) and games and all(game in ('k1','k2') for game in games)
           root,fixtures=Path(os.environ['RUNNER_TEMP']),Path('tools/modsync-ci/fixtures/ci')
-          codes=[torrent_identity.main(['survey','--plan',str(fixtures/(game+'-manual-plan.json')),
-              '--pins',str(fixtures/(game+'-p2p-identity.json')),'--objects',str(root/'mod-cache'/'objects'),
-              '--receipt',str(root/'p2p-identity'/(game+'-p2p-identity.json'))]) for game in games]
+          codes=[]
+          for game in games:
+              receipt=root/'p2p-identity'/(game+'-p2p-identity.json')
+              if receipt.is_file() and not receipt.is_symlink():
+                  # Written by the archive stage before it trimmed the object cache.
+                  result=json.loads(receipt.read_text())
+                  print(json.dumps({key:result.get(key) for key in ('status','plan','pinned_archives','counts','problems')},sort_keys=True))
+                  codes.append(0 if result.get('status')=='passed' else 1)
+              else:
+                  # The stage stopped before that point: use whatever verified bytes remain.
+                  codes.append(torrent_identity.main(['survey','--plan',str(fixtures/(game+'-manual-plan.json')),
+                      '--pins',str(fixtures/(game+'-p2p-identity.json')),'--objects',str(root/'mod-cache'/'objects'),
+                      '--receipt',str(receipt)]))
           sys.exit(max(codes))
           PYIDENTITY
       - name: Upload public P2P identity receipt

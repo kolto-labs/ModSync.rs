@@ -193,6 +193,92 @@ class Stage(unittest.TestCase):
                 self.assertEqual((checked.call_count, everything[everything.index("--download-mode") + 1]), (0, mode))
 
 
+class IdentityReceipts(unittest.TestCase):
+    """The archive stage creates P2P identities while every restored archive is still on disk."""
+
+    def setUp(self):
+        import hashlib
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        self.root = Path(directory.name)
+        self.objects, self.fixtures = self.root / "objects", self.root / "fixtures"
+        self.objects.mkdir()
+        self.fixtures.mkdir()
+        data = b"verified archive bytes"
+        self.checksum = hashlib.sha256(data).hexdigest()
+        (self.objects / self.checksum).write_bytes(data)
+        for game in GAMES:
+            (self.fixtures / ("%s-manual-plan.json" % game)).write_text(
+                json.dumps({"archive_sha256": {"{archives}/Mod %s.zip" % game: self.checksum}}))
+            (self.fixtures / ("%s-p2p-identity.json" % game)).write_text(
+                json.dumps({"schema": 1, "piece_length": 2097152, "archives": {}}))
+
+    def run_identities(self):
+        import contextlib
+        import io
+        with contextlib.redirect_stdout(io.StringIO()):
+            return fullrun_stage.p2p_identities(self.objects, self.root / "receipts", GAMES, self.fixtures)
+
+    def test_writes_one_passing_receipt_per_game(self):
+        self.assertEqual(self.run_identities(), [])
+        for game in GAMES:
+            receipt = json.loads((self.root / "receipts" / ("%s-p2p-identity.json" % game)).read_text())
+            self.assertEqual((receipt["status"], receipt["counts"]), ("passed", {"created-unpinned": 1}))
+
+    def test_a_problem_is_returned_and_recorded_but_never_raised(self):
+        pins = self.fixtures / "k1-p2p-identity.json"
+        import torrent_identity
+        wrong = {"sha256": self.checksum, "bytes": 22, "name": "Mod k1.zip", "info_hash": "0" * 40,
+                 "magnet": torrent_identity.magnet("0" * 40, "Mod k1.zip")}
+        pins.write_text(json.dumps({"schema": 1, "piece_length": 2097152, "archives": {"{archives}/Mod k1.zip": wrong}}))
+        self.assertEqual(self.run_identities(), ["k1"])
+        receipt = json.loads((self.root / "receipts" / "k1-p2p-identity.json").read_text())
+        self.assertEqual((receipt["status"], receipt["problems"]), ("failed", ["{archives}/Mod k1.zip"]))
+        # An unreadable pin file is a reported failure for that game, not an exception.
+        (self.fixtures / "k2-p2p-identity.json").write_text("{not json")
+        self.assertEqual(self.run_identities(), ["k1", "k2"])
+
+    def test_the_stage_creates_identities_before_it_trims_the_cache(self):
+        order = []
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "cache").mkdir()
+            (root / "cache" / "manifest.json").write_text("{}")
+            args = types.SimpleNamespace(guides=str(root / "guides"), cache=str(root / "cache"),
+                                         output=str(root / "evidence"), download_mode="cache-first",
+                                         install_profile="minimal")
+
+            def complete(command, log, call_args, game, *rest):
+                Path(call_args.output).mkdir(parents=True, exist_ok=True)
+                Path(call_args.output, "verify-%s.json" % game).write_text(json.dumps(
+                    {"ok": True, "entries": [{"id": identity, "status": "restored"}
+                                             for identity in SCOPES[game]["archive_source_ids"]]}))
+
+            class Trimmed(Exception):
+                pass
+
+            def trim(*arguments):
+                order.append("trim")
+                raise Trimmed
+
+            with mock.patch.object(fullrun_stage, "install_scope", side_effect=scope_of), \
+                    mock.patch.object(fullrun_stage, "guides", return_value=["guide.md"]), \
+                    mock.patch.object(fullrun_stage.fullrun_archive_manifest, "recover"), \
+                    mock.patch.object(fullrun_stage, "uncached_options", return_value=[]), \
+                    mock.patch.object(fullrun_stage, "remote_options", return_value=[]), \
+                    mock.patch.object(fullrun_stage, "native_k1_scope", return_value=False), \
+                    mock.patch.object(fullrun_stage, "restore_with_public_supplement", side_effect=complete), \
+                    mock.patch.object(fullrun_stage, "p2p_identities",
+                                      side_effect=lambda *a, **k: order.append("identities")) as identities, \
+                    mock.patch.object(fullrun_stage.cache, "prune", side_effect=trim), \
+                    self.assertRaises(Trimmed):
+                fullrun_stage.refresh_archives(args, GAMES)
+            self.assertEqual(order, ["identities", "trim"])
+            objects, directory, games = identities.call_args.args
+            self.assertEqual((objects, directory, games),
+                             (root / "cache" / "objects", root / "p2p-identity", GAMES))
+
+
 class Policy(unittest.TestCase):
     def test_release_candidates_sample_by_default_and_may_still_refresh(self):
         payload = {"pull_request": {"base": {"ref": "main"}, "head": {"ref": "feature"}, "labels": []}}

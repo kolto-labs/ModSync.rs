@@ -386,6 +386,29 @@ def restore_with_public_supplement(command, log, args, game, destination, report
     return None
 
 
+def p2p_identities(objects, directory, games, fixtures=None):
+    """Write one public P2P identity receipt per game; return the games whose receipt reports a problem.
+
+    Never raises for a problem: the receipt records it and the workflow's identity
+    step is the one that fails, so an identity defect is not mistaken for a download failure.
+    """
+    import torrent_identity
+    fixtures = Path(fixtures) if fixtures is not None else HERE / "fixtures" / "ci"
+    failed = []
+    for game in games:
+        try:
+            code = torrent_identity.main(["survey", "--plan", str(fixtures / ("%s-manual-plan.json" % game)),
+                                          "--pins", str(fixtures / ("%s-p2p-identity.json" % game)),
+                                          "--objects", str(objects),
+                                          "--receipt", str(Path(directory) / ("%s-p2p-identity.json" % game))])
+        except (OSError, ValueError) as error:
+            print("P2P identity survey for %s did not run: %s" % (game, type(error).__name__))
+            code = 1
+        if code:
+            failed.append(game)
+    return failed
+
+
 def refresh_archives(args, games):
     guides(args.guides, games)
     scopes = {game: install_scope(args, game) for game in games}
@@ -443,6 +466,9 @@ def refresh_archives(args, games):
                     raise ValueError("Pinned K1 native inputs unavailable; inspect encrypted acquisition evidence")
                 receipts[-1]["native_widescreen_inputs_verified"] = 6
                 k1_auxiliary_verified = True
+    # The trim below keeps only a bounded cache, so identities are created while every
+    # restored archive's verified bytes are still present.
+    p2p_identities(cache_root / "objects", evidence.parent / "p2p-identity", games)
     manifest_path = cache_root / "manifest.json"
     document = json.loads(manifest_path.read_text())
     cache.prune(cache_root, document, 2684354560)

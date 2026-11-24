@@ -353,7 +353,7 @@ every provider was attempted, only the one drawn source, so a broken download fo
 any other mod is found when its turn is drawn or when a `refresh` run is requested.
 In exchange a run no longer asks DeadlyStream and Nexus for every archive. A provider
 attempt that ends in a verified cache fallback still counts as an attempt, as it did for
-`refresh`. Covered by `test_fullrun_sample.py` (10 tests); run 45303323274
+`refresh`. Covered by `test_fullrun_sample.py` (13 tests, three of them for the identity receipts); run 45303323274
 showed the earlier one-per-game form downloading its drawn sources live; the one-per-run
 form is proven by its first run.
 
@@ -384,7 +384,12 @@ P2P now has two separate CI tests:
 
 Pinned so far, from the archive-stage receipt of run 45303323274 (commit `cdc8710`):
 106 of 200 K1 and 85 of 159 K2 versions. The other 94 and 74 had no verified bytes in
-that run's object cache, so they stay unpinned until a run holds them. In the same run
+that run's object cache: the identity step ran after the stage had trimmed the cache to
+its 2.5 GiB bound. The stage now creates the identities itself, just before that trim
+(`fullrun_stage.p2p_identities`), and the workflow step reads those receipts; whether
+that covers all 359 versions is shown by its first run. Run 45312276943 (commit
+`94a81be`) recreated all 191 pinned identities on another runner and each matched its
+pin. In run 45303323274
 the second test passed, so the torrent creator minted the info hash that
 `torrent_identity.py` computed for the loopback fixture.
 
