@@ -381,12 +381,14 @@ P2P now has two separate CI tests:
    transfers and additionally requires the pinned torrent creator to mint the same info
    hash as `torrent_identity.py` for its fixture.
 
-Limits. The pin files are empty: no real archive bytes were available where this was
-written, so no real version is pinned yet and the first archive-stage receipt is the
-source for them. The pins live beside the manual plans because the plan parser rejects
-unknown keys. Agreement with the torrent creator's own minting was not run locally (the
-build host has no IPv6, which direct seeding needs); it is asserted by the second test in
-CI. No long-lived seeder exists, so neither test shows that a pinned version can be
+Pinned so far, from the archive-stage receipt of run 45303323274 (commit `cdc8710`):
+106 of 200 K1 and 85 of 159 K2 versions. The other 94 and 74 had no verified bytes in
+that run's object cache, so they stay unpinned until a run holds them. In the same run
+the second test passed, so the torrent creator minted the info hash that
+`torrent_identity.py` computed for the loopback fixture.
+
+Limits. The pins live beside the manual plans because the plan parser rejects unknown
+keys. No long-lived seeder exists, so neither test shows that a pinned version can be
 fetched from a public swarm. ModSync itself still accepts a magnet without a name and
 falls back to the local file name; the name requirement is enforced for CI pins only.
 
