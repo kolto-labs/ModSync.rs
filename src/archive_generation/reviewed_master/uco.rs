@@ -177,6 +177,9 @@ fn source_definition(c: &Component) -> Result<Component> {
     if let Some(origin) = super::super::source_plan_patcher::declared_original_definition(c)? {
         return Ok(origin);
     }
+    if let Some(origin) = crate::vendor_installer::declared_original_definition(c)? {
+        return Ok(origin);
+    }
     Ok(c.clone())
 }
 pub(super) fn validate_guide(guide: &Guide) -> Result<()> {

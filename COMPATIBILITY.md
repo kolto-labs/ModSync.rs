@@ -360,10 +360,20 @@ not run locally; the next K1 install lane is the proof.
 
 Two refusals now carry what a reviewer needs. `UCO prerequisite differs from its complete
 compiled original definition` names the prerequisite's GUID and name and the top-level
-fields that differ; the K2 lanes hit it and the guide is ruled out, so one of twelve
-prerequisites is bound differently from the archives. `Selected namespace has
-unclassified inactive sections` lists the orphaned sections the patcher reported; K1
-Taris Rapid Transit hits it and has no classification yet. Neither cause is fixed here.
+fields that differ. `Selected namespace has unclassified inactive sections` lists the
+orphaned sections the patcher reported; K1 Taris Rapid Transit hits it and has no
+classification yet, which is not fixed here.
+
+The first refusal then named its cause in run 45329233118: The Sith Lords Restored
+Content Mod (`bee5a72b`), differing in `Instructions` and `VendorInstallerBinding`. The
+vendor installer binding rewrites that component, and the UCO definition comparison knew
+how to recover the original from three other generators but not from this one.
+`vendor_installer::declared_original_definition` now returns the binding's stored input
+component, admitted only while it still equals the reviewed context, and the comparison
+uses it. As with the other three, this is a definition comparison only and never proof
+that the installer ran. Checked locally: the stored input equals the engine's draft of
+that component from the compiled K2 guide in every field but the loader form of
+`Language`, which the run did not report as differing. The next K2 lane is the proof.
 
 ## CI archive cache recovers a pinned version after a renamed re-upload, 2026-11-24 UTC
 
