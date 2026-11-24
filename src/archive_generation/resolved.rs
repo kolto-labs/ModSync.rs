@@ -968,6 +968,27 @@ fn bind_loose_method(
     )
 }
 
+/// The method-only guide component an archive method binding was made from, for
+/// definition comparisons only. The binding adds instructions and its receipt to
+/// a component that had neither, so removing them restores the input; it is
+/// admitted only if the result is method-only again. Never proof of the archive
+/// or of installation: replay re-derives the binding from the archive bytes.
+pub(crate) fn declared_original_definition(component: &Component) -> Result<Option<Component>> {
+    if !component.metadata.contains_key("ArchiveMethodBinding") {
+        return Ok(None);
+    }
+    let mut original = component.clone();
+    original.instructions.clear();
+    original.options.clear();
+    original.metadata.remove("ArchiveMethodBinding");
+    original.metadata.remove("DraftReview");
+    ensure!(
+        method_only_patcher(&original) || method_only_loose_file(&original),
+        "Component is not a method-only loose-file or patcher component"
+    );
+    Ok(Some(original))
+}
+
 /// Record the binding receipt, the archive derivation and the bound method
 /// context on a freshly bound component, then publish it.
 fn finish_method_binding(

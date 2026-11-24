@@ -373,7 +373,17 @@ component, admitted only while it still equals the reviewed context, and the com
 uses it. As with the other three, this is a definition comparison only and never proof
 that the installer ran. Checked locally: the stored input equals the engine's draft of
 that component from the compiled K2 guide in every field but the loader form of
-`Language`, which the run did not report as differing. The next K2 lane is the proof.
+`Language`, which the run did not report as differing. Run 45337846523 (commit
+`69916fa`) confirmed it: the comparison passed that component and four more and stopped
+at the next one.
+
+That next one is Maintenance Officer Realistic Reskin (`a2072211`), differing in
+`ArchiveMethodBinding` and `Instructions`: the same gap for the archive method binding.
+`resolved::declared_original_definition` now restores the method-only component that
+binding was made from (instructions, options and the binding receipt removed), admitted
+only if the result is method-only again, and the comparison uses it. The refusal now
+lists every differing prerequisite at once instead of the first. Whether any of the
+remaining seven prerequisites differs is shown by the next K2 lane.
 
 ## CI archive cache recovers a pinned version after a renamed re-upload, 2026-11-24 UTC
 

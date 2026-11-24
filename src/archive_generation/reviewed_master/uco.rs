@@ -180,6 +180,9 @@ fn source_definition(c: &Component) -> Result<Component> {
     if let Some(origin) = crate::vendor_installer::declared_original_definition(c)? {
         return Ok(origin);
     }
+    if let Some(origin) = super::super::resolved::declared_original_definition(c)? {
+        return Ok(origin);
+    }
     Ok(c.clone())
 }
 pub(super) fn validate_guide(guide: &Guide) -> Result<()> {
@@ -200,6 +203,7 @@ pub(super) fn validate_guide(guide: &Guide) -> Result<()> {
             "UCO master owner must occur exactly once"
         );
         let mut previous = None;
+        let mut differing = Vec::new();
         for &(guid, index) in spec.priors {
             let positions = guide
                 .components
@@ -231,12 +235,15 @@ pub(super) fn validate_guide(guide: &Guide) -> Result<()> {
                     .chain(bound.as_object().into_iter().flatten().map(|(key, _)| key))
                     .filter(|key| bound.get(key.as_str()) != original.get(key.as_str()))
                     .collect::<std::collections::BTreeSet<_>>();
-                anyhow::bail!(
-                    "UCO prerequisite differs from its complete compiled original definition: {guid} ({}) in {fields:?}",
-                    positions[0].1.name
-                );
+                differing.push(format!("{guid} ({}) in {fields:?}", positions[0].1.name));
             }
         }
+        // Every differing prerequisite is reported at once, not only the first.
+        ensure!(
+            differing.is_empty(),
+            "UCO prerequisite differs from its complete compiled original definition: {}",
+            differing.join("; ")
+        );
         if let Some(order) = guide.metadata.get("ModSyncSourceOrder") {
             let order = order.as_array().context("Invalid UCO source order")?;
             let mut required = spec
