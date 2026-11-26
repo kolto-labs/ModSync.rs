@@ -1,5 +1,6 @@
 """Credential-free recovery/namespace tests; no Rust or game processes run."""
 import contextlib
+import errno
 import io
 import os
 from pathlib import Path
@@ -90,6 +91,53 @@ class RecoveryTests(unittest.TestCase):
         self.assertEqual((self.game / "verified.txt").read_bytes(), b"cache-good")
         self.assertEqual(self.verified, [b"cache-good"])
         self.assertEqual(self.clients, [("owner/current", "current-only")])
+
+    def rename_raising(self, code):
+        original = Path.rename
+
+        def rename(path, target):
+            if Path(target) == self.game:
+                raise OSError(code, os.strerror(code))
+            return original(path, target)
+        return mock.patch.object(Path, "rename", autospec=True, side_effect=rename)
+
+    def test_a_game_dir_on_another_filesystem_is_restored_from_the_verified_seal(self):
+        # Exhaustive lanes loop-mount the game storage, so the verified tree under
+        # RUNNER_TEMP cannot be renamed into it (EXDEV).
+        self.cached()
+        with self.rename_raising(errno.EXDEV):
+            result = self.recover()
+        self.assertEqual(result, {"available": True, "origin": "cache", "backup_required": True})
+        self.assertEqual((self.game / "verified.txt").read_bytes(), b"cache-good")
+        # Verified once as a candidate and once again at the destination, never copied.
+        self.assertEqual(self.verified, [b"cache-good", b"cache-good"])
+
+    def test_a_failed_restore_on_another_filesystem_exits_1_and_leaves_no_game_tree(self):
+        self.cached()
+        calls = []
+
+        def verify_then_fail(game, candidate, destination, environ):
+            calls.append(destination)
+            if len(calls) == 2:  # the restore at the destination fails verification
+                raise subprocess.CalledProcessError(1, ["game_cache.py", "inventory"])
+            return self.verify(game, candidate, destination, environ)
+
+        output = io.StringIO()
+        with self.rename_raising(errno.EXDEV), \
+                mock.patch.object(baseline, "verify_seal", side_effect=verify_then_fail), \
+                mock.patch.dict(os.environ, self.environ, clear=True), contextlib.redirect_stdout(output):
+            code = baseline.main(["--game", "k1", "--seal-dir", str(self.seals), "--game-dir", str(self.game),
+                                  "--required", "--local-only"])
+        self.assertEqual(code, 1)
+        self.assertEqual(len(calls), 2)
+        self.assertFalse(self.game.exists())
+        self.assertIn("::error::No verified k1 baseline", output.getvalue())
+
+    def test_other_rename_failures_still_fail_recovery(self):
+        self.cached()
+        with self.rename_raising(errno.EACCES), self.assertRaises(PermissionError):
+            self.recover()
+        self.assertFalse(self.game.exists())
 
     def test_corrupt_cache_tries_current_before_legacy_and_preserves_other_candidates(self):
         self.cached(b"bad-cache", "old.seal")
