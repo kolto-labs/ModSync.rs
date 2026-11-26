@@ -384,7 +384,37 @@ fn validate_component_review(value: &serde_json::Value) -> anyhow::Result<()> {
 }
 
 /// Drafts are attached for review, never substituted for existing authored instructions.
+/// Which reading of guide prose a draft uses.
+///
+/// `Pinned` reproduces the C# reference byte for byte, mistakes included. Reviewed
+/// recipes bind to that output as the identity of their source guide, and a guide
+/// opened for install is drafted the same way, so this output must not change.
+/// `Corrected` is used only when a person asks for a draft (`convert
+/// --parse-directions`, the desktop "Draft instructions from prose" button).
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Mode {
+    Pinned,
+    Corrected,
+}
+
+/// Draft with the pinned C# reading. Every caller that binds or loads a guide uses
+/// this one; see [`Mode`].
 pub fn generate(guide: &mut Guide) -> Vec<DraftResult> {
+    generate_with(guide, Mode::Pinned)
+}
+
+/// Draft with the corrected reading, for an explicit request to draft from prose.
+///
+/// A step is drafted only when its source names a file, a wildcard or a named
+/// folder. Prose such as "the files from the patch" or "the mod" leaves a review
+/// gap instead of a folder guessed from ordinary words, copy-then-rename stays a
+/// gap, and download advice no longer becomes an option named after a phrase.
+/// The output still requires review like every other draft.
+pub fn generate_corrected(guide: &mut Guide) -> Vec<DraftResult> {
+    generate_with(guide, Mode::Corrected)
+}
+
+fn generate_with(guide: &mut Guide, mode: Mode) -> Vec<DraftResult> {
     let mut results = Vec::new();
     let defaults = guide_defaults(guide);
     for component in &mut guide.components {
@@ -427,7 +457,7 @@ pub fn generate(guide: &mut Guide) -> Vec<DraftResult> {
             .replace("__", "")
             .replace('*', "");
         for (text, condition) in units(&normalized) {
-            let Some(mut instruction) = parse_unit(&text, &mut result.unparsed_gaps) else {
+            let Some(mut instruction) = parse_unit(&text, &mut result.unparsed_gaps, mode) else {
                 continue;
             };
             if let Some(condition) = condition {
@@ -460,7 +490,7 @@ pub fn generate(guide: &mut Guide) -> Vec<DraftResult> {
         {
             component
                 .options
-                .extend(download_options(download, &component.guid));
+                .extend(download_options(download, &component.guid, mode));
         }
         result.draft_instruction_count = component.instructions.len();
         if result.draft_instruction_count > 0 || method_context.is_some() {
@@ -776,7 +806,7 @@ pub(crate) fn movie_context(component: &Component) -> Option<(serde_json::Value,
     ))
 }
 
-fn parse_unit(unit: &str, gaps: &mut Vec<String>) -> Option<Instruction> {
+fn parse_unit(unit: &str, gaps: &mut Vec<String>, mode: Mode) -> Option<Instruction> {
     if movie_destination_statement(unit) {
         // The source files are unknown until archive binding. Do not discard an
         // imperative destination merely because its sentence is an admonition.
@@ -823,9 +853,33 @@ fn parse_unit(unit: &str, gaps: &mut Vec<String>) -> Option<Instruction> {
         gaps.push(unit.into());
         return None;
     }
-    for (action, pattern) in INSTRUCTIONS.iter() {
-        if let Some(m) = pattern.captures(unit)
-            && let Some(instruction) = from_match(&m, action, unit)
+    // A duplicate under a new name has no instruction form: a Copy's Destination is a
+    // folder, so drafting it would copy or move the original under its old name.
+    static DUPLICATE: LazyLock<Regex> =
+        LazyLock::new(|| compile(r"\bduplicate\b|\bcopy\s+of\b|\bcopy\b.*\brename\b", false));
+    if mode == Mode::Corrected && DUPLICATE.is_match(unit) {
+        gaps.push(unit.into());
+        return None;
+    }
+    let patterns = match mode {
+        Mode::Pinned => &*INSTRUCTIONS,
+        Mode::Corrected => &*CORRECTED_INSTRUCTIONS,
+    };
+    for (action, pattern) in patterns.iter() {
+        // The corrected reading takes the first match that starts a word, so the
+        // "move" inside "Remove a.tga" is not a Move of a.tga.
+        let found = match mode {
+            Mode::Pinned => pattern.captures(unit),
+            Mode::Corrected => pattern.captures_iter(unit).find(|m| {
+                let start = m.get(0).map_or(0, |whole| whole.start());
+                !unit[..start]
+                    .chars()
+                    .next_back()
+                    .is_some_and(|c| c.is_alphanumeric() || c == '_')
+            }),
+        };
+        if let Some(m) = found
+            && let Some(instruction) = from_match(&m, action, unit, mode)
         {
             return Some(instruction);
         }
@@ -856,15 +910,41 @@ fn empty_instruction(action: &str) -> Instruction {
     }
 }
 
-fn from_match(m: &Captures<'_>, action: &str, unit: &str) -> Option<Instruction> {
+fn from_match(m: &Captures<'_>, action: &str, unit: &str, mode: Mode) -> Option<Instruction> {
     let mut instruction = empty_instruction(action);
     if let Some(source) = capture(m, "source") {
-        instruction.source = sources(source, unit, action);
+        instruction.source = sources(source, unit, action, mode);
         if let Some(other) = capture(m, "source2") {
-            instruction.source.extend(sources(other, unit, action));
+            instruction
+                .source
+                .extend(sources(other, unit, action, mode));
         }
     } else if let (Some(start), Some(end)) = (capture(m, "start"), capture(m, "end")) {
-        instruction.source = file_range(start, end);
+        instruction.source = match mode {
+            Mode::Pinned => file_range(start, end),
+            // "DXN_BWa1 through DXN_BWa8.tpc": the extension written once applies to
+            // both ends, giving DXN_BWa*.tpc rather than every DXN_BWa* file.
+            Mode::Corrected => match end.rsplit_once('.') {
+                Some((_, extension)) if !has_extension(start) && !extension.is_empty() => {
+                    file_range(&format!("{start}.{extension}"), end)
+                }
+                _ => file_range(start, end),
+            },
+        };
+    } else if mode == Mode::Corrected {
+        // The pinned reading ignores these captures and falls through to the
+        // catch-all, which drafts one letter of "everything" or "files" as a folder.
+        if let Some(folders) = capture(m, "folders") {
+            instruction.source = corrected_sources(&format!("{folders} folders"), unit, action);
+        } else if let (Some(first), Some(second)) = (capture(m, "source1"), capture(m, "source2")) {
+            instruction.source = corrected_sources(&format!("{first} folder"), unit, action);
+            let second = corrected_sources(&format!("{second} folder"), unit, action);
+            if instruction.source.is_empty() || second.is_empty() {
+                instruction.source.clear();
+            } else {
+                instruction.source.extend(second);
+            }
+        }
     }
     instruction.destination = capture(m, "destination")
         .map(|s| {
@@ -905,7 +985,7 @@ fn from_match(m: &Captures<'_>, action: &str, unit: &str) -> Option<Instruction>
         )
     });
     if let Some(m) = ONLY.captures(unit) {
-        let only = sources(capture(&m, "only").unwrap_or(""), unit, action);
+        let only = sources(capture(&m, "only").unwrap_or(""), unit, action, mode);
         if !only.is_empty() {
             instruction.source = only;
         }
@@ -921,7 +1001,14 @@ fn from_match(m: &Captures<'_>, action: &str, unit: &str) -> Option<Instruction>
     Some(instruction)
 }
 
-fn sources(source: &str, unit: &str, action: &str) -> Vec<String> {
+fn sources(source: &str, unit: &str, action: &str, mode: Mode) -> Vec<String> {
+    // Patcher, Execute and DelDuplicate sources are tool keywords ("installer",
+    // "DelDuplicateTGA-TPC") that the engine resolves; they keep the pinned reading.
+    if mode == Mode::Corrected
+        && matches!(action, "Move" | "Copy" | "Delete" | "Rename" | "Extract")
+    {
+        return corrected_sources(source, unit, action);
+    }
     // "Rename a.tga to b.tga" names one source and its new name, not a file range.
     let range = action != "Rename";
     if range && let Some(m) = ENTITIES["file_range"].captures(unit) {
@@ -966,6 +1053,270 @@ fn sources(source: &str, unit: &str, action: &str) -> Vec<String> {
         "{MODS}\\{cleaned}{}",
         if folder { "\\*" } else { "" }
     )]
+}
+
+/// Sources for the corrected reading: a file range, a file list, a named folder, a
+/// wildcard, a file name, a quoted name or one path. Anything else is prose such as
+/// "the files from the patch", and drafts no source, so the step stays a review gap.
+fn corrected_sources(source: &str, unit: &str, action: &str) -> Vec<String> {
+    static FOLDER: LazyLock<Regex> = LazyLock::new(|| {
+        compile(
+            r"^(?<before>.*?)\s+(?:(?<plural>folders|directories)|folder|directory)\b",
+            false,
+        )
+    });
+    let folderish = |name: &str| {
+        let folder = !has_extension(name) && !name.contains(['*', '?']);
+        format!(
+            "{MODS}\\{name}{}",
+            if folder && matches!(action, "Move" | "Copy") {
+                "\\*"
+            } else {
+                ""
+            }
+        )
+    };
+    let range = action != "Rename";
+    if range && let Some(m) = ENTITIES["file_range"].captures(unit) {
+        return file_range(capture(&m, "start").unwrap(), capture(&m, "end").unwrap());
+    }
+    // "PFBI01 through PFBI04" gives no extension to build a pattern from. The pinned
+    // reading drafts the mod directory root itself here.
+    if range && numeric_range(unit) {
+        return Vec::new();
+    }
+    // "the resolution folder corresponding to the HQ Cockpit Skyboxes option" picks a
+    // folder by description; its words are not its name.
+    static QUALIFIED: LazyLock<Regex> = LazyLock::new(|| {
+        compile(
+            r"\b(?:folders?|director(?:y|ies))\s+(?:corresponding|matching|appropriate|that\s+(?:matches|corresponds)|which\s+(?:matches|corresponds))\b",
+            false,
+        )
+    });
+    // The words ahead of the last "from"/"in": "w_lghtsbr_001.tga from the alt_texture".
+    static HEAD: LazyLock<Regex> =
+        LazyLock::new(|| compile(r"^(?<head>.*)\s(?:in|from|within|inside)\s", true));
+    if let Some(m) = FOLDER.captures(source) {
+        if QUALIFIED.is_match(unit) {
+            return Vec::new();
+        }
+        let before = capture(&m, "before").unwrap_or("");
+        let labels = folder_labels(before, m.name("plural").is_some());
+        let files = HEAD
+            .captures(before)
+            .and_then(|head| capture(&head, "head").map(named_files))
+            .unwrap_or_default();
+        return match (labels.as_slice(), files.is_empty()) {
+            // One named file inside one named folder.
+            ([label], false) => files
+                .iter()
+                .map(|file| format!("{MODS}\\{label}\\{file}"))
+                .collect(),
+            // Named files in a folder the words do not name: where they are is unknown.
+            (_, false) => Vec::new(),
+            (_, true) => labels
+                .iter()
+                .map(|label| format!("{MODS}\\{label}\\*"))
+                .collect(),
+        };
+    }
+    if let Some(m) = ENTITIES["file_list"].captures(source) {
+        let files = file_list(capture(&m, "files").unwrap());
+        if !files.is_empty() {
+            return files.iter().map(|s| format!("{MODS}\\{s}")).collect();
+        }
+    }
+    for (entity, group) in [("wildcard", "pattern"), ("single_file", "file")] {
+        if let Some(m) = ENTITIES[entity].captures(source) {
+            return vec![format!(
+                "{MODS}\\{}",
+                capture(&m, group).unwrap().trim_matches(['\"', '\''])
+            )];
+        }
+    }
+    // `"name"` or `files from "name"`; not `files beginning "PFBBL"`, which picks out
+    // some files by prefix.
+    static WHOLE_QUOTED: LazyLock<Regex> = LazyLock::new(|| {
+        compile(
+            r#"^(?:.*\b(?:from|in|within|inside)\s+(?:the\s+)?)?(?:"(?<double>[^"]+)"|'(?<single>[^']+)')$"#,
+            false,
+        )
+    });
+    if let Some(m) = WHOLE_QUOTED.captures(source.trim()) {
+        let name = capture(&m, "double").or_else(|| capture(&m, "single"));
+        if let Some(name) = name.filter(|name| !name.is_empty()) {
+            return vec![folderish(name)];
+        }
+    }
+    let cleaned = source.trim_matches(['\"', '\'', ' ', ',', ';']);
+    if !cleaned.is_empty()
+        && !cleaned.contains(char::is_whitespace)
+        && cleaned.contains(['/', '\\'])
+    {
+        return vec![folderish(cleaned)];
+    }
+    Vec::new()
+}
+
+/// File names, a file list or a wildcard named in `text`, without a root.
+fn named_files(text: &str) -> Vec<String> {
+    if let Some(m) = ENTITIES["file_list"].captures(text) {
+        let files = file_list(capture(&m, "files").unwrap());
+        if !files.is_empty() {
+            return files;
+        }
+    }
+    for (entity, group) in [("wildcard", "pattern"), ("single_file", "file")] {
+        if let Some(m) = ENTITIES[entity].captures(text) {
+            return vec![
+                capture(&m, group)
+                    .unwrap()
+                    .trim_matches(['\"', '\''])
+                    .to_owned(),
+            ];
+        }
+    }
+    Vec::new()
+}
+
+/// Quoted names in `text`. A single quote counts only at a word edge, so the
+/// apostrophes in "Ashton's" or "don't" never open a name.
+fn quoted(text: &str) -> Vec<String> {
+    static QUOTED: LazyLock<Regex> = LazyLock::new(|| {
+        compile(
+            r#""(?<double>[^"]+)"|(?:^|[\s(])'(?<single>[^']+)'(?:$|[\s),.;:])"#,
+            false,
+        )
+    });
+    QUOTED
+        .captures_iter(text)
+        .filter_map(|m| capture(&m, "double").or_else(|| capture(&m, "single")))
+        .filter(|name| !name.is_empty())
+        .map(str::to_owned)
+        .collect()
+}
+
+/// The folder names in the words before "folder": quoted names, or else the words
+/// after the last "in"/"from"/"within"/"inside" without a leading article, split on
+/// "and" and commas when the guide says "folders". "move all the files in the
+/// Creatures folder" names `Creatures`, not `files in the Creatures`. A choice ("A or
+/// B"), a pronoun or a word such as "files" names nothing, and then no folder is
+/// returned at all, because a partial list would read as the whole step.
+fn folder_labels(before: &str, plural: bool) -> Vec<String> {
+    static LEAD: LazyLock<Regex> =
+        LazyLock::new(|| compile(r"^(?:.*\s)?(?:in|from|within|inside)\s+", true));
+    static ARTICLES: LazyLock<Regex> = LazyLock::new(|| {
+        compile(
+            r"^(?:(?:the|your|both|all|these|those|(?:the\s+)?mod'?s)\s+)+",
+            false,
+        )
+    });
+    static LIST: LazyLock<Regex> =
+        LazyLock::new(|| compile(r"\s*(?:,\s*(?:and\s+)?|\s+and\s+|\s+&\s+)\s*", false));
+    const GENERIC: [&str; 24] = [
+        "a",
+        "an",
+        "the",
+        "it",
+        "them",
+        "this",
+        "that",
+        "these",
+        "those",
+        "all",
+        "any",
+        "both",
+        "each",
+        "either",
+        "everything",
+        "file",
+        "files",
+        "loose files",
+        "content",
+        "contents",
+        "mod",
+        "mods",
+        "following",
+        "same",
+    ];
+    // "your main game folder" or "the game's Override folder" is where files go, not a
+    // folder in the mod.
+    static GAME_OWNED: LazyLock<Regex> =
+        LazyLock::new(|| compile(r"^(?:your|(?:the\s+)?(?:game|kotor|swkotor)'?s)\s", false));
+    // A quoted name counts only when it is the folder's own name ("the "green"
+    // folder"). Quotes earlier in the words ("files beginning "PFBBL" from the Player
+    // Clothing folder") pick out some of the folder's files, which a folder source
+    // cannot say, so the step stays a gap.
+    let mut labels = quoted(before);
+    let named_by_quotes = before.trim_end().ends_with(['"', '\'']);
+    if !labels.is_empty() && !named_by_quotes {
+        return Vec::new();
+    }
+    if labels.is_empty() {
+        let text = LEAD.replace(before.trim(), "");
+        if GAME_OWNED.is_match(text.trim()) {
+            return Vec::new();
+        }
+        let text = ARTICLES.replace(text.trim(), "");
+        labels = if plural {
+            LIST.split(text.trim()).map(str::to_owned).collect()
+        } else {
+            vec![text.trim().to_owned()]
+        };
+    } else if !plural {
+        labels.drain(..labels.len() - 1);
+    }
+    // "one of those", "which ever you chose": a choice, not a name.
+    const CHOOSING: [&str; 12] = [
+        "one",
+        "each",
+        "either",
+        "any",
+        "which",
+        "whichever",
+        "this",
+        "that",
+        "these",
+        "those",
+        "its",
+        "their",
+    ];
+    // "the corresponding folder", "the base folder": which folder depends on the
+    // archive or on a choice, so the guide's words do not name one.
+    const DESCRIPTIVE: [&str; 12] = [
+        "corresponding",
+        "appropriate",
+        "relevant",
+        "respective",
+        "chosen",
+        "preferred",
+        "desired",
+        "selected",
+        "base",
+        "main",
+        "root",
+        "top-level",
+    ];
+    let named = |label: &String| {
+        let lower = label.trim().to_lowercase();
+        let first = lower.split_whitespace().next().unwrap_or("");
+        let quoted_or = |test: bool| named_by_quotes || test;
+        !lower.is_empty()
+            && quoted_or(!CHOOSING.contains(&first))
+            && quoted_or(!DESCRIPTIVE.contains(&lower.as_str()))
+            // "the 7 folders within ..." counts folders, it does not name one.
+            && quoted_or(!lower.chars().all(|c| c.is_ascii_digit()))
+            && quoted_or(
+                ![" or ", " to ", " into "]
+                    .iter()
+                    .any(|word| lower.contains(word)),
+            )
+            && !GENERIC.contains(&lower.as_str())
+    };
+    if !labels.iter().all(named) {
+        return Vec::new();
+    }
+    labels.iter().map(|label| label.trim().to_owned()).collect()
 }
 
 fn numeric_range(text: &str) -> bool {
@@ -1170,15 +1521,19 @@ pub fn sanitize(instruction: &mut Instruction) -> bool {
         || !instruction.destination.trim().is_empty()
 }
 
-fn download_options(text: &str, parent: &str) -> Vec<Component> {
+fn download_options(text: &str, parent: &str, mode: Mode) -> Vec<Component> {
     static VERSION: LazyLock<Regex> = LazyLock::new(|| {
         compile(
             r"(?:download|use|choose|install|get|select)\s+(?:the\s+)?(?<option>[^.,;!?\r\n]+?)\s+(?:version|variant|option|file|edition)",
             false,
         )
     });
+    let recommendations = match mode {
+        Mode::Pinned => &*RECOMMENDATIONS,
+        Mode::Corrected => &*CORRECTED_RECOMMENDATIONS,
+    };
     let mut result: Vec<Component> = Vec::new();
-    for (index, pattern) in RECOMMENDATIONS
+    for (index, pattern) in recommendations
         .iter()
         .chain(std::iter::once(&*VERSION))
         .enumerate()
@@ -1186,6 +1541,15 @@ fn download_options(text: &str, parent: &str) -> Vec<Component> {
         for m in pattern.captures_iter(text) {
             let Some(name) = capture(&m, "option") else {
                 continue;
+            };
+            // "Download only the Damaged version" offers "Damaged".
+            static LEADING: LazyLock<Regex> =
+                LazyLock::new(|| compile(r"^(?:(?:only|just)\s+)?(?:the\s+)?", false));
+            let name = match mode {
+                Mode::Pinned => name,
+                Mode::Corrected => LEADING
+                    .find(name)
+                    .map_or(name, |lead| name[lead.end()..].trim()),
             };
             let start = m.get(0).map_or(0, |whole| whole.start());
             if negated_recommendation(&text[..start], name)
@@ -1196,10 +1560,12 @@ fn download_options(text: &str, parent: &str) -> Vec<Component> {
                 ]
                 .contains(&name.to_lowercase().as_str())
                 || result.iter().any(|c| c.name.eq_ignore_ascii_case(name))
+                || mode == Mode::Corrected
+                    && (unnamed_option(name) || conditional_sentence(&text[..start]))
             {
                 continue;
             }
-            let recommended = index < RECOMMENDATIONS.len();
+            let recommended = index < recommendations.len();
             result.push(Component {
                 guid: crate::markdown::generated_id(&format!("{parent}:{name}"), result.len()),
                 name: name.into(),
@@ -1224,6 +1590,39 @@ fn download_options(text: &str, parent: &str) -> Vec<Component> {
 /// verb after a negation, as in `do not download the "stunbaton 2025" file`. The pinned
 /// C# parser drafts these as options (`against`, `"stunbaton 2025"`) and preselects
 /// them; Rust skips them. `before` is the text ahead of the match.
+/// A captured phrase that names no option: "and install both" from "Download and
+/// install both files", "" left of "only the" in "Download only the version marked
+/// ...", or words such as "main" or "mod" alone.
+fn unnamed_option(name: &str) -> bool {
+    const LEADING: [&str; 4] = ["and", "or", "then", "also"];
+    const FILLER: [&str; 20] = [
+        "main", "a", "an", "the", "this", "that", "these", "those", "it", "them", "both", "either",
+        "all", "any", "one", "mod", "mods", "file", "files", "version",
+    ];
+    let words: Vec<String> = name
+        .split_whitespace()
+        .map(|word| {
+            word.trim_matches(|c: char| !c.is_alphanumeric())
+                .to_lowercase()
+        })
+        .filter(|word| !word.is_empty())
+        .collect();
+    words
+        .first()
+        .is_some_and(|word| LEADING.contains(&word.as_str()))
+        || words.iter().all(|word| FILLER.contains(&word.as_str()))
+}
+
+/// The match sits in a sentence that starts with "If": "If wishing to use a
+/// non-English mod version, download ..." describes a case, not a choice to draft.
+fn conditional_sentence(before: &str) -> bool {
+    let start = before.rfind(['.', '!', '?', '\n']).map_or(0, |i| i + 1);
+    before[start..]
+        .trim_start()
+        .to_lowercase()
+        .starts_with("if ")
+}
+
 fn negated_recommendation(before: &str, name: &str) -> bool {
     static AGAINST: LazyLock<Regex> = LazyLock::new(|| compile(r"^(?:against|not)\b", false));
     static NEGATION: LazyLock<Regex> =
@@ -1248,13 +1647,7 @@ static INSTRUCTIONS: LazyLock<Vec<(&str, Regex)>> = LazyLock::new(|| {
                 false,
             ),
         ),
-        (
-            "Move",
-            compile(
-                r###"(?:move|copy|transfer)\s+(?:all|everything|all\s+(?:the\s+)?(?:files?|content|loose\s+files?))\s+(?:from\s+)?(?:the\s+)?(?<source>[\w\s\-_/\\"'&,]+?)\s+(?:folder|directory)?\s+to\s+(?:your\s+)?(?:game'?s?\s+)?(?<destination>[\w\s\-_/\\]+)"###,
-                false,
-            ),
-        ),
+        ("Move", compile(PINNED_MOVE_ALL, false)),
         (
             "Move",
             compile(
@@ -1304,13 +1697,7 @@ static INSTRUCTIONS: LazyLock<Vec<(&str, Regex)>> = LazyLock::new(|| {
                 false,
             ),
         ),
-        (
-            "Move",
-            compile(
-                r###"(?:move|copy|place|put|drag)\s+(?:the\s+)?(?<source>[\w\s\-_/\\*.,()]+?)(?:\s+(?:to|into)\s+(?<destination>[\w\s\-_/\\]+?))?"###,
-                false,
-            ),
-        ),
+        ("Move", compile(PINNED_MOVE_ANY, false)),
         (
             "Delete",
             compile(
@@ -1353,13 +1740,7 @@ static INSTRUCTIONS: LazyLock<Vec<(&str, Regex)>> = LazyLock::new(|| {
                 false,
             ),
         ),
-        (
-            "Extract",
-            compile(
-                r###"(?:extract|unzip|decompress|unpack)\s+(?:the\s+)?(?<source>[\w\s\-_/\\]+?)(?:\s+to\s+(?<destination>[\w\s\-_/\\]+?))?"###,
-                false,
-            ),
-        ),
+        ("Extract", compile(PINNED_EXTRACT_ANY, false)),
         (
             "Extract",
             compile(
@@ -1718,12 +2099,77 @@ static ENTITIES: LazyLock<BTreeMap<&str, Regex>> = LazyLock::new(|| {
         ),
     ])
 });
+// Pinned C# patterns that the corrected reading replaces. Keep them byte for byte:
+// the corrected tables find them by pattern text.
+const PINNED_MOVE_ALL: &str = r###"(?:move|copy|transfer)\s+(?:all|everything|all\s+(?:the\s+)?(?:files?|content|loose\s+files?))\s+(?:from\s+)?(?:the\s+)?(?<source>[\w\s\-_/\\"'&,]+?)\s+(?:folder|directory)?\s+to\s+(?:your\s+)?(?:game'?s?\s+)?(?<destination>[\w\s\-_/\\]+)"###;
+const PINNED_MOVE_ANY: &str = r###"(?:move|copy|place|put|drag)\s+(?:the\s+)?(?<source>[\w\s\-_/\\*.,()]+?)(?:\s+(?:to|into)\s+(?<destination>[\w\s\-_/\\]+?))?"###;
+const PINNED_EXTRACT_ANY: &str = r###"(?:extract|unzip|decompress|unpack)\s+(?:the\s+)?(?<source>[\w\s\-_/\\]+?)(?:\s+to\s+(?<destination>[\w\s\-_/\\]+?))?"###;
+const PINNED_RECOMMEND: &str = r###"(?:I\s+)?(?:recommend|suggest|advise)\s+(?:the\s+)?(?<option>[^.,;]+?)(?:\s+version|\s+option|\s+install)?(?:[.,;]|$)"###;
+
+// "move all the files in the Creatures folder": the longer "all the files" form is
+// tried before plain "all", "in"/"within" are accepted as well as "from", and the
+// folder word is part of the source so it is read as a named folder. Copying is a
+// Copy, not a Move that would take the original away.
+const CORRECTED_MOVE_ALL: &str = r###"(?:move|transfer)\s+(?:all\s+(?:the\s+)?(?:loose\s+files?|files?|content)|everything|all)\s+(?:(?:from|in|within|inside)\s+)?(?:the\s+)?(?<source>[\w\s\-_/\\"'&,]+?\s+(?:folders?|directory))\s+to\s+(?:your\s+)?(?:game'?s?\s+)?(?<destination>[\w\s\-_/\\]+)"###;
+const CORRECTED_COPY_ALL: &str = r###"copy\s+(?:all\s+(?:the\s+)?(?:loose\s+files?|files?|content)|everything|all)\s+(?:(?:from|in|within|inside)\s+)?(?:the\s+)?(?<source>[\w\s\-_/\\"'&,]+?\s+(?:folders?|directory))\s+to\s+(?:your\s+)?(?:game'?s?\s+)?(?<destination>[\w\s\-_/\\]+)"###;
+// The pinned catch-alls end on a lazy source with nothing required after it, so they
+// capture one letter ("f" from "files"). These require the source to run to a
+// destination, punctuation, a joining word or the end of the step.
+const CORRECTED_MOVE_ANY: &str = r###"\b(?:move|place|put|drag)\s+(?:the\s+)?(?<source>[\w\s\-_/\\*.,()"']+?)(?:\s+(?:directly\s+)?(?:to|into)\s+(?<destination>[\w\s\-_/\\']+?))?(?:\s*(?:[,;:(]|\.(?:\s|$))|\s+(?:and|then|if|unless|before|after|once|but|so|as\s+well)\b|$)"###;
+const CORRECTED_COPY_ANY: &str = r###"\bcopy\s+(?:the\s+)?(?<source>[\w\s\-_/\\*.,()"']+?)(?:\s+(?:directly\s+)?(?:to|into)\s+(?<destination>[\w\s\-_/\\']+?))?(?:\s*(?:[,;:(]|\.(?:\s|$))|\s+(?:and|then|if|unless|before|after|once|but|so|as\s+well)\b|$)"###;
+const CORRECTED_EXTRACT_ANY: &str = r###"\b(?:extract|unzip|decompress|unpack)\s+(?:the\s+)?(?<source>[\w\s\-_/\\."']+?)(?:\s+(?:to|into)\s+(?<destination>[\w\s\-_/\\]+?))?(?:\s*(?:[,;:(]|\.(?:\s|$))|\s+(?:and|then|if|unless|before|after|once|but|so|as\s+well)\b|$)"###;
+// "I recommend the Medium texture option for the best balance ..." names "Medium
+// texture", not the whole clause.
+const CORRECTED_RECOMMEND: &str = r###"(?:I\s+)?(?:recommend|suggest|advise)\s+(?:the\s+)?(?<option>[^.,;]+?)(?:\s+(?:version|option|variant)\b[^.,;]*)?(?:[.,;]|$)"###;
+
+/// The pinned instruction patterns with the corrected replacements swapped in.
+static CORRECTED_INSTRUCTIONS: LazyLock<Vec<(&str, Regex)>> = LazyLock::new(|| {
+    let mut result = Vec::with_capacity(INSTRUCTIONS.len() + 2);
+    let mut replaced = 0;
+    for (action, pattern) in INSTRUCTIONS.iter() {
+        match pattern.as_str() {
+            PINNED_MOVE_ALL => {
+                result.push(("Move", compile(CORRECTED_MOVE_ALL, false)));
+                result.push(("Copy", compile(CORRECTED_COPY_ALL, false)));
+                replaced += 1;
+            }
+            PINNED_MOVE_ANY => {
+                result.push(("Move", compile(CORRECTED_MOVE_ANY, false)));
+                result.push(("Copy", compile(CORRECTED_COPY_ANY, false)));
+                replaced += 1;
+            }
+            PINNED_EXTRACT_ANY => {
+                result.push(("Extract", compile(CORRECTED_EXTRACT_ANY, false)));
+                replaced += 1;
+            }
+            _ => result.push((*action, pattern.clone())),
+        }
+    }
+    assert_eq!(
+        replaced, 3,
+        "corrected draft patterns must replace their pinned originals"
+    );
+    result
+});
+
+static CORRECTED_RECOMMENDATIONS: LazyLock<Vec<Regex>> = LazyLock::new(|| {
+    let result: Vec<Regex> = RECOMMENDATIONS
+        .iter()
+        .map(|pattern| match pattern.as_str() {
+            PINNED_RECOMMEND => compile(CORRECTED_RECOMMEND, false),
+            _ => pattern.clone(),
+        })
+        .collect();
+    assert!(
+        result.iter().any(|p| p.as_str() == CORRECTED_RECOMMEND),
+        "corrected recommendation pattern must replace its pinned original"
+    );
+    result
+});
+
 static RECOMMENDATIONS: LazyLock<Vec<Regex>> = LazyLock::new(|| {
     vec![
-        compile(
-            r###"(?:I\s+)?(?:recommend|suggest|advise)\s+(?:the\s+)?(?<option>[^.,;]+?)(?:\s+version|\s+option|\s+install)?(?:[.,;]|$)"###,
-            false,
-        ),
+        compile(PINNED_RECOMMEND, false),
         compile(
             r###"(?:I\s+)?(?:strongly\s+)?recommend\s+(?:using\s+)?(?:the\s+)?(?<option>[^.,;]+?)"###,
             false,

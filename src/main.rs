@@ -2603,7 +2603,7 @@ fn dispatch(command: Option<Action>, case_insensitive_pathing: bool) -> Result<(
                 }
             }
             if parse_directions {
-                modsync::draft::generate(&mut guide);
+                modsync::draft::generate_corrected(&mut guide);
             }
             let cancelled = modsync::p2p::stop_signal_flag()?;
             process_conversion(&mut guide, &processing, input_file.as_deref(), &cancelled)?;

@@ -2252,7 +2252,7 @@ impl App {
                     .clicked()
                     && let Some(guide) = &mut self.guide
                 {
-                    let results = modsync::draft::generate(guide);
+                    let results = modsync::draft::generate_corrected(guide);
                     self.logs.push(format!("Drafted {} instructions; inspect each component before accepting its draft.", results.iter().map(|r| r.draft_instruction_count).sum::<usize>()));
                     self.validated = false;
                     self.conflicts = None;
